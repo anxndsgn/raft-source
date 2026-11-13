@@ -366,9 +366,10 @@ export function AgentSkillsHubTab({ agentId, runtime }: { agentId: string; runti
         label={formatMessage({ id: "skillsHub.agent.enabledTitle" })}
         icon={<Package size={16} />}
         count={enabledIds.length}
-        action={canManageHub && !draft ? <AddButtons onAdd={(kind) => setDraft(emptyDraft(kind))} /> : undefined}
       />
       <p className="text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.agent.restartNote" })}</p>
+      {/* The agent panel is narrow: the add buttons get their own row so the title never wraps. */}
+      {canManageHub && !draft && <AddButtons onAdd={(kind) => setDraft(emptyDraft(kind))} />}
 
       {draft && (
         <SkillsHubItemEditor
