@@ -33,7 +33,7 @@ export const API_ROUTE_WORDS: ReadonlySet<string> = new Set([
   "migration", "model", "models", "notification-levels", "notifications", "notification-settings",
   "number", "oauth", "offer", "onboarding-identity-adoption", "onboarding-settings", "operations",
   "operator-events", "options", "order", "overview", "owner", "passkey", "passkeys",
-  "payment-method", "pending-link", "period-metrics", "permissions", "permission-updates",
+  "payment-method", "pending-link", "period-metrics", "plugins", "permissions", "permission-updates",
   "platforms", "portal", "prepaid", "prepare", "preview", "probe", "probes",
   "product-analytics-settings", "product-feedback", "profile", "prompt-events", "provider-connections",
   "providers", "public", "public-search", "public-visibility", "push", "quote", "raftbench",

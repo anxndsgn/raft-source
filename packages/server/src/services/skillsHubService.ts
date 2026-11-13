@@ -373,8 +373,12 @@ export async function importSkillsHubSkills(input: {
 }
 
 /** Names of existing skills, to flag clashes in a scan. */
-export async function skillsHubSkillIdsByName(serverId: string, db: DatabaseExecutor = getDb()): Promise<Map<string, string>> {
+export async function skillsHubSkillIdsByName(
+  serverId: string,
+  db: DatabaseExecutor = getDb(),
+  kind: SkillsHubItemKind = "skill",
+): Promise<Map<string, string>> {
   const rows = await db.select({ id: skillsHubItems.id, name: skillsHubItems.name }).from(skillsHubItems)
-    .where(and(eq(skillsHubItems.serverId, serverId), eq(skillsHubItems.kind, "skill")));
+    .where(and(eq(skillsHubItems.serverId, serverId), eq(skillsHubItems.kind, kind)));
   return new Map(rows.map((row) => [row.name, row.id]));
 }

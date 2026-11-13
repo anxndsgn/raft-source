@@ -65,6 +65,28 @@ export interface SkillsHubGithubScanResponse {
   skills: SkillsHubGithubScanSkill[];
 }
 
+/** One plugin listed in a GitHub marketplace (`.claude-plugin/marketplace.json`). */
+export interface SkillsHubMarketplaceScanPlugin {
+  /** Plugin name inside the marketplace. */
+  name: string;
+  /** Hub plugin id: `<name>@<marketplace>`. */
+  id: string;
+  description: string | null;
+  version: string | null;
+  /** A plugin item with this id already exists in the hub. */
+  existingItemId: string | null;
+}
+
+export interface SkillsHubMarketplaceScanResponse {
+  /** `owner/repo` */
+  repo: string;
+  ref: string;
+  commitSha: string;
+  /** The marketplace's `name`, the part after `@` in plugin ids. */
+  marketplace: string;
+  plugins: SkillsHubMarketplaceScanPlugin[];
+}
+
 export interface SkillsHubGithubImportRequest {
   url: string;
   commitSha: string;

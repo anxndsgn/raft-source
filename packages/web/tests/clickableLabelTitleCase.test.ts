@@ -171,6 +171,9 @@ function isTitleCased(label: string): boolean {
 
 const CLICKABLE_LABEL_IDS = [
   "skillsHub.import.confirm",
+  "skillsHub.plugin.confirm",
+  "skillsHub.plugin.scan",
+  "skillsHub.plugin.manualToggle",
   "avatar.edit.upload",
   "avatar.edit.build",
   "avatar.builder.shuffle",

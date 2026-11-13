@@ -3,8 +3,10 @@ import { afterEach, vi } from "vitest";
 import {
   findSkillCandidates,
   parseGithubLocation,
+  parseMarketplaceManifest,
   readGithubSkills,
   readSkillFrontmatter,
+  scanGithubMarketplace,
   scanGithubSkills,
   skillsHubNameFor,
 } from "./skillsHubGithub";
@@ -92,4 +94,41 @@ test("scan lists skills under a tree link; import reads every file at the pinned
 test("a missing repository reads as not found", async () => {
   vi.stubGlobal("fetch", vi.fn(async () => new Response("", { status: 404 })));
   await assert.rejects(scanGithubSkills("o/missing"), (e: unknown) => e instanceof SkillsHubError && e.code === "skills_hub_github_not_found");
+});
+
+test("a marketplace manifest yields its name and the plugins with valid ids", () => {
+  const manifest = parseMarketplaceManifest(JSON.stringify({
+    name: "cursor-plugins",
+    plugins: [
+      { name: "pstack", description: " Stack tools ", version: "1.2.0", source: "./pstack" },
+      { name: "pstack", description: "duplicate" },
+      { name: "bad name" },
+      "not an object",
+      { name: "origin-apps" },
+    ],
+  }));
+  assert.deepEqual(manifest, {
+    name: "cursor-plugins",
+    plugins: [
+      { name: "pstack", description: "Stack tools", version: "1.2.0" },
+      { name: "origin-apps", description: null, version: null },
+    ],
+  });
+  assert.throws(() => parseMarketplaceManifest("{"), SkillsHubError);
+  assert.throws(() => parseMarketplaceManifest(JSON.stringify({ plugins: [] })), SkillsHubError);
+});
+
+test("marketplace scan reads .claude-plugin/marketplace.json at the resolved commit", async () => {
+  const calls = stubGithub({
+    ".claude-plugin/marketplace.json": JSON.stringify({ name: "m", plugins: [{ name: "p", description: "d" }] }),
+  });
+  const scan = await scanGithubMarketplace("https://github.com/o/r/");
+  assert.equal(scan.ref.commitSha, SHA);
+  assert.deepEqual(scan.marketplace, { name: "m", plugins: [{ name: "p", description: "d", version: null }] });
+  assert.ok(calls.includes(`https://raw.githubusercontent.com/o/r/${SHA}/.claude-plugin/marketplace.json`));
+});
+
+test("a repository without a marketplace manifest reads as not found", async () => {
+  stubGithub({ "README.md": "hi" });
+  await assert.rejects(scanGithubMarketplace("o/r"), (e: unknown) => e instanceof SkillsHubError && e.code === "skills_hub_github_not_found");
 });

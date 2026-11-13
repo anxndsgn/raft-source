@@ -5,6 +5,7 @@
 
 import {
   SKILLS_HUB_MAX_CONTENT_BYTES,
+  SKILLS_HUB_PLUGIN_NAME_PATTERN,
   SKILLS_HUB_MAX_SKILL_FILES,
   SKILLS_HUB_MAX_SKILL_FILES_BYTES,
   SKILLS_HUB_SKILL_NAME_PATTERN,
@@ -296,4 +297,67 @@ export async function readGithubSkills(input: string, commitSha: string, paths: 
       source: { type: "github", repo: `${ref.owner}/${ref.repo}`, ref: ref.ref, commitSha, path },
     };
   }));
+}
+
+/** Where Claude Code looks for a marketplace manifest in a repository. */
+export const MARKETPLACE_MANIFEST_PATH = ".claude-plugin/marketplace.json";
+const MAX_MARKETPLACE_PLUGINS = 500;
+
+export interface GithubMarketplacePlugin {
+  name: string;
+  description: string | null;
+  version: string | null;
+}
+
+export interface GithubMarketplace {
+  name: string;
+  plugins: GithubMarketplacePlugin[];
+}
+
+function optionalText(value: unknown, max: number): string | null {
+  return typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
+}
+
+/** Read a marketplace manifest: its name and the plugins whose ids are valid hub plugin ids. */
+export function parseMarketplaceManifest(text: string): GithubMarketplace {
+  let manifest: unknown;
+  try {
+    manifest = JSON.parse(text);
+  } catch {
+    throw new SkillsHubError(`${MARKETPLACE_MANIFEST_PATH} is not valid JSON`, "skills_hub_invalid");
+  }
+  const body = (typeof manifest === "object" && manifest !== null ? manifest : {}) as Record<string, unknown>;
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  if (!SKILLS_HUB_PLUGIN_NAME_PATTERN.test(`plugin@${name}`)) {
+    throw new SkillsHubError(`${MARKETPLACE_MANIFEST_PATH} has no valid marketplace name`, "skills_hub_invalid");
+  }
+  const seen = new Set<string>();
+  const plugins: GithubMarketplacePlugin[] = [];
+  for (const entry of Array.isArray(body.plugins) ? body.plugins : []) {
+    if (typeof entry !== "object" || entry === null) continue;
+    const plugin = entry as Record<string, unknown>;
+    const pluginName = typeof plugin.name === "string" ? plugin.name.trim() : "";
+    if (!SKILLS_HUB_PLUGIN_NAME_PATTERN.test(`${pluginName}@${name}`) || seen.has(pluginName)) continue;
+    seen.add(pluginName);
+    plugins.push({ name: pluginName, description: optionalText(plugin.description, 2_000), version: optionalText(plugin.version, 100) });
+    if (plugins.length >= MAX_MARKETPLACE_PLUGINS) break;
+  }
+  return { name, plugins };
+}
+
+/** List the plugins of the marketplace at a GitHub address (its `.claude-plugin/marketplace.json`). */
+export async function scanGithubMarketplace(input: string): Promise<{ ref: ResolvedGithubRef; marketplace: GithubMarketplace }> {
+  const ref = await resolveGithubRef(parseGithubLocation(input));
+  const manifestPath = ref.basePath ? `${ref.basePath}/${MARKETPLACE_MANIFEST_PATH}` : MARKETPLACE_MANIFEST_PATH;
+  const encoded = manifestPath.split("/").map(encodeURIComponent).join("/");
+  const response = await githubFetch(`${RAW}/${ref.owner}/${ref.repo}/${ref.commitSha}/${encoded}`, "*/*");
+  if (response.status === 404) {
+    throw new SkillsHubError(`No ${MARKETPLACE_MANIFEST_PATH} in ${ref.owner}/${ref.repo}: this is not a plugin marketplace`, "skills_hub_github_not_found");
+  }
+  if (!response.ok) failFromStatus(response, MARKETPLACE_MANIFEST_PATH);
+  const text = await response.text();
+  if (Buffer.byteLength(text, "utf8") > SKILLS_HUB_MAX_CONTENT_BYTES) {
+    throw new SkillsHubError(`${MARKETPLACE_MANIFEST_PATH} is too large`, "skills_hub_invalid");
+  }
+  return { ref, marketplace: parseMarketplaceManifest(text) };
 }

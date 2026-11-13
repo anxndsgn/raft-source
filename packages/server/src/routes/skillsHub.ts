@@ -6,7 +6,7 @@ import { agents } from "../db/schema";
 import { actorHasServerCapabilityInServer, getActorServerRoleInServer, userCanActOnAgentResource } from "../lib/actorPermissions";
 import { guardUuidPathParams } from "../lib/uuidPathParams";
 import type { AgentOrchestrator } from "../services/agentOrchestrator";
-import { readGithubSkills, scanGithubSkills } from "../services/skillsHubGithub";
+import { readGithubSkills, scanGithubMarketplace, scanGithubSkills } from "../services/skillsHubGithub";
 import {
   createSkillsHubItem,
   importSkillsHubSkills,
@@ -240,6 +240,29 @@ skillsHubRouter.post("/github/import", requireCapability("manageIntegrations"), 
     }, tx));
     res.status(201).json({ items: result.items });
     await restartAgents(req, result.affectedAgentIds);
+  } catch (error) {
+    sendSkillsHubError(error, res, next);
+  }
+});
+
+/** List the plugins of the marketplace at a GitHub address (nothing is saved). */
+skillsHubRouter.post("/plugins/scan", requireCapability("manageIntegrations"), async (req, res, next) => {
+  try {
+    const url = requiredString(body(req).url, "url", 1_000);
+    const [{ ref, marketplace }, existing] = await Promise.all([
+      scanGithubMarketplace(url),
+      skillsHubSkillIdsByName(req.serverId!, undefined, "plugin"),
+    ]);
+    res.json({
+      repo: `${ref.owner}/${ref.repo}`,
+      ref: ref.ref,
+      commitSha: ref.commitSha,
+      marketplace: marketplace.name,
+      plugins: marketplace.plugins.map((plugin) => {
+        const id = `${plugin.name}@${marketplace.name}`;
+        return { ...plugin, id, existingItemId: existing.get(id) ?? null };
+      }),
+    });
   } catch (error) {
     sendSkillsHubError(error, res, next);
   }
