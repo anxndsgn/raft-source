@@ -3,6 +3,7 @@ import type { Plugin, ViteDevServer } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { applyPwaAppName } from "./scripts/pwaManifestName";
@@ -109,6 +110,15 @@ function sharedWithoutSideEffectsPlugin(): Plugin {
 
 const webEntry = resolve(webRoot, "src/main.tsx");
 
+// `pnpm ui:link` (scripts/linkLocalRaftUi.mjs) points raft-ui and ricons at a
+// local raft-design checkout. Vite may then serve files from it, and React
+// must stay the web's single copy: the linked package would otherwise load
+// raft-design's own and break every hook.
+const localRaftDesignRoot = (() => {
+  const state = resolve(webRoot, "node_modules/.local-raft-ui.json");
+  return existsSync(state) ? (JSON.parse(readFileSync(state, "utf8")) as { designRoot: string }).designRoot : null;
+})();
+
 export default defineConfig({
   define: {
     ...remotePreviewDefines,
@@ -133,7 +143,11 @@ export default defineConfig({
     catalogPartsPlugin(),
     sharedWithoutSideEffectsPlugin(),
   ],
+  ...(localRaftDesignRoot
+    ? { resolve: { dedupe: ["react", "react-dom", "react/jsx-runtime"] } }
+    : {}),
   server: {
+    ...(localRaftDesignRoot ? { fs: { allow: [resolve(webRoot, "../.."), localRaftDesignRoot] } } : {}),
     host: true,
     allowedHosts: [".trycloudflare.com", ".loca.lt"],
     port: devPort,

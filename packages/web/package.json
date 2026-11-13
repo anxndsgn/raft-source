@@ -23,7 +23,10 @@
     "generate:reactions": "node --import @oxc-node/core/register scripts/generate-reaction-sprites.ts",
     "build:feedback": "vite build --config vite.feedback.config.ts",
     "test:feedback-diagnostics": "pnpm run build:feedback && node --import @oxc-node/core/register scripts/check-feedback-diagnostics.ts",
-    "test:feedback-entry": "pnpm run build:feedback && node --import @oxc-node/core/register scripts/check-native-feedback-entry.ts"
+    "test:feedback-entry": "pnpm run build:feedback && node --import @oxc-node/core/register scripts/check-native-feedback-entry.ts",
+    "ui:link": "node scripts/linkLocalRaftUi.mjs link",
+    "ui:unlink": "node scripts/linkLocalRaftUi.mjs unlink",
+    "ui:status": "node scripts/linkLocalRaftUi.mjs status"
   },
   "dependencies": {
     "@botiverse/hands-feedback-react": "0.5.3",
