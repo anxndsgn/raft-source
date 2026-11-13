@@ -112,13 +112,14 @@ stack there and checks `SERVER_URL/health`.
 
 One-time setup:
 
-1. On the server: install Docker, create `~/raft/.env` from `.env.example`, and
-   add `RAFT_SERVER_IMAGE=ghcr.io/<owner>/raft-server:latest` (and the same for
+1. On the server: install Docker. Fill in a `.env` from `.env.example`, adding
+   `RAFT_SERVER_IMAGE=ghcr.io/<owner>/raft-server:latest` (and the same for
    `RAFT_WEB_IMAGE`, `RAFT_TOOLS_IMAGE`) so a manual `docker compose up -d`
-   uses the published images too.
+   uses the published images too. It goes into the `SELF_HOST_ENV` secret;
+   every deploy writes it to `~/raft/.env` on the server.
 2. Create a deploy key pair (`ssh-keygen -t ed25519 -N "" -f raft_deploy`) and
    append `raft_deploy.pub` to the server user's `~/.ssh/authorized_keys`.
 3. Repository secrets: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` (the
-   private key). Repository variable: `SERVER_URL`; optionally `DEPLOY_PATH`.
+   private key), `SELF_HOST_ENV` (`gh secret set SELF_HOST_ENV < .env`). Repository variable: `SERVER_URL`; optionally `DEPLOY_PATH`.
 4. After the first run, make the three GHCR packages public (package settings)
    if the server cannot pull them.

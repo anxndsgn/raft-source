@@ -3,10 +3,11 @@
 #
 # Repository settings (Settings → Secrets and variables → Actions):
 #   secrets:   DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY (private key, no passphrase)
+#              SELF_HOST_ENV (the whole .env, see deploy/self-host/.env.example)
 #   variables: SERVER_URL (public API URL, baked into the web image)
 #              DEPLOY_PATH (optional; directory on the server, default ~/raft)
-# The server needs Docker and a filled-in <DEPLOY_PATH>/.env (see
-# deploy/self-host/.env.example). The compose files are copied on every deploy.
+# The server needs Docker. Every deploy writes SELF_HOST_ENV to
+# <DEPLOY_PATH>/.env and copies the compose files.
 name: Deploy self-host
 
 on:
@@ -108,16 +109,23 @@ jobs:
             deploy/self-host/.env.example \
             "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
 
+      - name: Write .env
+        env:
+          SELF_HOST_ENV: ${{ secrets.SELF_HOST_ENV }}
+        run: |
+          if [ -z "$SELF_HOST_ENV" ]; then
+            echo "::error::Set the SELF_HOST_ENV repository secret (the server's .env)"
+            exit 1
+          fi
+          printf '%s\n' "$SELF_HOST_ENV" | ssh -i ~/.ssh/id_deploy "$DEPLOY_USER@$DEPLOY_HOST" \
+            "umask 077 && cat > $DEPLOY_PATH/.env"
+
       - name: Pull and restart
         run: |
           owner="${GITHUB_REPOSITORY_OWNER,,}"
           ssh -i ~/.ssh/id_deploy "$DEPLOY_USER@$DEPLOY_HOST" bash -s <<EOF
           set -euo pipefail
           cd $DEPLOY_PATH
-          if [ ! -f .env ]; then
-            echo "Missing $DEPLOY_PATH/.env on the server: copy .env.example to .env and fill it in." >&2
-            exit 1
-          fi
           export RAFT_SERVER_IMAGE=ghcr.io/$owner/raft-server:${{ github.sha }}
           export RAFT_WEB_IMAGE=ghcr.io/$owner/raft-web:${{ github.sha }}
           export RAFT_TOOLS_IMAGE=ghcr.io/$owner/raft-tools:${{ github.sha }}
