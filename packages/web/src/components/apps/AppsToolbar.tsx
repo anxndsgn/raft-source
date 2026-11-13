@@ -180,11 +180,14 @@ export function AppsToolbar({
   ];
   // The applied filters first, so they are in view before any scrolling.
   const orderedFilters = [...filterItems.filter((item) => item.applied), ...filterItems.filter((item) => !item.applied)];
+  // The Skills Hub tab has its own header and actions: only the scope here.
+  const scopeOnly = tab === "skills";
 
   return (
     <div className={variant === "page" ? `px-4 md:px-(--surface-inset) ${LIST_TOOLBAR_AIR_CLASS}` : undefined} data-testid="connected-apps-filters">
       <FitToolbar aria-label={formatMessage({ id: "apps.page.title" })} wrap className="gap-2">
         <ListScope value={tab} options={tabs} onValueChange={onTabChange} label={scopeLabel} testId="connected-apps-tabs" selectTestId="connected-apps-scope-select" />
+        {scopeOnly ? null : (<>
         <FitToolbarSearch
           value={filters.search}
           onValueChange={handleSearch}
@@ -244,6 +247,7 @@ export function AppsToolbar({
           <ListToolbarMore testId="apps-toolbar-more" />
           {addApp}
         </FitToolbarGroup>
+        </>)}
       </FitToolbar>
     </div>
   );

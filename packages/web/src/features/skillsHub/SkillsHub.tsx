@@ -9,6 +9,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Input,
   Switch,
   Textarea,
@@ -16,7 +20,7 @@ import {
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { useIntl } from "react-intl";
-import { ChevronDown, ChevronRight, Download, Package, Plus, Puzzle, Sparkles, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Download, Package, Pencil, Plus, Puzzle, Sparkles, Trash2 } from "lucide-react";
 import { isExternalAgentRuntime, skillsHubPluginMarketplace } from "@botiverse/raft-shared";
 import type {
   SkillsHubAgentCatalogResponse,
@@ -32,6 +36,7 @@ import type {
 import api from "../../api/client";
 import { DialogActions, DialogCommit, NarrowDialogContent } from "../../components/ui/NarrowDialog";
 import SectionHeader from "../../components/ui/SectionHeader";
+import { showToast } from "../../components/toastBridge";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
 import { useAgentStore } from "../../store/agentStore";
 
@@ -888,10 +893,11 @@ export function SkillsHubSettingsSection() {
 }
 
 /**
- * Agent → Skills tab: enable hub items for this agent and decide whether it
- * may also use the skills installed on its computer.
+ * Agent → Capabilities, before the Apps: enable hub items for this agent and
+ * decide whether it may also use the config on its computer. A change
+ * restarts the agent (once idle), which a toast says.
  */
-export function AgentSkillsHubTab({ agentId, runtime }: { agentId: string; runtime?: string | null }) {
+export function AgentSkillsHubTab({ agentId, agentName }: { agentId: string; agentName: string }) {
   const { formatMessage } = useIntl();
   const { capabilities } = useServerPermissions();
   const canManageHub = capabilities.manageIntegrations;
@@ -920,12 +926,13 @@ export function AgentSkillsHubTab({ agentId, runtime }: { agentId: string; runti
     try {
       const { data } = await api.put<SkillsHubAgentCatalogResponse>(`/skills-hub/agents/${agentId}`, { enabledItemIds, useHostSkills });
       setCatalog(data);
+      showToast({ title: formatMessage({ id: "skillsHub.agent.restartToast" }, { name: agentName }) });
     } catch (err) {
       setError(errorMessage(err, formatMessage({ id: "skillsHub.error.save" })));
     } finally {
       setSaving(false);
     }
-  }, [agentId, formatMessage]);
+  }, [agentId, agentName, formatMessage]);
 
   const enabledIds = useMemo(
     () => (catalog?.items ?? []).filter((item) => item.enabled).map((item) => item.id),
@@ -947,35 +954,25 @@ export function AgentSkillsHubTab({ agentId, runtime }: { agentId: string; runti
   }, [catalog]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 [&>*]:shrink-0" data-testid="agent-skills-hub-tab">
-      <Card className="flex items-start gap-3 p-4">
-        <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-callout font-semibold text-foreground">{formatMessage({ id: "skillsHub.hostSkills.title" })}</span>
-          <span className="text-caption text-foreground-muted">
-            {formatMessage({ id: catalog?.useHostSkills === false ? "skillsHub.hostSkills.off" : "skillsHub.hostSkills.on" })}
+    <div className="stack-y-6" data-testid="agent-skills-hub-tab">
+      <Card className="p-4">
+        <label className="flex cursor-pointer items-start gap-3">
+          <span className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="text-callout font-semibold text-foreground">{formatMessage({ id: "skillsHub.hostSkills.title" })}</span>
+            <span className="text-caption text-foreground-muted">
+              {formatMessage({ id: catalog?.useHostSkills === false ? "skillsHub.hostSkills.off" : "skillsHub.hostSkills.on" })}
+            </span>
           </span>
-          {runtime === "codex" && (
-            <span className="text-caption text-foreground-hint">{formatMessage({ id: "skillsHub.hostSkills.codexNote" })}</span>
-          )}
-        </span>
-        <Switch
-          checked={catalog?.useHostSkills ?? true}
-          disabled={!catalog || saving}
-          onCheckedChange={(checked: boolean) => void save(enabledIds, checked)}
-          data-testid="skills-hub-use-host-skills"
-        />
+          <Switch
+            checked={catalog?.useHostSkills ?? true}
+            disabled={!catalog || saving}
+            onCheckedChange={(checked: boolean) => void save(enabledIds, checked)}
+            data-testid="skills-hub-use-host-skills"
+          />
+        </label>
       </Card>
 
       {error && <div className="text-caption text-danger" role="alert">{error}</div>}
-
-      <SectionHeader
-        label={formatMessage({ id: "skillsHub.agent.enabledTitle" })}
-        icon={<Package size={16} />}
-        count={enabledIds.length}
-      />
-      <p className="text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.agent.restartNote" })}</p>
-      {/* The agent panel is narrow: the add buttons get their own row so the title never wraps. */}
-      {canManageHub && <AddButtons onOpen={setDialog} />}
 
       <HubDialogs
         dialog={dialog}
@@ -985,35 +982,67 @@ export function AgentSkillsHubTab({ agentId, runtime }: { agentId: string; runti
           setDialog(null);
           // A new item added from an agent is enabled for that agent (an
           // import already enabled it for the agents chosen in it).
-          if (enabledByImport || items.length === 0) void load();
+          if (enabledByImport) {
+            void load();
+            showToast({ title: formatMessage({ id: "skillsHub.agent.restartToast" }, { name: agentName }) });
+          } else if (items.length === 0) void load();
           else void save([...enabledIds, ...items.map((item) => item.id)], catalog?.useHostSkills ?? true);
         }}
       />
 
-      {catalog && catalog.items.length === 0 && (
-        <Card className="p-4 text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.agent.empty" })}</Card>
-      )}
-
-      {groups.map(({ kind, items }) => items.length > 0 && (
-        <div key={kind} className="space-y-2">
-          <div className="text-caption font-semibold text-foreground-muted">
-            {formatMessage({ id: kind === "skill" ? "skillsHub.group.skills" : "skillsHub.group.plugins" })}
-          </div>
-          <Card render={<ul />} className="divide-y divide-line-hairline">
-            {items.map((item) => (
-              <li key={item.id}>
-                <label className="flex cursor-pointer items-center gap-3 px-3 py-2">
-                  <ItemSummary item={item} />
-                  <Switch
-                    checked={item.enabled}
-                    disabled={saving}
-                    onCheckedChange={(checked: boolean) => toggleItem(item, checked)}
-                    data-testid={`skills-hub-toggle-${item.name}`}
-                  />
-                </label>
-              </li>
-            ))}
-          </Card>
+      {groups.map(({ kind, items }) => (
+        <div key={kind} className="stack-y-3">
+          <SectionHeader
+            label={formatMessage({ id: kind === "skill" ? "skillsHub.group.skills" : "skillsHub.group.plugins" })}
+            icon={kind === "skill" ? <Sparkles size={16} /> : <Puzzle size={16} />}
+            count={items.filter((item) => item.enabled).length}
+            action={canManageHub ? (kind === "skill" ? (
+              // A skill comes from GitHub or is written here.
+              <DropdownMenu>
+                <DropdownMenuTrigger render={(
+                  <Button variant="outline" size="md" data-testid="skills-hub-agent-add-skill">
+                    <Plus size={14} />
+                    {formatMessage({ id: "skillsHub.agent.addSkill" })}
+                    <ChevronDown size={14} />
+                  </Button>
+                )} />
+                <DropdownMenuContent side="bottom" align="end" sideOffset={4}>
+                  <DropdownMenuItem onClick={() => setDialog({ type: "import" })} data-testid="skills-hub-agent-import-github">
+                    <Download size={14} />
+                    {formatMessage({ id: "skillsHub.action.importGithub" })}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDialog({ type: "editor", draft: emptyDraft("skill") })} data-testid="skills-hub-agent-write-skill">
+                    <Pencil size={14} />
+                    {formatMessage({ id: "skillsHub.agent.writeSkill" })}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="outline" size="md" onClick={() => setDialog({ type: "plugins" })} data-testid="skills-hub-agent-add-plugin">
+                <Plus size={14} />
+                {formatMessage({ id: "skillsHub.agent.addPlugin" })}
+              </Button>
+            )) : undefined}
+          />
+          {items.length === 0 ? (
+            catalog && <div className="text-callout text-foreground-hint">{formatMessage({ id: kind === "skill" ? "skillsHub.agent.noSkills" : "skillsHub.agent.noPlugins" })}</div>
+          ) : (
+            <Card render={<ul />} className="divide-y divide-line-hairline">
+              {items.map((item) => (
+                <li key={item.id}>
+                  <label className="flex cursor-pointer items-center gap-3 px-3 py-2">
+                    <ItemSummary item={item} />
+                    <Switch
+                      checked={item.enabled}
+                      disabled={saving}
+                      onCheckedChange={(checked: boolean) => toggleItem(item, checked)}
+                      data-testid={`skills-hub-toggle-${item.name}`}
+                    />
+                  </label>
+                </li>
+              ))}
+            </Card>
+          )}
         </div>
       ))}
     </div>

@@ -1,5 +1,4 @@
 import { Panel, ScrollArea, Spinner } from "@botiverse/raft-ui";
-import { SkillsHubSettingsSection } from "../../features/skillsHub/SkillsHub";
 import { useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
 import { PROVIDER_CONNECTIONS_FEATURE_FLAG_KEY, SLACK_BRIDGE_FEATURE_FLAG_KEYS } from "@botiverse/raft-shared";
@@ -168,7 +167,6 @@ export function SettingsPanel({
             in Applications: one row after the Apps, which stay on top; a
             guest sees only it. */}
         {settingsTab === "integrations" && <LinkPreviewConsentsRow guest={!canViewServerApplications(role)} />}
-        {settingsTab === "skills-hub" && <SkillsHubSettingsSection />}
         {settingsTab === "about" && <AboutSection showWorkspace={showAboutWorkspace} />}
         {settingsTab === "feedback" && <LazyAboutFeedbackPanel />}
       </SettingsContentFrame>

@@ -13,7 +13,6 @@ import {
   User,
   AppWindow,
   BellDot,
-  Package,
 } from "lucide-react";
 import { FeedbackIcon } from "@botiverse/ricons";
 import type { ComponentType, SVGProps } from "react";
@@ -21,7 +20,6 @@ import type { MessageId } from "../../i18n/messages/en";
 import type { ServerCapabilities, ServerRole } from "@botiverse/raft-shared";
 
 const IM_BRIDGES_LABEL = "IM Bridges";
-const SKILLS_HUB_LABEL = "Skills Hub";
 // The on-screen titles come from SETTINGS_TAB_TITLE_ID; these are the legacy English fields.
 const THEME_LABEL = "Theme";
 const SERVER_NOTIFICATIONS_LABEL = "Notifications";
@@ -43,7 +41,6 @@ export const SETTINGS_TABS = [
   { id: "im-bridges", label: IM_BRIDGES_LABEL, title: IM_BRIDGES_LABEL, icon: ArrowLeftRight },
   { id: "integrations", label: "Applications", title: "Applications", icon: AppWindow },
   { id: "labs", label: "Labs", title: "Labs", icon: FlaskConical },
-  { id: "skills-hub", label: SKILLS_HUB_LABEL, title: SKILLS_HUB_LABEL, icon: Package },
   { id: "providers", label: "AI Providers", title: "AI Providers", icon: KeyRound },
   { id: "about", label: "About", title: "About", icon: BadgeInfo },
   { id: "feedback", label: "Feedback", title: "My Feedback", icon: FeedbackIcon },
@@ -61,7 +58,6 @@ export function canOpenSettingsTab(
   capabilities: ServerCapabilities,
 ): boolean {
   if (tab === "billing") return capabilities.viewBilling;
-  if (tab === "skills-hub") return capabilities.viewAgents;
   if (tab === "administration") {
     return capabilities.changeMemberRoles
       || capabilities.changeChannelVisibility
@@ -110,7 +106,6 @@ export const SETTINGS_TAB_TITLE_ID: Record<SettingsTabId, MessageId> = {
   administration: "settings.tabs.administration",
   "im-bridges": "settings.tabs.imBridges",
   integrations: "settings.tabs.integrations",
-  "skills-hub": "settings.tabs.skillsHub",
   feedback: "settings.about.feedbackWorkspaceTitle",
 };
 

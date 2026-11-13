@@ -11,7 +11,8 @@ export const MESSAGE_FONT_SIZE_LABEL_ID: Record<MessageBodyFontSize, MessageId> 
   lg: "settings.appearance.fontSizeLarge",
 };
 
-export type ConnectedAppsTab = "marketplace" | "installed" | "myapps";
+/** `skills`: the Skills Hub (skills and plugins), on the Capabilities page with the Apps. */
+export type ConnectedAppsTab = "marketplace" | "installed" | "myapps" | "skills";
 
 export function MessageBodyFontSizeSegmentedControl({
   value,

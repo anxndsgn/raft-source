@@ -1,3 +1,4 @@
+import { writeAgentSkillsHubConfig } from "../services/skillsHubService";
 import { agentReadinessForViewer, loadComputerReadinessInputs, loadMemberDisplayNames, readinessAgentOwnerUserId, readinessViewerForRole, type ComputerReadinessInputs } from "../services/runtimeReadinessService";
 import { AgentLoungeAgentNotFoundError, openOrCreateAgentLounge } from "../services/agentLoungeService";
 import { mcpAgentOwnerUserId } from "../services/managedMcpConnectionOwnership";
@@ -2192,6 +2193,16 @@ agentRouter.post("/", async (req, res) => {
       agentId: agent.id,
       io,
     });
+
+    // Skills Hub: an agent created not to use its computer's own skills,
+    // plugins and MCP servers records that before its first start.
+    if (req.body?.useHostConfig === false && agent.machineId) {
+      try {
+        await writeAgentSkillsHubConfig({ serverId: req.serverId!, userId: req.userId!, agentId: agent.id, enabledItemIds: [], useHostSkills: false });
+      } catch (hubErr) {
+        console.warn(`[Agent ${agent.id}] Skills Hub host config setting failed: ${hubErr instanceof Error ? hubErr.message : String(hubErr)}`);
+      }
+    }
 
     // Auto-start the agent if it has a machine assigned
     if (agent.machineId) {

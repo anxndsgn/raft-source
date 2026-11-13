@@ -119,7 +119,7 @@ export const RETIRED_SETTINGS_PAGE_TABS = ["mcp", "shared-links"] as const;
 /** Settings tab ids (web `SETTINGS_TABS`; a web test keeps the two in sync). */
 export const SETTINGS_PAGE_TABS = [
   "account", "language-region", "appearance", "notifications", "theme", "server-notifications", "server", "billing", "administration",
-  "im-bridges", "integrations", "labs", "skills-hub", "providers", "about", "feedback",
+  "im-bridges", "integrations", "labs", "providers", "about", "feedback",
   // Retired tabs: no current page sends them, but a bundle cached from before still may.
   ...RETIRED_SETTINGS_PAGE_TABS,
 ] as const;
