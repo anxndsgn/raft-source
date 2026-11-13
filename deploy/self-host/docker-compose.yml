@@ -1,0 +1,167 @@
+# Self-hosted Raft: web + API server + Postgres + RisingWave + Redis.
+# See README.md. Build the three raft-* images with ./build.sh first.
+name: raft
+
+x-server-env: &server-env
+  NODE_ENV: production
+  DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/slock}
+  RISINGWAVE_DATABASE_URL: postgresql://root@risingwave:4566/dev
+  REDIS_URL: redis://redis:6379
+  JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+  APP_URL: ${APP_URL:?set APP_URL in .env}
+  SERVER_URL: ${SERVER_URL:?set SERVER_URL in .env}
+  CORS_ORIGIN: ${APP_URL}
+  RAFT_PRIVACY_MODE: ${RAFT_PRIVACY_MODE:-true}
+  RESEND_API_KEY: ${RESEND_API_KEY:-}
+  FROM_EMAIL: ${FROM_EMAIL:-}
+  # Attachments: local disk (the uploads volume) unless S3_* is filled in.
+  UPLOADS_DIR: /data/uploads
+  S3_ENDPOINT: ${S3_ENDPOINT:-}
+  S3_REGION: ${S3_REGION:-auto}
+  S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+  S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+  S3_ATTACHMENTS_BUCKET: ${S3_ATTACHMENTS_BUCKET:-}
+  S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-false}
+  NODE_OPTIONS: --max-old-space-size=${SERVER_HEAP_MB:-512}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: slock
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_replication_slots=10
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_slot_wal_keep_size=256MB
+      - -c
+      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-128MB}
+      - -c
+      - max_connections=60
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d slock"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    mem_limit: ${POSTGRES_MEM_LIMIT:-384m}
+
+  risingwave:
+    # Same pinned image raftdev and CI use (scripts/dev/raftdev.ts).
+    image: risingwavelabs/risingwave@sha256:ba5915a5e85c938a3ec62d76c63c6e4cb37d4f4e3c5c30886f0d2eff61b70073
+    restart: unless-stopped
+    command:
+      - single_node
+      - --total-memory-bytes
+      - "${RISINGWAVE_MEMORY_BYTES:-2147483648}"
+      - --config-path
+      - /etc/risingwave.toml
+    volumes:
+      - ./risingwave.toml:/etc/risingwave.toml:ro
+      - risingwave:/root/.risingwave
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/4566'"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+    mem_limit: ${RISINGWAVE_MEM_LIMIT:-2560m}
+    memswap_limit: ${RISINGWAVE_MEM_LIMIT:-2560m}
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "noeviction", "--save", "60", "1"]
+    volumes:
+      - redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    mem_limit: 96m
+
+  # One-shot: schema migrations. Safe to re-run; runs before every server start.
+  migrate:
+    image: ${RAFT_SERVER_IMAGE:-raft-server:self-host}
+    environment: *server-env
+    working_dir: /app/packages/server
+    command: ["node", "--import", "@oxc-node/core/register", "scripts/self-host-migrate.ts"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+        required: false
+    restart: "no"
+
+  # One-shot: create the RisingWave CDC source and materialized views the
+  # server reads. Does nothing once RisingWave has them.
+  risingwave-bootstrap:
+    image: ${RAFT_TOOLS_IMAGE:-raft-tools:self-host}
+    environment:
+      RAFT_SELF_HOST_RISINGWAVE_BOOTSTRAP: "1"
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/slock}
+      RISINGWAVE_DATABASE_URL: postgresql://root@risingwave:4566/dev
+      RISINGWAVE_CDC_HOST: ${CDC_HOST:-postgres}
+      RISINGWAVE_CDC_PORT: ${CDC_PORT:-5432}
+      RISINGWAVE_CDC_USERNAME: ${CDC_USERNAME:-postgres}
+      RISINGWAVE_CDC_PASSWORD: ${CDC_PASSWORD:-${POSTGRES_PASSWORD}}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      risingwave:
+        condition: service_healthy
+    restart: "no"
+
+  server:
+    image: ${RAFT_SERVER_IMAGE:-raft-server:self-host}
+    restart: unless-stopped
+    environment: *server-env
+    volumes:
+      - uploads:/data/uploads
+    ports:
+      - "${SERVER_BIND:-127.0.0.1:3001}:3001"
+    depends_on:
+      redis:
+        condition: service_healthy
+      risingwave-bootstrap:
+        condition: service_completed_successfully
+    mem_limit: ${SERVER_MEM_LIMIT:-1g}
+
+  web:
+    image: ${RAFT_WEB_IMAGE:-raft-web:self-host}
+    restart: unless-stopped
+    ports:
+      - "${WEB_BIND:-127.0.0.1:8080}:80"
+    mem_limit: 32m
+
+  # Optional HTTPS front door: `docker compose --profile caddy up -d`.
+  caddy:
+    image: caddy:2-alpine
+    profiles: ["caddy"]
+    restart: unless-stopped
+    environment:
+      APP_HOST: ${APP_HOST:-}
+      API_HOST: ${API_HOST:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy:/data
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on: [server, web]
+    mem_limit: 64m
+
+volumes:
+  postgres:
+  risingwave:
+  redis:
+  uploads:
+  caddy:

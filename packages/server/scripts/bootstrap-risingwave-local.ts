@@ -168,6 +168,14 @@ async function createCdcSource(risingwave: pg.Client, options: {
   await risingwave.query(sourceSql);
 }
 
+async function alreadyBootstrapped(risingwave: pg.Client): Promise<boolean> {
+  const result = await risingwave.query(
+    "SELECT 1 FROM rw_catalog.rw_sources WHERE name = $1",
+    [RISINGWAVE_LOCAL_SOURCE],
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
 async function assertRequiredRelations(risingwave: pg.Client): Promise<void> {
   const names = RISINGWAVE_REQUIRED_RELATIONS.map(sqlLiteral).join(", ");
   const result = await risingwave.query<{ name: string }>(
@@ -214,7 +222,12 @@ async function assertRequiredRelations(risingwave: pg.Client): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  if (process.env.RAFTDEV_RISINGWAVE_BOOTSTRAP !== "1") {
+  // Self-hosted docker-compose (deploy/self-host) runs this once against its
+  // own Postgres/RisingWave containers, which are not on loopback and not
+  // raftdev-named. It is not destructive there: an already bootstrapped
+  // RisingWave is left alone (see alreadyBootstrapped below).
+  const selfHost = process.env.RAFT_SELF_HOST_RISINGWAVE_BOOTSTRAP === "1";
+  if (!selfHost && process.env.RAFTDEV_RISINGWAVE_BOOTSTRAP !== "1") {
     throw new Error("refusing destructive bootstrap without RAFTDEV_RISINGWAVE_BOOTSTRAP=1");
   }
 
@@ -222,16 +235,16 @@ async function main(): Promise<void> {
   const risingwaveUrl = safeConnectionUrl(requiredEnv("RISINGWAVE_DATABASE_URL"), "RisingWave");
   if (postgresUrl.pathname !== "/slock") throw new Error("local Postgres database must be slock");
   if (risingwaveUrl.pathname !== "/dev") throw new Error("local RisingWave database must be dev");
-  if (!isLoopbackHostname(postgresUrl.hostname)) {
+  if (!selfHost && !isLoopbackHostname(postgresUrl.hostname)) {
     throw new Error("refusing to modify a non-loopback Postgres instance");
   }
-  if (!isLoopbackHostname(risingwaveUrl.hostname)) {
+  if (!selfHost && !isLoopbackHostname(risingwaveUrl.hostname)) {
     throw new Error("refusing to bootstrap a non-loopback RisingWave instance");
   }
 
   const cdcHost = requiredEnv("RISINGWAVE_CDC_HOST");
   const cdcEnvironment = /^slock-dev-([A-Za-z0-9._-]{1,128})-pg$/.exec(cdcHost)?.[1];
-  if (!cdcEnvironment || cdcEnvironment === "." || cdcEnvironment === "..") {
+  if (!selfHost && (!cdcEnvironment || cdcEnvironment === "." || cdcEnvironment === "..")) {
     throw new Error("RISINGWAVE_CDC_HOST must be a managed raftdev Postgres container name");
   }
   const cdcPort = Number(process.env.RISINGWAVE_CDC_PORT ?? "5432");
@@ -259,6 +272,11 @@ async function main(): Promise<void> {
   await risingwave.connect();
   let restoreBarrierIntervalMs: number | null = null;
   try {
+    if (selfHost && await alreadyBootstrapped(risingwave)) {
+      await assertRequiredRelations(risingwave);
+      console.log(JSON.stringify({ ok: true, skipped: "already bootstrapped" }));
+      return;
+    }
     // Loopback-only (checked above): this never touches a staging or
     // production RisingWave. Build at the normal interval, never the
     // shortened one: a snapshot-backfill MV (rw_thread_parent_v3) replays

@@ -1,0 +1,5 @@
+# single_node gives the compactor 1/8 of --total-memory-bytes, which on a small
+# budget is under the compactor's own floor and RisingWave exits before pgwire
+# is up. Set the compactor's limit outright (see scripts/dev/raftdev.ts).
+[storage]
+compactor_memory_limit_mb = 768
