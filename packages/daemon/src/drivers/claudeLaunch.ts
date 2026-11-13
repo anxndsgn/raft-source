@@ -1,4 +1,5 @@
 import { ambientProcessEnv } from "../processEnvPatch";
+import { skillsHubIsolatesHost } from "../skillsHubSync";
 import { writeFileSync } from "node:fs";
 import path from "node:path";
 import { hydrateRuntimeConfig, runtimeConfigToLaunchFields, type AgentConfig } from "@botiverse/raft-shared";
@@ -137,7 +138,10 @@ export function buildClaudeArgs(
     args.push("--effort", launchRuntimeFields.reasoningEffort);
   }
 
-  if (isClaudeCustomProviderConfig(config)) {
+  // A custom provider must not inherit the computer's user settings; a
+  // Skills Hub agent with "use this computer's skills" off must not load the
+  // user-level skills and plugins in ~/.claude either.
+  if (isClaudeCustomProviderConfig(config) || skillsHubIsolatesHost(config)) {
     args.push("--setting-sources", "project,local");
   }
 

@@ -3332,6 +3332,12 @@ export interface AgentConfig {
    */
   installedApps?: AgentInstalledAppCatalogEntry[] | null;
   /**
+   * Skills Hub items enabled for this agent (skills + plugins). The daemon
+   * writes them into the workspace before spawn and removes ones it wrote
+   * earlier that are no longer enabled. Absent on old servers: no change.
+   */
+  skillsHub?: import("./skillsHub").SkillsHubLaunchProjection | null;
+  /**
    * Server-evaluated `reminder_app` rollout flag. When true, the prompt's
    * Reminders section and command-list entry point at the Reminder app (found
    * in the installed-app list) instead of `raft reminder schedule`, which the
@@ -7024,6 +7030,7 @@ export * from "./agentMigrationUserIgnore";
 export * from "./agentArchive";
 export * from "./discussionGraph";
 export * from "./managedMcp";
+export * from "./skillsHub";
 export * from "./providerConnections";
 export * from "./providerProbes";
 

@@ -4,6 +4,7 @@ import { inboxItemsLaunch, inboxItemsOnWith } from "./inboxItemsLaunch";
 import { EventEmitter } from "node:events";
 import { AgentActivityStateFanout } from "./agentActivityStateFanout";
 import { AGENT_ACTIVITY_STATE_EVENT, agentActivityCapableServerRoom, agentActivityRoom } from "@botiverse/raft-shared";
+import { buildSkillsHubLaunchProjection } from "./skillsHubService";
 import { closeConnectionsForDrain, MACHINE_DRAIN_CLOSE_CODE, MACHINE_DRAIN_CLOSE_REASON } from "./machineDrain";
 import crypto from "node:crypto";
 import type { Server as SocketServer } from "socket.io";
@@ -15890,6 +15891,22 @@ export class AgentOrchestrator extends EventEmitter {
       }
     } catch (err) {
       this.tracer.emitEvent("server.agent.installed_app_catalog_failed", {
+        surface: "server",
+        attrs: {
+          agent_id: agent.id,
+          server_id: agent.serverId,
+          error: err instanceof Error ? err.message : String(err),
+        },
+      });
+    }
+
+    // Skills Hub: the agent's enabled skills/plugins ride agent:start; the
+    // daemon materializes them into the workspace. A failure must not block
+    // the start — the field stays absent and the daemon leaves files alone.
+    try {
+      config.skillsHub = await buildSkillsHubLaunchProjection(agent.serverId, agent.id);
+    } catch (err) {
+      this.tracer.emitEvent("server.agent.skills_hub_projection_failed", {
         surface: "server",
         attrs: {
           agent_id: agent.id,

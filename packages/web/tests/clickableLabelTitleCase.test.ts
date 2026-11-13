@@ -63,7 +63,7 @@ const NAMES = new Set([
 const PHRASES = [
   "Agent Lounge", "Raft Computer", "Raft Desktop", "Claude Code", "Kimi Code", "Google Play", "App Store", "Google Cloud",
   "Home Screen", "Boring Gray", "Raft Yellow", "Microsoft Entra", "Slock Manual", "System Settings",
-  "AppSumo Lifetime Pro",
+  "AppSumo Lifetime Pro", "Skills Hub",
   // Key names, as the keyboard shortcuts panel spells them
   "Up Arrow", "Down Arrow", "Left Arrow", "Right Arrow", "Left Bracket", "Right Bracket", "Single Quote",
 ].map((phrase) => phrase.split(" "));

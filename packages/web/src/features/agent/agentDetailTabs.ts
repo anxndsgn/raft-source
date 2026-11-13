@@ -1,11 +1,11 @@
 import type { ComponentType } from "react";
 import { MessageIcon } from "@botiverse/ricons";
-import { Activity, AlarmClock, AppWindow, Bot, ChartColumn, FolderOpen } from "lucide-react";
+import { Activity, AlarmClock, AppWindow, Bot, ChartColumn, FolderOpen, Package } from "lucide-react";
 
 import type { MessageId } from "../../i18n/messages/en";
 
 /** The agent panel's tabs (AgentDetailPanel). MCP Apps are rows of the Apps tab (`integrations`); there is no separate MCP tab. */
-export const AGENT_TABS = ["profile", "activity", "usage", "chat", "reminders", "workspace", "integrations"] as const;
+export const AGENT_TABS = ["profile", "activity", "usage", "chat", "reminders", "workspace", "skills", "integrations"] as const;
 export type AgentTab = typeof AGENT_TABS[number];
 
 type PanelTabItem<T extends string> = {
@@ -22,6 +22,7 @@ export const AGENT_PANEL_TABS: PanelTabItem<AgentTab>[] = [
   { id: "chat", icon: MessageIcon, labelId: "agent.detail.tab.chat" },
   { id: "reminders", icon: AlarmClock, labelId: "agent.detail.tab.reminders" },
   { id: "workspace", icon: FolderOpen, labelId: "agent.detail.tab.workspace" },
+  { id: "skills", icon: Package, labelId: "agent.detail.tab.skills" },
   { id: "integrations", icon: AppWindow, labelId: "agent.detail.tab.apps" },
 ];
 

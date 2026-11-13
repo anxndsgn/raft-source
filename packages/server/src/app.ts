@@ -96,6 +96,7 @@ import { actionsRouter, PRODUCT_FEEDBACK_LIMITER, QUESTION_ANSWER_LIMITER, QUEST
 import { ACTOR_RESOLVE_PATH, actorResolveBodyErrorHandler, actorResolveBodyParser, actorRouter } from "./routes/actors";
 import { productEventsRouter } from "./routes/productEvents";
 import { managedMcpOAuthCallbackRouter, managedMcpRouter } from "./routes/managedMcp";
+import { skillsHubRouter } from "./routes/skillsHub";
 import { agentConnectionCallbackRouter } from "./routes/agentConnectionCallback";
 import { providerConnectionRouter } from "./routes/providerConnections";
 import { agentRuntimeProviderRouter } from "./routes/agentRuntimeProviders";
@@ -1308,6 +1309,7 @@ export function createApp(options: CreateAppOptions = {}): Express {
   // callback consumes a one-time hashed state and derives Server scope from it.
   app.use("/api/mcp/oauth", authLimiter, managedMcpOAuthCallbackRouter);
   app.use("/api/mcp", requireAuth, requireVerified, requireServer, managedMcpRouter);
+  app.use("/api/skills-hub", requireAuth, requireVerified, requireServer, skillsHubRouter);
   app.use("/api/provider-connections", requireAuth, requireVerified, requireServer, providerConnectionRouter);
   app.use("/api/agent-runtime-providers", requireAuth, requireVerified, requireServer, agentRuntimeProviderRouter);
   // A hosted runtime provider returns the browser here after an account-connection

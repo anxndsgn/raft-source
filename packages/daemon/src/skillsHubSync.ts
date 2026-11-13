@@ -1,0 +1,217 @@
+// Skills Hub → agent workspace. The server ships the agent's enabled hub
+// skills/plugins on agent:start (AgentConfig.skillsHub); before each launch
+// this writes them where the runtime reads project-scoped config, and removes
+// what it wrote on an earlier launch that is no longer enabled. Files the
+// agent or a person put there by hand are never touched: ownership is tracked
+// in a manifest next to the workspace root.
+
+import { lstat, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import path from "node:path";
+import {
+  SKILLS_HUB_PLUGIN_NAME_PATTERN,
+  SKILLS_HUB_SKILL_NAME_PATTERN,
+  skillsHubPluginMarketplace,
+  type AgentConfig,
+  type SkillsHubLaunchProjection,
+  type SkillsHubMarketplaceSource,
+} from "@botiverse/raft-shared";
+
+export const SKILLS_HUB_MANIFEST_FILE = ".raft-skills-hub.json";
+
+interface SkillsHubManifest {
+  version: 1;
+  /** Skill directories written by the hub, relative to the workspace. */
+  skillDirs: string[];
+  /** `enabledPlugins` keys written by the hub into .claude/settings.json. */
+  plugins: string[];
+  /** `extraKnownMarketplaces` keys written by the hub. */
+  marketplaces: string[];
+}
+
+const EMPTY_MANIFEST: SkillsHubManifest = { version: 1, skillDirs: [], plugins: [], marketplaces: [] };
+
+export interface SkillsHubSyncResult {
+  written: string[];
+  removed: string[];
+  skipped: string[];
+  pluginsChanged: boolean;
+}
+
+/** Workspace-relative skill roots the runtime scans for project skills. */
+export function skillsHubSkillRoot(runtime: string | undefined): string {
+  return runtime === "codex" ? path.join(".agents", "skills") : path.join(".claude", "skills");
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
+}
+
+async function readManifest(workspace: string): Promise<SkillsHubManifest> {
+  try {
+    const raw = JSON.parse(await readFile(path.join(workspace, SKILLS_HUB_MANIFEST_FILE), "utf8")) as Record<string, unknown>;
+    return {
+      version: 1,
+      skillDirs: stringArray(raw.skillDirs),
+      plugins: stringArray(raw.plugins),
+      marketplaces: stringArray(raw.marketplaces),
+    };
+  } catch {
+    return { ...EMPTY_MANIFEST };
+  }
+}
+
+async function readIfExists(file: string): Promise<string | null> {
+  try {
+    return await readFile(file, "utf8");
+  } catch {
+    return null;
+  }
+}
+
+async function pathExists(target: string): Promise<boolean> {
+  try {
+    await lstat(target);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** A manifest path must stay inside the skill roots we manage. */
+function isManagedSkillDir(rel: string): boolean {
+  const normalized = path.normalize(rel);
+  if (path.isAbsolute(normalized) || normalized.split(path.sep).includes("..")) return false;
+  const name = path.basename(normalized);
+  const root = path.dirname(normalized);
+  return SKILLS_HUB_SKILL_NAME_PATTERN.test(name)
+    && (root === skillsHubSkillRoot("claude") || root === skillsHubSkillRoot("codex"));
+}
+
+function marketplaceEntry(source: SkillsHubMarketplaceSource): Record<string, unknown> {
+  return source.source === "github"
+    ? { source: { source: "github", repo: source.repo } }
+    : { source: { source: "git", url: source.url } };
+}
+
+async function syncClaudePlugins(
+  workspace: string,
+  hub: SkillsHubLaunchProjection,
+  previous: SkillsHubManifest,
+): Promise<{ plugins: string[]; marketplaces: string[]; changed: boolean }> {
+  const settingsPath = path.join(workspace, ".claude", "settings.json");
+  const raw = await readIfExists(settingsPath);
+  let settings: Record<string, unknown> = {};
+  if (raw !== null) {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) settings = parsed as Record<string, unknown>;
+      else throw new Error("not an object");
+    } catch {
+      // Never clobber a settings file we cannot parse; leave plugins alone.
+      return { plugins: previous.plugins, marketplaces: previous.marketplaces, changed: false };
+    }
+  }
+  const enabledPlugins = { ...((settings.enabledPlugins as Record<string, unknown> | undefined) ?? {}) };
+  const marketplaces = { ...((settings.extraKnownMarketplaces as Record<string, unknown> | undefined) ?? {}) };
+
+  for (const key of previous.plugins) delete enabledPlugins[key];
+  for (const key of previous.marketplaces) delete marketplaces[key];
+
+  const plugins: string[] = [];
+  const writtenMarketplaces: string[] = [];
+  for (const plugin of hub.plugins) {
+    if (!SKILLS_HUB_PLUGIN_NAME_PATTERN.test(plugin.name)) continue;
+    // A person's own explicit setting wins over the hub.
+    if (Object.prototype.hasOwnProperty.call(enabledPlugins, plugin.name)) continue;
+    enabledPlugins[plugin.name] = true;
+    plugins.push(plugin.name);
+    const marketplace = skillsHubPluginMarketplace(plugin.name);
+    if (plugin.marketplaceSource && marketplace && !Object.prototype.hasOwnProperty.call(marketplaces, marketplace)) {
+      marketplaces[marketplace] = marketplaceEntry(plugin.marketplaceSource);
+      writtenMarketplaces.push(marketplace);
+    }
+  }
+
+  const next: Record<string, unknown> = { ...settings };
+  if (Object.keys(enabledPlugins).length > 0) next.enabledPlugins = enabledPlugins;
+  else delete next.enabledPlugins;
+  if (Object.keys(marketplaces).length > 0) next.extraKnownMarketplaces = marketplaces;
+  else delete next.extraKnownMarketplaces;
+
+  const serialized = `${JSON.stringify(next, null, 2)}\n`;
+  const nothingToWrite = raw === null && Object.keys(next).length === 0;
+  if (nothingToWrite || serialized === raw) {
+    return { plugins, marketplaces: writtenMarketplaces, changed: false };
+  }
+  await mkdir(path.dirname(settingsPath), { recursive: true });
+  await writeFile(settingsPath, serialized, "utf8");
+  return { plugins, marketplaces: writtenMarketplaces, changed: true };
+}
+
+/**
+ * Bring the workspace in line with `config.skillsHub`. A no-op when the
+ * server did not send the field (older server), so a daemon upgrade alone
+ * never changes a workspace.
+ */
+export async function syncSkillsHubWorkspace(workspace: string, config: AgentConfig): Promise<SkillsHubSyncResult | null> {
+  const hub = config.skillsHub;
+  if (!hub) return null;
+  const previous = await readManifest(workspace);
+  const result: SkillsHubSyncResult = { written: [], removed: [], skipped: [], pluginsChanged: false };
+
+  const root = skillsHubSkillRoot(config.runtime);
+  const owned = new Set(previous.skillDirs.filter(isManagedSkillDir));
+  const nextSkillDirs: string[] = [];
+
+  for (const skill of hub.skills) {
+    if (!SKILLS_HUB_SKILL_NAME_PATTERN.test(skill.name)) {
+      result.skipped.push(skill.name);
+      continue;
+    }
+    const rel = path.join(root, skill.name);
+    const file = path.join(workspace, rel, "SKILL.md");
+    const existing = await readIfExists(file);
+    if (!owned.has(rel)) {
+      // Someone else's skill already uses this name: leave it.
+      if (existing !== null || await pathExists(path.join(workspace, rel))) {
+        result.skipped.push(skill.name);
+        continue;
+      }
+    }
+    if (existing !== skill.content) {
+      await mkdir(path.join(workspace, rel), { recursive: true });
+      await writeFile(file, skill.content, "utf8");
+      result.written.push(skill.name);
+    }
+    nextSkillDirs.push(rel);
+  }
+
+  const keep = new Set(nextSkillDirs);
+  for (const rel of owned) {
+    if (keep.has(rel)) continue;
+    await rm(path.join(workspace, rel), { recursive: true, force: true });
+    result.removed.push(path.basename(rel));
+  }
+
+  let plugins = previous.plugins;
+  let marketplaces = previous.marketplaces;
+  if (config.runtime !== "codex") {
+    const synced = await syncClaudePlugins(workspace, hub, previous);
+    plugins = synced.plugins;
+    marketplaces = synced.marketplaces;
+    result.pluginsChanged = synced.changed;
+  }
+
+  const manifest: SkillsHubManifest = { version: 1, skillDirs: nextSkillDirs, plugins, marketplaces };
+  const manifestPath = path.join(workspace, SKILLS_HUB_MANIFEST_FILE);
+  const serialized = `${JSON.stringify(manifest, null, 2)}\n`;
+  if (await readIfExists(manifestPath) !== serialized) {
+    await writeFile(manifestPath, serialized, "utf8");
+  }
+  return result;
+}
+
+/** True when this launch must not load computer-wide skills/plugins. */
+export function skillsHubIsolatesHost(config: AgentConfig): boolean {
+  return config.skillsHub?.useHostSkills === false;
+}

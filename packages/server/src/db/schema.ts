@@ -31,6 +31,7 @@ import type {
   RuntimeConfig,
   TrajectoryEntry,
   ManagedMcpToolCatalogEntry,
+  SkillsHubMarketplaceSource,
   ProviderConnectionProviderId,
   TaskResourceReceipt,
 } from "@botiverse/raft-shared";
@@ -11349,6 +11350,48 @@ export const managedMcpAssignments = pgTable("managed_mcp_assignments", {
     "managed_mcp_assignments_binding_matches_mode",
     sql`${t.connectionMode} = 'pinned' OR ${t.boundConnectionId} IS NULL`,
   ),
+]);
+
+// Skills Hub: one server-scoped library of skills and runtime plugins; each
+// agent enables a subset. The enabled subset rides agent:start and the daemon
+// materializes it into the agent workspace.
+export const skillsHubItems = pgTable("skills_hub_items", {
+  id: uuid("id").primaryKey().$defaultFn(() => randomUUID()),
+  serverId: uuid("server_id").notNull().references(() => servers.id, { onDelete: "cascade" }),
+  kind: text("kind", { enum: ["skill", "plugin"] }).notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  content: text("content"),
+  marketplaceSource: jsonb("marketplace_source").$type<SkillsHubMarketplaceSource>(),
+  createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  updatedByUserId: uuid("updated_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  uniqueIndex("idx_skills_hub_items_server_kind_name").on(t.serverId, t.kind, t.name),
+  index("idx_skills_hub_items_server").on(t.serverId),
+]);
+
+export const skillsHubAssignments = pgTable("skills_hub_assignments", {
+  serverId: uuid("server_id").notNull().references(() => servers.id, { onDelete: "cascade" }),
+  agentId: uuid("agent_id").notNull().references(() => agents.id, { onDelete: "cascade" }),
+  itemId: uuid("item_id").notNull().references(() => skillsHubItems.id, { onDelete: "cascade" }),
+  updatedByUserId: uuid("updated_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.agentId, t.itemId] }),
+  index("idx_skills_hub_assignments_server_agent").on(t.serverId, t.agentId),
+  index("idx_skills_hub_assignments_item").on(t.itemId),
+]);
+
+export const skillsHubAgentSettings = pgTable("skills_hub_agent_settings", {
+  agentId: uuid("agent_id").primaryKey().references(() => agents.id, { onDelete: "cascade" }),
+  serverId: uuid("server_id").notNull().references(() => servers.id, { onDelete: "cascade" }),
+  useHostSkills: boolean("use_host_skills").notNull().default(true),
+  updatedByUserId: uuid("updated_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("idx_skills_hub_agent_settings_server").on(t.serverId),
 ]);
 
 // Reusable, server-scoped AI provider connections. Public reads come only
