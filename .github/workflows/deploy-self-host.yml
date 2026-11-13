@@ -1,0 +1,138 @@
+# Push to dev → build the self-host images (deploy/self-host), push them to
+# GHCR, then pull and restart the compose stack on the server over SSH.
+#
+# Repository settings (Settings → Secrets and variables → Actions):
+#   secrets:   DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY (private key, no passphrase)
+#   variables: SERVER_URL (public API URL, baked into the web image)
+#              DEPLOY_PATH (optional; directory on the server, default ~/raft)
+# The server needs Docker and a filled-in <DEPLOY_PATH>/.env (see
+# deploy/self-host/.env.example). The compose files are copied on every deploy.
+name: Deploy self-host
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-self-host
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - image: raft-server
+            dockerfile: packages/server/Dockerfile
+          - image: raft-web
+            dockerfile: packages/web/Dockerfile
+          - image: raft-tools
+            dockerfile: deploy/self-host/tools.Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check configuration
+        if: matrix.image == 'raft-web'
+        run: |
+          if [ -z "${{ vars.SERVER_URL }}" ]; then
+            echo "::error::Set the SERVER_URL repository variable (e.g. https://api.example.com)"
+            exit 1
+          fi
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image name
+        id: name
+        run: echo "ref=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/${{ matrix.image }}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.name.outputs.ref }}:${{ github.sha }}
+            ${{ steps.name.outputs.ref }}:latest
+          build-args: |
+            RAFT_RELEASE_SHA=${{ github.sha }}
+            VITE_COMMIT_SHA=${{ github.sha }}
+            VITE_API_URL=${{ vars.SERVER_URL }}
+            VITE_DEPLOYMENT_ENV=production
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || 'raft' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: SSH setup
+        run: |
+          if [ -z "$DEPLOY_HOST" ] || [ -z "$DEPLOY_USER" ]; then
+            echo "::error::Set the DEPLOY_HOST, DEPLOY_USER and DEPLOY_SSH_KEY repository secrets"
+            exit 1
+          fi
+          install -m 700 -d ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Copy compose files
+        run: |
+          ssh -i ~/.ssh/id_deploy "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p $DEPLOY_PATH"
+          scp -i ~/.ssh/id_deploy \
+            deploy/self-host/docker-compose.yml \
+            deploy/self-host/risingwave.toml \
+            deploy/self-host/Caddyfile \
+            deploy/self-host/.env.example \
+            "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/"
+
+      - name: Pull and restart
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          ssh -i ~/.ssh/id_deploy "$DEPLOY_USER@$DEPLOY_HOST" bash -s <<EOF
+          set -euo pipefail
+          cd $DEPLOY_PATH
+          if [ ! -f .env ]; then
+            echo "Missing $DEPLOY_PATH/.env on the server: copy .env.example to .env and fill it in." >&2
+            exit 1
+          fi
+          export RAFT_SERVER_IMAGE=ghcr.io/$owner/raft-server:${{ github.sha }}
+          export RAFT_WEB_IMAGE=ghcr.io/$owner/raft-web:${{ github.sha }}
+          export RAFT_TOOLS_IMAGE=ghcr.io/$owner/raft-tools:${{ github.sha }}
+          docker compose --profile caddy pull --quiet
+          docker compose --profile caddy up -d --remove-orphans
+          docker image prune -f >/dev/null
+          docker compose ps
+          EOF
+
+      - name: Health check
+        if: vars.SERVER_URL != ''
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS "${{ vars.SERVER_URL }}/health"; then exit 0; fi
+            sleep 10
+          done
+          echo "::error::${{ vars.SERVER_URL }}/health did not answer within 5 minutes"
+          exit 1

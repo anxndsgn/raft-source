@@ -101,3 +101,24 @@ is derived from Postgres: if its volume is lost, remove it and restart, and the
 bootstrap rebuilds it. If a first bootstrap fails halfway, do the same:
 `docker compose rm -sf risingwave && docker volume rm raft_risingwave`, then
 `docker compose up -d` again (the bootstrap replaces its old replication slot).
+
+## Push-to-deploy (GitHub Actions)
+
+`.github/workflows/deploy-self-host.yml` runs on every push to `dev`: it builds
+the three images on GitHub's x86 runners, pushes them to GHCR
+(`ghcr.io/<owner>/raft-{server,web,tools}`, tagged with the commit and
+`latest`), copies the compose files to the server, then pulls and restarts the
+stack there and checks `SERVER_URL/health`.
+
+One-time setup:
+
+1. On the server: install Docker, create `~/raft/.env` from `.env.example`, and
+   add `RAFT_SERVER_IMAGE=ghcr.io/<owner>/raft-server:latest` (and the same for
+   `RAFT_WEB_IMAGE`, `RAFT_TOOLS_IMAGE`) so a manual `docker compose up -d`
+   uses the published images too.
+2. Create a deploy key pair (`ssh-keygen -t ed25519 -N "" -f raft_deploy`) and
+   append `raft_deploy.pub` to the server user's `~/.ssh/authorized_keys`.
+3. Repository secrets: `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY` (the
+   private key). Repository variable: `SERVER_URL`; optionally `DEPLOY_PATH`.
+4. After the first run, make the three GHCR packages public (package settings)
+   if the server cannot pull them.
