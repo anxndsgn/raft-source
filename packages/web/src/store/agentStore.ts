@@ -446,7 +446,7 @@ interface AgentState {
   resetActivitySeq: () => void;
   createAgent: (
     name: string,
-    opts?: { description?: string; model?: string; runtime?: string; runtimeConfig?: RuntimeConfig; formDefinitionRef?: RuntimeFormDefinitionRef | RuntimeFormV2SubmitRef; formValues?: Record<string, unknown>; reasoningEffort?: ReasoningEffort; machineId?: string; envVars?: Record<string, string>; avatarUrl?: string; onboarding?: boolean; external?: boolean; provider?: AgentRuntimeProviderKind; hostedModel?: string | null; actionCardMessageId?: string; actionCardConfirmationVersion?: number }
+    opts?: { description?: string; model?: string; runtime?: string; runtimeConfig?: RuntimeConfig; formDefinitionRef?: RuntimeFormDefinitionRef | RuntimeFormV2SubmitRef; formValues?: Record<string, unknown>; reasoningEffort?: ReasoningEffort; machineId?: string; envVars?: Record<string, string>; avatarUrl?: string; onboarding?: boolean; external?: boolean; /** Skills Hub: false = do not load the computer's own skills, plugins and MCP. */ useHostConfig?: boolean; provider?: AgentRuntimeProviderKind; hostedModel?: string | null; actionCardMessageId?: string; actionCardConfirmationVersion?: number }
   ) => Promise<Agent>;
   fetchExternalAgentStatus: (agentId: string) => Promise<ExternalAgentStatus>;
   fetchExternalAgentDiagnostics: (agentId: string) => Promise<ExternalAgentDiagnosticsView>;
@@ -1075,6 +1075,7 @@ export const useAgentStore = create<AgentState>((set, get) => ({
       avatarUrl: opts.avatarUrl,
       onboarding: opts.onboarding,
       external: opts.external,
+      ...(opts.useHostConfig === false ? { useHostConfig: false } : {}),
       ...(opts.provider ? { provider: opts.provider } : {}),
       ...(opts.provider && opts.hostedModel ? { hostedModel: opts.hostedModel } : {}),
       ...(opts.actionCardMessageId ? { actionCardMessageId: opts.actionCardMessageId } : {}),

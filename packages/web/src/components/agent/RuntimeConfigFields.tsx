@@ -389,6 +389,8 @@ interface RuntimeConfigFieldsProps {
   /** Inside the runtime field, under its description line: the runtime's
    *  sign-in notice (RuntimeSignInNotice). */
   runtimeBelowDescription?: ReactNode;
+  /** A row right under the runtime picker, before the runtime's own fields. */
+  afterRuntime?: ReactNode;
   /** Inside the runtime select's list, after the options: Show All Supported. */
   runtimeListAction?: RuntimeSelectListAction;
   /** Re-ask the computer which runtimes are installed. Omit to hide the control. */
@@ -436,6 +438,7 @@ export default function RuntimeConfigFields({
   runtimeLabel,
   reserveRuntimeMessage = true,
   runtimeBelowDescription,
+  afterRuntime,
   runtimeListAction,
   onRescanRuntimes,
   runtimesRescanning = false,
@@ -488,6 +491,7 @@ export default function RuntimeConfigFields({
           portalContainer={selectPortalContainer}
         />
       </Field>
+      {afterRuntime}
 
       {runtimeFormV2 && (
         runtimeFormV2.state.status === "ready" && runtimeFormV2.values ? (

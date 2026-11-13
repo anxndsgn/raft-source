@@ -123,6 +123,9 @@ test("buildAgentConfig: the start sends the config it builds, unchanged from bef
       sessionId: "session-1",
       serverUrl: process.env.SERVER_URL || `http://localhost:${process.env.PORT || 3001}`,
       authToken: "",
+      // Skills Hub: an agent with nothing enabled still gets the (empty)
+      // projection so the daemon can withdraw items disabled since last launch.
+      skillsHub: { skills: [], plugins: [], useHostSkills: true },
       constructedWakeContext: true,
       runtimeContext: {
         agentId: agent.id,

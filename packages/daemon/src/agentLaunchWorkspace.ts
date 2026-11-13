@@ -5,6 +5,8 @@
 import type { AgentConfig } from "@botiverse/raft-shared";
 import { buildCindyMemoryMd, buildCindySeedFiles } from "./cindy";
 import { initializeAgentWorkspace } from "./workspaces";
+import { syncSkillsHubWorkspace } from "./skillsHubSync";
+import { logger } from "./logger";
 
 const ONBOARDING_MEMORY_SEED_ENV = "SLOCK_ONBOARDING_MEMORY_SEED";
 const FIRST_CINDY_SEED_MODE = "first-cindy";
@@ -42,4 +44,11 @@ export async function initializeLaunchWorkspace(agentDataDir: string, agentId: s
     buildInitialMemoryMd(initialRuntimeConfig),
     getOnboardingSeedMode(config) === FIRST_CINDY_SEED_MODE ? buildCindySeedFiles() : [], config.envVars,
   );
+  // Skills Hub: a failure here must not block the launch; the agent then runs
+  // with whatever hub files the previous launch left.
+  try {
+    await syncSkillsHubWorkspace(agentDataDir, config);
+  } catch (error) {
+    logger.warn(`[Agent ${agentId}] Skills Hub sync failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }

@@ -4852,6 +4852,20 @@
       "when": 1794532243551,
       "tag": "0692_user_notification_followed_thread_replies",
       "breakpoints": true
+    },
+    {
+      "idx": 693,
+      "version": "7",
+      "when": 1794551735304,
+      "tag": "0693_skills_hub",
+      "breakpoints": true
+    },
+    {
+      "idx": 694,
+      "version": "7",
+      "when": 1794557465976,
+      "tag": "0694_skills_hub_github_import",
+      "breakpoints": true
     }
   ]
 }

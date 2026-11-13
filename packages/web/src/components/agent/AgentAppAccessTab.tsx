@@ -442,9 +442,12 @@ function AgentAppEventsSection({ agentId }: { agentId: string }) {
 export default function AgentAppAccessTab({
   agentId,
   canManageAgentAccess,
+  leading,
 }: {
   agentId: string;
   canManageAgentAccess: boolean;
+  /** Capabilities: the agent's skills and plugins, before its Apps. */
+  leading?: ReactNode;
 }) {
   const { formatMessage } = useIntl();
   const formatMessageRef = useRef(formatMessage);
@@ -653,14 +656,15 @@ export default function AgentAppAccessTab({
   const grantableMcpApps = useMemo(() => mcpApps.filter((server) => !agentHasMcpApp(server)).map(mcpGrantableApp), [mcpApps]);
 
   return (
-    // The Apps tab scrolls in a raft-ui ScrollArea, its padding and spacing
+    // The Capabilities tab scrolls in a raft-ui ScrollArea, its padding and spacing
     // on the content; a tab stop once it overflows, named like the tab.
     <ScrollArea
       role="region"
-      aria-label={formatMessage({ id: "agent.detail.tab.apps" })}
+      aria-label={formatMessage({ id: "agent.detail.tab.capabilities" })}
       className="flex-1 bg-layer-canvas"
       contentClassName="stack-y-6 px-(--surface-inset) py-4"
     >
+      {leading}
       {error && <Banner intent="warning" density="sm">{error}</Banner>}
       {mcpError && <Banner intent="warning" density="sm">{mcpError}</Banner>}
 
@@ -709,6 +713,8 @@ export default function AgentAppAccessTab({
       >
         <SectionHeader
           label={formatMessage({ id: "agent.detail.applications" })}
+          icon={<AppWindow size={16} />}
+          count={loading ? undefined : apps.length + grantedMcpApps.length}
           action={loading
             ? <span className="text-caption text-foreground-hint">{formatMessage({ id: "common.loading" })}</span>
             : canManageAgentAccess && !granting

@@ -23,7 +23,7 @@ import {
   buildRisingWaveBootstrapStatements,
   createdRelationName,
 } from "../../../scripts/dev/raftdev-risingwave-bootstrap";
-import { barrierIntervalToRestore, BOOTSTRAP_BARRIER_INTERVAL_MS } from "./risingwave-bootstrap-barrier";
+import { barrierIntervalToRestore } from "./risingwave-bootstrap-barrier";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../../..");
 
@@ -260,10 +260,14 @@ async function main(): Promise<void> {
   let restoreBarrierIntervalMs: number | null = null;
   try {
     // Loopback-only (checked above): this never touches a staging or
-    // production RisingWave. Set the restore target before shortening, so a
-    // failure in between still restores.
+    // production RisingWave. Build at the normal interval, never the
+    // shortened one: a snapshot-backfill MV (rw_thread_parent_v3) replays
+    // every upstream epoch, and at BOOTSTRAP_BARRIER_INTERVAL_MS it fell
+    // behind for good (~2000 epochs queued, Snapshot 0%, bootstrap failed)
+    // while at 1000ms each MV builds in ~3s. A leftover shortened interval
+    // from a killed bootstrap is reset here, and restored again in `finally`.
     restoreBarrierIntervalMs = barrierIntervalToRestore(await readBarrierIntervalMs(risingwave));
-    await risingwave.query(`ALTER SYSTEM SET barrier_interval_ms = ${BOOTSTRAP_BARRIER_INTERVAL_MS}`);
+    await risingwave.query(`ALTER SYSTEM SET barrier_interval_ms = ${restoreBarrierIntervalMs}`);
     const wal = await postgres.query<{ wal_level: string }>("SHOW wal_level");
     if (wal.rows[0]?.wal_level !== "logical") {
       throw new Error(`Postgres wal_level must be logical, got ${wal.rows[0]?.wal_level ?? "unknown"}`);

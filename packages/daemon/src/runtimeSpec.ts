@@ -27,7 +27,10 @@ import { hydrateRuntimeConfig, parseRuntimeConfig, runtimeConfigToLaunchFields, 
  * - `provider_connection`: `providerConnectionRevision`, the revision of the
  *   server-managed provider connection the launch resolves.
  *
- * The last two are optional (`OPTIONAL_RUNTIME_SPEC_COMPONENTS`): an older
+ * - `skills_hub`: `skillsHub`, the agent's enabled Skills Hub skills and
+ *   plugins and whether it may use the computer's own config.
+ *
+ * The last three are optional (`OPTIONAL_RUNTIME_SPEC_COMPONENTS`): an older
  * server sends neither, so one absent on either side is no drift; they are
  * compared only when both sides carry them.
  *
@@ -46,10 +49,10 @@ import { hydrateRuntimeConfig, parseRuntimeConfig, runtimeConfigToLaunchFields, 
  * non-secret facts a host reports; it lives in memory only (on the process),
  * and only the drift kinds ever leave it (traces), never a key or a value.
  */
-export const RUNTIME_SPEC_COMPONENTS = ["runtime", "model", "runtime_config", "env", "provider", "execution_mode", "managed_mcp", "provider_connection"] as const;
+export const RUNTIME_SPEC_COMPONENTS = ["runtime", "model", "runtime_config", "env", "provider", "execution_mode", "managed_mcp", "provider_connection", "skills_hub"] as const;
 export type RuntimeSpecComponent = typeof RUNTIME_SPEC_COMPONENTS[number];
 /** Compared only when both sides carry one: absent (an older server) is no drift. */
-const OPTIONAL_RUNTIME_SPEC_COMPONENTS: ReadonlySet<RuntimeSpecComponent> = new Set(["managed_mcp", "provider_connection"]);
+const OPTIONAL_RUNTIME_SPEC_COMPONENTS: ReadonlySet<RuntimeSpecComponent> = new Set(["managed_mcp", "provider_connection", "skills_hub"]);
 /**
  * A drift kind (`daemon.agent.spec_restart_stop` `drift`, comma-joined): a
  * spec component, the server features, or (reconciler step 15) the provider
@@ -134,6 +137,7 @@ function runtimeSpecComponents(config: AgentConfig): Record<RuntimeSpecComponent
       execution_mode: executionMode,
       managed_mcp: config.managedMcpFingerprint,
       provider_connection: config.providerConnectionRevision,
+      skills_hub: config.skillsHub ?? undefined,
       // Hydration is lenient (it keeps what it does not know); the strict
       // parse is what says this Computer knows every part of it.
       readable: parseRuntimeConfig(config).ok,
@@ -149,6 +153,7 @@ function runtimeSpecComponents(config: AgentConfig): Record<RuntimeSpecComponent
       execution_mode: executionMode,
       managed_mcp: config.managedMcpFingerprint,
       provider_connection: config.providerConnectionRevision,
+      skills_hub: config.skillsHub ?? undefined,
       readable: false,
     };
   }

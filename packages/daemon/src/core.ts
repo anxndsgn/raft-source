@@ -108,6 +108,7 @@ import {
   DAEMON_CAPABILITY_AGENT_CONTEXT_VIEW_CODEX_ROOT_V1,
   DAEMON_CAPABILITY_RUNNER_CREDENTIAL_RECONCILE_V1,
   DAEMON_CAPABILITY_AGENT_CONFIG_PUSH,
+  DAEMON_CAPABILITY_SKILLS_HUB_CONFIG_PUSH,
   DAEMON_CAPABILITY_CONTROL_START_CATCHUP_V1,
   DAEMON_CAPABILITY_MODEL_LIMITS_REPORT_V1,
   SERVER_CAPABILITY_RUNTIME_OUTCOME_ACK_V1,
@@ -7419,6 +7420,8 @@ export class DaemonCore {
         // Reconciler step 11: takes `agent:config` (a new config for a
         // running agent, applied at idle) instead of a restart.
         DAEMON_CAPABILITY_AGENT_CONFIG_PUSH,
+        // Skills Hub: the runtime spec compares `skillsHub` (runtimeSpec.ts).
+        DAEMON_CAPABILITY_SKILLS_HUB_CONFIG_PUSH,
         // RFC 071 F9: a runtime-profile control start also renders its
         // resume catch-up (startupInput.ts), so the server may count it as
         // the start that carried the owed catch-up.

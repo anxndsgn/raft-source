@@ -1,4 +1,4 @@
-import { Banner, BannerAction, BannerDescription, BannerTitle, Button, Input, ScrollArea, Select, SelectContent, SelectIcon, SelectItem, SelectItemIndicator, SelectItemText, SelectList, SelectValue, Textarea, TextLink } from "@botiverse/raft-ui";
+import { Banner, BannerAction, BannerDescription, BannerTitle, Button, Input, ScrollArea, Select, SelectContent, SelectIcon, SelectItem, SelectItemIndicator, SelectItemText, SelectList, SelectValue, Switch, Textarea, TextLink } from "@botiverse/raft-ui";
 import CloseButton from "../../components/ui/CloseButton";
 import SectionEyebrow from "../../components/ui/SectionEyebrow";
 import Tooltip from "../../components/ui/Tooltip";
@@ -12,7 +12,7 @@ import { useMachineStore } from "../../store/machineStore";
 import { orderMachinesLikeSidebar } from "../../components/layout/sidebarMachineOrder";
 import { useServerStore } from "../../store/serverStore";
 import api from "../../api/client";
-import { suggestAgentName, validateAgentNameReason, getRuntimeInfo, runtimeAvailabilitySuffix, PLAN_CONFIG, getBillingCapacityLimitLabel, getBillingCapacityLimitState, getBillingUsage, getEffectiveLimits, AGENT_LIMIT_REACHED_CODE, PRO_AGENT_SEAT_BLOCK_SIZE, seatTenths, seatsFromTenths } from "@botiverse/raft-shared";
+import { suggestAgentName, validateAgentNameReason, getRuntimeInfo, runtimeAvailabilitySuffix, PLAN_CONFIG, getBillingCapacityLimitLabel, getBillingCapacityLimitState, getBillingUsage, getEffectiveLimits, AGENT_LIMIT_REACHED_CODE, PRO_AGENT_SEAT_BLOCK_SIZE, seatTenths, seatsFromTenths, isExternalAgentRuntime } from "@botiverse/raft-shared";
 import type { CapacityLimitDetail, ProviderConnectionSummary, RuntimeSelectionOption, ServerPlan } from "@botiverse/raft-shared";
 import { formatAgentNameValidationError } from "../../i18n/nameValidation";
 import { formatRuntimeAvailabilitySuffix, formatRuntimeLabelBesideBadge, runtimeShowsExperimentalBadge } from "../../utils/runtimeAvailabilityLabel";
@@ -398,6 +398,9 @@ export function CreateAgentDialog({
     rememberedConfig,
   );
   const [runtime, setRuntime] = useState(defaultRuntime);
+  // Skills Hub: a new agent uses only what is enabled for it, not its
+  // computer's own skills, plugins and MCP servers, unless this is on.
+  const [useHostConfig, setUseHostConfig] = useState(false);
   const selectedRuntimeAdmission = runtimeAdmissionOptions.find((option) => option.runtimeId === runtime);
   const [editingProviderConnection, setEditingProviderConnection] = useState<ProviderConnectionSummary | null>(null);
   const [error, setError] = useState("");
@@ -510,6 +513,19 @@ export function CreateAgentDialog({
       runtimeId={runtime}
       enabled={canViewMachineRuntimeAccountUsage(selectedMachine, currentUserId, capabilities)}
     />
+  );
+
+  // Skills Hub: right under the runtime, the agent's access to its computer's own config.
+  const useHostConfigRow = (
+    <label className="flex cursor-pointer items-start gap-3 pb-3" data-testid="create-agent-use-host-config">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-callout font-semibold text-foreground">{formatMessage({ id: "skillsHub.hostSkills.title" })}</span>
+        <span className="text-caption text-foreground-muted">
+          {formatMessage({ id: useHostConfig ? "skillsHub.hostSkills.on" : "skillsHub.hostSkills.offCreate" })}
+        </span>
+      </span>
+      <Switch checked={useHostConfig} onCheckedChange={setUseHostConfig} />
+    </label>
   );
 
   const handleUpgradeToBilling = useCallback(() => {
@@ -850,6 +866,7 @@ export function CreateAgentDialog({
               formValues: runtimeFormV2Submission(runtimeFormV2.form, v2Values, runtimeFormV2.sources),
               machineId: selectedMachineId,
               avatarUrl: `pixel:${avatarKey}`,
+              useHostConfig,
               onboarding,
               actionCardMessageId,
               actionCardConfirmationVersion,
@@ -1458,6 +1475,7 @@ export function CreateAgentDialog({
               providerConnections={providerConnectionCatalog.connections}
               onEditProviderConnection={capabilities.manageExternalAuth ? setEditingProviderConnection : undefined}
               selectPortalContainer={createAgentSelectPortalRef}
+              afterRuntime={isExternalAgentRuntime(runtime) ? null : useHostConfigRow}
             />
             </>
           )}

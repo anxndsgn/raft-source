@@ -147,6 +147,15 @@ test("managed MCP and provider connection revisions drift only when both sides c
   assert.deepEqual(drift(withBoth, config({ managedMcpFingerprint: null, providerConnectionRevision: 4 })), ["provider_connection"], "null is absent");
 });
 
+test("the Skills Hub drifts on other skills, plugins or host config, only when both sides carry it", () => {
+  const hub = (overrides: Record<string, unknown> = {}) => config({ skillsHub: { skills: [], plugins: [], useHostSkills: true, ...overrides } } as Partial<AgentConfig>);
+  assert.deepEqual(drift(config(), hub()), [], "an older server's session: no drift");
+  assert.deepEqual(drift(hub(), hub()), []);
+  assert.deepEqual(drift(hub(), hub({ useHostSkills: false })), ["skills_hub"]);
+  assert.deepEqual(drift(hub(), hub({ skills: [{ name: "a", content: "x" }] })), ["skills_hub"]);
+  assert.deepEqual(drift(hub(), hub({ plugins: [{ name: "p@m", marketplaceSource: null }] })), ["skills_hub"]);
+});
+
 test("a spec stop is left to the server's start for another runtime or host, not for another model", () => {
   const legacy = runtimeSpecOf(config());
   assert.equal(specChangeNeedsServerStart(legacy, runtimeSpecOf(config({ model: "opus", envVars: null }))), false);

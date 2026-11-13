@@ -45,6 +45,7 @@ import type {
 import { useServerStore } from "../../store/serverStore";
 import { useMobileBack } from "../../hooks/useAppNavigate";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
+import { SkillsHubSettingsSection } from "../skillsHub/SkillsHub";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { showToast } from "../../components/toastBridge";
 import Banner from "../../components/ui/Banner";
@@ -188,6 +189,11 @@ export function InstalledAppsSkeleton({ viewMode, canManage }: { viewMode: Conne
   );
 }
 
+/** `?tab=skills` opens the Skills Hub (links from an agent's Capabilities). */
+function initialAppsTab(): ConnectedAppsTab {
+  return typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "skills" ? "skills" : "installed";
+}
+
 export function IntegrationsSection({ variant = "settings" }: { variant?: "page" | "settings" } = {}) {
   const { formatMessage } = useIntl();
   const current = useServerStore((s) => s.current);
@@ -202,7 +208,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
 
   const location = useLocation();
   // Installed first: the rows that wait for an owner or admin are there.
-  const [activeTab, setActiveTab] = useState<ConnectedAppsTab>("installed");
+  const [activeTab, setActiveTab] = useState<ConnectedAppsTab>(initialAppsTab);
   const [filters, setFilters] = useState<AppsFilters>(DEFAULT_APPS_FILTERS);
   // Grid or list, on every tab, remembered on the device (as Settings had it).
   const [connectedAppsViewMode, setConnectedAppsViewMode] = useState<ConnectedAppsViewMode>(getInitialConnectedAppsViewMode);
@@ -932,7 +938,9 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
     { value: "installed" as const, label: formatMessage({ id: "settings.connectedApps.installed" }), count: installedCount, testId: "connected-apps-tab-installed", countTestId: "connected-apps-tab-installed-count" },
     { value: "marketplace" as const, label: formatMessage({ id: "settings.connectedApps.tabMarketplace" }), count: marketplaceTotal, testId: "connected-apps-tab-marketplace", countTestId: "connected-apps-tab-marketplace-count" },
     { value: "myapps" as const, label: formatMessage({ id: "settings.connectedApps.tabMyApps" }), count: registeredCount, testId: "connected-apps-tab-my-apps", countTestId: "connected-apps-tab-my-apps-count" },
-  ], [formatMessage, installedCount, marketplaceTotal, registeredCount]);
+    // The Skills Hub: skills and plugins the server's agents can enable.
+    ...(capabilities.viewAgents ? [{ value: "skills" as const, label: formatMessage({ id: "skillsHub.tab" }), testId: "connected-apps-tab-skills" }] : []),
+  ], [capabilities.viewAgents, formatMessage, installedCount, marketplaceTotal, registeredCount]);
   const publishCategoryItems = useMemo(() => CONNECTED_APP_PUBLISH_CATEGORY_OPTIONS.map((option) => ({
     value: option.value,
     label: formatMessage({ id: CONNECTED_APP_CATEGORY_LABEL_ID[option.value] }),
@@ -1444,7 +1452,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
   const body = (
     <>
       {/* Each tab says what it holds; members also read who can change them. */}
-      {!canManage ? (
+      {!canManage && activeTab !== "skills" ? (
         <div className="text-footnote text-foreground-muted" data-testid="apps-admin-only-note">
           {formatMessage({ id: "settings.connectedApps.adminOnlyNote" })}
         </div>
@@ -1492,6 +1500,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
         </div>
       ) : null}
       {activeTab === "myapps" ? myAppsTab : null}
+      {activeTab === "skills" ? <SkillsHubSettingsSection /> : null}
     </>
   );
   const dialogs = (

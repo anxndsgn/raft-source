@@ -47,6 +47,7 @@ import api from "../../api/client";
 import AgentWorkspace from "../../components/agent/AgentWorkspace";
 import AgentActivityLog from "../../components/agent/AgentActivityLog";
 import AgentSkills from "../../components/agent/AgentSkills";
+import { AgentSkillsHubTab } from "../skillsHub/SkillsHub";
 import AgentRemindersSection from "../../components/agent/AgentRemindersSection";
 import AgentAppAccessTab from "../../components/agent/AgentAppAccessTab";
 import AgentTabErrorBoundary from "../../components/agent/AgentTabErrorBoundary";
@@ -301,7 +302,7 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
       if (tab === "usage" && !agentUsagePanelEnabled) return false;
       return canViewPrivateAgentSurfaces;
     }),
-    [agent.deletedAt, agent.managedByAppInstallId, agentUsagePanelEnabled, canViewPrivateAgentSurfaces],
+    [agent.deletedAt, agent.managedByAppInstallId, agentUsagePanelEnabled, canViewPrivateAgentSurfaces, canManageAgent, isExternalAgent],
   );
   const visibleAgentTabItems = useMemo(
     () => AGENT_PANEL_TABS.filter((tab) => visibleAgentTabs.includes(tab.id)),
@@ -325,8 +326,8 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
   const isFullPageAgentRoute = /^\/s\/[^/]+\/agent\/[^/]+$/.test(location.pathname);
   const legacyFullPageTab = isFullPageAgentRoute ? searchParams.get("tab") : null;
   const requestedTab = rawTab ?? legacyFullPageTab;
-  // The retired MCP tab's links land on the Apps tab, where MCP Apps are listed now.
-  const resolvedTab = requestedTab === "mcp" ? "integrations" : requestedTab;
+  // The retired MCP and Skills tabs' links land on Capabilities, which lists both now.
+  const resolvedTab = requestedTab === "mcp" || requestedTab === "skills" ? "integrations" : requestedTab;
   const activeTab: AgentTab = activityOnly
     ? "activity"
     : orderedAgentTabs.some((tab) => tab.id === resolvedTab) ? (resolvedTab as AgentTab) : defaultAgentTab;
@@ -966,7 +967,14 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
       ) : activeTab === "usage" ? (
         <AgentUsageTab key={agent.id} agentId={agent.id} />
       ) : activeTab === "integrations" ? (
-        <AgentAppAccessTab agentId={agent.id} canManageAgentAccess={canManageAgentAccess} />
+        <AgentAppAccessTab
+          agentId={agent.id}
+          canManageAgentAccess={canManageAgentAccess}
+          // Skills Hub assignments are an edit surface (editAgents or creator).
+          leading={canManageAgent && !isExternalAgent
+            ? <AgentSkillsHubTab key={agent.id} agentId={agent.id} agentName={agent.displayName || agent.name} />
+            : null}
+        />
       ) : null}
       </AgentTabErrorBoundary>
       </RowRegionBody>

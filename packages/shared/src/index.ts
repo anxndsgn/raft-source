@@ -1081,6 +1081,13 @@ export const DAEMON_CAPABILITY_RUNNER_CREDENTIAL_RENEW_V1 = "runner-credential-r
 export const DAEMON_CAPABILITY_AGENT_CONFIG_PUSH = "agent:config-push-v1";
 
 /**
+ * Skills Hub: the daemon's runtime spec compares `AgentConfig.skillsHub`, so
+ * an `agent:config` push with other skills or plugins restarts the agent once
+ * idle. Without it the server restarts the agent at once.
+ */
+export const DAEMON_CAPABILITY_SKILLS_HUB_CONFIG_PUSH = "agent:skills-hub-config-push-v1";
+
+/**
  * RFC 071 F9: an `agent:start` that carries both `config.runtimeProfileControl`
  * and `resumeMessages` (no wake message, no resume prompt) renders the resume
  * catch-up in that launch's first input, with the release notice. An older
@@ -3331,6 +3338,12 @@ export interface AgentConfig {
    *     degrades to the historical prompt (no apps section).
    */
   installedApps?: AgentInstalledAppCatalogEntry[] | null;
+  /**
+   * Skills Hub items enabled for this agent (skills + plugins). The daemon
+   * writes them into the workspace before spawn and removes ones it wrote
+   * earlier that are no longer enabled. Absent on old servers: no change.
+   */
+  skillsHub?: import("./skillsHub").SkillsHubLaunchProjection | null;
   /**
    * Server-evaluated `reminder_app` rollout flag. When true, the prompt's
    * Reminders section and command-list entry point at the Reminder app (found
@@ -7024,6 +7037,7 @@ export * from "./agentMigrationUserIgnore";
 export * from "./agentArchive";
 export * from "./discussionGraph";
 export * from "./managedMcp";
+export * from "./skillsHub";
 export * from "./providerConnections";
 export * from "./providerProbes";
 
