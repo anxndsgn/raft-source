@@ -1025,7 +1025,7 @@ export function AgentSkillsHubTab({ agentId, agentName }: { agentId: string; age
             )) : undefined}
           />
           {items.length === 0 ? (
-            catalog && <div className="text-callout text-foreground-hint">{formatMessage({ id: kind === "skill" ? "skillsHub.agent.noSkills" : "skillsHub.agent.noPlugins" })}</div>
+            catalog && <div className="text-callout text-foreground-hint">{formatMessage({ id: kind === "skill" ? "skillsHub.agent.noSkills" : "skillsHub.agent.noPlugins" }, { canAdd: canManageHub ? "yes" : "no" })}</div>
           ) : (
             <Card render={<ul />} className="divide-y divide-line-hairline">
               {items.map((item) => (

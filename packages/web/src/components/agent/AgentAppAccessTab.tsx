@@ -713,6 +713,8 @@ export default function AgentAppAccessTab({
       >
         <SectionHeader
           label={formatMessage({ id: "agent.detail.applications" })}
+          icon={<AppWindow size={16} />}
+          count={loading ? undefined : apps.length + grantedMcpApps.length}
           action={loading
             ? <span className="text-caption text-foreground-hint">{formatMessage({ id: "common.loading" })}</span>
             : canManageAgentAccess && !granting

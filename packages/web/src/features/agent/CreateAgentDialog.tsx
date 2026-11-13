@@ -515,6 +515,19 @@ export function CreateAgentDialog({
     />
   );
 
+  // Skills Hub: right under the runtime, the agent's access to its computer's own config.
+  const useHostConfigRow = (
+    <label className="flex cursor-pointer items-start gap-3 pb-3" data-testid="create-agent-use-host-config">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="text-callout font-semibold text-foreground">{formatMessage({ id: "skillsHub.hostSkills.title" })}</span>
+        <span className="text-caption text-foreground-muted">
+          {formatMessage({ id: useHostConfig ? "skillsHub.hostSkills.on" : "skillsHub.hostSkills.offCreate" })}
+        </span>
+      </span>
+      <Switch checked={useHostConfig} onCheckedChange={setUseHostConfig} />
+    </label>
+  );
+
   const handleUpgradeToBilling = useCallback(() => {
     onClose();
     trackPaywallAction("seat_limit_agent_create", "view_billing");
@@ -1462,18 +1475,8 @@ export function CreateAgentDialog({
               providerConnections={providerConnectionCatalog.connections}
               onEditProviderConnection={capabilities.manageExternalAuth ? setEditingProviderConnection : undefined}
               selectPortalContainer={createAgentSelectPortalRef}
+              afterRuntime={isExternalAgentRuntime(runtime) ? null : useHostConfigRow}
             />
-            {!isExternalAgentRuntime(runtime) && (
-              <label className="flex cursor-pointer items-start gap-3 py-2" data-testid="create-agent-use-host-config">
-                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="text-callout font-semibold text-foreground">{formatMessage({ id: "skillsHub.hostSkills.title" })}</span>
-                  <span className="text-caption text-foreground-muted">
-                    {formatMessage({ id: useHostConfig ? "skillsHub.hostSkills.on" : "skillsHub.hostSkills.offCreate" })}
-                  </span>
-                </span>
-                <Switch checked={useHostConfig} onCheckedChange={setUseHostConfig} />
-              </label>
-            )}
             </>
           )}
 
