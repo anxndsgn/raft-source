@@ -1081,6 +1081,13 @@ export const DAEMON_CAPABILITY_RUNNER_CREDENTIAL_RENEW_V1 = "runner-credential-r
 export const DAEMON_CAPABILITY_AGENT_CONFIG_PUSH = "agent:config-push-v1";
 
 /**
+ * Skills Hub: the daemon's runtime spec compares `AgentConfig.skillsHub`, so
+ * an `agent:config` push with other skills or plugins restarts the agent once
+ * idle. Without it the server restarts the agent at once.
+ */
+export const DAEMON_CAPABILITY_SKILLS_HUB_CONFIG_PUSH = "agent:skills-hub-config-push-v1";
+
+/**
  * RFC 071 F9: an `agent:start` that carries both `config.runtimeProfileControl`
  * and `resumeMessages` (no wake message, no resume prompt) renders the resume
  * catch-up in that launch's first input, with the release notice. An older

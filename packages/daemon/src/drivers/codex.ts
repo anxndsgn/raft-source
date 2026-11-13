@@ -7,10 +7,11 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { ChildProcess } from "node:child_process";
-import { hydrateRuntimeConfig, runtimeConfigToLaunchFields, runtimeModelSourceOutcomeFromSet, type AgentConfig, type RuntimeModelInfo, type RuntimeModelSet, type RuntimeModelSourceOutcome, type Tracer , type AxSurfaceText } from "@botiverse/raft-shared";
+import { CODEX_HOME_ENV, hydrateRuntimeConfig, runtimeConfigToLaunchFields, runtimeModelSourceOutcomeFromSet, type AgentConfig, type RuntimeModelInfo, type RuntimeModelSet, type RuntimeModelSourceOutcome, type Tracer , type AxSurfaceText } from "@botiverse/raft-shared";
 import type { RuntimeDriver, SpawnContext, SpawnResult, ParsedEvent, RuntimeProbeResult, RuntimeProbeUnavailableReason } from "./types";
 import { buildCliTransportSystemPrompt, prepareCliTransport } from "./cliTransport";
-import { codexStateRootCandidates, resolveCodexHomeRootFromEnv } from "./codexHome";
+import { codexStateRootCandidates, hasConfiguredCodexHome, prepareIsolatedCodexHome, resolveCodexHomeRootFromEnv } from "./codexHome";
+import { skillsHubIsolatesHost } from "../skillsHubSync";
 import { detectNodeHostKind, NodeHostUnavailableError, resolveNodeHostLaunch } from "./nodeHostLaunch";
 import {
   firstExistingPath,
@@ -1148,6 +1149,14 @@ export function codexCandidateTraceAttrs(
 
 export async function prepareCodexLaunch(ctx: SpawnContext): Promise<CodexLaunchPreparation> {
   const { spawnEnv } = await prepareCliTransport(ctx, { NO_COLOR: "1" });
+  // "Use this computer's config" off: the agent gets its own Codex home (login
+  // and sessions linked from the computer's), so the computer's config.toml,
+  // MCP servers, skills and plugins are not loaded. A CODEX_HOME the agent's
+  // own runtime config sets is respected as is.
+  if (skillsHubIsolatesHost(ctx.config) && !hasConfiguredCodexHome(ctx.config, {})) {
+    const hostHome = resolveCodexHomeRootFromEnv(spawnEnv, { defaultHomeDir: os.homedir(), cwd: ctx.workingDirectory });
+    spawnEnv[CODEX_HOME_ENV] = await prepareIsolatedCodexHome(hostHome, ctx.workingDirectory);
+  }
   const managedMcp = await prepareManagedMcpRuntimeProxy({
     agentId: ctx.agentId,
     launchId: ctx.launchId,

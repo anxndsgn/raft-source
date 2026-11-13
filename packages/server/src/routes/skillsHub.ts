@@ -1,10 +1,11 @@
-import type { ServerCapability, SkillsHubItemKind } from "@botiverse/raft-shared";
+import { DAEMON_CAPABILITY_SKILLS_HUB_CONFIG_PUSH, type ServerCapability, type SkillsHubItemKind } from "@botiverse/raft-shared";
 import { Router, type NextFunction, type Request, type Response, type Router as RouterType } from "express";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "../db/index";
 import { agents } from "../db/schema";
 import { actorHasServerCapabilityInServer, getActorServerRoleInServer, userCanActOnAgentResource } from "../lib/actorPermissions";
 import { guardUuidPathParams } from "../lib/uuidPathParams";
+import { bumpAgentConfigRevision } from "../services/agentConfigRevision";
 import type { AgentOrchestrator } from "../services/agentOrchestrator";
 import { readGithubSkills, scanGithubMarketplace, scanGithubSkills } from "../services/skillsHubGithub";
 import {
@@ -102,13 +103,26 @@ function requireAgentCapabilityOrCreator(capability: ServerCapability) {
 }
 
 /** Running agents pick up hub changes on their next launch; restart them now. */
+/**
+ * The agents restart on their new skills and plugins. A Computer that compares
+ * the Skills Hub in its runtime spec takes the config push and restarts the
+ * agent once idle; any other one (or an agent whose Computer is not connected
+ * here) is restarted at once, as before.
+ */
 async function restartAgents(req: Request, agentIds: string[]): Promise<void> {
   const orchestrator = req.app.get("agentOrchestrator") as AgentOrchestrator | undefined;
   if (!orchestrator) return;
   for (const agentId of new Set(agentIds)) {
-    await orchestrator.resetAgent(agentId, "restart", { restartIfStopped: false }).catch((error: unknown) => {
+    try {
+      const [agent] = await getDb().select({ machineId: agents.machineId }).from(agents).where(eq(agents.id, agentId)).limit(1);
+      if (agent && orchestrator.hasMachineCapability(agent.machineId, DAEMON_CAPABILITY_SKILLS_HUB_CONFIG_PUSH)) {
+        await bumpAgentConfigRevision(getDb(), [agentId]);
+        if (await orchestrator.applyAgentConfig(agentId) === "pushed") continue;
+      }
+      await orchestrator.resetAgent(agentId, "restart", { restartIfStopped: false });
+    } catch (error) {
       console.warn(`[skills-hub] restart of agent ${agentId} failed: ${error instanceof Error ? error.message : String(error)}`);
-    });
+    }
   }
 }
 
