@@ -62,6 +62,46 @@ test("writes enabled skills, then removes only hub-owned ones when disabled", as
   });
 });
 
+test("skill files are written with the skill and stale ones removed on change", async () => {
+  await withWorkspace(async (ws) => {
+    const base = { name: "tool", content: "# tool" };
+    await syncSkillsHubWorkspace(ws, config({
+      skills: [{ ...base, files: [
+        { path: "scripts/run.sh", content: "echo hi", encoding: "utf8" },
+        { path: "img.bin", content: Buffer.from([0, 1, 2]).toString("base64"), encoding: "base64" },
+        { path: "../escape.txt", content: "no", encoding: "utf8" },
+      ] }],
+      plugins: [],
+      useHostSkills: true,
+    }));
+    assert.equal(await read(path.join(ws, ".claude/skills/tool/scripts/run.sh")), "echo hi");
+    assert.deepEqual([...await readFile(path.join(ws, ".claude/skills/tool/img.bin"))], [0, 1, 2]);
+    assert.equal(await exists(path.join(ws, ".claude/skills/escape.txt")), false);
+
+    // Same content again: nothing rewritten.
+    const same = await syncSkillsHubWorkspace(ws, config({
+      skills: [{ ...base, files: [
+        { path: "scripts/run.sh", content: "echo hi", encoding: "utf8" },
+        { path: "img.bin", content: Buffer.from([0, 1, 2]).toString("base64"), encoding: "base64" },
+        { path: "../escape.txt", content: "no", encoding: "utf8" },
+      ] }],
+      plugins: [],
+      useHostSkills: true,
+    }));
+    assert.deepEqual(same?.written, []);
+
+    // A file dropped from the skill disappears from the workspace.
+    const changed = await syncSkillsHubWorkspace(ws, config({
+      skills: [{ ...base, files: [{ path: "scripts/run.sh", content: "echo bye", encoding: "utf8" }] }],
+      plugins: [],
+      useHostSkills: true,
+    }));
+    assert.deepEqual(changed?.written, ["tool"]);
+    assert.equal(await read(path.join(ws, ".claude/skills/tool/scripts/run.sh")), "echo bye");
+    assert.equal(await exists(path.join(ws, ".claude/skills/tool/img.bin")), false);
+  });
+});
+
 test("codex skills go to .agents/skills", async () => {
   await withWorkspace(async (ws) => {
     await syncSkillsHubWorkspace(ws, config({ skills: [{ name: "x", content: "c" }], plugins: [], useHostSkills: true }, "codex"));

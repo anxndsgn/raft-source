@@ -5,14 +5,17 @@
 // agent or a person put there by hand are never touched: ownership is tracked
 // in a manifest next to the workspace root.
 
+import { createHash } from "node:crypto";
 import { lstat, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
+  isSafeSkillFilePath,
   SKILLS_HUB_PLUGIN_NAME_PATTERN,
   SKILLS_HUB_SKILL_NAME_PATTERN,
   skillsHubPluginMarketplace,
   type AgentConfig,
   type SkillsHubLaunchProjection,
+  type SkillsHubLaunchSkill,
   type SkillsHubMarketplaceSource,
 } from "@botiverse/raft-shared";
 
@@ -22,13 +25,15 @@ interface SkillsHubManifest {
   version: 1;
   /** Skill directories written by the hub, relative to the workspace. */
   skillDirs: string[];
+  /** Content hash per hub skill directory, to skip rewriting unchanged skills. */
+  skillHashes: Record<string, string>;
   /** `enabledPlugins` keys written by the hub into .claude/settings.json. */
   plugins: string[];
   /** `extraKnownMarketplaces` keys written by the hub. */
   marketplaces: string[];
 }
 
-const EMPTY_MANIFEST: SkillsHubManifest = { version: 1, skillDirs: [], plugins: [], marketplaces: [] };
+const EMPTY_MANIFEST: SkillsHubManifest = { version: 1, skillDirs: [], skillHashes: {}, plugins: [], marketplaces: [] };
 
 export interface SkillsHubSyncResult {
   written: string[];
@@ -46,12 +51,40 @@ function stringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
 }
 
+function stringRecord(value: unknown): Record<string, string> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === "string"));
+}
+
+function skillHash(skill: SkillsHubLaunchSkill): string {
+  const hash = createHash("sha256").update("SKILL.md\0").update(skill.content);
+  for (const file of [...(skill.files ?? [])].sort((a, b) => a.path.localeCompare(b.path))) {
+    hash.update(`\0${file.path}\0${file.encoding}\0`).update(file.content);
+  }
+  return hash.digest("hex");
+}
+
+/** Write SKILL.md and the skill's other files into a fresh directory. */
+async function writeSkillDir(dir: string, skill: SkillsHubLaunchSkill): Promise<void> {
+  await rm(dir, { recursive: true, force: true });
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, "SKILL.md"), skill.content, "utf8");
+  for (const file of skill.files ?? []) {
+    if (!isSafeSkillFilePath(file.path)) continue;
+    const target = path.join(dir, ...file.path.split("/"));
+    if (!target.startsWith(dir + path.sep)) continue;
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, file.encoding === "base64" ? Buffer.from(file.content, "base64") : file.content);
+  }
+}
+
 async function readManifest(workspace: string): Promise<SkillsHubManifest> {
   try {
     const raw = JSON.parse(await readFile(path.join(workspace, SKILLS_HUB_MANIFEST_FILE), "utf8")) as Record<string, unknown>;
     return {
       version: 1,
       skillDirs: stringArray(raw.skillDirs),
+      skillHashes: stringRecord(raw.skillHashes),
       plugins: stringArray(raw.plugins),
       marketplaces: stringArray(raw.marketplaces),
     };
@@ -162,6 +195,7 @@ export async function syncSkillsHubWorkspace(workspace: string, config: AgentCon
   const root = skillsHubSkillRoot(config.runtime);
   const owned = new Set(previous.skillDirs.filter(isManagedSkillDir));
   const nextSkillDirs: string[] = [];
+  const nextSkillHashes: Record<string, string> = {};
 
   for (const skill of hub.skills) {
     if (!SKILLS_HUB_SKILL_NAME_PATTERN.test(skill.name)) {
@@ -178,12 +212,13 @@ export async function syncSkillsHubWorkspace(workspace: string, config: AgentCon
         continue;
       }
     }
-    if (existing !== skill.content) {
-      await mkdir(path.join(workspace, rel), { recursive: true });
-      await writeFile(file, skill.content, "utf8");
+    const hash = skillHash(skill);
+    if (existing !== skill.content || previous.skillHashes[rel] !== hash) {
+      await writeSkillDir(path.join(workspace, rel), skill);
       result.written.push(skill.name);
     }
     nextSkillDirs.push(rel);
+    nextSkillHashes[rel] = hash;
   }
 
   const keep = new Set(nextSkillDirs);
@@ -202,7 +237,7 @@ export async function syncSkillsHubWorkspace(workspace: string, config: AgentCon
     result.pluginsChanged = synced.changed;
   }
 
-  const manifest: SkillsHubManifest = { version: 1, skillDirs: nextSkillDirs, plugins, marketplaces };
+  const manifest: SkillsHubManifest = { version: 1, skillDirs: nextSkillDirs, skillHashes: nextSkillHashes, plugins, marketplaces };
   const manifestPath = path.join(workspace, SKILLS_HUB_MANIFEST_FILE);
   const serialized = `${JSON.stringify(manifest, null, 2)}\n`;
   if (await readIfExists(manifestPath) !== serialized) {

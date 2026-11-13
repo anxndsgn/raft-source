@@ -1,10 +1,13 @@
-import { Badge, Button, Card, Input, Switch, Textarea } from "@botiverse/raft-ui";
+import { Badge, Button, Card, Checkbox, Input, Switch, Textarea } from "@botiverse/raft-ui";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { useIntl } from "react-intl";
-import { Package, Plus, Puzzle, Sparkles, Trash2 } from "lucide-react";
+import { Download, Package, Plus, Puzzle, Sparkles, Trash2 } from "lucide-react";
+import { isExternalAgentRuntime } from "@botiverse/raft-shared";
 import type {
   SkillsHubAgentCatalogResponse,
+  SkillsHubGithubImportResponse,
+  SkillsHubGithubScanResponse,
   SkillsHubAgentItemView,
   SkillsHubCatalogResponse,
   SkillsHubItemKind,
@@ -14,6 +17,9 @@ import type {
 import api from "../../api/client";
 import SectionHeader from "../../components/ui/SectionHeader";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
+import { useAgentStore } from "../../store/agentStore";
+
+const GITHUB_URL_PLACEHOLDER = "https://github.com/owner/repo";
 
 /** The file name itself, not prose: not translated. */
 const SKILL_MD_FILE_NAME = "SKILL.md";
@@ -178,14 +184,25 @@ function ItemSummary({ item }: { item: SkillsHubItemView }) {
         </Badge>
       </span>
       {item.description && <span className="truncate pl-[22px] text-caption text-foreground-muted">{item.description}</span>}
+      {item.source && (
+        <span className="truncate pl-[22px] text-caption text-foreground-hint">
+          {formatMessage(
+            { id: "skillsHub.item.githubSource" },
+            { repo: item.source.repo, ref: item.source.ref, files: item.fileCount },
+          )}
+        </span>
+      )}
     </span>
   );
 }
 
-function AddButtons({ onAdd }: { onAdd: (kind: SkillsHubItemKind) => void }) {
+function AddButtons({ onAdd, onImport }: { onAdd: (kind: SkillsHubItemKind) => void; onImport: () => void }) {
   const { formatMessage } = useIntl();
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
+      <Button variant="outline" size="sm" onClick={onImport} data-testid="skills-hub-import-github">
+        <Download size={14} /> {formatMessage({ id: "skillsHub.action.importGithub" })}
+      </Button>
       <Button variant="outline" size="sm" onClick={() => onAdd("skill")} data-testid="skills-hub-add-skill">
         <Plus size={14} /> {formatMessage({ id: "skillsHub.action.addSkill" })}
       </Button>
@@ -193,6 +210,182 @@ function AddButtons({ onAdd }: { onAdd: (kind: SkillsHubItemKind) => void }) {
         <Plus size={14} /> {formatMessage({ id: "skillsHub.action.addPlugin" })}
       </Button>
     </div>
+  );
+}
+
+
+type ScanState = SkillsHubGithubScanResponse & { url: string };
+
+/**
+ * Import from GitHub: paste a repository (or a folder link), pick the skills
+ * found in it, pick the agents to enable them for, import.
+ */
+function GithubImportPanel({
+  defaultAgentIds,
+  onCancel,
+  onImported,
+}: {
+  defaultAgentIds: string[];
+  onCancel: () => void;
+  onImported: (items: SkillsHubItemView[]) => void;
+}) {
+  const { formatMessage } = useIntl();
+  const allAgents = useAgentStore((s) => s.agents);
+  const loadAgents = useAgentStore((s) => s.loadAgents);
+  const agents = useMemo(
+    () => allAgents.filter((agent) => !agent.deletedAt && agent.external !== true && !isExternalAgentRuntime(agent.runtime)),
+    [allAgents],
+  );
+  const [url, setUrl] = useState("");
+  const [scan, setScan] = useState<ScanState | null>(null);
+  const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
+  const [selectedAgents, setSelectedAgents] = useState<Set<string>>(() => new Set(defaultAgentIds));
+  const [busy, setBusy] = useState<"scan" | "import" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (allAgents.length === 0) void loadAgents();
+  }, [allAgents.length, loadAgents]);
+
+  const runScan = async (event: FormEvent) => {
+    event.preventDefault();
+    setBusy("scan");
+    setError(null);
+    setScan(null);
+    try {
+      const { data } = await api.post<SkillsHubGithubScanResponse>("/skills-hub/github/scan", { url: url.trim() });
+      setScan({ ...data, url: url.trim() });
+      setSelectedPaths(new Set(data.skills.filter((skill) => !skill.existingItemId).map((skill) => skill.path)));
+    } catch (err) {
+      setError(errorMessage(err, formatMessage({ id: "skillsHub.import.error.scan" })));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const runImport = async () => {
+    if (!scan) return;
+    setBusy("import");
+    setError(null);
+    try {
+      const { data } = await api.post<SkillsHubGithubImportResponse>("/skills-hub/github/import", {
+        url: scan.url,
+        commitSha: scan.commitSha,
+        paths: [...selectedPaths],
+        agentIds: [...selectedAgents],
+      });
+      onImported(data.items);
+    } catch (err) {
+      setError(errorMessage(err, formatMessage({ id: "skillsHub.import.error.import" })));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const toggle = (set: Set<string>, value: string, on: boolean): Set<string> => {
+    const next = new Set(set);
+    if (on) next.add(value);
+    else next.delete(value);
+    return next;
+  };
+
+  return (
+    <Card className="space-y-4 p-4" data-testid="skills-hub-github-import">
+      <div className="text-subhead font-semibold text-foreground">{formatMessage({ id: "skillsHub.import.title" })}</div>
+      <form className="flex gap-2" onSubmit={runScan}>
+        <Input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder={GITHUB_URL_PLACEHOLDER}
+          className="min-w-0 flex-1"
+          required
+          data-testid="skills-hub-github-url"
+        />
+        <Button type="submit" variant="outline" disabled={busy !== null || !url.trim()} data-testid="skills-hub-github-scan">
+          {formatMessage({ id: busy === "scan" ? "skillsHub.import.scanning" : "skillsHub.import.scan" })}
+        </Button>
+      </form>
+      <p className="text-caption text-foreground-hint">{formatMessage({ id: "skillsHub.import.urlHint" })}</p>
+
+      {scan && scan.skills.length === 0 && (
+        <div className="text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.import.none" })}</div>
+      )}
+
+      {scan && scan.skills.length > 0 && (
+        <>
+          <div className="space-y-2">
+            <div className="text-caption font-semibold text-foreground-muted">
+              {formatMessage({ id: "skillsHub.import.skillsFound" }, { count: scan.skills.length, repo: scan.repo, ref: scan.ref })}
+            </div>
+            <Card render={<ul />} className="max-h-80 divide-y divide-line-hairline overflow-y-auto">
+              {scan.skills.map((skill) => (
+                <li key={skill.path}>
+                  <label className="flex cursor-pointer items-start gap-3 px-3 py-2">
+                    <Checkbox
+                      checked={selectedPaths.has(skill.path)}
+                      onCheckedChange={(checked: boolean) => setSelectedPaths((prev) => toggle(prev, skill.path, checked))}
+                      data-testid={`skills-hub-import-skill-${skill.name}`}
+                    />
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className="truncate text-callout font-semibold text-foreground">{skill.name}</span>
+                        {skill.existingItemId && (
+                          <Badge appearance="outline" className="shrink-0">{formatMessage({ id: "skillsHub.import.exists" })}</Badge>
+                        )}
+                      </span>
+                      {skill.description && <span className="line-clamp-2 text-caption text-foreground-muted">{skill.description}</span>}
+                      <span className="truncate text-caption text-foreground-hint">
+                        {formatMessage({ id: "skillsHub.import.skillMeta" }, { path: skill.path || "/", files: skill.fileCount })}
+                      </span>
+                    </span>
+                  </label>
+                </li>
+              ))}
+            </Card>
+          </div>
+
+          <div className="space-y-2">
+            <div className="text-caption font-semibold text-foreground-muted">{formatMessage({ id: "skillsHub.import.agents" })}</div>
+            {agents.length === 0 ? (
+              <div className="text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.import.noAgents" })}</div>
+            ) : (
+              <Card render={<ul />} className="max-h-64 divide-y divide-line-hairline overflow-y-auto">
+                {agents.map((agent) => (
+                  <li key={agent.id}>
+                    <label className="flex cursor-pointer items-center gap-3 px-3 py-2">
+                      <Checkbox
+                        checked={selectedAgents.has(agent.id)}
+                        onCheckedChange={(checked: boolean) => setSelectedAgents((prev) => toggle(prev, agent.id, checked))}
+                        data-testid={`skills-hub-import-agent-${agent.name}`}
+                      />
+                      <span className="truncate text-callout text-foreground">{agent.displayName || agent.name}</span>
+                    </label>
+                  </li>
+                ))}
+              </Card>
+            )}
+          </div>
+        </>
+      )}
+
+      {error && <div className="text-caption text-danger" role="alert">{error}</div>}
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={busy !== null}>
+          {formatMessage({ id: "common.confirm.cancel" })}
+        </Button>
+        {scan && scan.skills.length > 0 && (
+          <Button
+            type="button"
+            variant="primary"
+            onClick={() => void runImport()}
+            disabled={busy !== null || selectedPaths.size === 0}
+            data-testid="skills-hub-github-confirm"
+          >
+            {formatMessage({ id: busy === "import" ? "skillsHub.import.importing" : "skillsHub.import.confirm" }, { count: selectedPaths.size })}
+          </Button>
+        )}
+      </div>
+    </Card>
   );
 }
 
@@ -204,6 +397,7 @@ export function SkillsHubSettingsSection() {
   const [items, setItems] = useState<SkillsHubItemView[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [importing, setImporting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -235,10 +429,22 @@ export function SkillsHubSettingsSection() {
         label={formatMessage({ id: "skillsHub.title" })}
         icon={<Package size={16} />}
         count={items?.length}
-        action={canManage && !draft ? <AddButtons onAdd={(kind) => setDraft(emptyDraft(kind))} /> : undefined}
+        action={canManage && !draft && !importing
+          ? <AddButtons onAdd={(kind) => setDraft(emptyDraft(kind))} onImport={() => setImporting(true)} />
+          : undefined}
       />
       <p className="text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.description" })}</p>
       {error && <div className="text-caption text-danger" role="alert">{error}</div>}
+      {importing && (
+        <GithubImportPanel
+          defaultAgentIds={[]}
+          onCancel={() => setImporting(false)}
+          onImported={() => {
+            setImporting(false);
+            void load();
+          }}
+        />
+      )}
       {draft && (
         <SkillsHubItemEditor
           key={draft.id ?? `new-${draft.kind}`}
@@ -250,7 +456,7 @@ export function SkillsHubSettingsSection() {
           }}
         />
       )}
-      {items && items.length === 0 && !draft && (
+      {items && items.length === 0 && !draft && !importing && (
         <Card className="p-4 text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.empty" })}</Card>
       )}
       {items && items.length > 0 && (
@@ -293,6 +499,7 @@ export function AgentSkillsHubTab({ agentId, runtime }: { agentId: string; runti
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [importing, setImporting] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -341,7 +548,7 @@ export function AgentSkillsHubTab({ agentId, runtime }: { agentId: string; runti
   }, [catalog]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4" data-testid="agent-skills-hub-tab">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4 [&>*]:shrink-0" data-testid="agent-skills-hub-tab">
       <Card className="flex items-start gap-3 p-4">
         <span className="flex min-w-0 flex-1 flex-col gap-1">
           <span className="text-callout font-semibold text-foreground">{formatMessage({ id: "skillsHub.hostSkills.title" })}</span>
@@ -369,7 +576,20 @@ export function AgentSkillsHubTab({ agentId, runtime }: { agentId: string; runti
       />
       <p className="text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.agent.restartNote" })}</p>
       {/* The agent panel is narrow: the add buttons get their own row so the title never wraps. */}
-      {canManageHub && !draft && <AddButtons onAdd={(kind) => setDraft(emptyDraft(kind))} />}
+      {canManageHub && !draft && !importing && (
+        <AddButtons onAdd={(kind) => setDraft(emptyDraft(kind))} onImport={() => setImporting(true)} />
+      )}
+
+      {importing && (
+        <GithubImportPanel
+          defaultAgentIds={[agentId]}
+          onCancel={() => setImporting(false)}
+          onImported={() => {
+            setImporting(false);
+            void load();
+          }}
+        />
+      )}
 
       {draft && (
         <SkillsHubItemEditor
@@ -383,7 +603,7 @@ export function AgentSkillsHubTab({ agentId, runtime }: { agentId: string; runti
         />
       )}
 
-      {catalog && catalog.items.length === 0 && !draft && (
+      {catalog && catalog.items.length === 0 && !draft && !importing && (
         <Card className="p-4 text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.agent.empty" })}</Card>
       )}
 

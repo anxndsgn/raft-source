@@ -31,7 +31,9 @@ import type {
   RuntimeConfig,
   TrajectoryEntry,
   ManagedMcpToolCatalogEntry,
+  SkillsHubGithubSource,
   SkillsHubMarketplaceSource,
+  SkillsHubSkillFile,
   ProviderConnectionProviderId,
   TaskResourceReceipt,
 } from "@botiverse/raft-shared";
@@ -11363,6 +11365,10 @@ export const skillsHubItems = pgTable("skills_hub_items", {
   description: text("description"),
   content: text("content"),
   marketplaceSource: jsonb("marketplace_source").$type<SkillsHubMarketplaceSource>(),
+  /** Skill directory files besides SKILL.md (imported skills). */
+  files: jsonb("files").$type<SkillsHubSkillFile[]>(),
+  /** Set when the skill was imported from GitHub. */
+  source: jsonb("source").$type<SkillsHubGithubSource>(),
   createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
   updatedByUserId: uuid("updated_by_user_id").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

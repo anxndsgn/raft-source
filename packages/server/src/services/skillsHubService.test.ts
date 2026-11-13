@@ -9,6 +9,7 @@ import {
   createSkillsHubItem,
   deleteSkillsHubItem,
   getAgentSkillsHubCatalog,
+  importSkillsHubSkills,
   SkillsHubError,
   updateSkillsHubItem,
   writeAgentSkillsHubConfig,
@@ -104,5 +105,40 @@ test("skills hub: another server's items cannot be enabled", async ({ db: _db })
   await assert.rejects(
     writeAgentSkillsHubConfig({ serverId: a.serverId, userId: a.userId, agentId: a.agentId, enabledItemIds: [foreign.id] }),
     (error: unknown) => error instanceof SkillsHubError && error.code === "skills_hub_item_not_found",
+  );
+});
+
+test("skills hub: imported skills carry their files, re-import upgrades, clashes are refused", async ({ db: _db }) => {
+  const { userId, serverId, agentId } = await seed();
+  const source = { type: "github" as const, repo: "o/r", ref: "main", commitSha: "a".repeat(40), path: "skills/pdf" };
+  const skill = {
+    name: "pdf", description: "PDF", content: "# pdf",
+    files: [{ path: "scripts/fill.py", content: "print(1)", encoding: "utf8" as const }],
+    source,
+  };
+  const first = await importSkillsHubSkills({ serverId, userId, skills: [skill], agentIds: [agentId] });
+  assert.equal(first.items[0]?.fileCount, 1);
+  assert.deepEqual(first.items[0]?.source, source);
+  assert.deepEqual(first.affectedAgentIds, [agentId]);
+  assert.deepEqual((await buildSkillsHubLaunchProjection(serverId, agentId)).skills, [
+    { name: "pdf", content: "# pdf", files: skill.files },
+  ]);
+
+  const upgraded = await importSkillsHubSkills({
+    serverId, userId, agentIds: [],
+    skills: [{ ...skill, content: "# pdf v2", source: { ...source, commitSha: "b".repeat(40) } }],
+  });
+  assert.equal(upgraded.items[0]?.id, first.items[0]?.id);
+  assert.deepEqual(upgraded.affectedAgentIds, [agentId]);
+  assert.equal((await buildSkillsHubLaunchProjection(serverId, agentId)).skills[0]?.content, "# pdf v2");
+
+  await createSkillsHubItem({ serverId, userId, kind: "skill", name: "mine", description: null, content: "x", marketplaceSource: null });
+  await assert.rejects(
+    importSkillsHubSkills({ serverId, userId, agentIds: [], skills: [{ ...skill, name: "mine" }] }),
+    (error: unknown) => error instanceof SkillsHubError && error.code === "skills_hub_name_taken",
+  );
+  await assert.rejects(
+    importSkillsHubSkills({ serverId, userId, agentIds: ["not-a-uuid"], skills: [skill] }),
+    (error: unknown) => error instanceof SkillsHubError && error.code === "skills_hub_agent_not_found",
   );
 });

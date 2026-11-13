@@ -5,6 +5,8 @@ import {
   SKILLS_HUB_SKILL_NAME_PATTERN,
   type SkillsHubAgentCatalogResponse,
   type SkillsHubCatalogResponse,
+  type SkillsHubGithubSource,
+  type SkillsHubSkillFile,
   type SkillsHubItemKind,
   type SkillsHubItemView,
   type SkillsHubLaunchProjection,
@@ -20,12 +22,16 @@ export class SkillsHubError extends Error {
       | "skills_hub_invalid"
       | "skills_hub_item_not_found"
       | "skills_hub_agent_not_found"
-      | "skills_hub_name_taken",
+      | "skills_hub_name_taken"
+      | "skills_hub_github_not_found"
+      | "skills_hub_github_unavailable",
   ) {
     super(message);
     this.name = "SkillsHubError";
   }
 }
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type ItemRow = typeof skillsHubItems.$inferSelect;
 
@@ -37,6 +43,8 @@ function toView(row: ItemRow): SkillsHubItemView {
     description: row.description,
     content: row.kind === "skill" ? row.content ?? "" : null,
     marketplaceSource: row.kind === "plugin" ? row.marketplaceSource ?? null : null,
+    source: row.kind === "skill" ? row.source ?? null : null,
+    fileCount: row.kind === "skill" ? row.files?.length ?? 0 : 0,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -266,10 +274,107 @@ export async function buildSkillsHubLaunchProjection(serverId: string, agentId: 
   const projection: SkillsHubLaunchProjection = { skills: [], plugins: [], useHostSkills };
   for (const { item } of rows) {
     if (item.kind === "skill") {
-      projection.skills.push({ name: item.name, content: item.content ?? "" });
+      projection.skills.push({
+        name: item.name,
+        content: item.content ?? "",
+        ...(item.files && item.files.length > 0 ? { files: item.files } : {}),
+      });
     } else {
       projection.plugins.push({ name: item.name, marketplaceSource: item.marketplaceSource ?? null });
     }
   }
   return projection;
+}
+
+export interface SkillsHubImportedSkill {
+  name: string;
+  description: string | null;
+  content: string;
+  files: SkillsHubSkillFile[];
+  source: SkillsHubGithubSource;
+}
+
+/**
+ * Add imported skills to the hub and enable them for `agentIds`. A skill whose
+ * name is already taken by an item imported from the same repo path is
+ * updated in place (re-import = upgrade); any other name clash is an error, so
+ * a hand-written skill is never overwritten. Returns the items and every agent
+ * that now carries one of them (to restart).
+ */
+export async function importSkillsHubSkills(input: {
+  serverId: string;
+  userId: string;
+  skills: SkillsHubImportedSkill[];
+  agentIds: string[];
+}, db: DatabaseExecutor = getDb()): Promise<{ items: SkillsHubItemView[]; affectedAgentIds: string[] }> {
+  const agentIds = [...new Set(input.agentIds)];
+  if (agentIds.some((id) => !UUID_PATTERN.test(id))) throw new SkillsHubError("Agent not found", "skills_hub_agent_not_found");
+  for (const agentId of agentIds) await requireAgent(input.serverId, agentId, db);
+  const names = input.skills.map((skill) => validateSkillsHubName("skill", skill.name));
+  const duplicate = names.find((name, index) => names.indexOf(name) !== index);
+  if (duplicate) throw new SkillsHubError(`Two selected skills are both named "${duplicate}"`, "skills_hub_name_taken");
+
+  const existing = names.length === 0 ? [] : await db.select().from(skillsHubItems).where(and(
+    eq(skillsHubItems.serverId, input.serverId),
+    eq(skillsHubItems.kind, "skill"),
+    inArray(skillsHubItems.name, names),
+  ));
+  const byName = new Map(existing.map((row) => [row.name, row]));
+  const items: SkillsHubItemView[] = [];
+  for (const [index, skill] of input.skills.entries()) {
+    const name = names[index]!;
+    const content = validateSkillsHubContent(skill.content);
+    const current = byName.get(name);
+    if (current) {
+      const sameSource = current.source?.repo === skill.source.repo && current.source?.path === skill.source.path;
+      if (!sameSource) throw new SkillsHubError(`A skill named "${name}" already exists`, "skills_hub_name_taken");
+      const [row] = await db.update(skillsHubItems).set({
+        description: skill.description,
+        content,
+        files: skill.files,
+        source: skill.source,
+        updatedByUserId: input.userId,
+        updatedAt: new Date(),
+      }).where(eq(skillsHubItems.id, current.id)).returning();
+      items.push(toView(row!));
+    } else {
+      try {
+        const [row] = await db.insert(skillsHubItems).values({
+          serverId: input.serverId,
+          kind: "skill",
+          name,
+          description: skill.description,
+          content,
+          files: skill.files,
+          source: skill.source,
+          createdByUserId: input.userId,
+          updatedByUserId: input.userId,
+        }).returning();
+        items.push(toView(row!));
+      } catch (error) {
+        if (isUniqueViolation(error)) throw new SkillsHubError(`A skill named "${name}" already exists`, "skills_hub_name_taken");
+        throw error;
+      }
+    }
+  }
+  const itemIds = items.map((item) => item.id);
+  if (agentIds.length > 0 && itemIds.length > 0) {
+    await db.insert(skillsHubAssignments).values(agentIds.flatMap((agentId) => itemIds.map((itemId) => ({
+      serverId: input.serverId,
+      agentId,
+      itemId,
+      updatedByUserId: input.userId,
+    })))).onConflictDoNothing();
+  }
+  const affected = itemIds.length === 0 ? [] : await db.selectDistinct({ agentId: skillsHubAssignments.agentId })
+    .from(skillsHubAssignments)
+    .where(and(eq(skillsHubAssignments.serverId, input.serverId), inArray(skillsHubAssignments.itemId, itemIds)));
+  return { items, affectedAgentIds: affected.map((row) => row.agentId) };
+}
+
+/** Names of existing skills, to flag clashes in a scan. */
+export async function skillsHubSkillIdsByName(serverId: string, db: DatabaseExecutor = getDb()): Promise<Map<string, string>> {
+  const rows = await db.select({ id: skillsHubItems.id, name: skillsHubItems.name }).from(skillsHubItems)
+    .where(and(eq(skillsHubItems.serverId, serverId), eq(skillsHubItems.kind, "skill")));
+  return new Map(rows.map((row) => [row.name, row.id]));
 }
