@@ -40,6 +40,9 @@ const MARKETPLACE_URL_PLACEHOLDER = "https://github.com/anthropics/claude-plugin
 
 /** The file name itself, not prose: not translated. */
 const SKILL_MD_FILE_NAME = "SKILL.md";
+/** Where a plugin marketplace keeps its manifest; shown as code, never broken across lines. */
+const MARKETPLACE_MANIFEST_PATH = ".claude-plugin/marketplace.json";
+const manifestPath = <code className="whitespace-nowrap font-mono text-mono-meta">{MARKETPLACE_MANIFEST_PATH}</code>;
 
 const SKILL_TEMPLATE = `---
 name: my-skill
@@ -328,6 +331,7 @@ function RepoField({
   onUrlChange,
   placeholder,
   hint,
+  error,
   scanLabel,
   scanning,
   disabled,
@@ -337,7 +341,9 @@ function RepoField({
   url: string;
   onUrlChange: (url: string) => void;
   placeholder: string;
-  hint: string;
+  hint: ReactNode;
+  /** A failed read, shown under the field in place of the hint. */
+  error?: ReactNode;
   scanLabel: string;
   scanning: boolean;
   disabled: boolean;
@@ -365,7 +371,9 @@ function RepoField({
           {scanLabel}
         </Button>
       </div>
-      <p className="text-caption text-foreground-hint">{hint}</p>
+      {error
+        ? <p className="text-caption text-danger" role="alert" data-testid={`${testId}-error`}>{error}</p>
+        : <p className="text-caption text-foreground-hint">{hint}</p>}
     </div>
   );
 }
@@ -406,17 +414,19 @@ function GithubImportDialog({
   const [selectedAgents, setSelectedAgents] = useState<Set<string>>(() => new Set(defaultAgentIds));
   const [busy, setBusy] = useState<"scan" | "import" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
 
   const runScan = async () => {
     setBusy("scan");
     setError(null);
+    setScanError(null);
     setScan(null);
     try {
       const { data } = await api.post<SkillsHubGithubScanResponse>("/skills-hub/github/scan", { url: url.trim() });
       setScan({ ...data, url: url.trim() });
       setSelectedPaths(new Set(data.skills.filter((skill) => !skill.existingItemId).map((skill) => skill.path)));
     } catch (err) {
-      setError(errorMessage(err, formatMessage({ id: "skillsHub.import.error.scan" })));
+      setScanError(errorMessage(err, formatMessage({ id: "skillsHub.import.error.scan" })));
     } finally {
       setBusy(null);
     }
@@ -461,6 +471,7 @@ function GithubImportDialog({
         onUrlChange={setUrl}
         placeholder={GITHUB_URL_PLACEHOLDER}
         hint={formatMessage({ id: "skillsHub.import.urlHint" })}
+        error={scanError}
         scanLabel={formatMessage({ id: "skillsHub.import.scan" })}
         scanning={busy === "scan"}
         disabled={busy !== null}
@@ -556,8 +567,10 @@ function PluginMarketplaceDialog({
   const [manual, setManual] = useState(false);
   const [manualId, setManualId] = useState("");
   const [manualDescription, setManualDescription] = useState("");
+  const [manualMarketplace, setManualMarketplace] = useState("");
   const [busy, setBusy] = useState<"scan" | "add" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [scanError, setScanError] = useState<ReactNode>(null);
   // Plugins already saved when a later one failed: the hub has them, so
   // closing reports them like a finished add.
   const added = useRef<SkillsHubItemView[]>([]);
@@ -567,6 +580,7 @@ function PluginMarketplaceDialog({
   const runScan = async () => {
     setBusy("scan");
     setError(null);
+    setScanError(null);
     setScan(null);
     try {
       const { data } = await api.post<SkillsHubMarketplaceScanResponse>("/skills-hub/plugins/scan", { url: url.trim() });
@@ -576,8 +590,8 @@ function PluginMarketplaceDialog({
       setSelected(new Set(fresh.length === 1 ? [fresh[0]!.id] : []));
     } catch (err) {
       const code = (err as { response?: { data?: { code?: unknown } } })?.response?.data?.code;
-      setError(code === "skills_hub_github_not_found"
-        ? formatMessage({ id: "skillsHub.plugin.error.notFound" })
+      setScanError(code === "skills_hub_github_not_found"
+        ? formatMessage({ id: "skillsHub.plugin.error.notFound" }, { file: manifestPath })
         : errorMessage(err, formatMessage({ id: "skillsHub.plugin.error.scan" })));
     } finally {
       setBusy(null);
@@ -598,7 +612,7 @@ function PluginMarketplaceDialog({
           kind: "plugin",
           name: manualId.trim(),
           description: manualDescription.trim() || null,
-          marketplaceSource: marketplaceFromInput(scan ? scan.url : url),
+          marketplaceSource: marketplaceFromInput(manualMarketplace),
         });
         onAdded([...added.current, data]);
         return;
@@ -636,7 +650,7 @@ function PluginMarketplaceDialog({
       onClose={close}
       onSubmit={(event) => void runAdd(event)}
       commit={showCommit ? {
-        label: manual
+        label: manual || addCount === 0
           ? formatMessage({ id: "skillsHub.action.addPlugin" })
           : formatMessage({ id: "skillsHub.plugin.confirm" }, { count: addCount }),
         disabled: busy !== null || addCount === 0,
@@ -648,7 +662,9 @@ function PluginMarketplaceDialog({
         url={url}
         onUrlChange={setUrl}
         placeholder={MARKETPLACE_URL_PLACEHOLDER}
-        hint={formatMessage({ id: "skillsHub.plugin.urlHint" })}
+        hint={formatMessage({ id: "skillsHub.plugin.urlHint" }, { file: manifestPath })}
+        // A read that failed belongs to the marketplace list; typing an ID by hand does not need it.
+        error={manual ? null : scanError}
         scanLabel={formatMessage({ id: "skillsHub.plugin.scan" })}
         scanning={busy === "scan"}
         disabled={busy !== null}
@@ -704,7 +720,11 @@ function PluginMarketplaceDialog({
           type="button"
           className="flex items-center gap-1 text-caption text-foreground-muted hover:text-foreground"
           aria-expanded={manual}
-          onClick={() => setManual((prev) => !prev)}
+          onClick={() => {
+            // A marketplace that was read is the likely one; a failed address is never carried over.
+            if (!manual && !manualMarketplace && scan) setManualMarketplace(scan.repo);
+            setManual(!manual);
+          }}
           data-testid="skills-hub-plugin-manual-toggle"
         >
           {manual ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -720,7 +740,16 @@ function PluginMarketplaceDialog({
                 placeholder="figma@claude-plugins-official"
                 data-testid="skills-hub-plugin-manual-id"
               />
-              <span className="block text-caption text-foreground-hint">{formatMessage({ id: "skillsHub.plugin.manualHint" })}</span>
+            </label>
+            <label className="block space-y-1">
+              <span className="text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.field.marketplace" })}</span>
+              <Input
+                value={manualMarketplace}
+                onChange={(e) => setManualMarketplace(e.target.value)}
+                placeholder="anthropics/claude-plugins-official"
+                data-testid="skills-hub-plugin-manual-marketplace"
+              />
+              <span className="block text-caption text-foreground-hint">{formatMessage({ id: "skillsHub.field.marketplaceHint" })}</span>
             </label>
             <label className="block space-y-1">
               <span className="text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.field.description" })}</span>
