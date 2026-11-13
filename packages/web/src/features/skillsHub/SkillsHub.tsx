@@ -17,7 +17,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import type { FormEvent, ReactNode } from "react";
 import { useIntl } from "react-intl";
 import { ChevronDown, ChevronRight, Download, Package, Plus, Puzzle, Sparkles, Trash2 } from "lucide-react";
-import { isExternalAgentRuntime } from "@botiverse/raft-shared";
+import { isExternalAgentRuntime, skillsHubPluginMarketplace } from "@botiverse/raft-shared";
 import type {
   SkillsHubAgentCatalogResponse,
   SkillsHubGithubImportResponse,
@@ -599,6 +599,10 @@ function PluginMarketplaceDialog({
   };
 
   const canAddManual = manual && manualId.trim().length > 0;
+  // The read marketplace is named in plugin ids after `@`; an id naming another one will not install from it.
+  const marketplaceMismatch = manual && scan !== null && manualId.includes("@")
+    && manualMarketplace.trim() === scan.repo
+    && skillsHubPluginMarketplace(manualId.trim()) !== scan.marketplace;
   const addCount = manual ? (canAddManual ? 1 : 0) : selected.size;
 
   const runAdd = async (event: FormEvent) => {
@@ -749,7 +753,13 @@ function PluginMarketplaceDialog({
                 placeholder="anthropics/claude-plugins-official"
                 data-testid="skills-hub-plugin-manual-marketplace"
               />
-              <span className="block text-caption text-foreground-hint">{formatMessage({ id: "skillsHub.field.marketplaceHint" })}</span>
+              {marketplaceMismatch ? (
+                <span className="block text-caption text-warning-strong" data-testid="skills-hub-plugin-manual-mismatch">
+                  {formatMessage({ id: "skillsHub.plugin.marketplaceMismatch" }, { marketplace: scan?.marketplace })}
+                </span>
+              ) : (
+                <span className="block text-caption text-foreground-hint">{formatMessage({ id: "skillsHub.field.marketplaceHint" })}</span>
+              )}
             </label>
             <label className="block space-y-1">
               <span className="text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.field.description" })}</span>

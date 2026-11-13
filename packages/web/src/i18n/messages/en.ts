@@ -1589,6 +1589,7 @@ export const en = {
   "skillsHub.plugin.confirm": "Add {count, plural, one {# plugin} other {# plugins}}",
   "skillsHub.plugin.error.scan": "Could not read that marketplace.",
   "skillsHub.plugin.error.notFound": "No plugin marketplace here: the repository does not exist, is private, or has no {file}.",
+  "skillsHub.plugin.marketplaceMismatch": "The marketplace in this plugin ID does not match this repository ({marketplace}).",
   "agent.detail.channelsAndDms": "Channels & DMs",
   "agent.detail.loadAgentDmsFailed": "Failed to load agent DMs",
   "agent.detail.loadAgentChannelsFailed": "Failed to load agent channels",

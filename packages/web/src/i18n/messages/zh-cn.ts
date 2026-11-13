@@ -1526,6 +1526,7 @@ export const zhCn: Record<MessageId, string> = {
   "skillsHub.plugin.confirm": "添加 {count} 个插件",
   "skillsHub.plugin.error.scan": "读取不了这个插件市场。",
   "skillsHub.plugin.error.notFound": "没有找到插件市场：仓库不存在、是私有仓库，或者没有 {file}。",
+  "skillsHub.plugin.marketplaceMismatch": "插件 ID 里的市场名与该仓库（{marketplace}）不一致。",
   "agent.detail.channelsAndDms": "频道和私信",
   "agent.detail.loadAgentDmsFailed": "加载 Agent 私信失败",
   "agent.detail.loadAgentChannelsFailed": "加载 Agent 频道失败",
