@@ -9,7 +9,7 @@ import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 
 import { getDb } from "../db/index";
-import { channels, messages, messageTasks, taskEvents, tasks, users } from "../db/schema";
+import { channels, messageMentions, messages, messageTasks, taskEvents, tasks, users } from "../db/schema";
 import { createApiTest } from "../test/integration/apiTest";
 import { fixturePasswordHash } from "../test/integration/credentials";
 import { mintAgentCredential } from "../services/agentCredentialService";
@@ -133,6 +133,9 @@ test("reply mode: who a message wakes", async ({ app }) => {
   assert.deepEqual(wokenFor(deliveries, answerId), [], "the original is a person's: no agent is woken");
   const [stored] = await getDb().select().from(messages).where(eq(messages.id, answerId));
   assert.equal(stored!.replyToMessageId, question);
+  // The person replied to sees it in Activity, like a mention.
+  const attention = await getDb().select().from(messageMentions).where(eq(messageMentions.messageId, answerId));
+  assert.deepEqual(attention.map((row) => [row.targetId, row.source]), [[owner.id, "reply"]]);
 
   const followUp = await agentSend(app.baseUrl, b.key, { target: `#${channel.name}`, content: "Need a hand?", replyTo: answerId });
   assert.equal(followUp.status, 200, JSON.stringify(followUp.body));

@@ -10019,7 +10019,10 @@ export const messageMentions = pgTable("message_mentions", {
   targetType: text("target_type", { enum: ["user", "agent"] }).notNull(),
   targetId: uuid("target_id").notNull(),
   handleAtSendTime: text("handle_at_send_time").notNull(),
-  source: text("source", { enum: ["send_path", "backfill"] }).notNull().default("send_path"),
+  // `reply`: reply mode (channels.reply_mode) — the message replies to the
+  // target's message, or continues a reply chain or task it is in; it counts
+  // in the target's Activity like a mention (no @handle in the text).
+  source: text("source", { enum: ["send_path", "backfill", "reply"] }).notNull().default("send_path"),
   confidence: text("confidence", { enum: ["exact", "backfill"] }).notNull().default("exact"),
   notifiableAtSend: boolean("notifiable_at_send").notNull().default(true),
   notifiedAt: timestamp("notified_at", { withTimezone: true }),

@@ -11700,6 +11700,10 @@ export async function broadcastAndDeliver(
   const replyModeAudience = !isThread && channel?.replyMode === true
     ? await resolveReplyModeAudience({ message })
     : null;
+  if (replyModeAudience?.kind === "some" && replyModeAudience.userIds.size > 0 && message.messageType === "chat") {
+    void recordReplyModeAttention(message, channel.serverId, [...replyModeAudience.userIds], targetVisibleMentions)
+      .catch((error: unknown) => console.error("reply mode attention failed:", serializeErrorForLog(error)));
+  }
   if (replyModeAudience) {
     addTraceEvent("message_pipeline.reply_mode.audience", {
       kind: replyModeAudience.kind,
@@ -11942,4 +11946,33 @@ async function notifyReplyChainPaused(
     personalAttentionTargets: rows.map((row) => ({ type: "user" as const, id: row.id, name: row.name })),
     targetAgentIds: [],
   });
+}
+
+/**
+ * Reply mode: the people a reply (or a task-linked message) is addressed to
+ * get a `message_mentions` row with source `reply`, so their Activity counts
+ * it like a mention. Not for people the message already @mentions.
+ */
+async function recordReplyModeAttention(
+  message: { id: string; seq: number; channelId: string },
+  serverId: string,
+  userIds: string[],
+  alreadyMentioned: readonly ResolvedMentionFact[],
+): Promise<void> {
+  const mentioned = new Set(alreadyMentioned.filter((m) => m.type === "user").map((m) => m.id));
+  const targets = userIds.filter((id) => !mentioned.has(id));
+  if (targets.length === 0) return;
+  const rows = await getDb().select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, targets));
+  if (rows.length === 0) return;
+  await getDb().insert(messageMentions).values(rows.map((row) => ({
+    messageId: message.id,
+    messageSeq: message.seq,
+    serverId,
+    channelId: message.channelId,
+    targetType: "user" as const,
+    targetId: row.id,
+    handleAtSendTime: row.name,
+    source: "reply" as const,
+    confidence: "exact" as const,
+  }))).onConflictDoNothing();
 }
