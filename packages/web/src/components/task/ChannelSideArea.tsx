@@ -1,6 +1,6 @@
-import { WorkspaceSlotContext } from "../layout/rowColumnSlot";
 import { detailsTakeSidePanel, DRAWER_SECTIONS, drawerHost, inWorkspace, sidePanelWidths, threadTakesSidePanel, useWorkspaceDrawer, WORKSPACE_DRAWER_CLASS } from "./sideAreaLayoutRedesign";
-import { Fragment, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { WorkspaceDrawerScrim } from "./WorkspaceDrawerScrim";
+import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useIntl } from "react-intl";
@@ -856,7 +856,6 @@ export default function ChannelSideArea() {
   }, [entries, room.threadCoversRow, room.threadInRow, room.threadOpen]);
   // The open Artifact (F41): a section like the others, in the layout's place for it.
   const artifact = entries.artifact?.artifact ?? null;
-  const workspaceSlot = useContext(WorkspaceSlotContext);
   const expandArtifact = !!artifact?.expanded;
   // The row planned by the #189 rules on a desktop (rowLayout): every open column, the thread's included, each at
   // its saved width; the plan says whether the thread folds.
@@ -871,7 +870,7 @@ export default function ChannelSideArea() {
   // the detail column's width, as the thread beside its channel; its Focus Mode is its Expand (rule 5).
   const taskColumn = useRowPlanStore((s) => s.taskColumn !== null);
   const taskExpanded = useRowPlanStore((s) => s.taskColumn?.focused ?? false);
-  const { rowOpen, drawerColumn } = useWorkspaceDrawer(layout, open, room.rowWidth, room.viewportWidth >= 768);
+  const { rowOpen, drawerColumn, workspaceSlot } = useWorkspaceDrawer(layout, open, room.rowWidth, room.viewportWidth >= 768);
   const columnsForPlan = useMemo<PlanColumn[]>(() => {
     if (!planned) return NO_PLAN_COLUMNS;
     let columns = planColumns(visibleChannelSideColumns(layout, rowOpen), threadWidth);
@@ -997,7 +996,7 @@ export default function ChannelSideArea() {
         />
       )))}
       {surface}
-      {drawerColumn && drawerHost(row) ? createPortal(<div className={WORKSPACE_DRAWER_CLASS} data-testid="workspace-drawer"><SideColumn kind="beside" column={drawerColumn.column} sections={DRAWER_SECTIONS} titles={entries} width={560} minWidth={420} /></div>, drawerHost(row)!) : null}
+      {drawerColumn && drawerHost(row) ? createPortal(<><WorkspaceDrawerScrim /><div className={WORKSPACE_DRAWER_CLASS} data-testid="workspace-drawer"><SideColumn kind="beside" column={drawerColumn.column} sections={DRAWER_SECTIONS} titles={entries} width={560} minWidth={420} /></div></>, drawerHost(row)!) : null}
       {expandedSurface}
     </>
   );

@@ -1,4 +1,6 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
+import { WorkspaceSlotContext } from "../layout/rowColumnSlot";
+import { useArtifactViewerStore } from "../../apps/artifacts/artifactViewerStore";
 import { visibleChannelSideColumns } from "@botiverse/raft-shared";
 import type { ChannelSideLayout, ChannelSideSection } from "@botiverse/raft-shared";
 import type { ReactNode } from "react";
@@ -49,7 +51,11 @@ export function rowSections<T extends string>(open: Set<T>, drawer: boolean): Se
 }
 
 /** The drawer's box: over the timeline at the right edge, the workspace's default width, a shadow. */
-export const WORKSPACE_DRAWER_CLASS = "absolute inset-y-0 right-0 z-overlay flex w-[min(560px,92%)] bg-layer-canvas shadow-xl";
+// Over the floating pills of the timeline (the unread jump): z-cover. The DS floating layer's offset shadow says "on top".
+export const WORKSPACE_DRAWER_CLASS = "absolute inset-y-0 right-0 z-cover flex w-[min(560px,92%)] border-l border-line-seam bg-layer-canvas shadow-sticker";
+
+/** Over the strip of timeline left beside the drawer: a light wash that says "behind"; pressing it closes the drawer. */
+export const WORKSPACE_DRAWER_SCRIM_CLASS = "absolute inset-0 z-cover overlay-medium";
 
 /**
  * Layout redesign: a plan column's widths — the side panel is 320 wide whatever was saved for it (a thread its own,
@@ -69,10 +75,16 @@ export function useWorkspaceDrawer(layout: ChannelSideLayout, open: Set<ChannelS
   const drawer = workspaceAsDrawer(open, rowWidth, desktop);
   const rowOpen = useMemo(() => rowSections(open, drawer), [drawer, open]);
   const drawerColumn = drawer ? visibleChannelSideColumns(layout, open).find((c) => c.sections.includes("artifact")) : undefined;
-  return { rowOpen, drawerColumn };
+  const workspaceSlot = useContext(WorkspaceSlotContext);
+  return { rowOpen, drawerColumn, workspaceSlot };
 }
 
 /** The drawer covers the timeline only (not the channel's header or side panel): the row's conversation column. */
 export function drawerHost(row: HTMLElement | null): HTMLElement | null {
   return row?.querySelector<HTMLElement>(":scope > .thread-main-column") ?? null;
+}
+
+/** The drawer's scrim pressed: the workspace's shown Artifact closes (its tab with it). */
+export function closeWorkspace(): void {
+  useArtifactViewerStore.getState().close();
 }
