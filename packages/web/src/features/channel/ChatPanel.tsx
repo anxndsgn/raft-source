@@ -1856,7 +1856,7 @@ export function ChatPanel({
           ) : channel.name
         ) : undefined}
         titleSuffix={regularTitleSuffix}
-        subtitle={channelSubtitle}
+        subtitle={isDesktopShell ? undefined : channelSubtitle}
         subtitleMultiline={isRegularChannel && !isLounge}
         subtitleClassName="empty:hidden"
         titleSlot={

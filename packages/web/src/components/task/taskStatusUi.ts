@@ -1,3 +1,4 @@
+import { findStoredChannel } from "../../store/storedChannel";
 import { useChannelStore } from "../../store/channelStore";
 import type { TaskStatusId } from "@botiverse/raft-ui";
 import type { MessageId } from "../../i18n/messages";
@@ -97,5 +98,5 @@ export function getTaskStatusOptions(task: Task, _currentUserId: string | undefi
 
 /** Whether the task's channel uses replies (a regular-store read, no subscription). */
 function channelUsesReplies(channelId: string): boolean {
-  return useChannelStore.getState().channels.find((c) => c.id === channelId)?.replyMode === true;
+  return findStoredChannel(useChannelStore.getState(), channelId)?.replyMode === true;
 }

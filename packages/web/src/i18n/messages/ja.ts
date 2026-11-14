@@ -4561,6 +4561,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "inbox.openInChannel": "チャンネルで開く",
   "message.reply.oldDiscussion": "以前の議論",
   "message.reply.replyOnTimeline": "タイムラインで返信",
+  "artifacts.card.factsOpensInWorkspace": "{facts} · ワークスペースで開く",
   "timelineView.task": "タスク #{number} のみ",
   "timelineView.taskWithTitle": "タスク #{number} のみ：{title}",
   "timelineView.chain": "返信チェーンのみ：{name}：{excerpt}",

@@ -1,3 +1,4 @@
+import { findStoredChannel } from "../../store/storedChannel";
 import { useEffect, useMemo } from "react";
 import { useIntl } from "react-intl";
 import { ListTodo } from "lucide-react";
@@ -8,6 +9,7 @@ import { useChannelSideCardStore } from "../../store/channelSideCardStore";
 import { useChannelStore } from "../../store/channelStore";
 import { useSearchContentStore } from "../../store/searchContentStore";
 import { useTimelineViewStore } from "../../store/timelineViewStore";
+import { useThreadStore } from "../../store/threadStore";
 import type { Task as AssignedTask } from "../../store/taskStore";
 
 const OPEN = new Set(["todo", "in_progress", "in_review"]);
@@ -64,8 +66,10 @@ export function InboxAssignedTasks() {
  * task where the channel uses replies), the task's details in the side panel. "Open in channel" leaves for the chat.
  */
 function openAssignedTaskInInbox(task: AssignedTask) {
+  // The side panel follows the row: the thread a previous row opened closes.
+  useThreadStore.getState().closeThread();
   useChannelSideCardStore.getState().openTaskDetail(task.channelId, task.id);
-  const replyMode = useChannelStore.getState().channels.find((c) => c.id === task.channelId)?.replyMode === true;
+  const replyMode = findStoredChannel(useChannelStore.getState(), task.channelId)?.replyMode === true;
   if (replyMode) void useTimelineViewStore.getState().openView(task.channelId, { kind: "task", taskNumber: task.taskNumber, title: task.title });
   useSearchContentStore.getState().open({ kind: "channel", id: task.channelId });
 }

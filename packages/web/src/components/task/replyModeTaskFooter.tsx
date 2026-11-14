@@ -1,3 +1,4 @@
+import { findStoredChannel } from "../../store/storedChannel";
 import { lazy, Suspense } from "react";
 
 import { useChannelStore } from "../../store/channelStore";
@@ -11,7 +12,7 @@ const TaskLinkedMessagesBar = lazy(() => import("./TaskLinkedMessagesBar").then(
  * old task thread is read-only, and the dialog leads there instead (TaskLinkedMessagesBar).
  */
 export function useReplyModeTaskFooter(hostTask: Task | null | undefined, onNavigate: () => void, taskV2: boolean) {
-  const hostReplyMode = useChannelStore((s) => (hostTask ? s.channels.find((c) => c.id === hostTask.channelId)?.replyMode === true : false));
+  const hostReplyMode = useChannelStore((s) => (hostTask ? findStoredChannel(s, hostTask.channelId)?.replyMode === true : false));
   const replyModeFooter = hostTask && hostReplyMode && !isTaskV2Task(hostTask)
     ? <Suspense fallback={null}><TaskLinkedMessagesBar task={hostTask} onNavigate={onNavigate} /></Suspense>
     : undefined;

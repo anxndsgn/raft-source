@@ -2438,7 +2438,11 @@ test("real corpus: structural, catalog-id, and template-glue filters remove audi
   // parts with an aria-hidden `·`: structural punctuation, not copy: 97 -> 98.
   // The Computers list usage cell's model line (RackRuntimeUsage, OAR 0.102 window scope) puts a `{" · "}` between
   // the model name and its value ("Opus · 40%"): structural punctuation, not copy: 98 -> 99.
-  assert.equal(filteredKeys, 99, `audited structural key count; got ${filteredKeys}`);
+  // Reply mode's timeline views and the layout redesign (raft-customized): the view bar and its
+  // "N hidden · show" row join translated parts with ` · ` and `·`, and the task details' breadcrumb
+  // puts a `/` between "Tasks" and the task's number — punctuation between translated or dynamic
+  // values in new files: 99 -> 104.
+  assert.equal(filteredKeys, 104, `audited structural key count; got ${filteredKeys}`);
   assert.ok(filteredHits > 100, `hits must exceed prior 100; got ${filteredHits}`);
   // HandoffCreateFlow's `· ${session.model}` suffix is dynamic metadata glue, the
   // same shape as EditChannelDialog's `· ${…}` suffixes.

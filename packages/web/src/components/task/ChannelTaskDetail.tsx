@@ -1,3 +1,4 @@
+import { findStoredChannel } from "../../store/storedChannel";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useIntl } from "react-intl";
 import { ChevronLeft, ListFilter } from "lucide-react";
@@ -19,7 +20,7 @@ import TaskModalHead from "./TaskModalHead";
  */
 export function ChannelTaskDetail({ task, onBack }: { task: Task; onBack: () => void }) {
   const { formatMessage } = useIntl();
-  const replyMode = useChannelStore((s) => s.channels.find((c) => c.id === task.channelId)?.replyMode === true);
+  const replyMode = useChannelStore((s) => findStoredChannel(s, task.channelId)?.replyMode === true);
   const filtering = useTimelineViewStore((s) => {
     const spec = s.views[task.channelId]?.spec;
     return spec?.kind === "task" && spec.taskNumber === task.taskNumber;

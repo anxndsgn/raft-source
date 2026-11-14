@@ -75,9 +75,9 @@ export const COLUMN_BOUNDS = {
    * content at least 280, its left seam included.
    */
   sideCards: {
-    defaultWidth: 360,
+    defaultWidth: 320,
     min: 160,
-    contentMin: 280,
+    contentMin: 320,
     max: GROWS_TO_MAIN_MIN_SAFETY_MAX,
     growsToMainMin: true,
     storageKey: "slock:channelSideCardsWidth",

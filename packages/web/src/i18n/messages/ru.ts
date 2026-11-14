@@ -4562,6 +4562,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "inbox.openInChannel": "Открыть в канале",
   "message.reply.oldDiscussion": "Прежнее обсуждение",
   "message.reply.replyOnTimeline": "Ответить в ленте",
+  "artifacts.card.factsOpensInWorkspace": "{facts} · Откроется в рабочей области",
   "timelineView.task": "Только задача #{number}",
   "timelineView.taskWithTitle": "Только задача #{number}: {title}",
   "timelineView.chain": "Только цепочка ответов: {name}: {excerpt}",

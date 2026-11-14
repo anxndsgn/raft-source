@@ -15,7 +15,7 @@ export function WorkspaceTabStrip() {
   const shownId = useArtifactViewerStore((s) => s.open?.id ?? null);
   if (tabs.length < 2) return null;
   return (
-    <div className="flex h-9 shrink-0 items-end gap-1 overflow-hidden border-b border-line-hairline bg-fill-muted px-2" role="tablist" data-testid="workspace-tab-strip">
+    <div className="flex h-9 shrink-0 items-end gap-1 overflow-hidden border-b border-line-hairline bg-fill-muted px-2" data-testid="workspace-tab-strip">
       {tabs.map((tab) => <WorkspaceTab key={tab.id} id={tab.id} shown={tab.id === shownId} />)}
     </div>
   );
@@ -31,7 +31,7 @@ function WorkspaceTab({ id, shown }: { id: ArtifactId; shown: boolean }) {
       className={`group flex h-8 max-w-48 min-w-0 items-center gap-1 rounded-t-control border border-b-0 px-2 text-footnote ${shown ? "border-line-hairline bg-layer-canvas font-semibold text-foreground" : "border-transparent text-foreground-muted hover:bg-fill-medium"}`}
       data-testid={`workspace-tab-${id}`}
     >
-      <button type="button" role="tab" aria-selected={shown} className="min-w-0 flex-1 truncate text-left outline-none" onClick={activate}>
+      <button type="button" aria-pressed={shown} className="min-w-0 flex-1 truncate text-left outline-none" onClick={activate}>
         {title}
       </button>
       <button

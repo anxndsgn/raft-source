@@ -406,7 +406,8 @@ const TOUCH_PORTRAIT = "(pointer: coarse) and (orientation: portrait) and (max-w
 function measurePlan(row: HTMLElement | null) {
   const thread = row?.querySelector<HTMLElement>(":scope > .thread-side-column") ?? null;
   return {
-    rowWidth: row ? row.getBoundingClientRect().width : 0,
+    // Layout redesign: the workspace stands outside the row (beside the header) yet is one of the plan's columns.
+    rowWidth: row ? (row.closest<HTMLElement>('[data-testid="workspace-frame"]') ?? row).getBoundingClientRect().width : 0,
     threadOpen: !!thread && getComputedStyle(thread).display !== "none",
     legacyTask: !!row?.querySelector(':scope > :is([data-testid="legacy-task-panel"], [data-legacy-task-panel-fallback])'),
     touchPortrait: typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(TOUCH_PORTRAIT).matches,

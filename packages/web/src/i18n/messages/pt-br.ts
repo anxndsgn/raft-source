@@ -4560,6 +4560,7 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "inbox.openInChannel": "Abrir no canal",
   "message.reply.oldDiscussion": "Discussão anterior",
   "message.reply.replyOnTimeline": "Responder na linha do tempo",
+  "artifacts.card.factsOpensInWorkspace": "{facts} · Abre no espaço de trabalho",
   "timelineView.task": "Só a tarefa #{number}",
   "timelineView.taskWithTitle": "Só a tarefa #{number}: {title}",
   "timelineView.chain": "Só a cadeia de respostas: {name}: {excerpt}",

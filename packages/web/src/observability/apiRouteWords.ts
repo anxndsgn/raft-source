@@ -6,7 +6,7 @@
  * call site adds a word that is not here.
  */
 export const API_ROUTE_WORDS: ReadonlySet<string> = new Set([
-  "accept", "accept-as-guest", "accept-invite", "access", "account", "account-deletion", "ack",
+  "accept", "accept-as-guest", "linked-messages", "view", "view-entry", "accept-invite", "access", "account", "account-deletion", "ack",
   "actions", "active", "activity-log", "activity-summaries", "actors", "agent", "agent-dms",
   "agent-migrations", "agent-runtime-providers", "agents", "agreement", "all", "announcement",
   "announcements", "appearance-settings", "app-link-previews", "app-login", "app-logins",

@@ -91,10 +91,10 @@ test("the Artifact and the profile stand in the layout's columns for them: their
   assert.deepEqual(summary(placed).row, ["1:artifact+tasks"]);
 });
 
-test("a column counts its sections' content minimums: the Artifact's 480, the profile's 320 (#189 rule 4)", () => {
-  assert.deepEqual(minWidths(placeSections(DEFAULT_CHANNEL_SIDE_LAYOUT, open("tasks", "artifact", "profile"), room({}))), [280, 480, 320]);
+test("a column counts its sections' content minimums: the Artifact's 420, the profile's 320, Tasks' 320 (#189 rule 4; layout redesign)", () => {
+  assert.deepEqual(minWidths(placeSections(DEFAULT_CHANNEL_SIDE_LAYOUT, open("tasks", "artifact", "profile"), room({}))), [320, 420, 320]);
   const stacked: ChannelSideLayout = { v: 1, columns: [{ sections: ["artifact", "tasks"], width: 360 }] };
-  assert.deepEqual(minWidths(placeSections(stacked, open("tasks", "artifact"), room({}))), [480]);
+  assert.deepEqual(minWidths(placeSections(stacked, open("tasks", "artifact"), room({}))), [420]);
 });
 
 test("on a desktop the Artifact's Expand is the row's (rule 5): it is never expanded over the panel; on a phone it may be, where it floats", () => {

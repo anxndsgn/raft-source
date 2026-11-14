@@ -51,6 +51,8 @@ interface ChannelSideCardState {
   taskDetail: Record<string, string | null>;
   openTaskDetail: (channelId: string, taskId: string) => void;
   closeTaskDetail: (channelId: string) => void;
+  /** Every channel's task details closed (the inbox moving to another row). */
+  closeAllTaskDetails: () => void;
   setCardOpen: (card: ChannelSideCard, open: boolean) => void;
   setCardCollapsed: (card: ChannelSideCard, collapsed: boolean) => void;
   focusCard: (card: ChannelSideColumnCard) => void;
@@ -68,6 +70,7 @@ export const useChannelSideCardStore = create<ChannelSideCardState>((set, get) =
     set({ taskDetail: { ...get().taskDetail, [channelId]: taskId } });
   },
   closeTaskDetail: (channelId) => set({ taskDetail: { ...get().taskDetail, [channelId]: null } }),
+  closeAllTaskDetails: () => set({ taskDetail: {} }),
   setCardOpen: (card, open) => {
     const next = { ...get().open, [card]: open };
     writeFlags(OPEN_KEY, next);

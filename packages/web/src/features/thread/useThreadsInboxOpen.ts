@@ -7,6 +7,7 @@ import { rememberArtifactCard } from "../../apps/artifacts";
 import { useMessageStore } from "../../store/messageStore";
 import { useServerStore } from "../../store/serverStore";
 import { useThreadStore } from "../../store/threadStore";
+import { useChannelSideCardStore } from "../../store/channelSideCardStore";
 import { useSearchContentStore } from "../../store/searchContentStore";
 import type { SearchContentSlot } from "../../store/searchContentStore";
 import { holdAutoRead, releaseAutoRead } from "../../store/autoReadHold";
@@ -79,6 +80,8 @@ export function useThreadsInboxOpen({
     const targetMessageId = item.firstMentionMessageId
       ?? (item.unreadCount > 0 ? item.firstUnreadMessageId ?? item.latestActivityMessageId : null);
     writeLastOpenedActivityKey(useServerStore.getState().current?.id, itemKey(item));
+    // Layout redesign: the side panel follows the row picked — task details an earlier row opened close.
+    useChannelSideCardStore.getState().closeAllTaskDetails();
     releaseAutoRead({ read: false });
     // Swapping what is open drops a col-4 thread of the previous conversation.
     useThreadStore.getState().closeThread();
@@ -167,6 +170,7 @@ export function useThreadsInboxOpen({
       return;
     }
     writeLastOpenedActivityKey(useServerStore.getState().current?.id, itemKey(item));
+    if (!automatic) useChannelSideCardStore.getState().closeAllTaskDetails();
     // Picking any row ends a hold on the reopened one without reading it.
     // Reopened on arrival (`automatic`, see `reopen`): no open event and no
     // read; the hold keeps it unread until the person acts in it.

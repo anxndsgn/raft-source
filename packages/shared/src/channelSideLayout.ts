@@ -38,9 +38,11 @@ export const CHANNEL_SIDE_MAX_SAVED_WIDTH = 4000;
 /** A section's narrowest readable width; a column's is its widest section's (`columnMinWidth`). */
 export const CHANNEL_SIDE_SECTION_MIN_WIDTH: Record<ChannelSideSection, number> = {
   thread: 360,
-  tasks: 280,
-  files: 280,
-  artifact: 480,
+  // Layout redesign (Figmama/Anna 11/15): the side panel keeps 320 (tasks, files, info) — 400 for a thread —
+  // and the workspace (an Artifact) 420 at least, 560 by default.
+  tasks: 320,
+  files: 320,
+  artifact: 420,
   profile: 320,
   context: 320,
   details: 320,
@@ -65,8 +67,8 @@ export const DEFAULT_CHANNEL_SIDE_LAYOUT: ChannelSideLayout = {
   v: 1,
   columns: [
     { sections: ["thread"], width: 400 },
-    { sections: ["tasks", "files"], width: 360 },
-    { sections: ["artifact"], width: 480 },
+    { sections: ["tasks", "files"], width: 320 },
+    { sections: ["artifact"], width: 560 },
     { sections: ["profile", "context", "details"], width: 400 },
   ],
 };

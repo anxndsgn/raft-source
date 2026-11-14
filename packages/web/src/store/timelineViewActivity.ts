@@ -1,3 +1,4 @@
+import { findStoredChannel } from "./storedChannel";
 import api from "../api/client";
 import { useChannelStore } from "./channelStore";
 import type { InboxItem } from "./inboxStore";
@@ -16,7 +17,7 @@ import type { TimelineViewSpec } from "./timelineViewStore";
  * skips reading the whole channel), else null.
  */
 export function openActivityTimelineView(item: Extract<InboxItem, { kind: "channel" | "dm" }>): string | null {
-  const channel = useChannelStore.getState().channels.find((c) => c.id === item.channelId);
+  const channel = findStoredChannel(useChannelStore.getState(), item.channelId);
   if (channel?.replyMode !== true) return null;
   const messageId = item.firstMentionMessageId ?? item.firstUnreadMessageId ?? item.lastMessageId;
   if (!messageId) return null;

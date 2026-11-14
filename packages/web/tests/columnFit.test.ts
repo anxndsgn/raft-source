@@ -22,7 +22,8 @@ test("the agreed bounds table (design lead, 2026-10-21; right-hand maxima task #
     detail: [400, 160, toMainMin, "slock:profilePanelWidth", 320],
     workspaceTree: [256, 180, 480, "slock:workspaceTreeWidth", null],
     // Task v2 side sections: flat against the panel's edge, no gutter (task #165).
-    sideCards: [360, 160, toMainMin, "slock:channelSideCardsWidth", 280],
+    // Layout redesign (Figmama/Anna 11/15): the side panel is 320 wide and keeps it.
+    sideCards: [320, 160, toMainMin, "slock:channelSideCardsWidth", 320],
   });
   const growing = Object.entries(COLUMN_BOUNDS).filter(([, b]) => "growsToMainMin" in b && b.growsToMainMin).map(([id]) => id);
   assert.deepEqual(growing, ["thread", "detail", "sideCards"]);

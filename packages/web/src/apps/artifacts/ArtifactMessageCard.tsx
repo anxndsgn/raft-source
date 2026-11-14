@@ -272,7 +272,7 @@ function OkCard({ card, preview = false }: { card: ArtifactCard; preview?: boole
           </div>
           {/* Layout redesign (4.2): where it opens — the workspace — under the title. */}
           <p className={parts.meta()} data-testid="artifact-card-facts">
-            {facts ? `${facts} · ` : ""}{formatMessage({ id: "artifacts.card.opensInWorkspace" })}
+            {facts ? formatMessage({ id: "artifacts.card.factsOpensInWorkspace" }, { facts }) : formatMessage({ id: "artifacts.card.opensInWorkspace" })}
           </p>
           {card.description ? (
             <p className={`${facts ? "line-clamp-1" : "line-clamp-2"} text-callout break-words text-foreground-muted`}>{card.description}</p>

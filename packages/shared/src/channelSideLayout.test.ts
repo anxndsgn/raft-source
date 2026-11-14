@@ -82,23 +82,23 @@ test("completing places each missing section where the default would: thread fir
   assert.equal(shape(completeChannelSideLayout(layout([["thread", "tasks"]], [["files"]]))), "thread+tasks | files | artifact | profile+context");
   assert.equal(shape(completeChannelSideLayout(layout([["thread", "tasks"]], [["files"]], [["artifact"]]))), "thread+tasks | files | artifact | profile+context");
   assert.equal(shape(completeChannelSideLayout(layout([["thread", "tasks"]], [["files"]], [["profile"]], [["artifact"]]))), "thread+tasks | files | profile+context | artifact");
-  assert.equal(completeChannelSideLayout(layout([["tasks"]])).columns[2].width, 480, "the Artifact's own column: its 480");
+  assert.equal(completeChannelSideLayout(layout([["tasks"]])).columns[2].width, 560, "the Artifact's own column: its 560 (layout redesign)");
   assert.equal(completeChannelSideLayout(layout([["tasks"]])).columns[3].width, 400, "the profile's: 400");
   // The context view, added after the others: under the profile wherever it is, else a column of its own.
   assert.equal(shape(completeChannelSideLayout(layout([["thread"]], [["profile"]], [["tasks", "files"]], [["artifact"]]))), "thread | profile+context | tasks+files | artifact");
   assert.equal(shape(completeChannelSideLayout(layout([["thread"]], [["tasks", "files", "profile"]], [["artifact"]]))), "thread | tasks+files+profile+context | artifact");
 });
 
-test("a column's minimum is its widest section's: the thread's 360, the Artifact's 480, the profile's 320, else 280", () => {
-  assert.equal(channelSideColumnMinWidth(["tasks", "files"]), 280);
+test("a column's minimum is its widest section's: the thread's 360, the Artifact's 420, the profile's 320, the side panel's 320", () => {
+  assert.equal(channelSideColumnMinWidth(["tasks", "files"]), 320);
   assert.equal(channelSideColumnMinWidth(["tasks", "thread"]), 360);
-  assert.equal(channelSideColumnMinWidth(["artifact", "tasks"]), 480);
+  assert.equal(channelSideColumnMinWidth(["artifact", "tasks"]), 420);
   assert.equal(channelSideColumnMinWidth(["profile"]), 320);
 });
 
 test("only columns with an open section show, with only those sections", () => {
   const l = layout([["thread"], 400], [["tasks", "files"], 360]);
-  assert.deepEqual(visibleChannelSideColumns(l, new Set(["tasks"])).map((c) => [c.column, c.sections, c.minWidth]), [[1, ["tasks"], 280]]);
+  assert.deepEqual(visibleChannelSideColumns(l, new Set(["tasks"])).map((c) => [c.column, c.sections, c.minWidth]), [[1, ["tasks"], 320]]);
   assert.deepEqual(visibleChannelSideColumns(l, new Set(["thread", "files"])).map((c) => [c.column, c.sections]), [[0, ["thread"]], [1, ["files"]]]);
   assert.deepEqual(visibleChannelSideColumns(l, new Set()), []);
 });
@@ -109,7 +109,7 @@ test("into a column: before a section or at the bottom; a column left empty goes
   assert.equal(shape(moveChannelSideSection(l, "tasks", { kind: "into", column: 0, before: null })), "thread+tasks | files | artifact | profile+context");
   assert.equal(shape(moveChannelSideSection(l, "thread", { kind: "into", column: 1, before: "files" })), "tasks+thread+files | artifact | profile+context", "the thread's own column, now empty, goes");
   assert.equal(shape(moveChannelSideSection(l, "profile", { kind: "into", column: 2, before: null })), "thread | tasks+files | artifact+profile+context", "the profile stacks under the Artifact, its context view with it");
-  assert.equal(moveChannelSideSection(l, "profile", { kind: "into", column: 2, before: null }).columns[2].width, 480, "the column it joins keeps its width");
+  assert.equal(moveChannelSideSection(l, "profile", { kind: "into", column: 2, before: null }).columns[2].width, 560, "the column it joins keeps its width");
   assert.ok(moveChannelSideSection(l, "tasks", { kind: "into", column: 1, before: "files" }) === l, "where it already is: unchanged");
   assert.ok(moveChannelSideSection(l, "tasks", { kind: "into", column: 1, before: "tasks" }) === l);
   assert.ok(moveChannelSideSection(l, "tasks", { kind: "into", column: 7, before: null }) === l, "no such column");
@@ -119,7 +119,7 @@ test("a new column: at the edges; alone it keeps its column's width, out of a st
   const l = completeChannelSideLayout(DEFAULT_CHANNEL_SIDE_LAYOUT);
   const split = moveChannelSideSection(l, "files", { kind: "newColumn", at: 2 });
   assert.equal(shape(split), "thread | tasks | files | artifact | profile+context", "four side columns and the thread's own");
-  assert.equal(split.columns[2].width, 360, "out of a stack: Files' own default");
+  assert.equal(split.columns[2].width, 320, "out of a stack: Files' own default");
   assert.equal(shape(moveChannelSideSection(l, "tasks", { kind: "newColumn", at: 0 })), "tasks | thread | files | artifact | profile+context");
   assert.ok(moveChannelSideSection(l, "thread", { kind: "newColumn", at: 0 }) === l, "alone at its own left edge");
   assert.ok(moveChannelSideSection(l, "thread", { kind: "newColumn", at: 1 }) === l, "alone at its own right edge");
@@ -143,7 +143,7 @@ test("resizing rounds and keeps the width within the saved range", () => {
   const l = completeChannelSideLayout(DEFAULT_CHANNEL_SIDE_LAYOUT);
   assert.equal(resizeChannelSideColumn(l, 1, 410.6).columns[1].width, 411);
   assert.equal(resizeChannelSideColumn(l, 1, 10).columns[1].width, 160, "a column goes to 160 (#189); its sections clip");
-  assert.ok(resizeChannelSideColumn(l, 1, 360) === l, "unchanged");
+  assert.ok(resizeChannelSideColumn(l, 1, 320) === l, "unchanged");
   assert.ok(resizeChannelSideColumn(l, 5, 400) === l);
 });
 
