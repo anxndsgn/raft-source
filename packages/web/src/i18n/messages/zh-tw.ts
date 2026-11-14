@@ -6742,6 +6742,7 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "layout.leftRail.tabTasks": "任務",
   "layout.leftRail.tabArtifacts": "Artifacts",
   "layout.leftRail.tabMembers": "成員",
+  "layout.leftRail.agentsOnline": "成員 · {count} 個 agent 在線",
   "layout.leftRail.tabComputers": "電腦",
   "layout.leftRail.tabHelp": "說明",
   "layout.leftRail.tabSettings": "設定",

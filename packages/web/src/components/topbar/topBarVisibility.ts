@@ -19,5 +19,9 @@ export function shouldShowTopBar(input: {
   hostShell: boolean;
 }): boolean {
   if (input.hosted) return input.desktopWidth || input.hostDesktopWidthOnly !== true;
-  return input.desktopWidth && !input.hostShell;
+  // Layout redesign (raft-customized): the web has no top bar. The team
+  // switcher heads the rail, search is a rail tab, working agents show as the
+  // Members tab's dot. A desktop host that hands its title bar to the bar
+  // (above) keeps it, as its window's drag region.
+  return false;
 }

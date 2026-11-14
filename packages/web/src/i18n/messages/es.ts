@@ -6742,6 +6742,7 @@ export const es: Partial<Record<MessageId, string>> = {
   "layout.leftRail.tabTasks": "Tareas",
   "layout.leftRail.tabArtifacts": "Artifacts",
   "layout.leftRail.tabMembers": "Miembros",
+  "layout.leftRail.agentsOnline": "{count, plural, one {Miembros · # agente en línea} other {Miembros · # agentes en línea}}",
   "layout.leftRail.tabComputers": "Computadoras",
   "layout.leftRail.tabHelp": "Ayuda",
   "layout.leftRail.tabSettings": "Configuración",

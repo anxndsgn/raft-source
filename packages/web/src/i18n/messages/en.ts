@@ -6951,6 +6951,7 @@ export const en = {
   "layout.leftRail.tabTasks": "Tasks",
   "layout.leftRail.tabArtifacts": "Artifacts",
   "layout.leftRail.tabMembers": "Members",
+  "layout.leftRail.agentsOnline": "{count, plural, one {Members · # agent online} other {Members · # agents online}}",
   "layout.leftRail.tabComputers": "Computers",
   "layout.leftRail.tabHelp": "Help",
   "layout.leftRail.tabSettings": "Settings",

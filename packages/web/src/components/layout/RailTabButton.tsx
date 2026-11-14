@@ -21,6 +21,8 @@ type RailTabButtonProps = Omit<
   label: string;
   active: boolean;
   showDot?: boolean;
+  /** A small green dot (presence, not attention): e.g. Members while agents are online. */
+  presenceDot?: boolean;
   dotInactiveOnly?: boolean;
   dotTooltip?: string;
   tooltipSide?: "left" | "right";
@@ -38,6 +40,7 @@ export const RailTabButton = forwardRef<HTMLButtonElement, RailTabButtonProps>(f
   label,
   active,
   showDot,
+  presenceDot,
   dotInactiveOnly,
   dotTooltip,
   tooltipSide = "right",
@@ -77,6 +80,8 @@ export const RailTabButton = forwardRef<HTMLButtonElement, RailTabButtonProps>(f
         {icon}
         {dotVisible ? (
           <AppRailItemAttention title={dotTooltip ?? label} />
+        ) : presenceDot ? (
+          <span aria-hidden className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-success" data-testid={testId ? `${testId}-presence` : undefined} />
         ) : null}
       </AppRailItemIcon>
       <AppRailItemLabel>{label}</AppRailItemLabel>

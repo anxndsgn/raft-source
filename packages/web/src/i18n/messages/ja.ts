@@ -6743,6 +6743,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "layout.leftRail.tabTasks": "タスク",
   "layout.leftRail.tabArtifacts": "Artifacts",
   "layout.leftRail.tabMembers": "メンバー",
+  "layout.leftRail.agentsOnline": "メンバー · {count} 件の agent がオンライン",
   "layout.leftRail.tabComputers": "コンピューター",
   "layout.leftRail.tabHelp": "ヘルプ",
   "layout.leftRail.tabSettings": "設定",

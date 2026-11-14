@@ -6742,6 +6742,7 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "layout.leftRail.tabTasks": "Tarefas",
   "layout.leftRail.tabArtifacts": "Artifacts",
   "layout.leftRail.tabMembers": "Membros",
+  "layout.leftRail.agentsOnline": "{count, plural, one {Membros · # agente online} other {Membros · # agentes online}}",
   "layout.leftRail.tabComputers": "Computadores",
   "layout.leftRail.tabHelp": "Ajuda",
   "layout.leftRail.tabSettings": "Configurações",

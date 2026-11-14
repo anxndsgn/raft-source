@@ -6742,6 +6742,7 @@ export const ko: Partial<Record<MessageId, string>> = {
   "layout.leftRail.tabTasks": "작업",
   "layout.leftRail.tabArtifacts": "Artifacts",
   "layout.leftRail.tabMembers": "멤버",
+  "layout.leftRail.agentsOnline": "멤버 · agent {count}개 온라인",
   "layout.leftRail.tabComputers": "컴퓨터",
   "layout.leftRail.tabHelp": "도움말",
   "layout.leftRail.tabSettings": "설정",

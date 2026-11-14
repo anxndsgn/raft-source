@@ -2552,7 +2552,8 @@ export default function MainLayout() {
               <Sidebar
                 mobileInline={mobileShowSidebarInline}
                 announcementSlot={sidebarAnnouncementSlot}
-                hideTitle={showTopBar}
+                // Layout redesign: the sidebar shows only its area's content, no title row.
+                hideTitle={showTopBar || isDesktop}
               />
             )}
           </ShellSidebarColumn>

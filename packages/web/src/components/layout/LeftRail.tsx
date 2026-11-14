@@ -20,7 +20,8 @@ import type { Server } from "../../store/serverStore";
 import { useMessageStore } from "../../store/messageStore";
 import { useInboxStore } from "../../store/inboxStore";
 import { useChannelStore } from "../../store/channelStore";
-import { useMachineStore } from "../../store/machineStore";
+import { isMachineOffline, useMachineStore } from "../../store/machineStore";
+import { useAgentStore } from "../../store/agentStore";
 import { SERVER_NOTIFICATION_PREFS_UPDATED_EVENT } from "../../store/events/notificationPrefsEvents";
 import type { RailMode } from "../../hooks/useSidebarTab";
 import { useRailMode } from "../../hooks/useSidebarTab";
@@ -280,6 +281,13 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
   }, [currentMode, selectRailMode]);
   // The navigation tabs this person can see, in no particular order:
   // SortableRailTabs lays them out in the person's saved order.
+  // Layout redesign: no top bar, so agents online show as the Members tab's green dot.
+  const machines = useMachineStore((state) => state.machines);
+  const agents = useAgentStore((state) => state.agents);
+  const onlineAgentCount = useMemo(
+    () => agents.filter((agent) => agent.status === "active" && !agent.external && !!agent.machineId && !isMachineOffline(machines, agent.machineId)).length,
+    [agents, machines],
+  );
   const railTabs = useMemo<RailTab[]>(() => {
     const tab = (id: RailTab["id"], label: string, button: (drag: RailTabDrag) => React.ReactNode): RailTab => ({ id, label, render: button });
     const tabs: RailTab[] = [];
@@ -319,8 +327,9 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
     }
     if (!isGuest) {
       const membersLabel = formatMessage({ id: "layout.leftRail.tabMembers" });
+      const membersTooltip = onlineAgentCount > 0 ? formatMessage({ id: "layout.leftRail.agentsOnline" }, { count: onlineAgentCount }) : membersLabel;
       tabs.push(tab("members", membersLabel, ({ dragProps, guardClick }) => (
-        <RailTabButton {...dragProps} icon={<Users size={18} />} label={membersLabel} active={railMode === "members"} onClick={guardClick(railModeSelectors.members)} testId="left-rail-tab-members" />
+        <RailTabButton {...dragProps} icon={<Users size={18} />} label={membersTooltip} active={railMode === "members"} onClick={guardClick(railModeSelectors.members)} presenceDot={onlineAgentCount > 0} testId="left-rail-tab-members" />
       )));
       const computersLabel = formatMessage({ id: "layout.leftRail.tabComputers" });
       tabs.push(tab("computers", computersLabel, ({ dragProps, guardClick }) => (
@@ -359,7 +368,7 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
       )));
     }
     return tabs;
-  }, [appsAttention.lit, computerAttentionTooltip, formatMessage, handleClassicActivityClick, hasActivityUnread, hasChatUnread, isGuest, railMode, railModeSelectors, showArtifacts, showAssistant, showComputerAttentionDot, topBar]);
+  }, [appsAttention.lit, computerAttentionTooltip, formatMessage, handleClassicActivityClick, hasActivityUnread, hasChatUnread, isGuest, railMode, railModeSelectors, showArtifacts, showAssistant, showComputerAttentionDot, topBar, onlineAgentCount]);
   const selectPublicChatMode = useCallback(() => publicProjection?.onSelectMode("chat"), [publicProjection]);
   const selectPublicSettingsMode = useCallback(() => publicProjection?.onSelectMode("settings"), [publicProjection]);
   const openPublicFeedback = useCallback(() => publicProjection?.onSelectSettingsTab("feedback"), [publicProjection]);

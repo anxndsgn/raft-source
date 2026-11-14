@@ -6823,6 +6823,7 @@ export const zhCn: Record<MessageId, string> = {
   "layout.leftRail.tabTasks": "任务",
   "layout.leftRail.tabArtifacts": "Artifacts",
   "layout.leftRail.tabMembers": "成员",
+  "layout.leftRail.agentsOnline": "成员 · {count} 个 agent 在线",
   "layout.leftRail.tabComputers": "计算机",
   "layout.leftRail.tabHelp": "帮助",
   "layout.leftRail.tabSettings": "设置",

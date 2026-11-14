@@ -6744,6 +6744,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "layout.leftRail.tabTasks": "Задачи",
   "layout.leftRail.tabArtifacts": "Artifacts",
   "layout.leftRail.tabMembers": "Участники",
+  "layout.leftRail.agentsOnline": "{count, plural, one {Участники · # агент в сети} few {Участники · # агента в сети} many {Участники · # агентов в сети} other {Участники · # агента в сети}}",
   "layout.leftRail.tabComputers": "Компьютеры",
   "layout.leftRail.tabHelp": "Справка",
   "layout.leftRail.tabSettings": "Настройки",
