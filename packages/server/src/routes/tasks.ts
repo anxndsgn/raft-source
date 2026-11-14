@@ -1,3 +1,4 @@
+import * as replyModeService from "../services/replyModeService";
 import { refuse } from "../lib/refusal";
 import { respondToTaskWriteError } from "../lib/taskWriteErrorResponse";
 import { Router, type Request, type Response, type Router as RouterType } from "express";
@@ -510,6 +511,18 @@ taskRouter.get("/:taskId/history", async (req, res) => {
     res.json({ events: history });
   } catch {
     res.status(500).json({ error: "Failed to read task history" });
+  }
+});
+
+// Reply mode: the messages linked to a task, as the task dialog's one line
+// ("N messages · view in channel") shows them.
+taskRouter.get("/:taskId/linked-messages", async (req, res) => {
+  try {
+    const task = await requireTaskInServer(req, res);
+    if (!task) return;
+    res.json(await replyModeService.taskLinkedMessageSummary(task.id));
+  } catch {
+    res.status(500).json({ error: "Failed to read the task's messages" });
   }
 });
 

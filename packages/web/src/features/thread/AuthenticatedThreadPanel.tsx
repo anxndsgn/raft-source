@@ -75,6 +75,7 @@ export function AuthenticatedThreadPanel({
   hideHeader = false,
   hideParentMessage = false,
   parentSlot,
+  composerReplacement,
   emptyState,
   searchCommandRef,
   backCommandRef,
@@ -135,6 +136,8 @@ export function AuthenticatedThreadPanel({
   hideParentMessage?: boolean;
   /** Optional content rendered before the parent/replies in the timeline. */
   parentSlot?: ReactNode;
+  /** See ThreadPanelProps.composerReplacement. */
+  composerReplacement?: ReactNode;
   /** Replaces the "No replies yet" state of an empty conversation. */
   emptyState?: ReactNode;
   /** See ThreadPanelProps.searchCommandRef. */
@@ -766,6 +769,7 @@ export function AuthenticatedThreadPanel({
         threadChannelId={threadChannelId}
         conversationKey={conversationKey}
         hideParentMessage={hideParentMessage}
+        composerReplacement={composerReplacement}
         handleWillSend={handleWillSend}
         taskV2={taskV2}
         ensureSurfaceThreadChannel={ensureSurfaceThreadChannel}

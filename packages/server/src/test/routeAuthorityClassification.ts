@@ -551,6 +551,7 @@ export const ROUTE_AUTHORITY_CLASSIFICATION: readonly RouteClassification[] = [
   { route: "POST /internal/agent-api/mcp/call", bucket: "nonHuman", reason: "sk_agent principal (routeAuthPolicy registry); no human Server authority" },
   { route: "POST /internal/agent-api/mention-actions/execute", bucket: "nonHuman", reason: "sk_agent principal (routeAuthPolicy registry); no human Server authority" },
   { route: "POST /internal/agent-api/messages/:msgId/reactions", bucket: "nonHuman", reason: "sk_agent principal (routeAuthPolicy registry); no human Server authority" },
+  { route: "POST /internal/agent-api/messages/:msgId/tasks", bucket: "nonHuman", reason: "sk_agent principal (routeAuthPolicy registry); no human Server authority" },
   { route: "POST /internal/agent-api/raftbench/submit", bucket: "nonHuman", reason: "sk_agent read-only service identity; run-bound derived report receipt, live human-admin/source checks" },
   { route: "POST /internal/agent-api/prepare-action", bucket: "nonHuman", reason: "sk_agent principal (routeAuthPolicy registry); no human Server authority" },
   { route: "POST /internal/agent-api/actions/:messageId/withdraw", bucket: "nonHuman", reason: "sk_agent principal (routeAuthPolicy registry): only the question card's own agent (action_cards.requester_agent_id), from prepared only; no human Server authority" },

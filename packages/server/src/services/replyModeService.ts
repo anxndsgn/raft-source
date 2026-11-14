@@ -377,3 +377,18 @@ export async function taskNumbersByIds(taskIds: readonly string[], executor?: Da
   return new Map(rows.map((row) => [row.id, row.n]));
 }
 
+
+/**
+ * Reply mode, the task dialog's "N messages · view in channel": how many live
+ * messages are linked to the task, and the newest one (where the link opens).
+ */
+export async function taskLinkedMessageSummary(taskId: string, executor?: DatabaseExecutor): Promise<{ count: number; latestMessageId: string | null }> {
+  const db = executor ?? getDb();
+  const [row] = (await db.execute(sql`
+    SELECT count(*)::int AS n,
+           (array_agg(m.id::text ORDER BY m.seq DESC))[1] AS latest
+      FROM message_tasks mt JOIN messages m ON m.id = mt.message_id
+     WHERE mt.task_id = ${taskId}::uuid AND m.deleted_at IS NULL
+  `)).rows as Array<{ n: number; latest: string | null }>;
+  return { count: Number(row?.n ?? 0), latestMessageId: row?.latest ?? null };
+}

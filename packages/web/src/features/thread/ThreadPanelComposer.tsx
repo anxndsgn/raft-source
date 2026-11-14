@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useId } from "react";
 import type { RefObject } from "react";
 import { useIntl } from "react-intl";
@@ -59,6 +60,7 @@ export function ThreadPanelComposer({
   threadChannelId,
   conversationKey,
   hideParentMessage,
+  composerReplacement,
   handleWillSend,
   taskV2,
   ensureSurfaceThreadChannel,
@@ -106,6 +108,7 @@ export function ThreadPanelComposer({
   threadChannelId: string | null;
   conversationKey: string;
   hideParentMessage: boolean;
+  composerReplacement?: ReactNode;
   handleWillSend: () => Promise<void>;
   taskV2: boolean;
   ensureSurfaceThreadChannel: () => Promise<string>;
@@ -183,6 +186,8 @@ export function ThreadPanelComposer({
         <ReadOnlyComposer notice={<RemovedAppBotDmNotice handle={parentDmAgent.name} />} />
       ) : parentLoungeReadOnly ? (
         <ReadOnlyComposer />
+      ) : composerReplacement ? (
+        composerReplacement
       ) : parentChannel?.replyMode === true && !hideParentMessage ? (
         /* Reply mode: old threads are read-only; reply on the channel's timeline. */
         <ReadOnlyComposer notice={formatMessage({ id: "message.reply.oldThreadReadOnly" })} />

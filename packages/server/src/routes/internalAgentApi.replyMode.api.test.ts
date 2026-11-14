@@ -17,6 +17,8 @@ import { createAgent } from "../services/agentService";
 import { addAgent, addHuman, createChannel, getOrCreateThread, updateChannel } from "../services/channelService";
 import { broadcastAndDeliver, createMessage } from "../services/messageService";
 import { createServer } from "../services/serverService";
+import { taskLinkedMessageSummary } from "../services/replyModeService";
+import { listTaskHistory } from "../services/taskService";
 import type { AgentOrchestrator } from "../services/agentOrchestrator";
 
 const test = createApiTest();
@@ -302,6 +304,12 @@ test("reply mode without task v2: task create with a source message links it ins
   assert.deepEqual(links.map((l) => l.taskId), [task!.id]);
   const events = await getDb().select().from(taskEvents).where(eq(taskEvents.taskId, task!.id));
   assert.ok(events.some((e) => e.eventType === "message_linked"));
+  // The task dialog's footer counts it; history names it by author and first line.
+  assert.deepEqual(await taskLinkedMessageSummary(task!.id), { count: 1, latestMessageId: ask });
+  const history = await listTaskHistory(task!.id);
+  assert.ok(Array.isArray(history));
+  const linkedEvent = history.find((e) => e.eventType === "message_linked");
+  assert.equal((linkedEvent!.payload.message as { excerpt: string }).excerpt, "Please fix the deploy script");
 
   // A reply to the source inherits the new task.
   const reply = await agentSend(app.baseUrl, a.key, { target: `#${channel.name}`, content: "On it", replyTo: ask.slice(0, 8) });

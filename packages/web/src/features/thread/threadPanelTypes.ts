@@ -51,6 +51,8 @@ export interface ThreadPanelProps {
   hideHeader?: boolean;
   hideParentMessage?: boolean;
   parentSlot?: ReactNode;
+  /** Shown in place of the composer (reply mode: the task dialog's way to its messages on the channel). */
+  composerReplacement?: ReactNode;
   /** Replaces the "No replies yet" state of an empty conversation. */
   emptyState?: ReactNode;
   /** A host that draws its own header (the task dialog) gets the panel's

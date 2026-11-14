@@ -80,6 +80,7 @@ export const READ_ROUTE_VISIBILITY_CLASSIFICATION: readonly ReadRouteClassificat
   { route: "GET /api/channels/unread", entry: "legacy:loadConversationUnreadSummaryRows", reason: "per-channel unread counts/summary via getUnreadCounts/getUnreadSummary rows" },
   // Tasks.
   { route: "GET /api/tasks/:taskId/history", entry: "legacy:requireTaskInServer", reason: "task history; requireTaskInServer -> canUserAccessChannel (includeDeleted)" },
+  { route: "GET /api/tasks/:taskId/linked-messages", entry: "legacy:requireTaskInServer", reason: "reply mode: count and newest of the messages linked to the task; requireTaskInServer -> canUserAccessChannel" },
   { route: "GET /api/tasks/channel/:channelId", entry: "legacy:rejectIfNoTaskReadAccess", reason: "channel tasks; rejectIfNoTaskReadAccess -> canUserAccessChannel" },
   { route: "GET /api/tasks/channel/:channelId/number/:taskNumber", entry: "legacy:rejectIfNoTaskReadAccess", reason: "task by number; rejectIfNoTaskReadAccess -> canUserAccessChannel" },
   { route: "GET /api/tasks/server", entry: "unified", reason: "server task board: listServerTasks / listServerTasksPage over visibleRootChannelIds (public, private, joint; not archived)" },

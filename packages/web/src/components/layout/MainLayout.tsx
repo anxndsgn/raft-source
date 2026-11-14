@@ -201,6 +201,7 @@ const ProfilePanel = lazyPanel<ProfilePanelProps>(() => observeProfileOpenE2eImp
 ));
 const LegacyTaskPanel = lazyPanel(() => import("../task/LegacyTaskPanel"));
 const TaskModalHead = lazyPanel(() => import("../task/TaskModalHead"));
+const TaskLinkedMessagesBar = lazyPanel(() => import("../task/TaskLinkedMessagesBar"));
 
 /** Returns true when the mobile bottom tab bar should be visible on the
  *  current route. Used by both the bar itself and its in-flow spacer so that
@@ -1542,7 +1543,14 @@ function MessageThreadPanelWrapper({ presentation = "side" }: { presentation?: "
     });
   }, [hostTask, openTaskConversation, redirectToTaskConversation]);
   // Only a pre-v2 task has a host message whose thread to view.
-  const canViewInThread = !taskV2 && !!hostTask && !hostTask.isLegacy && !isTaskV2Task(hostTask) && hostTask.channelType !== "thread";
+  // Reply mode: the task's discussion is its linked messages on the channel's
+  // timeline; the old task thread is read-only and the dialog leads there instead.
+  const hostReplyMode = useChannelStore((s) => (hostTask ? s.channels.find((c) => c.id === hostTask.channelId)?.replyMode === true : false));
+  const replyModeFooter = hostTask && hostReplyMode && !isTaskV2Task(hostTask)
+    ? <Suspense fallback={null}><TaskLinkedMessagesBar task={hostTask} onNavigate={closeSurface} /></Suspense>
+    : undefined;
+  const replyModeEmpty = replyModeFooter ? <div className="flex-1" /> : undefined;
+  const canViewInThread = !taskV2 && !hostReplyMode && !!hostTask && !hostTask.isLegacy && !isTaskV2Task(hostTask) && hostTask.channelType !== "thread";
   // The task sheet owns the current history entry. Close the store first so
   // the panel disappears synchronously, then consume the PUSH that opened it.
   // On a cold deep link there is no safe entry to pop, so the callback fallback
@@ -1563,6 +1571,7 @@ function MessageThreadPanelWrapper({ presentation = "side" }: { presentation?: "
         {hostTask && <TaskModalBar task={hostTask} onClose={closeSurface} onViewInThread={canViewInThread ? viewInThread : undefined} />}
         <div className="flex min-h-0 flex-1 flex-col">
           <ThreadPanel key={parentMessageId} presentation="modal" threadIdentity={surfaceThreadIdentity} hideHeader={!!hostTask} hideParentMessage={!!hostTask}
+            composerReplacement={replyModeFooter} emptyState={replyModeEmpty}
             parentSlot={hostTask ? <Suspense fallback={<div className="stack-y-3 border-b border-line-hairline bg-layer-canvas p-4"><Skeleton className="h-6 w-2/3" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-4/5" /></div>}><TaskModalHead task={hostTask} /></Suspense> : undefined} />
         </div>
       </DialogSurface>
@@ -1576,6 +1585,7 @@ function MessageThreadPanelWrapper({ presentation = "side" }: { presentation?: "
         )}
         <div className="flex min-h-0 flex-1 flex-col">
           <ThreadPanel key={parentMessageId} presentation="mobile-modal" threadIdentity={surfaceThreadIdentity} hideHeader={!!hostTask} hideParentMessage={!!hostTask}
+            composerReplacement={replyModeFooter} emptyState={replyModeEmpty}
             parentSlot={hostTask ? <Suspense fallback={<div className="stack-y-3 border-b border-line-hairline bg-layer-canvas p-4"><Skeleton className="h-6 w-2/3" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-4/5" /></div>}><TaskModalHead task={hostTask} /></Suspense> : undefined} />
         </div>
       </div>

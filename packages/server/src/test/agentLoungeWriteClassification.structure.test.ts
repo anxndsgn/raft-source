@@ -22,6 +22,7 @@ const AGENT_LOUNGE_WRITE_CLASSIFICATION: Readonly<Record<string, LoungeWriteClas
   messageSendV2: "membership",
   messageReactionAdd: "membership",
   messageReactionRemove: "membership",
+  messageRetag: "membership",
   // RFC 082: only the card's sender, still able to post there (canAgentPostToChannel).
   messageCardUpdate: "membership",
   channelLeave: "membership",
