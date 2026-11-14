@@ -11,6 +11,7 @@ import { isScopeMarkedUnread } from "../../store/markedUnreadStore";
 import { activityFilterOf, inboxStateForActivityFilter, writeActivityFilterChoice } from "../../store/activityFilterPreference";
 import type { ActivityFilterChoice } from "../../store/activityFilterPreference";
 import { InboxSystemNotices } from "./InboxSystemNotices";
+import { InboxAllFilterMenu } from "./InboxAllFilterMenu";
 import { useInboxForMeCount } from "./inboxForMe";
 import { InboxAssignedTasks } from "./InboxAssignedTasks";
 import { ActivityInboxPanel, SegmentedControl, SegmentedControlCount, SegmentedControlItem, SegmentedControlLabel, Banner, BannerAction, BannerDescription, Button, ScrollArea, useLocated } from "@botiverse/raft-ui";
@@ -544,6 +545,7 @@ export function ThreadsInbox() {
         </SegmentedControl>
       </div>
       <div className="flex shrink-0 items-center gap-1">
+      {activeFilter !== "mentions" ? <InboxAllFilterMenu active={activeFilter} onChoose={chooseFilter} /> : null}
       {showMarkAllRead && (
         <Tooltip content={formatMessage({ id: "thread.markAllRead.title" })}>
           <Button
