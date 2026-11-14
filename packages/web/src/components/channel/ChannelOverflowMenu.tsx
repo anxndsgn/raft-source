@@ -3,7 +3,7 @@ import { PanelLoading } from "../layout/PanelLoading";
 import type { ReactNode } from "react";
 import { Children, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useIntl } from "react-intl";
-import { Search, Settings } from "lucide-react";
+import { Search, Settings, Users } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogBody,
@@ -17,6 +17,7 @@ import {
 } from "@botiverse/raft-ui";
 import { ChannelPreferencesSection } from "./ChannelPreferencesSection";
 import { ChannelDetailsIdentity, ChannelDetailsSurface } from "./ChannelDetailsSurface";
+import { useIsDesktopShell } from "../layout/ShellFrame";
 import { prepareChannelDetailsOpen } from "./channelDetails";
 import { MemberAvatarPreloader, MembersStrip } from "./MembersStrip";
 import type { ChannelAgent, ChannelExternalMember, ChannelHuman } from "../../hooks/useChannelMembers";
@@ -141,6 +142,7 @@ export default function ChannelOverflowMenu({
   onOpenChange,
 }: ChannelOverflowMenuProps) {
   const { formatMessage } = useIntl();
+  const desktopShell = useIsDesktopShell();
   const [internalOpen, setInternalOpen] = useState(false);
   const [showUnsavedPrompt, setShowUnsavedPrompt] = useState(false);
   const [unsavedCanSave, setUnsavedCanSave] = useState(true);
@@ -314,6 +316,10 @@ export default function ChannelOverflowMenu({
     }
   }, [close]);
 
+  const toggleMembers = useCallback(() => {
+    if (open && view === "members") guardedClose();
+    else { handleOpenMembers(); if (!open) handleOpen(); }
+  }, [guardedClose, handleOpen, handleOpenMembers, open, view]);
   const handleToggle = useCallback(() => {
     if (open) guardedClose();
     else handleOpen();
@@ -368,14 +374,11 @@ export default function ChannelOverflowMenu({
         <PanelToggleAction
           ref={gearRef}
           pressed={open && view === "members"}
-          onPressedChange={() => {
-            if (open && view === "members") guardedClose();
-            else { handleOpenMembers(); if (!open) handleOpen(); }
-          }}
+          onPressedChange={toggleMembers}
           aria-label={formatMessage({ id: "channelHead.members" })}
           data-testid="channel-members-toggle"
         >
-          {formatMessage({ id: "channelHead.members" })}
+          {desktopShell ? formatMessage({ id: "channelHead.members" }) : <Users />}
         </PanelToggleAction>
       ) : shown === total ? (
         /* A toggle, pressed while the details are open, as Tasks and Files are (raft-design channel.md). */

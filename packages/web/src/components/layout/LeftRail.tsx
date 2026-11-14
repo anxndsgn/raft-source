@@ -1,19 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isHostShell } from "../../embed";
 import { useIntl } from "react-intl";
-import {
-  Activity,
-  Blocks,
-  CircleHelp,
-  Monitor,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Search,
-  Settings,
-  Users,
-  ListTodo,
-  Inbox,
-} from "lucide-react";
+import { Blocks, CircleHelp, Monitor, PanelLeftClose, PanelLeftOpen, Search, Settings, Users, ListTodo, Inbox } from "lucide-react";
 import { useFeedbackUnread } from "../../feedback/useFeedbackUnread";
 import { useAuthStore } from "../../store/authStore";
 import { useServerStore } from "../../store/serverStore";
@@ -61,7 +49,7 @@ import { labelWithShortcut } from "../ui/LabelWithShortcut";
 import { HelpMenu } from "./HelpMenu";
 import { HELP_MENU_TRIGGER_ID } from "../../features/keyboard-shortcuts/shortcutHelpStore";
 import { useFirstScreenDone } from "../../boot/deferredUi";
-import NotificationTrigger, { PendingNotificationTrigger } from "./NotificationTrigger";
+import { PendingNotificationTrigger } from "./NotificationTrigger";
 import { useShellPending } from "./shellPending";
 import { SortableRailTabs } from "./SortableRailTabs";
 import type { RailTab, RailTabDrag } from "./SortableRailTabs";

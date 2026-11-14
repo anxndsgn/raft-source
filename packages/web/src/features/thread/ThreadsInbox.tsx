@@ -1,20 +1,19 @@
-import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode, UIEvent } from "react";
 import { createPortal } from "react-dom";
 import { useIntl } from "react-intl";
 import Tooltip from "../../components/ui/Tooltip";
-import { ArrowUp, CheckCheck, ChevronDown, ListFilter, TriangleAlert } from "lucide-react";
+import { ArrowUp, CheckCheck, TriangleAlert } from "lucide-react";
 import { isUnreadInboxFilter, objectUnreadCountForFilter, useInboxStore } from "../../store/inboxStore";
 import type { InboxItem, MarkDoneOptions } from "../../store/inboxStore";
 import { inboxItemChannelId } from "../../store/inboxItem";
 import { isScopeMarkedUnread } from "../../store/markedUnreadStore";
-import { activityFilterOf, inboxStateForActivityFilter, parseActivityFilterChoice, writeActivityFilterChoice } from "../../store/activityFilterPreference";
+import { activityFilterOf, inboxStateForActivityFilter, writeActivityFilterChoice } from "../../store/activityFilterPreference";
 import type { ActivityFilterChoice } from "../../store/activityFilterPreference";
-import { SegmentedControl, SegmentedControlCount, SegmentedControlItem, SegmentedControlLabel } from "@botiverse/raft-ui";
-import InboxSystemNotices from "./InboxSystemNotices";
+import { InboxSystemNotices } from "./InboxSystemNotices";
 import { useInboxForMeCount } from "./inboxForMe";
-import InboxAssignedTasks from "./InboxAssignedTasks";
-import { ActivityInboxPanel, Banner, BannerAction, BannerDescription, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItemLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger, PickerTriggerButton, ScrollArea, useLocated } from "@botiverse/raft-ui";
+import { InboxAssignedTasks } from "./InboxAssignedTasks";
+import { ActivityInboxPanel, SegmentedControl, SegmentedControlCount, SegmentedControlItem, SegmentedControlLabel, Banner, BannerAction, BannerDescription, Button, ScrollArea, useLocated } from "@botiverse/raft-ui";
 import { MessageIcon } from "@botiverse/ricons";
 import { InboxItemListGroup, InboxItemListHeading } from "@botiverse/raft-ui/wip";
 import { useMessageStore } from "../../store/messageStore";
@@ -47,8 +46,8 @@ import { recordActivityUnreadSnapshot, showActivityUnreadSnapshot, useActivityUn
 import { ContentLoading } from "../../components/ui/ContentLoading";
 import { ACTIVITY_SURFACES, StaleCountsNotice } from "../../components/layout/StaleCountsNotice";
 import { useRwUnconfigured } from "../../store/rwFreshness";
-import { ACTIVITY_FILTER_ICON, ACTIVITY_FILTER_LABEL_ID, ACTIVITY_FILTER_MENU } from "./activityFilterMenu";
-import { ActiveFilterChip } from "./ActiveFilterChip";
+
+
 import { sortInboxRowsByTime } from "./activityDayGroups";
 import { useActivityDayGroups } from "./useActivityDayGroups";
 import { InboxRow } from "./InboxRow";
@@ -509,20 +508,12 @@ export function ThreadsInbox() {
   // the inbox store restores it when the server becomes current.
   const activeFilter = activityFilterOf(filter, scope);
   const forMeCount = useInboxForMeCount();
-  const filterTriggerRef = useRef<HTMLButtonElement>(null);
   const chooseFilter = useCallback((choice: ActivityFilterChoice) => {
     writeActivityFilterChoice(serverId, choice);
     const next = inboxStateForActivityFilter(choice);
     setFilter(next.filter, next.scope);
   }, [serverId, setFilter]);
-  const handleFilterChange = useCallback((value: unknown) => {
-    chooseFilter(parseActivityFilterChoice(value));
-  }, [chooseFilter]);
-  const clearFilter = useCallback(() => {
-    chooseFilter("all");
-    // The chip and its × go away: focus stays in the row, on the Filter button.
-    filterTriggerRef.current?.focus();
-  }, [chooseFilter]);
+  const handleTabChange = useCallback((value: "mine" | "all") => chooseFilter(value === "mine" ? "mentions" : "all"), [chooseFilter]);
   const toolbar = (
     <div
       data-testid="inbox-toolbar"
@@ -540,7 +531,7 @@ export function ThreadsInbox() {
         {/* Layout redesign (F4): two lists, what is waiting on me (replies to me, @me) and everything. */}
         <SegmentedControl<"mine" | "all">
           value={activeFilter === "mentions" ? "mine" : "all"}
-          onValueChange={(value) => chooseFilter(value === "mine" ? "mentions" : "all")}
+          onValueChange={handleTabChange}
           aria-label={formatMessage({ id: "thread.filter.ariaLabel" })}
         >
           <SegmentedControlItem value="mine" data-testid="inbox-tab-mine">

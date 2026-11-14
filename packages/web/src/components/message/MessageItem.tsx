@@ -5,7 +5,6 @@ import { MessageLinkCardsProvider, useMessageLinkCards } from "./useMessageLinkC
 import { ReplyCountToggle, ReplyQuote } from "./ReplyQuote";
 import { REPLY_TARGET_FOCUS_EVENT, useReplyTargetStore } from "../../store/replyTargetStore";
 import { timelineViewHasMessage, useTimelineViewStore } from "../../store/timelineViewStore";
-import { replyExcerpt } from "@botiverse/raft-shared";
 import {
   InlineAudioKeepAliveContext,
   keepInlineAudioPlaying,
@@ -113,6 +112,7 @@ import { useStore } from "zustand";
 import {
   messageReactionActorsDiscussion,
   messageRef as canonicalMessageRef,
+  replyExcerpt,
 } from "@botiverse/raft-shared";
 import type {
   ActionCardMetadata,

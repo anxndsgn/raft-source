@@ -10,7 +10,7 @@ import { isActionableNotice } from "./inboxForMe";
  * Layout redesign (F4): the bell's system notices, in the inbox. Those to act
  * on (a computer offline) head For me; those that only tell head All.
  */
-export default function InboxSystemNotices({ actionable }: { actionable: boolean }) {
+export function InboxSystemNotices({ actionable }: { actionable: boolean }) {
   const { formatMessage } = useIntl();
   const dismiss = useDismissedNotificationStore((s) => s.dismiss);
   const notices = useVisibleNotifications("desktop").filter((n) => isActionableNotice(n) === actionable);

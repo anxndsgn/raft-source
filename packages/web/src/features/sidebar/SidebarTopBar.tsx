@@ -1,11 +1,10 @@
-import { WorkspaceButton, WorkspaceButtonName, PanelActions, Popover, PopoverTrigger, SidebarHeader, SidebarHeaderTitle } from "@botiverse/raft-ui";
+import { WorkspaceButton, WorkspaceButtonName, Popover, PopoverTrigger, SidebarHeader, SidebarHeaderTitle } from "@botiverse/raft-ui";
 import AppPanelHeader from "../../components/ui/PanelHeader";
 import AttentionDot from "../../components/ui/AttentionDot";
 import { PublicPageGlobe } from "../../components/server/PublicPageGlobe";
 import AvatarSlot from "../../components/ui/AvatarSlot";
 import ServerSwitcherMenu from "../../components/ui/ServerSwitcherMenu";
 import { SHOW_STALE_COUNTS_NOTICE_IN_DESKTOP_SIDEBAR, StaleCountsNotice, UNREAD_COUNT_SURFACES } from "../../components/layout/StaleCountsNotice";
-import NotificationTrigger from "../../components/layout/NotificationTrigger";
 import { WorkingNowSummary } from "../../components/layout/WorkingNowSummary";
 import { TabRootBar } from "../../components/layout/TabRootBar";
 import type { SidebarData } from "./hooks/useSidebarData";
@@ -95,12 +94,7 @@ export function SidebarTopBar({ mobileInline, hideTitle, data, view, sync, home 
               {/* Who is working (AgentActivity `rf-working--count`); renders
                   nothing when nobody is, or the setting is off. */}
               <WorkingNowSummary variant="count" onFrame />
-              {/* Notification Center entry — the permanent Bell on the Home
-                  bar's right; only its attention pixel depends on whether
-                  notifications exist. */}
-              <PanelActions>
-                <NotificationTrigger flavor="mobile-navbar" />
-              </PanelActions>
+              {/* Layout redesign: the bell's notices live in the inbox; no bell here. */}
             </>
           ) : undefined}
         />

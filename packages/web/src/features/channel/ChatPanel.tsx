@@ -5,7 +5,7 @@ import CloseButton from "../../components/ui/CloseButton";
 import { Suspense, useContext, useEffect, useId, useLayoutEffect, useRef, useState, useMemo, useCallback } from "react";
 import type { ComponentType, ReactNode } from "react";
 import { useIntl } from "react-intl";
-import { Paperclip, ListTodo, ArrowDown, X } from "lucide-react";
+import { ArrowDown, X } from "lucide-react";
 import { useChannelHeadToggles } from "./useChannelHeadToggles";
 import { ChatPanelNoChannel } from "./ChatPanelNoChannel";
 import {
@@ -88,11 +88,9 @@ import { useProfileStore } from "../../store/profileStore";
 import MessageItem, { buildMentionMap } from "../../components/message/MessageItem";
 import HistoryTopState from "../../components/message/HistoryTopState";
 import { MessageInput } from "../composer/MessageInput";
-import { createPortal } from "react-dom";
-import { ConversationHeaderSlotContext } from "../../components/layout/rowColumnSlot";
-import { useIsDesktopShell } from "../../components/layout/ShellFrame";
-import { TimelineViewBar, TimelineViewHiddenRow } from "./TimelineViewBar";
-import { timelineViewRows, useTimelineViewStore } from "../../store/timelineViewStore";
+import { TimelineViewBar } from "./TimelineViewBar";
+import { useTimelineViewStore } from "../../store/timelineViewStore";
+import { timelineViewComposerPlaceholder, timelineViewSource, useChatTimelineView, useConversationHeaderPortal, useMineViewSwitch, useViewHiddenRows } from "./useChatTimelineView";
 import type { ComposerReference } from "../composer/composerTypes";
 import MessageTimeline from "../../components/message/MessageTimeline";
 import type {
@@ -257,18 +255,11 @@ export function ChatPanel({
   // Task v2 moves Tasks and Files out of the tab row into cards opened from
   // the header; without the flag the three tabs stay exactly as they were.
   const taskV2 = useServerFeatureFlag(TASK_V2_CONVERSATIONS_FLAG_KEY).enabled;
-  // Layout redesign: Tasks and Files always open in the side panel from the
-  // channel header (as task v2 did); the Chat / Tasks / Files tabs are gone.
+  // Layout redesign: Tasks and Files always open in the side panel from the header; no Chat / Tasks / Files tabs.
   const sideCards = true;
-  const chatPanelTabs = useMemo<PanelTabItem<ChatPanelTab>[]>(() => sideCards
-    ? [
-      { id: "chat", icon: MessageIcon, label: formatMessage({ id: "message.chatPanel.tabChat" }) },
-    ]
-    : [
-      { id: "chat", icon: MessageIcon, label: formatMessage({ id: "message.chatPanel.tabChat" }) },
-      { id: "tasks", icon: ListTodo, label: formatMessage({ id: "message.chatPanel.tabTasks" }) },
-      { id: "files", icon: Paperclip, label: formatMessage({ id: "message.chatPanel.tabFiles" }) },
-    ], [formatMessage, sideCards]);
+  const chatPanelTabs = useMemo<PanelTabItem<ChatPanelTab>[]>(() => [
+    { id: "chat", icon: MessageIcon, label: formatMessage({ id: "message.chatPanel.tabChat" }) },
+  ], [formatMessage]);
   // Keep locale-bound formatMessage out of effect/handler deps: effects that
   // load activity-mute state or reset selection must NOT re-run on a language
   // switch (that would clobber in-flight state). Render + the tab-label memo use
@@ -281,20 +272,14 @@ export function ChatPanel({
   const joinDeferred = useJoinDeferred(channelId);
   useReadReceiptHydrate(channelFirstPageSettled ? channel : null);
   const messageRenderScope = useContext(ChatPanelMessageRenderScope);
-  const conversationHeaderSlot = useContext(ConversationHeaderSlotContext);
-  const isDesktopShell = useIsDesktopShell();
+  const { portalHeader, desktop: isDesktopShell } = useConversationHeaderPortal(ownsUrl);
   const seqMessages = useMessageStore((s) => selectChannelMessageBucket(s, channelId));
   const channelWindowMeta = useMessageStore((s) => selectChannelWindowMeta(s, channelId));
   const { loadingNewer, hasNewer, contextLoadError } = channelWindowMeta;
   // Forum-style channels (#proj-chat:#24): useForumTimeline.ts.
   const { forumChannel, forumMode, messages: timelineMessages, hasMore: timelineHasMore, historyLimited, loading: timelineLoading, loadingOlder, loadOlderActivity } = useForumTimeline(channel, seqMessages, channelWindowMeta);
-  // Reply mode, step 2: a filtered view of the timeline (timelineViewStore)
-  // shows its own messages, with "N hidden" rows between them.
-  const timelineView = useTimelineViewStore((s) => (channelId && channel?.replyMode === true ? s.views[channelId] ?? null : null));
-  const timelineViewRowsResult = useMemo(() => (timelineView ? timelineViewRows(timelineView) : null), [timelineView]);
-  const messages = timelineViewRowsResult ? timelineViewRowsResult.messages : timelineMessages;
-  const hasMore = timelineView ? timelineView.hasMore : timelineHasMore;
-  const loading = timelineView ? timelineView.loading && timelineView.messages.length === 0 : timelineLoading;
+  // Reply mode, step 2: a filtered view of the timeline in place of the channel's (useChatTimelineView).
+  const { view: timelineView, rows: timelineViewRowsResult, messages, hasMore, loading } = useChatTimelineView(channel, seqMessages, { messages: timelineMessages, hasMore: timelineHasMore, loading: timelineLoading });
   const messagesBelongToChannel = !!channelId;
   const shouldShowMessageTimeline = messages.length > 0;
   // The timeline's visible window feeds translation through a store read by
@@ -872,13 +857,12 @@ export function ChatPanel({
     });
   }, [channelId, clearFocusedMessageParam, exitContextWindow, focusMessageId, hasNewer, setHighlightedMessageId, setNearBottom]);
 
-  const timelineViewOpen = timelineView !== null;
   const loadOlderForChannel = useCallback(() => {
     if (!channelId) return Promise.resolve();
-    if (timelineViewOpen) return useTimelineViewStore.getState().loadOlder(channelId);
+    if (timelineView) return useTimelineViewStore.getState().loadOlder(channelId);
     if (forumMode) return loadOlderActivity(channelId);
     return loadOlderMessages(channelId);
-  }, [channelId, forumMode, loadOlderActivity, loadOlderMessages, timelineViewOpen]);
+  }, [channelId, forumMode, loadOlderActivity, loadOlderMessages, timelineView]);
 
   const loadNewerForChannel = useCallback(() => {
     if (!channelId) return Promise.resolve();
@@ -1181,18 +1165,7 @@ export function ChatPanel({
     return map;
   }, [tasksByMessageId, taskV2]);
 
-  const timelineViewFocusId = timelineView?.focusMessageId ?? null;
-  const messageSource = useMemo<MessageTimelineSource>(() => timelineViewOpen ? {
-    messages,
-    hasOlder: hasMore,
-    hasNewer: false,
-    loading,
-    loadOlder: loadOlderForChannel,
-    loadNewer: () => Promise.resolve(),
-    initialFocusMessageId: timelineViewFocusId,
-    initialAtStart: false,
-    atStartKey: null,
-  } : ({
+  const messageSource = useMemo<MessageTimelineSource>(() => timelineView ? timelineViewSource(timelineView, messages, loading, loadOlderForChannel) : ({
     messages,
     hasOlder: hasMore,
     hasNewer,
@@ -1203,15 +1176,7 @@ export function ChatPanel({
     initialAtStart: showsHiddenTarget,
     // Each jump bumps the nonce; a jump clears the paywall until it lands.
     atStartKey: showsHiddenTarget ? highlightNonce : null,
-  }), [timelineViewOpen, timelineViewFocusId, messages, hasMore, hasNewer, loading, loadOlderForChannel, loadNewerForChannel, highlightedMessageId, focusMessageId, showsHiddenTarget, highlightNonce]);
-
-  // A view follows the channel live: anything new or changed on the timeline
-  // (a message, an edit, a task link) reads the view again, a little later.
-  useEffect(() => {
-    if (!timelineViewOpen || !channelId) return;
-    const timer = setTimeout(() => { void useTimelineViewStore.getState().refreshView(channelId); }, 400);
-    return () => clearTimeout(timer);
-  }, [timelineViewOpen, channelId, seqMessages]);
+  }), [timelineView, messages, hasMore, hasNewer, loading, loadOlderForChannel, loadNewerForChannel, highlightedMessageId, focusMessageId, showsHiddenTarget, highlightNonce]);
 
   const systemMessageRenderStates = useMemo(
     () => buildSystemMessageRenderStates(messages, formatMessage),
@@ -1415,17 +1380,7 @@ export function ChatPanel({
     );
   }, [forumMode, agentById, agentReadActive, agentReadStatusMessageId, canReactInChannel, channel?.id, channelId, channels, dmReadStatusMessageId, topHistoryState, expandedSystemMessageGroups, externalById, locatedMessageId, memberById, mentionMap, messageRenderScope, messages, messageGrouping, onOpenProfile, onOpenThread, preserveChannelAnchorForThreadOpen, systemMessageRenderStates, taskByMessageId, taskListsByMessageId, threadSummaries, toggleSystemMessageGroup]);
 
-  const renderChannelItem = useCallback((msg: Message, index: number) => {
-    const hiddenRow = timelineViewRowsResult?.hiddenRowBefore.get(msg.id);
-    const rendered = renderChannelItemInner(msg, index);
-    if (!hiddenRow || !channelId) return rendered;
-    return (
-      <>
-        <TimelineViewHiddenRow channelId={channelId} viewMessageId={hiddenRow.viewMessageId} count={hiddenRow.count} />
-        {rendered}
-      </>
-    );
-  }, [timelineViewRowsResult, channelId, renderChannelItemInner]);
+  const renderChannelItem = useViewHiddenRows(renderChannelItemInner, timelineViewRowsResult, channelId);
 
   // The list's one leading row: the history boundary (with the context-jump
   // banners). Keyed by its variant, so it is a row of the timeline like the
@@ -1735,16 +1690,7 @@ export function ChatPanel({
   // A DM peer's face: the live agent / member directory once it knows them (a reset included), else the DM's snapshot.
   const dmPeerAvatar = useMemo(() => resolveDmPeerAvatarFromDirectory(channel ?? {}, agents, members), [channel, agents, members]);
   // The head always fits (#189 rule 6): its own buttons (Search, an agent DM's Lounge, Tasks, Files, Settings) fold into ⋯.
-  const openTaskCount = useMemo(() => (channelTasks ?? []).filter((t) => t.status !== "done" && t.status !== "closed").length, [channelTasks]);
-  const mineViewOpen = timelineView?.spec.kind === "mine";
-  const toggleMineView = useCallback(() => {
-    if (!channelId) return;
-    const store = useTimelineViewStore.getState();
-    if (store.views[channelId]?.spec.kind === "mine") store.closeView(channelId);
-    else void store.openView(channelId, { kind: "mine" });
-  }, [channelId]);
-  const mineViewAvailable = channel?.replyMode === true && channel?.type !== "dm";
-  const mineView = useMemo(() => (mineViewAvailable ? { open: mineViewOpen, onToggle: toggleMineView } : null), [mineViewAvailable, mineViewOpen, toggleMineView]);
+  const { mineView, openTaskCount } = useMineViewSwitch(channel, timelineView, isDesktopShell, channelTasks);
   const { cardToggles, containerProps: headContainerProps, fit: fitHead } = useChannelHeadToggles({ cards: sideCards && supportsChannelTasks, tasksOpen: tasksCardOpen, filesOpen: filesCardOpen, onToggleTasks: toggleTasksCard, onToggleFiles: toggleFilesCard, onOpenLounge: handleOpenLounge, mineView, taskCount: openTaskCount });
   if (!channel) return <ChatPanelNoChannel onBack={onMobileBack ?? routeMobileBack} backAlwaysVisible={Boolean(contentSlotBack)} />;
 
@@ -1875,9 +1821,6 @@ export function ChatPanel({
     />
   ) : null;
 
-  // Layout redesign: on a desktop, the page's own conversation puts its header
-  // above the row (MainLayout), spanning the timeline and the side panel.
-  const portalHeader = (header: ReactNode) => (conversationHeaderSlot && ownsUrl && isDesktopShell ? createPortal(header, conversationHeaderSlot) : header);
   return (
     <ConversationPanelRoot ref={conversationPanelRef} edge="inset" className="relative" data-shortcut-scope="conversation">
       <VisibleMessageTranslations store={translationWindow} messages={messages} />
@@ -2238,9 +2181,7 @@ export function ChatPanel({
                     : undefined}
                   frameEdge={<AssistantOtterAnchor hostId={otterHostId} channelId={channel.id} />}
                   composerReference={composerReference}
-                  placeholder={timelineView?.spec.kind === "task"
-                    ? formatMessage({ id: "timelineView.composerTask" }, { channel: `#${channel.name}`, number: timelineView.spec.taskNumber })
-                    : undefined}
+                  placeholder={timelineViewComposerPlaceholder(timelineView, channel.name, formatMessage)}
                 />
               </div>
             )

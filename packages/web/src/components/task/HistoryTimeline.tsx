@@ -1,4 +1,5 @@
-import { TASK_STATUSES, type MessageReplyToView } from "@botiverse/raft-shared";
+import { TASK_STATUSES } from "@botiverse/raft-shared";
+import type { MessageReplyToView } from "@botiverse/raft-shared";
 import { CornerUpLeft } from "lucide-react";
 import { Timeline, TimelineContent, TimelineItem, TimelineTime, TimelineTitle } from "@botiverse/raft-ui";
 import type { TaskStatusId } from "@botiverse/raft-ui";

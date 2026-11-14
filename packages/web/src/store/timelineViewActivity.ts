@@ -1,7 +1,8 @@
 import api from "../api/client";
 import { useChannelStore } from "./channelStore";
 import type { InboxItem } from "./inboxStore";
-import { holdReadWhileViewPending, useTimelineViewStore, type TimelineViewSpec } from "./timelineViewStore";
+import { holdReadWhileViewPending, useTimelineViewStore } from "./timelineViewStore";
+import type { TimelineViewSpec } from "./timelineViewStore";
 
 /**
  * Reply mode, step 2 (PRD §5-§6): an Activity channel row in a channel that

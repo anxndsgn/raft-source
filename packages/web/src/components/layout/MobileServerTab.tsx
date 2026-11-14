@@ -5,10 +5,9 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { CSS } from "@dnd-kit/utilities";
 import { useIntl } from "react-intl";
 import { useLocation } from "react-router-dom";
-import { Blocks, Monitor, Plus, Settings, UserPlus, Users } from "lucide-react";
-import { AvatarBadge, MobileNavLabel, PopoverSeparator, Status } from "@botiverse/raft-ui";
+import { Blocks, Monitor, Plus, Settings, UserPlus, Users, UserRound } from "lucide-react";
+import { MobileNavLabel, PopoverSeparator, Status } from "@botiverse/raft-ui";
 import { ArtifactIcon } from "@botiverse/ricons";
-import type { AvatarBadgeOffset } from "@botiverse/raft-ui";
 import {
   MobileNavServerItem,
   MobileNavServerPopover,
@@ -33,7 +32,6 @@ import type { Server } from "../../store/serverStore";
 import { hasOtherServerActivityUnread } from "../../utils/serverUnreadSummary";
 import type { ServerUnreadSummary } from "../../utils/serverUnreadSummary";
 import { touchDragRegion } from "../../utils/touchDragRegion";
-import AvatarSlot from "../ui/AvatarSlot";
 import Banner from "../ui/Banner";
 import { ServerTabRowContent } from "./ServerTabRowContent";
 import { dismissLayerProps } from "../ui/dismissLayer";
@@ -61,12 +59,6 @@ import { useShellPending } from "./shellPending";
 // pages gives focus back to this tab.
 
 /** The attention pixel's centre on the avatar's top-right corner (DS MobileNav › States). */
-const TOP_RIGHT: AvatarBadgeOffset = ["100%", 0];
-
-function serverInitial(server: Pick<Server, "name"> | null | undefined): string {
-  return (server?.name ?? "").trim().charAt(0).toUpperCase() || "S";
-}
-
 // The system's own long-press menu (Android) would cover the row being held.
 function blockSystemMenu(event: MouseEvent<HTMLButtonElement>) {
   event.preventDefault();
@@ -228,20 +220,14 @@ export function MobileServerTab({ mobileTab }: { mobileTab: MobileTabId | null }
             : serverName}
           data-testid="mobile-tab-server"
         >
-          <AvatarSlot
-            context="compact-list"
-            type="server"
-            serverAvatarUrl={server?.avatarUrl}
-            serverInitial={serverInitial(server)}
-            corner={otherServerUnread ? (
-              <AvatarBadge
-                offset={TOP_RIGHT}
-                data-testid="mobile-tab-server-unread-dot"
-                render={<Status aria-hidden variant="accent" size="sm" />}
-              />
-            ) : undefined}
-          />
-          <MobileNavLabel>{serverName}</MobileNavLabel>
+          {/* Layout redesign (M1): "Me" — the team is switched in here. */}
+          <span className="relative inline-flex">
+            <UserRound aria-hidden />
+            {otherServerUnread ? (
+              <span aria-hidden className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-accent" data-testid="mobile-tab-server-unread-dot" />
+            ) : null}
+          </span>
+          <MobileNavLabel>{formatMessage({ id: "layout.mobileTabBar.me" })}</MobileNavLabel>
         </MobileNavServerItem>
         <MobileNavServerPopoverContent
           aria-label={formatMessage({ id: "layout.mobileTabBar.serverPopover" })}

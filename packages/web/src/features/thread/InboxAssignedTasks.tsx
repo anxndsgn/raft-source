@@ -14,7 +14,7 @@ const OPEN = new Set(["todo", "in_progress", "in_review"]);
  * not done ("Task #4 is assigned to you"), above the replies and @s. A row
  * opens the task's details in its channel's Tasks panel.
  */
-export default function InboxAssignedTasks() {
+export function InboxAssignedTasks() {
   const { formatMessage } = useIntl();
   const nav = useAppNavigate();
   const viewerId = useAuthStore((s) => s.user?.id ?? null);
@@ -44,7 +44,9 @@ export default function InboxAssignedTasks() {
           <ListTodo size={16} aria-hidden className="mt-0.5 shrink-0 text-foreground-hint" />
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="truncate text-footnote text-foreground-hint">
-              {task.channelName ? `#${task.channelName} · ` : ""}{formatMessage({ id: "inbox.assignedTask.kind" })}
+              {task.channelName
+                ? formatMessage({ id: "inbox.assignedTask.kindIn" }, { channel: task.channelName })
+                : formatMessage({ id: "inbox.assignedTask.kind" })}
             </span>
             <span className="truncate font-semibold text-foreground">{formatMessage({ id: "inbox.assignedTask.title" }, { number: task.taskNumber })}</span>
             <span className="truncate text-callout text-foreground-muted">{task.title}</span>

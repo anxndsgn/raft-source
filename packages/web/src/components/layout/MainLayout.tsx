@@ -119,7 +119,7 @@ import { useShortcutHelpStore } from "../../features/keyboard-shortcuts/shortcut
 import { useShortcut } from "../../features/shortcuts/useShortcut";
 import { focusMountedSearch, routeGlobalSearchShortcut } from "../../utils/searchFocusRequest";
 import { retapTabRoot } from "../../hooks/useTabRootScroll";
-import { Activity, ArrowLeft, Home, ListTodo, MonitorX, Search, UserX, X } from "lucide-react";
+import { ArrowLeft, ListTodo, MonitorX, Search, UserX, X, MessageSquare, Inbox } from "lucide-react";
 import { MembersEmptyRoute } from "../../features/members/MembersEmptyRoute";
 import { useMembersProfileRedirect } from "../../features/members/useMembersProfileRedirect";
 import api from "../../api/client";
@@ -377,11 +377,12 @@ export function MobileTabBar() {
     selectTab(tab);
   };
   const tabs = [
-    { id: "chat", label: formatMessage({ id: "layout.mobileTabBar.home" }), icon: Home },
-    { id: "activity", label: formatMessage({ id: "layout.mobileTabBar.activity" }), icon: Activity },
+    // Layout redesign (M1): the tab bar is the rail — Chat, Inbox, Tasks, Search, Me.
+    { id: "chat", label: formatMessage({ id: "layout.leftRail.tabChat" }), icon: MessageSquare },
+    { id: "activity", label: formatMessage({ id: "layout.leftRail.tabInbox" }), icon: Inbox },
     { id: "tasks", label: formatMessage({ id: "layout.mobileTabBar.tasks" }), icon: ListTodo },
     { id: "search", label: formatMessage({ id: "layout.mobileTabBar.search" }), icon: Search },
-  ] as const satisfies readonly { id: MobileTabId; label: string; icon: typeof Home }[];
+  ] as const satisfies readonly { id: MobileTabId; label: string; icon: typeof Search }[];
 
   // In-flow (not fixed): the bar is the last child of the MainLayout flex
   // column, which is itself pinned to the visual viewport via #root. This

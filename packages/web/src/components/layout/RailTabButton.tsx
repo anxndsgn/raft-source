@@ -82,7 +82,7 @@ export const RailTabButton = forwardRef<HTMLButtonElement, RailTabButtonProps>(f
       <AppRailItemIcon className="relative">
         {icon}
         {badgeCount && badgeCount > 0 ? (
-          <AppRailItemBadge data-testid={testId ? `${testId}-badge` : undefined}>{badgeCount > 99 ? "99+" : badgeCount}</AppRailItemBadge>
+          <AppRailItemBadge data-testid={testId ? `${testId}-badge` : undefined}>{Math.min(badgeCount, 99)}</AppRailItemBadge>
         ) : dotVisible ? (
           <AppRailItemAttention title={dotTooltip ?? label} />
         ) : presenceDot ? (

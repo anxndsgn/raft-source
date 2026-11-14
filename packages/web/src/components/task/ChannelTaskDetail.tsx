@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useIntl } from "react-intl";
 import { ChevronLeft, ListFilter } from "lucide-react";
 import { DescriptionDetails, DescriptionItem, DescriptionTerm, ScrollArea } from "@botiverse/raft-ui";
@@ -36,7 +36,7 @@ export default function ChannelTaskDetail({ task, onBack }: { task: Task; onBack
     return () => { cancelled = true; };
   }, [replyMode, task.id, filtering]);
 
-  const linkedRow = replyMode ? (
+  const linkedRow = useMemo(() => (replyMode ? (
     <DescriptionItem data-testid="task-detail-linked-messages">
       <DescriptionTerm>{formatMessage({ id: "taskDetail.linkedMessages" })}</DescriptionTerm>
       <DescriptionDetails>
@@ -62,8 +62,13 @@ export default function ChannelTaskDetail({ task, onBack }: { task: Task; onBack
         )}
       </DescriptionDetails>
     </DescriptionItem>
-  ) : null;
+  ) : null), [filtering, formatMessage, linked, nav, replyMode, task.channelId, task.taskNumber, task.title]);
 
+  const propertyRows = useMemo(() => ({ trailingRows: linkedRow }), [linkedRow]);
+  const handleOpenProfile = useCallback(
+    (kind: "agent" | "human", id: string) => openProfile(kind, id, { openSource: "channel", channelId: task.channelId }),
+    [openProfile, task.channelId],
+  );
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-testid="channel-task-detail">
       <div className="flex shrink-0 items-center gap-1 px-3 pt-2 text-footnote text-foreground-muted">
@@ -77,14 +82,14 @@ export default function ChannelTaskDetail({ task, onBack }: { task: Task; onBack
           {formatMessage({ id: "task.panel.heading" })}
         </button>
         <span className="text-foreground-hint">/</span>
-        <span className="font-mono">#{task.taskNumber}</span>
+        <span className="font-mono">{formatMessage({ id: "taskDetail.number" }, { number: task.taskNumber })}</span>
       </div>
       <ScrollArea tabIndex={-1} className="min-h-0 flex-1" contentClassName="pb-4">
         <TaskModalHead
           task={task}
           divider={false}
-          propertyRows={{ trailingRows: linkedRow }}
-          onOpenProfile={(kind, id) => openProfile(kind === "agent" ? "agent" : "human", id, { openSource: "channel", channelId: task.channelId })}
+          propertyRows={propertyRows}
+          onOpenProfile={handleOpenProfile}
         />
       </ScrollArea>
     </div>

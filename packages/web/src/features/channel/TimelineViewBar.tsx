@@ -2,7 +2,8 @@ import { ChevronLeft, ListFilter, X } from "lucide-react";
 import { useIntl } from "react-intl";
 
 import { useAppNavigate } from "../../hooks/useAppNavigate";
-import { useTimelineViewStore, type TimelineViewState } from "../../store/timelineViewStore";
+import { useTimelineViewStore } from "../../store/timelineViewStore";
+import type { TimelineViewState } from "../../store/timelineViewStore";
 
 /**
  * Reply mode, step 2: the bar over the timeline while a filtered view is open

@@ -1,6 +1,5 @@
-import type { ReactNode } from "react";
 import { useId } from "react";
-import type { RefObject } from "react";
+import type { ReactNode, RefObject } from "react";
 import { useIntl } from "react-intl";
 import { Button, TextLink, ThreadPanelFooter } from "@botiverse/raft-ui";
 import { JoinChannelIcon } from "@botiverse/ricons";

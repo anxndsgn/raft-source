@@ -1,8 +1,8 @@
 import { isAxiosError } from "axios";
 import { isAutoReadHeld } from "./autoReadHold";
-import { timelineViewComposerTaskNumber } from "./timelineViewStore";
 import { useProfileStore } from "./profileStore";
-import { useReplyTargetStore } from "./replyTargetStore";
+import { bumpOriginalReplyCount, replyModeSendFields } from "./replyModeMessage";
+import type { ReplyModeMessageFields } from "./replyModeMessage";
 import { create } from "zustand";
 import { isThreadMaximized, useUIStore } from "./uiStore";
 import { clearHiddenHistory, clearHiddenTarget, readHistoryLimitedError, recordHiddenHistory, recordHiddenTarget } from "./hiddenHistoryStore";
@@ -12,7 +12,6 @@ import type {
   CanonicalReactionFact,
   ExternalMessageAuthorProjection,
   LegacyReactionRosterDto,
-  MessageReplyToView,
 } from "@botiverse/raft-shared";
 import { ACTIVE_INPUT_WINDOW_MS, resolveMarkUnreadOutcome } from "@botiverse/raft-shared";
 import { isOlderCardRevision, messageCardRevision } from "./messageCardRevision";
@@ -177,7 +176,7 @@ export interface ConversationContext {
   taskId?: string;
 }
 
-export interface Message {
+export interface Message extends ReplyModeMessageFields {
   id: string;
   seq?: number;
   /**
@@ -244,15 +243,6 @@ export interface Message {
     amendedByName: string | null;
     source: "tasks_current_projection";
   } | null;
-  /** Reply mode: the message this one replies to (same conversation), and its display facts. */
-  replyToMessageId?: string | null;
-  replyTo?: MessageReplyToView | null;
-  /** Reply mode: how many messages reply to this one. */
-  directReplyCount?: number;
-  /** Reply mode: numbers of the tasks this message is linked to (not shown on the timeline). */
-  linkedTaskNumbers?: number[];
-  /** Whether this message's channel uses replies instead of threads. */
-  inReplyModeChannel?: boolean;
 }
 
 export {
@@ -2269,21 +2259,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
         );
     if (!message) return;
     noteOutlineMessage(message);
-    // Reply mode: a reply seen for the first time adds one to its original's
-    // "N replies" (the server counts them on the next read).
-    if (message.replyToMessageId) {
-      const known = get().messages.find((m) => m.id === message.id || (!!message.randomId && m.randomId === message.randomId));
-      if (!known?.replyToMessageId) {
-        const original = get().messages.find((m) => m.id === message.replyToMessageId);
-        if (original) {
-          queueMicrotask(() => get().updateMessage({
-            id: original.id,
-            channelId: original.channelId,
-            directReplyCount: (original.directReplyCount ?? 0) + 1,
-          }));
-        }
-      }
-    }
+    bumpOriginalReplyCount(message, get().messages, (patch) => get().updateMessage(patch));
     set((state) => {
       // Stryker disable next-line MethodExpression,ConditionalExpression,LogicalOperator: lastSeq monotonic bookkeeping predates this read-state projection slice; unread behavior is asserted separately.
       const newLastSeq = Math.max(state.lastSeq, message.seq || 0);
@@ -2561,25 +2537,19 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     // The reply raises lastSeq to the sent message's seq: a starting sync
     // horizon that arrives after this write is not safe to use either.
     noteMessageHistoryRequest();
-    // Reply mode: the composer's reply target (replyTargetStore), if any.
-    const replyTarget = useReplyTargetStore.getState().targets[channelId];
-    // Reply mode, task view: what is sent there is linked to the view's task.
-    const viewTaskNumber = timelineViewComposerTaskNumber(channelId);
+    const replyMode = replyModeSendFields(channelId);
     const { data } = await api.post("/v2/messages", {
       channelId,
       content,
       attachmentIds,
       asTask: asTask || undefined,
-      ...(replyTarget ? { replyToMessageId: replyTarget.messageId } : {}),
-      ...(viewTaskNumber ? { taskNumbers: [viewTaskNumber] } : {}),
+      ...replyMode.fields,
       randomId,
       mentions: mentions && mentions.length > 0 ? mentions : undefined,
       // The sender's IANA zone, recorded on the message for agents only.
       timezone: detectBrowserTimezone() ?? undefined,
     });
-    if (replyTarget && useReplyTargetStore.getState().targets[channelId]?.messageId === replyTarget.messageId) {
-      useReplyTargetStore.getState().clearReplyTarget(channelId);
-    }
+    replyMode.done();
     const normalizedResponse = normalizeSendMessageResponse(data);
     const message = coerceCurrentReceiverPrivateMessage(
       normalizedResponse.message,
