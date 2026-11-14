@@ -5,6 +5,7 @@ import { mkdtempSync, rmSync, statSync } from "node:fs";
 import os from "node:os";
 import {
   buildClaudeArgs,
+  buildClaudeHostIsolationEnv,
   buildClaudeSpawnSpec,
   CLAUDE_DESKTOP_CLI_RELATIVE_PATH,
   CLAUDE_DISALLOWED_TOOLS,
@@ -388,4 +389,22 @@ test("task #1240: probeClaude carries the Windows lookup timing as a bounded dia
   assert.equal(timedOut.unavailableReason, "probe_timeout");
   assert.match(timedOut.diagnostic ?? "", /^lookup: .*get-command \d+ ms timeout \(truncated\) \(budget 5000 ms\)/);
   assert.equal(timedOut.lookupTiming, timedOut.diagnostic?.replace(/^lookup: /, ""));
+});
+
+test("claude launch with host skills off ignores user settings and claude.ai connectors", () => {
+  const isolated = { ...config, skillsHub: { skills: [], plugins: [], useHostSkills: false } };
+  const args = buildClaudeArgs(isolated as any, { standingPromptFilePath: "/tmp/system.md", managedMcpConfigPath: "/tmp/mcp.json" });
+  assert.equal(args[args.indexOf("--setting-sources") + 1], "project,local");
+  // Raft's managed MCP still loads; hub plugins' own MCP servers must too.
+  assert.deepEqual(args.slice(-2), ["--mcp-config", "/tmp/mcp.json"]);
+  assert.ok(!args.includes("--strict-mcp-config"));
+  assert.deepEqual(buildClaudeHostIsolationEnv(isolated as any), { ENABLE_CLAUDEAI_MCP_SERVERS: "false" });
+});
+
+test("claude launch with host skills on keeps computer-wide capabilities", () => {
+  for (const skillsHub of [undefined, { skills: [], plugins: [], useHostSkills: true }]) {
+    const c = { ...config, skillsHub };
+    assert.ok(!buildClaudeArgs(c as any, { standingPromptFilePath: "/tmp/system.md" }).includes("--setting-sources"));
+    assert.deepEqual(buildClaudeHostIsolationEnv(c as any), {});
+  }
 });

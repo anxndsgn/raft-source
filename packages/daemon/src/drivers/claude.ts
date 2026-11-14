@@ -4,7 +4,7 @@ import type { RuntimeDriver, SpawnContext, SpawnResult, ParsedEvent, RuntimeProb
 import { buildCliTransportSystemPrompt, prepareCliTransport } from "./cliTransport";
 import { ClaudeEventNormalizer } from "./claudeEventNormalizer";
 import { assertClaudeStartupPayloadWithinBudget } from "./claudeInputBudget";
-import { buildClaudeArgs, buildClaudeManagedMcpConfig, buildClaudeSpawnSpec, probeClaude, probeClaudeLaunch, resolveClaudeLaunchCommand, resolveClaudeLaunchCommandAsync, writeClaudeSystemPromptFile } from "./claudeLaunch";
+import { buildClaudeArgs, buildClaudeHostIsolationEnv, buildClaudeManagedMcpConfig, buildClaudeSpawnSpec, probeClaude, probeClaudeLaunch, resolveClaudeLaunchCommand, resolveClaudeLaunchCommandAsync, writeClaudeSystemPromptFile } from "./claudeLaunch";
 import { detectClaudeModelSource } from "./claudeModels";
 import { ProbeChildError } from "./probeChild";
 import {
@@ -154,6 +154,9 @@ export class ClaudeDriver implements RuntimeDriver {
     // memory adds a second MEMORY.md under ~/.claude/projects/<slug>/memory
     // with its own rules, so turn it off (as Qwen's managed memory is).
     spawnEnv.CLAUDE_CODE_DISABLE_AUTO_MEMORY = "1";
+    // "Use this computer's skills/plugins/MCP" off: also hide the account's
+    // claude.ai connectors (see buildClaudeHostIsolationEnv).
+    Object.assign(spawnEnv, buildClaudeHostIsolationEnv(ctx.config));
 
     logger.info(
       `[Agent ${ctx.agentId}] transport=cli cli=${ctx.slockCliPath}`,

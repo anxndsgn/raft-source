@@ -160,6 +160,17 @@ export function buildClaudeArgs(
   return args;
 }
 
+/**
+ * Env overrides for a launch that must not use this computer's capabilities.
+ * `--setting-sources project,local` drops ~/.claude settings, plugins, hooks
+ * and user-scoped MCP servers, but not the claude.ai connectors tied to the
+ * signed-in account; this turns those off. Not `--strict-mcp-config`: that
+ * would also drop MCP servers shipped by the hub's own (workspace) plugins.
+ */
+export function buildClaudeHostIsolationEnv(config: AgentConfig): Record<string, string> {
+  return skillsHubIsolatesHost(config) ? { ENABLE_CLAUDEAI_MCP_SERVERS: "false" } : {};
+}
+
 export function buildClaudeManagedMcpConfig(server: {
   name: string;
   url: string;
