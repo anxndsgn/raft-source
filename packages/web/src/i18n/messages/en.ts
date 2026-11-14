@@ -4765,6 +4765,7 @@ export const en = {
   "artifacts.card.opensInWorkspace": "Opens in the workspace",
   "search.tasks": "Tasks",
   "search.taskWhere": "#{channel} · #{number}",
+  "channelHead.infoAndSettings": "Channel info and settings",
   "timelineView.task": "Only task #{number}",
   "timelineView.taskWithTitle": "Only task #{number}: {title}",
   "timelineView.chain": "Only the reply chain: {name}: {excerpt}",

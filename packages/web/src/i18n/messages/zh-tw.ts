@@ -4556,6 +4556,7 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "artifacts.card.opensInWorkspace": "在工作區開啟",
   "search.tasks": "任務",
   "search.taskWhere": "#{channel} · #{number}",
+  "channelHead.infoAndSettings": "頻道資訊與設定",
   "timelineView.task": "只看任務 #{number}",
   "timelineView.taskWithTitle": "只看任務 #{number}：{title}",
   "timelineView.chain": "只看回覆鏈：{name}：{excerpt}",

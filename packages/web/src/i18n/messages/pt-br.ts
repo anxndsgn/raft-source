@@ -4556,6 +4556,7 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "artifacts.card.opensInWorkspace": "Abre no espaço de trabalho",
   "search.tasks": "Tarefas",
   "search.taskWhere": "#{channel} · #{number}",
+  "channelHead.infoAndSettings": "Informações e configurações do canal",
   "timelineView.task": "Só a tarefa #{number}",
   "timelineView.taskWithTitle": "Só a tarefa #{number}: {title}",
   "timelineView.chain": "Só a cadeia de respostas: {name}: {excerpt}",

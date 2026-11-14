@@ -316,6 +316,10 @@ export default function ChannelOverflowMenu({
     }
   }, [close]);
 
+  const toggleInfo = useCallback(() => {
+    if (open && view === "root") guardedClose();
+    else { handleBackToRoot(); if (!open) handleOpen(); }
+  }, [guardedClose, handleBackToRoot, handleOpen, open, view]);
   const toggleMembers = useCallback(() => {
     if (open && view === "members") guardedClose();
     else { handleOpenMembers(); if (!open) handleOpen(); }
@@ -369,10 +373,10 @@ export default function ChannelOverflowMenu({
       ) : null}
       {middle.slice(0, Math.max(0, shown - 1))}
       {shown === total && showMembers ? (
-        /* Layout redesign: Members opens the members page of the channel's side panel; the
-           channel's name opens its info (the gear is gone). */
+        /* Layout redesign: Members opens the members page of the channel's side panel; the gear after it (and the
+           channel's name) its info (Figmama 11/15). */
+        <>
         <PanelToggleAction
-          ref={gearRef}
           pressed={open && view === "members"}
           onPressedChange={toggleMembers}
           aria-label={formatMessage({ id: "channelHead.members" })}
@@ -380,6 +384,18 @@ export default function ChannelOverflowMenu({
         >
           {desktopShell ? formatMessage({ id: "channelHead.members" }) : <Users />}
         </PanelToggleAction>
+        <Tooltip content={formatMessage({ id: "channelHead.infoAndSettings" })}>
+          <PanelToggleAction
+            ref={gearRef}
+            pressed={open && view === "root"}
+            onPressedChange={toggleInfo}
+            aria-label={formatMessage({ id: "channelHead.infoAndSettings" })}
+            data-testid="channel-overflow-trigger"
+          >
+            <Settings />
+          </PanelToggleAction>
+        </Tooltip>
+        </>
       ) : shown === total ? (
         /* A toggle, pressed while the details are open, as Tasks and Files are (raft-design channel.md). */
         <Tooltip content={settingsLabel}>

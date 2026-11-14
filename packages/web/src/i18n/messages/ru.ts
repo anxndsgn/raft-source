@@ -4558,6 +4558,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "artifacts.card.opensInWorkspace": "Откроется в рабочей области",
   "search.tasks": "Задачи",
   "search.taskWhere": "#{channel} · #{number}",
+  "channelHead.infoAndSettings": "Сведения и настройки канала",
   "timelineView.task": "Только задача #{number}",
   "timelineView.taskWithTitle": "Только задача #{number}: {title}",
   "timelineView.chain": "Только цепочка ответов: {name}: {excerpt}",

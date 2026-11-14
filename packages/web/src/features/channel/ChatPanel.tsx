@@ -5,7 +5,7 @@ import CloseButton from "../../components/ui/CloseButton";
 import { Suspense, useContext, useEffect, useId, useLayoutEffect, useRef, useState, useMemo, useCallback } from "react";
 import type { ComponentType, ReactNode } from "react";
 import { useIntl } from "react-intl";
-import { ArrowDown, X } from "lucide-react";
+import { ArrowDown, ChevronDown, X } from "lucide-react";
 import { useChannelHeadToggles } from "./useChannelHeadToggles";
 import { ChatPanelNoChannel } from "./ChatPanelNoChannel";
 import {
@@ -1690,7 +1690,11 @@ export function ChatPanel({
   const dmPeerAvatar = useMemo(() => resolveDmPeerAvatarFromDirectory(channel ?? {}, agents, members), [channel, agents, members]);
   // The head always fits (#189 rule 6): its own buttons (Search, an agent DM's Lounge, Tasks, Files, Settings) fold into ⋯.
   const { mineView, openTaskCount } = useMineViewSwitch(channel, timelineView, isDesktopShell, channelTasks);
-  const { cardToggles, containerProps: headContainerProps, fit: fitHead } = useChannelHeadToggles({ cards: sideCards && supportsChannelTasks, tasksOpen: tasksCardOpen, filesOpen: filesCardOpen, onToggleTasks: toggleTasksCard, onToggleFiles: toggleFilesCard, onOpenLounge: handleOpenLounge, mineView, taskCount: openTaskCount });
+  // Layout redesign: a thread open here holds the side panel's place; the switches show it, and pressing one closes it.
+  const threadHere = useThreadStore((s) => !!s.openParentMessageId && s.openParentChannelId === channelId && !s.taskModal);
+  const showTasksCard = useCallback(() => { if (threadHere) { useThreadStore.getState().closeThread(); if (!tasksCardOpen) toggleTasksCard(); } else toggleTasksCard(); }, [threadHere, tasksCardOpen, toggleTasksCard]);
+  const showFilesCard = useCallback(() => { if (threadHere) { useThreadStore.getState().closeThread(); if (!filesCardOpen) toggleFilesCard(); } else toggleFilesCard(); }, [threadHere, filesCardOpen, toggleFilesCard]);
+  const { cardToggles, containerProps: headContainerProps, fit: fitHead } = useChannelHeadToggles({ cards: sideCards && supportsChannelTasks, tasksOpen: tasksCardOpen && !threadHere, filesOpen: filesCardOpen && !threadHere, onToggleTasks: showTasksCard, onToggleFiles: showFilesCard, onOpenLounge: handleOpenLounge, mineView, taskCount: openTaskCount });
   if (!channel) return <ChatPanelNoChannel onBack={onMobileBack ?? routeMobileBack} backAlwaysVisible={Boolean(contentSlotBack)} />;
 
   const isDM = channel.type === "dm";
@@ -1839,15 +1843,19 @@ export function ChatPanel({
         title={isRegularChannel && !isLounge ? (
           isJoinableChannel ? (
             /* The channel's name opens its details too, as in other chat apps (raft-design channel.md). */
+            <Tooltip content={formatMessage({ id: "channelHead.infoAndSettings" })}>
             <button
               type="button"
               onClick={openOverflow}
-              className="max-w-full truncate rounded-[2px] text-left outline-none hover:underline hover:decoration-foreground-hint hover:underline-offset-4 focus-visible:shadow-focus"
+              // Layout redesign (Figmama 11/15): reads as a button — a chevron, a fill on hover.
+              className="flex shrink-0 items-center gap-1 rounded-control px-1 -mx-1 text-left outline-none hover:bg-fill-medium focus-visible:shadow-focus"
               aria-expanded={overflowOpen}
               data-testid="channel-header-title-button"
             >
-              {channel.name}
+              <span className="whitespace-nowrap">{channel.name}</span>
+              <ChevronDown size={14} aria-hidden className="shrink-0 text-foreground-hint" />
             </button>
+            </Tooltip>
           ) : channel.name
         ) : undefined}
         titleSuffix={regularTitleSuffix}

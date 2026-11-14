@@ -850,7 +850,12 @@ export default function ChannelSideArea() {
 
   const open = useMemo(() => {
     const set = new Set<ChannelSideSection>(Object.keys(entries) as PortalSection[]);
-    if (room.threadOpen || room.threadInRow || room.threadCoversRow) set.add("thread");
+    if (room.threadOpen || room.threadInRow || room.threadCoversRow) {
+      set.add("thread");
+      // Layout redesign (anxndsgn/Figmama 11/15): the channel's side panel is one place — a thread takes it,
+      // the Tasks, Files and details step aside until it closes.
+      set.delete("tasks"); set.delete("files"); set.delete("details");
+    }
     return set;
   }, [entries, room.threadCoversRow, room.threadInRow, room.threadOpen]);
   // The open Artifact (F41): a section like the others, in the layout's place for it.

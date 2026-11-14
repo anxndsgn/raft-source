@@ -4557,6 +4557,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "artifacts.card.opensInWorkspace": "ワークスペースで開く",
   "search.tasks": "タスク",
   "search.taskWhere": "#{channel} · #{number}",
+  "channelHead.infoAndSettings": "チャンネル情報と設定",
   "timelineView.task": "タスク #{number} のみ",
   "timelineView.taskWithTitle": "タスク #{number} のみ：{title}",
   "timelineView.chain": "返信チェーンのみ：{name}：{excerpt}",

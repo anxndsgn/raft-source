@@ -4556,6 +4556,7 @@ export const ko: Partial<Record<MessageId, string>> = {
   "artifacts.card.opensInWorkspace": "작업 공간에서 열기",
   "search.tasks": "작업",
   "search.taskWhere": "#{channel} · #{number}",
+  "channelHead.infoAndSettings": "채널 정보 및 설정",
   "timelineView.task": "작업 #{number}만",
   "timelineView.taskWithTitle": "작업 #{number}만: {title}",
   "timelineView.chain": "답장 체인만: {name}: {excerpt}",

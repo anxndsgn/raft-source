@@ -1,7 +1,8 @@
+import { useChannelSideCardStore } from "../../store/channelSideCardStore";
 import { useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
-import { X } from "lucide-react";
+import { X, ChevronLeft } from "lucide-react";
 import { DropdownMenuItem, PanelAction, PanelMeta, PanelTitle, TextLink } from "@botiverse/raft-ui";
 import type { SideSectionHead } from "../../components/task/sideSectionDrag";
 import Tooltip from "../../components/ui/Tooltip";
@@ -80,6 +81,7 @@ export function ThreadPanelHeader({
   allowExpand: boolean;
 }) {
   const { formatMessage } = useIntl();
+  const cardBehind = useChannelSideCardStore((s) => (s.open.tasks ? "tasks" : s.open.files ? "files" : null));
   // Its column holds the columns the row couldn't give 160 (#189 rule 4): their tabs in place of its title.
   const rowTabs = useRowTabs("thread");
   // The head always fits (#189 rule 6): its own action, the followers, folds into ⋯ where it doesn't; ⋯, Expand and
@@ -92,7 +94,8 @@ export function ThreadPanelHeader({
   // Its Expand is Focus Mode, which the row applies only to a thread beside its own conversation, the one open
   // (useThreadRowState): shown exactly where pressing it works, as every other head's (#189 rule 5).
   const focusApplies = useThreadRowState().focusApplies;
-  const expandShown = presentation === "side" && allowExpand && expand.shown && focusApplies;
+  // Layout redesign: a thread sits in the channel's side panel, which has no Expand (anxndsgn, 11/15).
+  const expandShown = false && presentation === "side" && allowExpand && expand.shown && focusApplies;
   const followersShown = shownOwnActions({
     width: presentation === "side" ? headWidth : 0,
     lead: (folded ? 1 : 0) + (headerLeading ? 1 : 0),
@@ -149,7 +152,18 @@ export function ThreadPanelHeader({
 
   return (
     <PanelHeader
-      leading={headerLeading}
+      leading={headerLeading ?? (presentation === "side" && cardBehind ? (
+        // Layout redesign (Figmama 11/15): the thread took the side panel's place; "‹ Tasks" gives it back.
+        <button
+          type="button"
+          onClick={handleClose}
+          className="inline-flex shrink-0 items-center gap-0.5 rounded-control px-1 py-0.5 text-footnote text-foreground-muted hover:overlay-subtle"
+          data-testid="thread-back-to-side-card"
+        >
+          <ChevronLeft size={14} aria-hidden />
+          {formatMessage({ id: cardBehind === "tasks" ? "channelHead.tasks" : "channelHead.files" })}
+        </button>
+      ) : undefined)}
       onMobileBack={mobileBackHandler}
       mobileBackProps={THREAD_MOBILE_BACK_PROPS}
       containerProps={threadContainerProps}
