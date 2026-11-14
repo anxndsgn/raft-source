@@ -5,6 +5,7 @@
 #   secrets:   DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY (private key, no passphrase)
 #              SELF_HOST_ENV (the whole .env, see deploy/self-host/.env.example)
 #   variables: SERVER_URL (public API URL, baked into the web image)
+#              ARTIFACTS_CONTENT_DOMAIN (optional; Artifacts' content domain, baked in)
 #              DEPLOY_PATH (optional; directory on the server, default ~/raft)
 # The server needs Docker. Every deploy writes SELF_HOST_ENV to
 # <DEPLOY_PATH>/.env and copies the compose files.
@@ -75,6 +76,7 @@ jobs:
             VITE_COMMIT_SHA=${{ github.sha }}
             VITE_API_URL=${{ vars.SERVER_URL }}
             VITE_DEPLOYMENT_ENV=production
+            VITE_ARTIFACTS_CONTENT_DOMAIN=${{ vars.ARTIFACTS_CONTENT_DOMAIN }}
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
 

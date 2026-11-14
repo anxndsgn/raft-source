@@ -35,12 +35,15 @@ ARG VITE_FRONTEND_RELEASE_ID=""
 # Self-hosted builds (deploy/self-host/build.sh) pass "production", so Computer
 # setup commands carry --server-url for a non-default API origin.
 ARG VITE_DEPLOYMENT_ENV=""
+# Artifacts content domain (empty: Artifacts off in this build).
+ARG VITE_ARTIFACTS_CONTENT_DOMAIN=""
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_COMMIT_SHA=$VITE_COMMIT_SHA
 ENV VITE_BUILD_AT=$VITE_BUILD_AT
 ENV VITE_RELEASE_BRANCH=$VITE_RELEASE_BRANCH
 ENV VITE_FRONTEND_RELEASE_ID=$VITE_FRONTEND_RELEASE_ID
 ENV VITE_DEPLOYMENT_ENV=$VITE_DEPLOYMENT_ENV
+ENV VITE_ARTIFACTS_CONTENT_DOMAIN=$VITE_ARTIFACTS_CONTENT_DOMAIN
 RUN pnpm --filter @botiverse/raft-web run build
 
 # --- Production stage: nginx ---
