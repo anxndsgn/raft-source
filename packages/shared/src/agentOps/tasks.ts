@@ -22,6 +22,7 @@ import type {
 import {
   agentTaskThreadTarget,
   formatAgentClaimResults,
+  canonicalAgentTaskTarget,
   formatAgentMyTaskList,
   formatAgentTaskAmended,
   formatAgentTaskAssigned,
@@ -404,7 +405,10 @@ export async function createTasks(
     next: first
       ? first.conversationAnchored
         ? taskConversationStep(request.target, first.taskNumber, options.hints)
-        : taskThreadStep(request.target, first.messageId, "Follow up in each task's thread.", options.hints)
+        : first.linkedMessageId
+          // Reply mode: reply to the linked message on the channel; the reply joins the task.
+          ? hintStep("reply_to_task_source", RAFT_HINTS.messageSendReplyTo({ target: canonicalAgentTaskTarget(request.target), replyTo: first.linkedMessageId.slice(0, 8) }), "Reply to the message the task came from.", options.hints)
+          : taskThreadStep(request.target, first.messageId, "Follow up in each task's thread.", options.hints)
       : null,
     text: formatAgentTasksCreated(request.target, data, options.hints),
   };

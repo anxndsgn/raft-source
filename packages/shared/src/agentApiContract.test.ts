@@ -555,6 +555,12 @@ test("agent-api response contracts parse representative envelopes", () => {
         content: "hello",
       },
     },
+    messageRetag: {
+      messageId: "00000000-0000-4000-8000-000000000001",
+      taskNumbers: [3],
+      added: [3],
+      removed: [],
+    },
     messageSearch: {
       results: [{
         id: "msg-1",

@@ -10844,6 +10844,8 @@ function buildTaskCreateResponse(
   assignmentReceipt?: taskService.TaskAssignmentReceipt | null,
   /** Per created task (same order): the thread reply given as its source, resolved to the thread's root. */
   sourceThreadReplyIds: readonly (string | null)[] = [],
+  /** Per created task (same order): reply mode without task v2, the source message linked to it in `message_tasks`. */
+  linkedMessageIds: readonly (string | null)[] = [],
 ): AgentApiResponseByRoute["taskCreate"] {
   return {
     tasks: created.map((task, index) => ({
@@ -10864,6 +10866,7 @@ function buildTaskCreateResponse(
         sourceMessageId: task.sourceMessageId,
         ...(sourceThreadReplyIds[index] && { sourceThreadReplyId: sourceThreadReplyIds[index] }),
       }),
+      ...(linkedMessageIds[index] && { linkedMessageId: linkedMessageIds[index] }),
     })),
     ...(assignmentReceipt && {
       assignmentReceipt: {
@@ -10874,6 +10877,19 @@ function buildTaskCreateResponse(
       },
     }),
   };
+}
+
+/** Reply mode without task v2: link each created task's source message (same order) in `message_tasks`. */
+async function linkReplyModeTaskSources(
+  executor: Parameters<typeof replyModeService.linkMessageToTasks>[0],
+  created: readonly { id: string }[],
+  linkedMessageIds: readonly (string | null)[],
+  agentId: string,
+): Promise<void> {
+  for (const [index, task] of created.entries()) {
+    const messageId = linkedMessageIds[index];
+    if (messageId) await replyModeService.linkMessageToTasks(executor, messageId, [task.id], { type: "agent", id: agentId });
+  }
 }
 
 registerAgentApiRoute("taskCreate", ...agentApiRequestValidators("taskCreate"), async (req, res) => {
@@ -10933,7 +10949,14 @@ registerAgentApiRoute("taskCreate", ...agentApiRequestValidators("taskCreate"), 
     // Task v2: `source_message_id` needs task v2 conversations on the task
     // channel's server (createTasks re-checks it under the channel lock).
     const taskV2 = await isTaskV2ConversationsEnabled(ctx.localChannel.serverId);
-    if (items.some((item) => item.source_message_id !== undefined) && !taskV2) {
+    // Reply mode without task v2: the source is not the task's anchor; the
+    // task is created as before and the source message is linked to it in
+    // `message_tasks` (as `raft message retag --add` would).
+    const replyModeLink = !taskV2
+      && !ctx.surface.isJoint
+      && items.some((item) => item.source_message_id !== undefined)
+      && await replyModeService.isReplyModeChannel(ctx.storageChannelId);
+    if (items.some((item) => item.source_message_id !== undefined) && !taskV2 && !replyModeLink) {
       refuse(res, 403, {
         code: "task_v2_not_enabled",
         error: "Linking a task to a source message is not available on this server, because task v2 conversations are not enabled here: create the task without a source message.",
@@ -10963,6 +10986,7 @@ registerAgentApiRoute("taskCreate", ...agentApiRequestValidators("taskCreate"), 
     // A reply in one of the channel's threads resolves to the thread's root.
     const createItems: taskService.TaskCreateItem[] = [];
     const sourceThreadReplyIds: (string | null)[] = [];
+    const linkedMessageIds: (string | null)[] = [];
     for (const item of items) {
       let sourceMessageId: string | null = null;
       let sourceThreadReplyId: string | null = null;
@@ -10977,6 +11001,15 @@ registerAgentApiRoute("taskCreate", ...agentApiRequestValidators("taskCreate"), 
         }
         sourceMessageId = resolved.id;
         sourceThreadReplyId = resolved.threadReplyId;
+      }
+      if (replyModeLink) {
+        // Linked, not anchored: the message given (a reply in an old thread
+        // resolves to that thread's root, which is on the timeline).
+        linkedMessageIds.push(sourceMessageId);
+        sourceMessageId = null;
+        sourceThreadReplyId = null;
+      } else {
+        linkedMessageIds.push(null);
       }
       sourceThreadReplyIds.push(sourceThreadReplyId);
       const description = item.description?.trim();
@@ -11019,11 +11052,16 @@ registerAgentApiRoute("taskCreate", ...agentApiRequestValidators("taskCreate"), 
             // Joint: the initiating local channel also gates task v2 (its server).
             ...(ctx.surface.isJoint ? { initiatingLocalChannelId: ctx.channelId } : {}),
             ...(initialStatus !== undefined && { initialStatus }),
-            ...(idempotency && {
-              beforeCommit: (executor, result) => idempotentAgentApiService.recordAgentApiIdempotentResponse(executor, idempotency, {
-                status: 200,
-                body: buildTaskCreateResponse(result.tasks, result.assignmentReceipt, sourceThreadReplyIds),
-              }),
+            ...((idempotency || replyModeLink) && {
+              beforeCommit: async (executor, result) => {
+                await linkReplyModeTaskSources(executor, result.tasks, linkedMessageIds, agentId);
+                if (idempotency) {
+                  await idempotentAgentApiService.recordAgentApiIdempotentResponse(executor, idempotency, {
+                    status: 200,
+                    body: buildTaskCreateResponse(result.tasks, result.assignmentReceipt, sourceThreadReplyIds, linkedMessageIds),
+                  });
+                }
+              },
             }),
           },
         );
@@ -11040,11 +11078,16 @@ registerAgentApiRoute("taskCreate", ...agentApiRequestValidators("taskCreate"), 
           {
             initiatingServerId: ctx.localChannel.serverId,
             ...(initialStatus !== undefined && { initialStatus }),
-            ...(idempotency && {
-              beforeCommit: (executor, result) => idempotentAgentApiService.recordAgentApiIdempotentResponse(executor, idempotency, {
-                status: 200,
-                body: buildTaskCreateResponse(result.tasks, null, sourceThreadReplyIds),
-              }),
+            ...((idempotency || replyModeLink) && {
+              beforeCommit: async (executor, result) => {
+                await linkReplyModeTaskSources(executor, result.tasks, linkedMessageIds, agentId);
+                if (idempotency) {
+                  await idempotentAgentApiService.recordAgentApiIdempotentResponse(executor, idempotency, {
+                    status: 200,
+                    body: buildTaskCreateResponse(result.tasks, null, sourceThreadReplyIds, linkedMessageIds),
+                  });
+                }
+              },
             }),
           },
         );
@@ -11175,7 +11218,7 @@ registerAgentApiRoute("taskCreate", ...agentApiRequestValidators("taskCreate"), 
       }).catch(() => {});
     }
 
-    sendAgentApiResponse("taskCreate", res, buildTaskCreateResponse(created, persistedAssignmentReceipt, sourceThreadReplyIds));
+    sendAgentApiResponse("taskCreate", res, buildTaskCreateResponse(created, persistedAssignmentReceipt, sourceThreadReplyIds, linkedMessageIds));
     void recordAgentRaftAction(req, agentId, {
       title: `Created ${created.length} task${created.length === 1 ? "" : "s"}`,
       text: `target: ${channel}`,

@@ -234,6 +234,8 @@ export interface AgentCreatedTask {
   sourceMessageId?: string | null;
   /** Task v2: the thread reply given as the source; `sourceMessageId` is its thread's root. */
   sourceThreadReplyId?: string;
+  /** Reply mode without task v2: the source message, linked to the task (reply to it). */
+  linkedMessageId?: string;
   /** Task v2: the task's address, when the server sends it. */
   taskRef?: string;
 }
@@ -268,14 +270,21 @@ export function formatAgentTasksCreated(channel: string, data: AgentCreateTasksD
   const threadHints = data.tasks
     .map((t) => {
       const v2Ref = agentTaskV2Ref(t, channel);
-      return v2Ref
-        ? `${v2Ref} → ${formatHint(RAFT_HINTS.taskReply(v2Ref), style)}`
-        : `#${t.taskNumber} → ${formatHint(RAFT_HINTS.messageSend({ target: `${channel}:${t.messageId.slice(0, 8)}` }), style)}`;
+      if (v2Ref) return `${v2Ref} → ${formatHint(RAFT_HINTS.taskReply(v2Ref), style)}`;
+      // Reply mode: the message is linked to the task; reply to it on the
+      // channel (the reply joins the task) instead of a thread.
+      if (t.linkedMessageId) {
+        return `#${t.taskNumber} (linked to msg=${t.linkedMessageId.slice(0, 8)}) → ${formatHint(RAFT_HINTS.messageSendReplyTo({ target: canonicalAgentTaskTarget(channel), replyTo: t.linkedMessageId.slice(0, 8) }), style)}`;
+      }
+      return `#${t.taskNumber} → ${formatHint(RAFT_HINTS.messageSend({ target: `${channel}:${t.messageId.slice(0, 8)}` }), style)}`;
     })
     .join("\n");
+  const linked = data.tasks.some((t) => t.linkedMessageId);
   const hintHeader = v2
     ? "To discuss each task in its own conversation (the reply body is read from stdin):"
-    : "To follow up in each task's thread:";
+    : linked
+      ? "This channel uses replies: reply to the message the task came from (the reply joins the task):"
+      : "To follow up in each task's thread:";
 
   const receipt = data.assignmentReceipt
     ? `\n\nAssignment receipt (msg=${data.assignmentReceipt.messageId.slice(0, 8)}):\n${data.assignmentReceipt.content}`

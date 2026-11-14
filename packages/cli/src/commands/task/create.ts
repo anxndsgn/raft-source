@@ -67,7 +67,7 @@ export const taskCreateCommand = defineCommand(
       "  --assignee: self-assignment starts work; someone else gets reserved todo work. It must resolve uniquely and be able to claim here, else no task is created.",
       "  --status overrides that: `--status todo --assignee @you` reserves it for later; backlog parks it (needs task conversations). in_review/done/closed can't be chosen.",
       "  Undo a self-start: `raft task update --target <channel> --number <N> --status todo` (the task stays assigned to you).",
-      "Source (required with task conversations on; refused with them off):",
+      "Source (task conversations on: required; off: reply channels only):",
       "  --message-id: the message that asked for the work, for every --title (a thread reply: its thread's root).",
       "  Own idea: first post a message in the channel saying what and why, then create from it.",
       "  If its thread shows someone took this work, add to their task instead.",

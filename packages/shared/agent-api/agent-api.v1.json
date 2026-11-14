@@ -21492,6 +21492,9 @@
                       },
                       "sourceThreadReplyId": {
                         "type": "string"
+                      },
+                      "linkedMessageId": {
+                        "type": "string"
                       }
                     },
                     "required": [
@@ -28739,6 +28742,9 @@
                   ]
                 },
                 "sourceThreadReplyId": {
+                  "type": "string"
+                },
+                "linkedMessageId": {
                   "type": "string"
                 }
               },

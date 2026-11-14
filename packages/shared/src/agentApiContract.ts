@@ -3093,6 +3093,8 @@ export const agentApiCreatedTaskEnvelopeSchema = lazySchema("agentApiCreatedTask
    * Absent when the source given was a top-level message.
    */
   sourceThreadReplyId: z.string().optional(),
+  /** Reply mode without task v2: the source message given, linked to the task (not its anchor). */
+  linkedMessageId: z.string().optional(),
 }));
 
 export const agentApiTaskAssignmentReceiptSchema = lazySchema("agentApiTaskAssignmentReceiptSchema", () => passthroughObject({
@@ -5236,6 +5238,8 @@ export interface AgentApiCreatedTaskEnvelope {
   sourceMessageId?: string | null;
   /** Task v2: the thread reply given as the source; `sourceMessageId` is its thread's root. */
   sourceThreadReplyId?: string;
+  /** Reply mode without task v2: the source message given, linked to the task (not its anchor). */
+  linkedMessageId?: string;
   [key: string]: unknown;
 }
 

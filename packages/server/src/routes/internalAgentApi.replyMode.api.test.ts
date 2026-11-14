@@ -276,3 +276,36 @@ test("reply mode loop guard: past 20 agent messages in a chain, agents (and thei
   await settle();
   assert.deepEqual(wokenFor(deliveries, sentId(resumed.body)), [a.id]);
 });
+
+test("reply mode without task v2: task create with a source message links it instead of refusing", async ({ app }) => {
+  installRecordingOrchestrator(app.app);
+  const { owner, channel, a } = await setup("rm-create");
+  const ask = await humanSend(app, channel.id, owner.id, "Please fix the deploy script");
+
+  // Off: refused as before (no task v2 here).
+  const refused = await agentCall(app.baseUrl, a.key, "POST", "tasks", {
+    channel: `#${channel.name}`, tasks: [{ title: "Fix deploy script", source_message_id: ask.slice(0, 8) }],
+  });
+  assert.equal(refused.status, 403, JSON.stringify(refused.body));
+  assert.equal(refused.body.code, "task_v2_not_enabled");
+
+  // On: created, and the source message is linked to it.
+  await updateChannel(channel.id, { replyMode: true });
+  const created = await agentCall(app.baseUrl, a.key, "POST", "tasks", {
+    channel: `#${channel.name}`, tasks: [{ title: "Fix deploy script", source_message_id: ask.slice(0, 8) }], assignee: `@${a.name}`,
+  });
+  assert.equal(created.status, 200, JSON.stringify(created.body));
+  const [envelope] = created.body.tasks as Array<{ taskNumber: number; linkedMessageId?: string }>;
+  assert.equal(envelope!.linkedMessageId, ask);
+  const [task] = await getDb().select().from(tasks).where(and(eq(tasks.channelId, channel.id), eq(tasks.taskNumber, envelope!.taskNumber)));
+  const links = await getDb().select().from(messageTasks).where(eq(messageTasks.messageId, ask));
+  assert.deepEqual(links.map((l) => l.taskId), [task!.id]);
+  const events = await getDb().select().from(taskEvents).where(eq(taskEvents.taskId, task!.id));
+  assert.ok(events.some((e) => e.eventType === "message_linked"));
+
+  // A reply to the source inherits the new task.
+  const reply = await agentSend(app.baseUrl, a.key, { target: `#${channel.name}`, content: "On it", replyTo: ask.slice(0, 8) });
+  assert.equal(reply.status, 200, JSON.stringify(reply.body));
+  const replyLinks = await getDb().select().from(messageTasks).where(eq(messageTasks.messageId, sentId(reply.body)));
+  assert.deepEqual(replyLinks.map((l) => l.taskId), [task!.id]);
+});
