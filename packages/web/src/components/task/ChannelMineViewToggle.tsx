@@ -1,5 +1,4 @@
 import { useIntl } from "react-intl";
-import { UserRoundSearch } from "lucide-react";
 import { PanelToggleAction } from "@botiverse/raft-ui";
 
 import Tooltip from "../ui/Tooltip";
@@ -11,7 +10,7 @@ export default function ChannelMineViewToggle({ open, onToggle }: { open: boolea
   return (
     <Tooltip content={label}>
       <PanelToggleAction pressed={open} onPressedChange={onToggle} aria-label={label} data-testid="channel-mine-view-toggle">
-        <UserRoundSearch />
+        {label}
       </PanelToggleAction>
     </Tooltip>
   );

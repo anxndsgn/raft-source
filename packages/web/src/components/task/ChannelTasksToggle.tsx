@@ -1,5 +1,4 @@
 import { useIntl } from "react-intl";
-import { ListTodo } from "lucide-react";
 import { PanelToggleAction } from "@botiverse/raft-ui";
 
 import Tooltip from "../ui/Tooltip";
@@ -9,13 +8,15 @@ import Tooltip from "../ui/Tooltip";
  * are the agents' own business, so the card is there when someone wants to
  * look, not something that asks for attention (@stdrc).
  */
-export default function ChannelTasksToggle({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+export default function ChannelTasksToggle({ open, onToggle, count }: { open: boolean; onToggle: () => void; count?: number }) {
   const { formatMessage } = useIntl();
   const label = formatMessage({ id: open ? "task.sidePanel.close" : "task.sidePanel.open" });
   return (
     <Tooltip content={label}>
       <PanelToggleAction pressed={open} onPressedChange={onToggle} aria-label={label} data-testid="channel-tasks-toggle">
-        <ListTodo />
+        {/* Layout redesign: the head's side-panel switches are words, the open tasks counted. */}
+        {formatMessage({ id: "channelHead.tasks" })}
+        {count ? <span className="font-mono text-mono-meta">{count}</span> : null}
       </PanelToggleAction>
     </Tooltip>
   );

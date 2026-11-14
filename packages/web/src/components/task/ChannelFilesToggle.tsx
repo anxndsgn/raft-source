@@ -1,5 +1,4 @@
 import { useIntl } from "react-intl";
-import { Paperclip } from "lucide-react";
 import { PanelToggleAction } from "@botiverse/raft-ui";
 
 import Tooltip from "../ui/Tooltip";
@@ -11,7 +10,7 @@ export default function ChannelFilesToggle({ open, onToggle }: { open: boolean; 
   return (
     <Tooltip content={label}>
       <PanelToggleAction pressed={open} onPressedChange={onToggle} aria-label={label} data-testid="channel-files-toggle">
-        <Paperclip />
+        {formatMessage({ id: "channelHead.files" })}
       </PanelToggleAction>
     </Tooltip>
   );

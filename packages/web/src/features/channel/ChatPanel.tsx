@@ -88,6 +88,9 @@ import { useProfileStore } from "../../store/profileStore";
 import MessageItem, { buildMentionMap } from "../../components/message/MessageItem";
 import HistoryTopState from "../../components/message/HistoryTopState";
 import { MessageInput } from "../composer/MessageInput";
+import { createPortal } from "react-dom";
+import { ConversationHeaderSlotContext } from "../../components/layout/rowColumnSlot";
+import { useIsDesktopShell } from "../../components/layout/ShellFrame";
 import { TimelineViewBar, TimelineViewHiddenRow } from "./TimelineViewBar";
 import { timelineViewRows, useTimelineViewStore } from "../../store/timelineViewStore";
 import type { ComposerReference } from "../composer/composerTypes";
@@ -254,7 +257,10 @@ export function ChatPanel({
   // Task v2 moves Tasks and Files out of the tab row into cards opened from
   // the header; without the flag the three tabs stay exactly as they were.
   const taskV2 = useServerFeatureFlag(TASK_V2_CONVERSATIONS_FLAG_KEY).enabled;
-  const chatPanelTabs = useMemo<PanelTabItem<ChatPanelTab>[]>(() => taskV2
+  // Layout redesign: Tasks and Files always open in the side panel from the
+  // channel header (as task v2 did); the Chat / Tasks / Files tabs are gone.
+  const sideCards = true;
+  const chatPanelTabs = useMemo<PanelTabItem<ChatPanelTab>[]>(() => sideCards
     ? [
       { id: "chat", icon: MessageIcon, label: formatMessage({ id: "message.chatPanel.tabChat" }) },
     ]
@@ -262,7 +268,7 @@ export function ChatPanel({
       { id: "chat", icon: MessageIcon, label: formatMessage({ id: "message.chatPanel.tabChat" }) },
       { id: "tasks", icon: ListTodo, label: formatMessage({ id: "message.chatPanel.tabTasks" }) },
       { id: "files", icon: Paperclip, label: formatMessage({ id: "message.chatPanel.tabFiles" }) },
-    ], [formatMessage, taskV2]);
+    ], [formatMessage, sideCards]);
   // Keep locale-bound formatMessage out of effect/handler deps: effects that
   // load activity-mute state or reset selection must NOT re-run on a language
   // switch (that would clobber in-flight state). Render + the tab-label memo use
@@ -275,6 +281,8 @@ export function ChatPanel({
   const joinDeferred = useJoinDeferred(channelId);
   useReadReceiptHydrate(channelFirstPageSettled ? channel : null);
   const messageRenderScope = useContext(ChatPanelMessageRenderScope);
+  const conversationHeaderSlot = useContext(ConversationHeaderSlotContext);
+  const isDesktopShell = useIsDesktopShell();
   const seqMessages = useMessageStore((s) => selectChannelMessageBucket(s, channelId));
   const channelWindowMeta = useMessageStore((s) => selectChannelWindowMeta(s, channelId));
   const { loadingNewer, hasNewer, contextLoadError } = channelWindowMeta;
@@ -1052,8 +1060,8 @@ export function ChatPanel({
   // The cards no longer step aside for a thread: they are the cards column of
   // the right-side grid and keep a place at every width (ChannelSideArea).
   const setSideCardOpen = useChannelSideCardStore((s) => s.setCardOpen);
-  const tasksCardOpen = taskV2 && supportsChannelTasks && (storedSideCards.tasks || queryTab === "tasks");
-  const filesCardOpen = taskV2 && supportsChannelTasks && (storedSideCards.files || queryTab === "files");
+  const tasksCardOpen = sideCards && supportsChannelTasks && (storedSideCards.tasks || queryTab === "tasks");
+  const filesCardOpen = sideCards && supportsChannelTasks && (storedSideCards.files || queryTab === "files");
   const closeCard = useCallback((card: ChannelSideCard) => {
     setSideCardOpen(card, false);
     if (queryTab === card) setActiveTab("chat");
@@ -1726,6 +1734,7 @@ export function ChatPanel({
   // A DM peer's face: the live agent / member directory once it knows them (a reset included), else the DM's snapshot.
   const dmPeerAvatar = useMemo(() => resolveDmPeerAvatarFromDirectory(channel ?? {}, agents, members), [channel, agents, members]);
   // The head always fits (#189 rule 6): its own buttons (Search, an agent DM's Lounge, Tasks, Files, Settings) fold into ⋯.
+  const openTaskCount = useMemo(() => (channelTasks ?? []).filter((t) => t.status !== "done" && t.status !== "closed").length, [channelTasks]);
   const mineViewOpen = timelineView?.spec.kind === "mine";
   const toggleMineView = useCallback(() => {
     if (!channelId) return;
@@ -1735,7 +1744,7 @@ export function ChatPanel({
   }, [channelId]);
   const mineViewAvailable = channel?.replyMode === true && channel?.type !== "dm";
   const mineView = useMemo(() => (mineViewAvailable ? { open: mineViewOpen, onToggle: toggleMineView } : null), [mineViewAvailable, mineViewOpen, toggleMineView]);
-  const { cardToggles, containerProps: headContainerProps, fit: fitHead } = useChannelHeadToggles({ cards: taskV2 && supportsChannelTasks, tasksOpen: tasksCardOpen, filesOpen: filesCardOpen, onToggleTasks: toggleTasksCard, onToggleFiles: toggleFilesCard, onOpenLounge: handleOpenLounge, mineView });
+  const { cardToggles, containerProps: headContainerProps, fit: fitHead } = useChannelHeadToggles({ cards: sideCards && supportsChannelTasks, tasksOpen: tasksCardOpen, filesOpen: filesCardOpen, onToggleTasks: toggleTasksCard, onToggleFiles: toggleFilesCard, onOpenLounge: handleOpenLounge, mineView, taskCount: openTaskCount });
   if (!channel) return <ChatPanelNoChannel onBack={onMobileBack ?? routeMobileBack} backAlwaysVisible={Boolean(contentSlotBack)} />;
 
   const isDM = channel.type === "dm";
@@ -1865,6 +1874,9 @@ export function ChatPanel({
     />
   ) : null;
 
+  // Layout redesign: on a desktop, the page's own conversation puts its header
+  // above the row (MainLayout), spanning the timeline and the side panel.
+  const portalHeader = (header: ReactNode) => (conversationHeaderSlot && ownsUrl && isDesktopShell ? createPortal(header, conversationHeaderSlot) : header);
   return (
     <ConversationPanelRoot ref={conversationPanelRef} edge="inset" className="relative" data-shortcut-scope="conversation">
       <VisibleMessageTranslations store={translationWindow} messages={messages} />
@@ -1872,7 +1884,7 @@ export function ChatPanel({
           DMs use titleSlot because the avatar is an interactive profile
           trigger. Regular channels use PanelHeader's native title/subtitle
           stack so the title never competes with long descriptions. */}
-      {!hideHeader && (
+      {!hideHeader && portalHeader(
       <PanelHeader
         onMobileBack={headerMobileBack}
         mobileBackProps={CHAT_MOBILE_BACK_PROPS}
@@ -2011,11 +2023,11 @@ export function ChatPanel({
         </ConversationPanelTabs>
       )}
 
-      {!taskV2 && activeTab === "tasks" ? (
+      {!sideCards && activeTab === "tasks" ? (
         <ConversationPanelBody className="flex flex-col">
           <Suspense fallback={<PanelLoading label={formatMessage({ id: "layout.main.loading" })} />}><TasksPanel channelId={channel.id} /></Suspense>
         </ConversationPanelBody>
-      ) : !taskV2 && activeTab === "files" ? (
+      ) : !sideCards && activeTab === "files" ? (
         <ConversationPanelBody className="flex flex-col"><ChannelFilesPanel channel={channel} /></ConversationPanelBody>
       ) : (
         <div ref={panelBodyRef} className="relative flex min-h-0 flex-1" {...(artifactHostChannelId ? { [WEB_PREVIEW_HOST_ATTRIBUTE]: artifactHostChannelId } : null)}>

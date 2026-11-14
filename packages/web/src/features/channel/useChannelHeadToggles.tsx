@@ -22,8 +22,10 @@ interface HeadToggles {
  * as a ⋯ item, and how many of Search, those and Settings fold into ⋯ so the head always fits (#189 rule 6): the
  * last first; ⋯ and Expand never fold.
  */
-export function useChannelHeadToggles({ cards, tasksOpen, filesOpen, onToggleTasks, onToggleFiles, onOpenLounge, mineView }: {
+export function useChannelHeadToggles({ cards, tasksOpen, filesOpen, onToggleTasks, onToggleFiles, onOpenLounge, mineView, taskCount }: {
   cards: boolean;
+  /** Open tasks of the channel, shown on the Tasks switch. */
+  taskCount?: number;
   /** Reply mode: the "What concerns me" view switch, first of the toggles. */
   mineView?: { open: boolean; onToggle: () => void } | null;
   tasksOpen: boolean;
@@ -41,7 +43,7 @@ export function useChannelHeadToggles({ cards, tasksOpen, filesOpen, onToggleTas
   const onToggleMine = mineView?.onToggle;
   const cardToggles = useMemo<HeadToggles>(() => {
     const base: HeadToggles = cards ? {
-      nodes: [<ChannelTasksToggle key="tasks" open={tasksOpen} onToggle={onToggleTasks} />, <ChannelFilesToggle key="files" open={filesOpen} onToggle={onToggleFiles} />],
+      nodes: [<ChannelTasksToggle key="tasks" open={tasksOpen} onToggle={onToggleTasks} count={taskCount} />, <ChannelFilesToggle key="files" open={filesOpen} onToggle={onToggleFiles} />],
       items: [
         { id: "tasks", label: tasksLabel, icon: <ListTodo />, onSelect: onToggleTasks, testId: "channel-header-overflow-tasks" },
         { id: "files", label: filesLabel, icon: <Paperclip />, onSelect: onToggleFiles, testId: "channel-header-overflow-files" },
@@ -52,7 +54,7 @@ export function useChannelHeadToggles({ cards, tasksOpen, filesOpen, onToggleTas
       nodes: [<ChannelMineViewToggle key="mine" open={mineOpen} onToggle={onToggleMine} />, ...base.nodes],
       items: [{ id: "mine", label: mineLabel, icon: <UserRoundSearch />, onSelect: onToggleMine, testId: "channel-header-overflow-mine" }, ...base.items],
     };
-  }, [cards, filesLabel, filesOpen, mineLabel, mineOpen, onToggleFiles, onToggleMine, onToggleTasks, tasksLabel, tasksOpen]);
+  }, [cards, filesLabel, filesOpen, mineLabel, mineOpen, onToggleFiles, onToggleMine, onToggleTasks, taskCount, tasksLabel, tasksOpen]);
   const loungeToggles = useMemo<HeadToggles>(() => ({
     nodes: [<OverflowMenuTrigger key="lounge" labelId="agent.lounge.label" onClick={onOpenLounge} icon={<AgentLoungeIcon size={22} />} testId="agent-dm-open-lounge" />, ...cardToggles.nodes],
     items: [{ id: "lounge", label: loungeLabel, icon: <AgentLoungeIcon />, onSelect: onOpenLounge, testId: "channel-header-overflow-lounge" }, ...cardToggles.items],

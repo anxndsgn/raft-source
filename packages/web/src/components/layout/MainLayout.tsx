@@ -140,7 +140,7 @@ import { ContentSlotThreadPanel } from "./ContentSlotThreadPanel";
 import { CONTENT_SLOT_ENTRY_MARK, historyEntryIndex, isContentSlotEntry, stampContentSlotEntry } from "./contentSlotEntry";
 import { TaskContentSlot } from "./TaskContentSlot";
 import { TasksRoute } from "./TasksRoute";
-import { RowColumnSlotContext } from "./rowColumnSlot";
+import { ConversationHeaderSlotContext, RowColumnSlotContext } from "./rowColumnSlot";
 import { DetailSlotThreadContext, useThreadInDetailSlotOpener } from "./detailSlotThread";
 import { ContentSlotBackContext, useContentSlotBack } from "./contentSlotBack";
 import { ACTIVITY_MASTER_DETAIL_QUERY, isActivityMasterDetailViewport } from "../thread/activityLayout";
@@ -2267,6 +2267,7 @@ export default function MainLayout() {
   const contentColumnRef = useRef<HTMLDivElement | null>(null);
   // A page's own column beside the conversation in the row (the Tasks page's task; rowColumnSlot).
   const [rowColumnSlot, setRowColumnSlot] = useState<HTMLElement | null>(null);
+  const [conversationHeaderSlot, setConversationHeaderSlot] = useState<HTMLElement | null>(null);
   usePageViewTracking(location.pathname);
   // Raft Desktop: its move to the official Computer, as product events (analytics/computerMigration.ts).
   useComputerMigrationReporting();
@@ -2563,6 +2564,9 @@ export default function MainLayout() {
       // visible on mobile detail views and always on desktop.
       mainHidden={mobileShowSidebarInline}
       main={(
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col" data-testid="conversation-frame">
+        {/* Layout redesign: the conversation's header, above the row (ConversationHeaderSlotContext). */}
+        <div ref={setConversationHeaderSlot} className="shrink-0 border-b border-line-seam empty:hidden" data-testid="conversation-header-slot" />
         <div
           ref={contentColumnRef}
           className="thread-layout-container relative flex min-h-0 min-w-0 flex-1"
@@ -2586,6 +2590,7 @@ export default function MainLayout() {
             data-otter-dock="conversation"
           >
             <RowColumnSlotContext.Provider value={rowColumnSlot}>
+            <ConversationHeaderSlotContext.Provider value={conversationHeaderSlot}>
             <Routes location={backgroundLocation ?? location}>
               <Route path="channel/:channelId" element={<ChannelRoute />} />
               <Route path="channel/:channelId/search" element={<ConversationSearchRoute kind="channel" />} />
@@ -2626,6 +2631,7 @@ export default function MainLayout() {
               <Route path="workspace" element={<LegacyWorkspaceGridRedirect />} />
               <Route path="*" element={<DefaultRoute />} />
             </Routes>
+            </ConversationHeaderSlotContext.Provider>
             </RowColumnSlotContext.Provider>
             {/* Workspace Artifacts: where one clicked outside a channel panel opens (the opening rule). */}
             <ShellArtifactHost />
@@ -2647,6 +2653,7 @@ export default function MainLayout() {
               subtree when it does (~180ms for a long chat on an iPhone). */}
           <div hidden data-slot="thread-layout-end" />
           </SideSectionDnd>
+        </div>
         </div>
       )}
       after={(

@@ -9,3 +9,11 @@ import { createContext } from "react";
  * Undefined outside MainLayout (no row: the page lays the column out itself); null until the slot has mounted.
  */
 export const RowColumnSlotContext = createContext<HTMLElement | null | undefined>(undefined);
+
+/**
+ * Layout redesign: where the conversation's header goes on a desktop, above
+ * MainLayout's row, so the header spans the conversation and its side panel
+ * (the side panel belongs to the channel and starts under its header).
+ * Undefined outside MainLayout; null until mounted.
+ */
+export const ConversationHeaderSlotContext = createContext<HTMLElement | null | undefined>(undefined);

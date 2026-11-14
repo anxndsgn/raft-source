@@ -362,7 +362,22 @@ export default function ChannelOverflowMenu({
         />
       ) : null}
       {middle.slice(0, Math.max(0, shown - 1))}
-      {shown === total ? (
+      {shown === total && showMembers ? (
+        /* Layout redesign: Members opens the members page of the channel's side panel; the
+           channel's name opens its info (the gear is gone). */
+        <PanelToggleAction
+          ref={gearRef}
+          pressed={open && view === "members"}
+          onPressedChange={() => {
+            if (open && view === "members") guardedClose();
+            else { handleOpenMembers(); if (!open) handleOpen(); }
+          }}
+          aria-label={formatMessage({ id: "channelHead.members" })}
+          data-testid="channel-members-toggle"
+        >
+          {formatMessage({ id: "channelHead.members" })}
+        </PanelToggleAction>
+      ) : shown === total ? (
         /* A toggle, pressed while the details are open, as Tasks and Files are (raft-design channel.md). */
         <Tooltip content={settingsLabel}>
           <PanelToggleAction
