@@ -15,7 +15,7 @@ import { useThreadStore } from "../../store/threadStore";
 import { directTaskConversationChannelId } from "../../utils/taskConversation";
 import type { AppSearchHit } from "./AppSearchGroupSection";
 import type { SearchEntityResult as SearchEntityRecord } from "./searchEntities";
-import { fullPageSearchHopState, SEARCH_PRESENTATION_PAGE, SEARCH_PRESENTATION_PARAM } from "./searchOverlayLocation";
+import { fullPageSearchHopState, overlayCloseTarget, resolveSearchOverlayBackground, SEARCH_PRESENTATION_PAGE, SEARCH_PRESENTATION_PARAM } from "./searchOverlayLocation";
 import type { MessageSearchResult } from "./searchResultTypes";
 import type { SearchScopeTarget } from "./searchScope";
 import { lastOpenedResultKeys } from "./searchSnapshot";
@@ -350,12 +350,34 @@ export function useSearchResultActions({
     rememberOpenedChannel(result.channelId, "channel");
   }, [closeSearchContent, closeThread, markOpenedSearchHit, nav, openResult, openTaskConversationHit, rememberMessageResultsSearchQuery, rememberOpenedChannel, slug, syncSelectedKey]);
 
+  // Layout redesign (7.2): from the ⌘K panel a hit opens where it lives in the page behind it — the panel
+  // closes back to that page (with `extra` search params: an Artifact's address) instead of going elsewhere.
+  const closeOverlayBack = useCallback((extra?: Record<string, string>) => {
+    const background = resolveSearchOverlayBackground(location);
+    if (!background) return false;
+    const target = overlayCloseTarget(background);
+    const params = new URLSearchParams(target.search);
+    for (const [key, value] of Object.entries(extra ?? {})) params.set(key, value);
+    const search = params.toString();
+    navigate({ pathname: target.pathname, search: search ? `?${search}` : "" });
+    return true;
+  }, [location, navigate]);
+
   const openEntityResultInChat = useCallback(async (result: SearchEntityRecord) => {
     if (!slug) return;
     rememberCurrentSearchQuery();
     syncSelectedKey(result.key);
     closeSearchContent();
     closeThread();
+    // Layout redesign (7.2): a person or an agent opens their details, not a DM.
+    if (activateResultsInChat && (result.type === "agentDm" || result.type === "humanDm")) {
+      const id = result.type === "agentDm" ? result.agentId : result.userId;
+      // The profile's address (rightPanelUrlSync), so the page behind opens it.
+      if (id && closeOverlayBack({ profile: `${result.type === "agentDm" ? "agent" : "human"}:${id}` })) {
+        rememberSearchEntityOpen(result.key);
+        return;
+      }
+    }
     if (result.type === "channel" && result.channelId) {
       nav.toChannel(result.channelId, { sidebarFocus: "center" });
       rememberSearchEntityOpen(result.key);
@@ -390,7 +412,7 @@ export function useSearchResultActions({
         nav.toHuman(result.userId);
       }
     }
-  }, [closeSearchContent, closeThread, nav, openDM, openUserDM, rememberCurrentSearchQuery, rememberSearchEntityOpen, slug, syncSelectedKey]);
+  }, [activateResultsInChat, closeOverlayBack, closeSearchContent, closeThread, nav, openDM, openUserDM, rememberCurrentSearchQuery, rememberSearchEntityOpen, slug, syncSelectedKey]);
 
   // The ⌘K overlay and a conversation's own search have no col-3 preview: a
   // hit opens in the conversation.
@@ -403,6 +425,8 @@ export function useSearchResultActions({
   const openAppHit = useCallback((hit: AppSearchHit) => {
     rememberCurrentSearchQuery();
     syncSelectedKey(hit.key);
+    // Layout redesign (7.2): an Artifact opens in the workspace of the page behind the panel.
+    if (activateResultsInChat && hit.slot.kind === "artifact" && closeOverlayBack({ [ARTIFACT_OPEN_PARAM]: artifactLinkId(hit.slot.id as ArtifactId) })) return;
     if (resultsOpenInChat) {
       const params = new URLSearchParams();
       const committedQuery = query.trim();
@@ -428,7 +452,7 @@ export function useSearchResultActions({
     }
     if (!slot || slot.kind !== hit.slot.kind || slot.id !== hit.slot.id) closeThread();
     openSearchContent(hit.slot);
-  }, [activateResultsInChat, closeThread, location.pathname, location.state, nav, navigate, openSearchContent, query, rememberCurrentSearchQuery, resultsOpenInChat, slot, syncSelectedKey]);
+  }, [activateResultsInChat, closeOverlayBack, closeThread, location.pathname, location.state, nav, navigate, openSearchContent, query, rememberCurrentSearchQuery, resultsOpenInChat, slot, syncSelectedKey]);
 
   const handleMessageResultClick = useCallback((event: ReactMouseEvent<HTMLButtonElement>, result: MessageSearchResult) => {
     // Overlay mode: a single click jumps to the message in chat (there is no col-3

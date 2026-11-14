@@ -4554,6 +4554,8 @@ export const es: Partial<Record<MessageId, string>> = {
   "taskDetail.number": "#{number}",
   "inbox.assignedTask.kindIn": "#{channel} · Tarea",
   "artifacts.card.opensInWorkspace": "Se abre en el espacio de trabajo",
+  "search.tasks": "Tareas",
+  "search.taskWhere": "#{channel} · #{number}",
   "timelineView.task": "Solo la tarea #{number}",
   "timelineView.taskWithTitle": "Solo la tarea #{number}: {title}",
   "timelineView.chain": "Solo la cadena de respuestas: {name}: {excerpt}",

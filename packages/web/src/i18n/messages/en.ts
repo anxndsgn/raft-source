@@ -4763,6 +4763,8 @@ export const en = {
   "taskDetail.number": "#{number}",
   "inbox.assignedTask.kindIn": "#{channel} · Task",
   "artifacts.card.opensInWorkspace": "Opens in the workspace",
+  "search.tasks": "Tasks",
+  "search.taskWhere": "#{channel} · #{number}",
   "timelineView.task": "Only task #{number}",
   "timelineView.taskWithTitle": "Only task #{number}: {title}",
   "timelineView.chain": "Only the reply chain: {name}: {excerpt}",

@@ -51,6 +51,7 @@ import { SearchEverywhereRow } from "./SearchEverywhereRow";
 import { SearchHomeContent } from "./SearchHomeContent";
 import { SearchOverlayHead } from "./SearchOverlayHead";
 import { SearchNoResultsState } from "./SearchNoResultsState";
+import { SearchTaskResultsSection } from "./SearchTaskResultsSection";
 import { SearchEntityResultsSection } from "./SearchEntityResultsSection";
 import { SearchMessageResultsSection } from "./SearchMessageResultsSection";
 import { SearchLoadMoreFooter } from "./SearchLoadMoreFooter";
@@ -707,6 +708,7 @@ export function MessageSearchPage({ activateResultsInChat = false, overlayChrome
                   </SearchEntityResultsSection>
                 )}
 
+                <SearchTaskResultsSection query={query} />
                 {/* One section per group of core's search, as the answer has them. */}
                 {appSearch.state.groups.map((group) => (
                   <AppSearchGroupSection

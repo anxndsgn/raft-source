@@ -4554,6 +4554,8 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "taskDetail.number": "#{number}",
   "inbox.assignedTask.kindIn": "#{channel} · 任務",
   "artifacts.card.opensInWorkspace": "在工作區開啟",
+  "search.tasks": "任務",
+  "search.taskWhere": "#{channel} · #{number}",
   "timelineView.task": "只看任務 #{number}",
   "timelineView.taskWithTitle": "只看任務 #{number}：{title}",
   "timelineView.chain": "只看回覆鏈：{name}：{excerpt}",

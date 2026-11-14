@@ -4,14 +4,12 @@ import { useIntl } from "react-intl";
 import { ChevronDown, ChevronRight, ListTodo, Plus } from "lucide-react";
 import {
   TaskStatusIcon,
-  TasksPanelToolbar,
   SegmentedControl,
   SegmentedControlCount,
   SegmentedControlItem,
   SegmentedControlLabel,
   ScrollArea,
 } from "@botiverse/raft-ui";
-import { FitToolbar } from "@botiverse/raft-ui/wip";
 
 import { useChannelMembers } from "../../hooks/useChannelMembers";
 import { useAuthStore } from "../../store/authStore";
@@ -116,6 +114,18 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   const newTaskLabel = formatMessage({ id: "task.board.newTask" });
   const newTaskAction = useMemo(() => [{ id: "new-task", label: newTaskLabel, icon: <Plus />, onSelect: openCreate, testId: "channel-tasks-panel-new" }], [newTaskLabel, openCreate]);
 
+  const tasksFilter = (
+    <SegmentedControl<ChannelTasksFilter> value={filter} onValueChange={handleFilterChange} aria-label={formatMessage({ id: "task.sidePanel.filterAria" })}>
+      <SegmentedControlItem value="all" data-testid="channel-tasks-filter-all">
+        <SegmentedControlLabel>{formatMessage({ id: "task.filter.tabAll" })}</SegmentedControlLabel>
+        {active > 0 ? <SegmentedControlCount>{active}</SegmentedControlCount> : null}
+      </SegmentedControlItem>
+      <SegmentedControlItem value="mine" data-testid="channel-tasks-filter-mine">
+        <SegmentedControlLabel>{formatMessage({ id: "task.sidePanel.forMe" })}</SegmentedControlLabel>
+        {mineActive > 0 ? <SegmentedControlCount>{mineActive}</SegmentedControlCount> : null}
+      </SegmentedControlItem>
+    </SegmentedControl>
+  );
   return (
     <ChannelSideCard
       title={formatMessage({ id: "task.panel.heading" })}
@@ -124,33 +134,13 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
       testId="channel-tasks-panel"
       // Its own action: a button where the head has room, else in its ⋯ (#189 rule 6).
       ownActions={newTaskAction}
+      // Layout redesign (anxndsgn, 11/15): no seam under the head; All / Mine right under the title.
+      seamless
     >
+      {detailTask ? null : <div className="shrink-0 px-(--column-margin) pb-2" data-testid="channel-tasks-toolbar">{tasksFilter}</div>}
       {detailTask ? (
         <ChannelTaskDetail task={detailTask} onBack={backToList} />
       ) : (<>
-      {/* The Tasks page's toolbar spacing (20px in, 12px above and below the
-          control), without its seam: a lone segmented control is no bar of its
-          own, the tasks start right under it (stdrc, 2026-11-04). With a mouse
-          it is part of the content: 12px under the head (page-top), the tasks 8px under
-          it (stdrc, 2026-11-05). A FitToolbar, as every list's toolbar (Raft DS › The
-          toolbar over a list): one Tab stop, the arrow keys between All and For me. Its
-          scope stays segmented, with no Select to give way to: two short words fit any
-          column. New task stays in the section's head (raft-design tasks.md › A
-          channel's Tasks section). */}
-      <TasksPanelToolbar className="shrink-0 border-b-0 max-md:px-4 md:pointer-fine:min-h-0 md:pointer-fine:pt-(--page-top) md:pointer-fine:pb-0" data-testid="channel-tasks-toolbar">
-        <FitToolbar aria-label={formatMessage({ id: "task.panel.heading" })} className="w-full gap-2">
-          <SegmentedControl<ChannelTasksFilter> value={filter} onValueChange={handleFilterChange} aria-label={formatMessage({ id: "task.sidePanel.filterAria" })}>
-            <SegmentedControlItem value="all" data-testid="channel-tasks-filter-all">
-              <SegmentedControlLabel>{formatMessage({ id: "task.filter.tabAll" })}</SegmentedControlLabel>
-              {active > 0 ? <SegmentedControlCount>{active}</SegmentedControlCount> : null}
-            </SegmentedControlItem>
-            <SegmentedControlItem value="mine" data-testid="channel-tasks-filter-mine">
-              <SegmentedControlLabel>{formatMessage({ id: "task.sidePanel.forMe" })}</SegmentedControlLabel>
-              {mineActive > 0 ? <SegmentedControlCount>{mineActive}</SegmentedControlCount> : null}
-            </SegmentedControlItem>
-          </SegmentedControl>
-        </FitToolbar>
-      </TasksPanelToolbar>
       {/* Each task row and group heading takes focus, so the list's raft-ui
           ScrollArea is no tab stop. */}
       <ScrollArea tabIndex={-1} className="min-h-0 flex-1" contentClassName="pb-4">

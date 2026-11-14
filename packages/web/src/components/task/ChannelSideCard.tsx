@@ -55,13 +55,16 @@ export default function ChannelSideCard({
   lead,
   meta,
   titleStatus,
+  titleSlot,
+  seamless = false,
   ownActions = NO_ACTIONS,
   menuItems = NO_ACTIONS,
   closeLabelId,
   onClose,
   closeOnEscape = false,
   returnFocus,
-  expandable = true,
+  // Layout redesign: the channel's side panel sections have no Expand (anxndsgn, 11/15).
+  expandable = false,
   testId,
   children,
 }: {
@@ -72,6 +75,10 @@ export default function ChannelSideCard({
   meta?: ReactNode;
   /** A tag on the title (PanelStatus, DS Panel), such as the context view's Verified. */
   titleStatus?: ReactNode;
+  /** In place of the title: a control that names the section (the Tasks panel's All / Mine). */
+  titleSlot?: ReactNode;
+  /** No seam under the head (the content starts right under it). */
+  seamless?: boolean;
   /** Its own actions, shown as buttons where they fit, else in ⋯. */
   ownActions?: readonly ColumnMenuItem[];
   /** Its ⋯'s other commands (its Move Left / Move Right are its own, rule 7). */
@@ -142,7 +149,7 @@ export default function ChannelSideCard({
     >
       {/* One 56px head, folded or not: the panel head every column has. Its
           recipe puts the first and last icon on the 20px margin. */}
-      <PanelHeader data-testid={`${testId}-header`} {...head.props} ref={measure}>
+      <PanelHeader data-testid={`${testId}-header`} {...head.props} className={[head.props.className, seamless ? "border-b-0 shadow-none" : ""].filter(Boolean).join(" ") || undefined} ref={measure}>
         {/* On a phone the channel header's Back closes the covering section
             (ChatPanel), so the section draws none: one Back on screen. A
             narrow desktop panel has no header Back, so it keeps its own. */}
@@ -168,7 +175,7 @@ export default function ChannelSideCard({
           {rowTabs ? <RowTabs region={card!} /> : (
             <>
               <PanelHeading>
-                <PanelTitle render={<h2>{title}</h2>} />
+                {titleSlot ?? <PanelTitle render={<h2>{title}</h2>} />}
                 {titleStatus ? <PanelStatus>{titleStatus}</PanelStatus> : null}
               </PanelHeading>
               {meta ? <PanelMeta>{meta}</PanelMeta> : null}

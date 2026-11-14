@@ -2570,7 +2570,7 @@ export default function MainLayout() {
         <WorkspaceSlotContext.Provider value={workspaceSlot}>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col" data-testid="conversation-frame">
         {/* Layout redesign: the conversation's header, above the row (ConversationHeaderSlotContext). */}
-        <div ref={setConversationHeaderSlot} className="shrink-0 border-b border-line-seam empty:hidden" data-testid="conversation-header-slot" />
+        <div ref={setConversationHeaderSlot} className="shrink-0 empty:hidden" data-testid="conversation-header-slot" />
         <div
           ref={contentColumnRef}
           className="thread-layout-container relative flex min-h-0 min-w-0 flex-1"

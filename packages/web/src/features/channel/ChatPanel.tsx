@@ -113,7 +113,6 @@ import { gatherSelectedMessagesWithMeta, useSelectionShareHandlers } from "../..
 import { useSelectShareErrorToast } from "../../components/message/useSelectShareErrorToast";
 import ChannelOverflowMenu from "../../components/channel/ChannelOverflowMenu";
 import { prepareChannelDetailsOpen } from "../../components/channel/channelDetails";
-import { RowExpandAction } from "../../components/layout/RowExpandAction";
 import PanelHeader from "../../components/ui/PanelHeader";
 import EmptyState from "../../components/ui/EmptyState";
 import { useLocation } from "react-router-dom";
@@ -1911,7 +1910,7 @@ export function ChatPanel({
           ) : undefined
         }
         // The conversation's Expand (#189 rule 5) last: it has no Close.
-        actions={<>{channelHeaderActions}<RowExpandAction region="conversation" /></>}
+        actions={channelHeaderActions}
       />
       )}
 

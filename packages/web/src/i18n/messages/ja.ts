@@ -4555,6 +4555,8 @@ export const ja: Partial<Record<MessageId, string>> = {
   "taskDetail.number": "#{number}",
   "inbox.assignedTask.kindIn": "#{channel} · タスク",
   "artifacts.card.opensInWorkspace": "ワークスペースで開く",
+  "search.tasks": "タスク",
+  "search.taskWhere": "#{channel} · #{number}",
   "timelineView.task": "タスク #{number} のみ",
   "timelineView.taskWithTitle": "タスク #{number} のみ：{title}",
   "timelineView.chain": "返信チェーンのみ：{name}：{excerpt}",
