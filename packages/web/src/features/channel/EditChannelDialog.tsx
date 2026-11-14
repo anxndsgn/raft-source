@@ -1419,7 +1419,7 @@ export function EditChannelDialog({
   // Channel settings: the same for everyone in the channel, for who can manage it (raft-design channel.md). Its
   // name says whom it reaches, so the heading has no hint (stdrc 2026-11-10).
   const visibilityRow = showVisibilityRow && (
-    <ListRow variant="plain" interactive={false} data-testid="channel-settings-visibility">
+    <ListRow key="visibility" variant="plain" interactive={false} data-testid="channel-settings-visibility">
       <ListRowBody>
         <ListRowTitle id="channel-settings-visibility-label">
           {isAllChannel

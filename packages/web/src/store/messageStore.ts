@@ -2268,6 +2268,21 @@ export const useMessageStore = create<MessageState>((set, get) => ({
         );
     if (!message) return;
     noteOutlineMessage(message);
+    // Reply mode: a reply seen for the first time adds one to its original's
+    // "N replies" (the server counts them on the next read).
+    if (message.replyToMessageId) {
+      const known = get().messages.find((m) => m.id === message.id || (!!message.randomId && m.randomId === message.randomId));
+      if (!known?.replyToMessageId) {
+        const original = get().messages.find((m) => m.id === message.replyToMessageId);
+        if (original) {
+          queueMicrotask(() => get().updateMessage({
+            id: original.id,
+            channelId: original.channelId,
+            directReplyCount: (original.directReplyCount ?? 0) + 1,
+          }));
+        }
+      }
+    }
     set((state) => {
       // Stryker disable next-line MethodExpression,ConditionalExpression,LogicalOperator: lastSeq monotonic bookkeeping predates this read-state projection slice; unread behavior is asserted separately.
       const newLastSeq = Math.max(state.lastSeq, message.seq || 0);
