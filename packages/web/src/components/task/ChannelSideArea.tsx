@@ -1,5 +1,5 @@
 import { WorkspaceSlotContext } from "../layout/rowColumnSlot";
-import { detailsTakeSidePanel, inWorkspace, threadTakesSidePanel } from "./sideAreaLayoutRedesign";
+import { detailsTakeSidePanel, DRAWER_SECTIONS, drawerHost, inWorkspace, sidePanelWidths, threadTakesSidePanel, useWorkspaceDrawer, WORKSPACE_DRAWER_CLASS } from "./sideAreaLayoutRedesign";
 import { Fragment, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -348,8 +348,7 @@ function planColumns(columns: readonly VisibleColumn[], thread: number): PlanCol
     key: sideColumnKey(column.column),
     regions: column.sections,
     mins: column.sections.map((section) => SECTION_CONTENT_MIN[section]),
-    saved: column.sections.includes("thread") ? thread : column.width,
-    savedWithoutThread: column.width,
+    ...sidePanelWidths(column.sections, column.width, thread),
   }));
 }
 
@@ -852,8 +851,7 @@ export default function ChannelSideArea() {
 
   const open = useMemo(() => {
     const set = new Set<ChannelSideSection>(Object.keys(entries) as PortalSection[]);
-    if (room.threadOpen || room.threadInRow || room.threadCoversRow) threadTakesSidePanel(set);
-    else detailsTakeSidePanel(set);
+    if (room.threadOpen || room.threadInRow || room.threadCoversRow) threadTakesSidePanel(set); else detailsTakeSidePanel(set);
     return set;
   }, [entries, room.threadCoversRow, room.threadInRow, room.threadOpen]);
   // The open Artifact (F41): a section like the others, in the layout's place for it.
@@ -873,15 +871,16 @@ export default function ChannelSideArea() {
   // the detail column's width, as the thread beside its channel; its Focus Mode is its Expand (rule 5).
   const taskColumn = useRowPlanStore((s) => s.taskColumn !== null);
   const taskExpanded = useRowPlanStore((s) => s.taskColumn?.focused ?? false);
+  const { rowOpen, drawerColumn } = useWorkspaceDrawer(layout, open, room.rowWidth, room.viewportWidth >= 768);
   const columnsForPlan = useMemo<PlanColumn[]>(() => {
     if (!planned) return NO_PLAN_COLUMNS;
-    let columns = planColumns(visibleChannelSideColumns(layout, open), threadWidth);
+    let columns = planColumns(visibleChannelSideColumns(layout, rowOpen), threadWidth);
     if (taskColumn) columns = withTasksPageTaskColumn(columns, { saved: helpWidth, contentMin: COLUMN_BOUNDS.detail.contentMin });
     return helpBeside ? withShortcutHelpColumn(columns, { saved: helpWidth, contentMin: COLUMN_BOUNDS.detail.contentMin }) : columns;
-  }, [helpBeside, helpWidth, layout, open, planned, taskColumn, threadWidth]);
+  }, [helpBeside, helpWidth, layout, rowOpen, planned, taskColumn, threadWidth]);
   const plan = useRowPlan({ active: planned, available: room.rowWidth, columns: columnsForPlan, thread: open.has("thread") && !helpBeside, forceFold: room.touchPortrait, threadExpanded: room.threadMaximized && !helpBeside, taskExpanded: taskColumn && taskExpanded });
   const fold = plan?.fold ?? false;
-  const placement = useMemo(() => placeSections(layout, open, room, expandArtifact, fold), [expandArtifact, fold, layout, open, room]);
+  const placement = useMemo(() => placeSections(layout, rowOpen, room, expandArtifact, fold), [expandArtifact, fold, layout, rowOpen, room]);
   useRowLayout(row, room, plan);
   // For the heads' Move Left / Move Right (rule 7): the layout as placed, and how a section moves.
   useLayoutEffect(() => {
@@ -998,6 +997,7 @@ export default function ChannelSideArea() {
         />
       )))}
       {surface}
+      {drawerColumn && drawerHost(row) ? createPortal(<div className={WORKSPACE_DRAWER_CLASS} data-testid="workspace-drawer"><SideColumn kind="beside" column={drawerColumn.column} sections={DRAWER_SECTIONS} titles={entries} width={560} minWidth={420} /></div>, drawerHost(row)!) : null}
       {expandedSurface}
     </>
   );

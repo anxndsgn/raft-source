@@ -49,7 +49,9 @@ interface ChannelSideCardState {
   taskFilter: ChannelTasksFilter;
   /** Layout redesign: the task whose details the Tasks panel shows, per channel (the task dialog's place now). */
   taskDetail: Record<string, string | null>;
-  openTaskDetail: (channelId: string, taskId: string) => void;
+  /** `fromList`: opened from the Tasks panel's list, which its "‹ Tasks" goes back to; else opened directly. */
+  taskDetailFromList: Record<string, boolean>;
+  openTaskDetail: (channelId: string, taskId: string, fromList?: boolean) => void;
   closeTaskDetail: (channelId: string) => void;
   /** Every channel's task details closed (the inbox moving to another row). */
   closeAllTaskDetails: () => void;
@@ -65,9 +67,10 @@ export const useChannelSideCardStore = create<ChannelSideCardState>((set, get) =
   cardFocusAt: { tasks: 0, files: 0, app: 0, context: 0, details: 0 },
   taskFilter: "all",
   taskDetail: {},
-  openTaskDetail: (channelId, taskId) => {
+  taskDetailFromList: {},
+  openTaskDetail: (channelId, taskId, fromList = false) => {
     get().setCardOpen("tasks", true);
-    set({ taskDetail: { ...get().taskDetail, [channelId]: taskId } });
+    set({ taskDetail: { ...get().taskDetail, [channelId]: taskId }, taskDetailFromList: { ...get().taskDetailFromList, [channelId]: fromList } });
   },
   closeTaskDetail: (channelId) => set({ taskDetail: { ...get().taskDetail, [channelId]: null } }),
   closeAllTaskDetails: () => set({ taskDetail: {} }),

@@ -63,6 +63,11 @@ export interface RowUnit {
   floor?: number;
   /** The conversation with the thread folded into it (rule 3): past the floors it gives way to `contentMin` first. */
   merged?: boolean;
+  /**
+   * Layout redesign (Figmama/Anna 11/15): the channel's side panel (320, a thread 400) — it keeps its saved width
+   * when the row has room to spare; the spare goes to the others (the conversation, the workspace).
+   */
+  fixed?: boolean;
 }
 
 const sum = (values: readonly number[]) => values.reduce((total, value) => total + value, 0);
@@ -96,7 +101,12 @@ export function solveUnits(units: readonly RowUnit[], available: number): { widt
   const saved = units.map((unit) => Math.max(SEAM_COLUMN_MIN_WIDTH, unit.saved));
   const total = sum(saved);
   if (total <= 0) return { widths: saved, clip: false };
-  if (total <= available + 0.01) return { widths: saved.map((width) => (width * available) / total), clip: false };
+  if (total <= available + 0.01) {
+    const flexTotal = sum(saved.filter((_, index) => !units[index]!.fixed));
+    if (flexTotal <= 0 || flexTotal === total) return { widths: saved.map((width) => (width * available) / total), clip: false };
+    const spare = available - total;
+    return { widths: saved.map((width, index) => (units[index]!.fixed ? width : width + (spare * width) / flexTotal)), clip: false };
+  }
   let deficit = total - available;
   const floors = saved.map((width, index) => Math.min(width, units[index]!.floor ?? units[index]!.contentMin));
   const above = sum(saved.map((width, index) => width - floors[index]!));

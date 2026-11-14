@@ -68,7 +68,7 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   const detailTaskId = useChannelSideCardStore((s) => s.taskDetail[channelId] ?? null);
   const openTaskDetail = useChannelSideCardStore((s) => s.openTaskDetail);
   const closeTaskDetail = useChannelSideCardStore((s) => s.closeTaskDetail);
-  const openTask = useCallback((task: Task) => openTaskDetail(channelId, task.id), [channelId, openTaskDetail]);
+  const openTask = useCallback((task: Task) => openTaskDetail(channelId, task.id, true), [channelId, openTaskDetail]);
   const backToList = useCallback(() => closeTaskDetail(channelId), [channelId, closeTaskDetail]);
   const detailTask = detailTaskId ? tasks.find((t) => t.id === detailTaskId) ?? null : null;
   const [creating, setCreating] = useState(false);

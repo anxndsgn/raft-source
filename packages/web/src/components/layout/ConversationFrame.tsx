@@ -17,7 +17,7 @@ export function ConversationFrame({ children }: { children: ReactNode }) {
   const [workspaceSlot, setWorkspaceSlot] = useState<HTMLElement | null>(null);
   useWorkspaceMakesRoom();
   return (
-    <div className="flex min-h-0 min-w-0 flex-1" data-testid="workspace-frame">
+    <div className="relative flex min-h-0 min-w-0 flex-1" data-testid="workspace-frame">
       <ConversationHeaderSlotContext.Provider value={headerSlot}>
         <WorkspaceSlotContext.Provider value={workspaceSlot}>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col" data-testid="conversation-frame">

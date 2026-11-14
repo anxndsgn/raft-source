@@ -2570,7 +2570,7 @@ export default function MainLayout() {
               (scrollIntoView, an autofocused field) slid the whole page
               sideways. A clipped box cannot scroll at all. */}
           <div
-            className="thread-main-column flex min-h-0 min-w-0 flex-1 flex-col overflow-clip outline-none keyboard:focus-visible:outline-2 keyboard:focus-visible:outline-solid keyboard:focus-visible:-outline-offset-2 keyboard:focus-visible:outline-foreground"
+            className="thread-main-column relative flex min-h-0 min-w-0 flex-1 flex-col overflow-clip outline-none keyboard:focus-visible:outline-2 keyboard:focus-visible:outline-solid keyboard:focus-visible:-outline-offset-2 keyboard:focus-visible:outline-foreground"
             data-testid="thread-main-column"
             // The conversation a thread or detail column takes its width from (ColumnResizeHandle).
             data-main-column=""

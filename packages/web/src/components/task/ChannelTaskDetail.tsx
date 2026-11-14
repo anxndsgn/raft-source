@@ -10,6 +10,7 @@ import { useChannelStore } from "../../store/channelStore";
 import type { Task } from "../../store/taskStore";
 import { useTimelineViewStore } from "../../store/timelineViewStore";
 import { useProfileStore } from "../../store/profileStore";
+import { useChannelSideCardStore } from "../../store/channelSideCardStore";
 import TaskModalHead from "./TaskModalHead";
 
 /**
@@ -20,6 +21,8 @@ import TaskModalHead from "./TaskModalHead";
  */
 export function ChannelTaskDetail({ task, onBack }: { task: Task; onBack: () => void }) {
   const { formatMessage } = useIntl();
+  // Layout redesign (Figmama 11/15): "‹ Tasks" only when it was opened from the list; opened directly, × alone.
+  const fromList = useChannelSideCardStore((s) => s.taskDetailFromList[task.channelId] === true);
   const replyMode = useChannelStore((s) => findStoredChannel(s, task.channelId)?.replyMode === true);
   const filtering = useTimelineViewStore((s) => {
     const spec = s.views[task.channelId]?.spec;
@@ -73,6 +76,7 @@ export function ChannelTaskDetail({ task, onBack }: { task: Task; onBack: () => 
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-testid="channel-task-detail">
       <div className="flex shrink-0 items-center gap-1 px-3 pt-2 text-footnote text-foreground-muted">
+        {fromList ? (<>
         <button
           type="button"
           className="inline-flex items-center gap-0.5 rounded-control px-1 py-0.5 hover:overlay-subtle"
@@ -83,6 +87,7 @@ export function ChannelTaskDetail({ task, onBack }: { task: Task; onBack: () => 
           {formatMessage({ id: "task.panel.heading" })}
         </button>
         <span className="text-foreground-hint">/</span>
+        </>) : null}
         <span className="font-mono">{formatMessage({ id: "taskDetail.number" }, { number: task.taskNumber })}</span>
       </div>
       <ScrollArea tabIndex={-1} className="min-h-0 flex-1" contentClassName="pb-4">

@@ -55,6 +55,8 @@ export interface PlanColumn {
   saved: number;
   /** The thread's column: its saved width once the thread has folded out of it (the sections stacked with it stay). */
   savedWithoutThread?: number;
+  /** Keeps its saved width when there is room to spare (seamCascade RowUnit.fixed). */
+  fixed?: boolean;
 }
 
 export interface PlanInput {
@@ -128,7 +130,7 @@ export function buildUnits(input: PlanInput, fold: boolean): PlanUnit[] {
     const keep = column.regions.map((region, i) => ({ region, min: column.mins[i] ?? 0 })).filter(({ region }) => !(folds && index === at && region === THREAD));
     if (keep.length === 0) return;
     const saved = folds && index === at ? column.savedWithoutThread ?? column.saved : column.saved;
-    units.push({ key: column.key, regions: keep.map(({ region }) => region), saved, contentMin: Math.max(0, ...keep.map(({ min }) => min)) });
+    units.push({ key: column.key, regions: keep.map(({ region }) => region), saved, contentMin: Math.max(0, ...keep.map(({ min }) => min)), ...(column.fixed ? { fixed: true } : {}) });
   });
   return units;
 }
