@@ -4555,6 +4555,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "profileCard.viewDetails": "Подробнее",
   "taskDetail.number": "#{number}",
   "inbox.assignedTask.kindIn": "#{channel} · Задача",
+  "artifacts.card.opensInWorkspace": "Откроется в рабочей области",
   "timelineView.task": "Только задача #{number}",
   "timelineView.taskWithTitle": "Только задача #{number}: {title}",
   "timelineView.chain": "Только цепочка ответов: {name}: {excerpt}",

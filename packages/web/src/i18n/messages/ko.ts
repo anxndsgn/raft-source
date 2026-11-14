@@ -4553,6 +4553,7 @@ export const ko: Partial<Record<MessageId, string>> = {
   "profileCard.viewDetails": "자세히 보기",
   "taskDetail.number": "#{number}",
   "inbox.assignedTask.kindIn": "#{channel} · 작업",
+  "artifacts.card.opensInWorkspace": "작업 공간에서 열기",
   "timelineView.task": "작업 #{number}만",
   "timelineView.taskWithTitle": "작업 #{number}만: {title}",
   "timelineView.chain": "답장 체인만: {name}: {excerpt}",

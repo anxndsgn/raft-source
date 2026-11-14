@@ -4664,6 +4664,7 @@ export const zhCn: Record<MessageId, string> = {
   "profileCard.viewDetails": "查看详情",
   "taskDetail.number": "#{number}",
   "inbox.assignedTask.kindIn": "#{channel} · 任务",
+  "artifacts.card.opensInWorkspace": "在工作区打开",
   "timelineView.task": "只看任务 #{number}",
   "timelineView.taskWithTitle": "只看任务 #{number}：{title}",
   "timelineView.chain": "只看回复链：{name}：{excerpt}",

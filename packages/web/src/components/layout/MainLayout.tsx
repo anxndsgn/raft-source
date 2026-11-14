@@ -140,7 +140,7 @@ import { ContentSlotThreadPanel } from "./ContentSlotThreadPanel";
 import { CONTENT_SLOT_ENTRY_MARK, historyEntryIndex, isContentSlotEntry, stampContentSlotEntry } from "./contentSlotEntry";
 import { TaskContentSlot } from "./TaskContentSlot";
 import { TasksRoute } from "./TasksRoute";
-import { ConversationHeaderSlotContext, RowColumnSlotContext } from "./rowColumnSlot";
+import { ConversationHeaderSlotContext, RowColumnSlotContext, WorkspaceSlotContext } from "./rowColumnSlot";
 import { DetailSlotThreadContext, useThreadInDetailSlotOpener } from "./detailSlotThread";
 import { ContentSlotBackContext, useContentSlotBack } from "./contentSlotBack";
 import { ACTIVITY_MASTER_DETAIL_QUERY, isActivityMasterDetailViewport } from "../thread/activityLayout";
@@ -2269,6 +2269,7 @@ export default function MainLayout() {
   // A page's own column beside the conversation in the row (the Tasks page's task; rowColumnSlot).
   const [rowColumnSlot, setRowColumnSlot] = useState<HTMLElement | null>(null);
   const [conversationHeaderSlot, setConversationHeaderSlot] = useState<HTMLElement | null>(null);
+  const [workspaceSlot, setWorkspaceSlot] = useState<HTMLElement | null>(null);
   usePageViewTracking(location.pathname);
   // Raft Desktop: its move to the official Computer, as product events (analytics/computerMigration.ts).
   useComputerMigrationReporting();
@@ -2565,6 +2566,8 @@ export default function MainLayout() {
       // visible on mobile detail views and always on desktop.
       mainHidden={mobileShowSidebarInline}
       main={(
+        <div className="flex min-h-0 min-w-0 flex-1" data-testid="workspace-frame">
+        <WorkspaceSlotContext.Provider value={workspaceSlot}>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col" data-testid="conversation-frame">
         {/* Layout redesign: the conversation's header, above the row (ConversationHeaderSlotContext). */}
         <div ref={setConversationHeaderSlot} className="shrink-0 border-b border-line-seam empty:hidden" data-testid="conversation-header-slot" />
@@ -2655,6 +2658,10 @@ export default function MainLayout() {
           <div hidden data-slot="thread-layout-end" />
           </SideSectionDnd>
         </div>
+        </div>
+        </WorkspaceSlotContext.Provider>
+        {/* Layout redesign (F3): the workspace, beside the header and the row (WorkspaceSlotContext). */}
+        <div ref={setWorkspaceSlot} className="contents" data-testid="workspace-slot" />
         </div>
       )}
       after={(

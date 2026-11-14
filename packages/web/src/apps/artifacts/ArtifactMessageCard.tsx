@@ -29,7 +29,7 @@ import type { ArtifactDeletedShown } from "./artifactFacts";
 import { artifactUrl } from "./artifactLinks";
 import { useArtifactOpenIntent } from "./artifactOpenIntent";
 import { isPlainPrimaryClick, openArtifactCardInPlace } from "./openArtifactInPlace";
-import { artifactOpenLabelId, openArtifactWindow, opensArtifactWindows } from "./artifactWindow";
+import { openArtifactWindow } from "./artifactWindow";
 import ArtifactScopeLabel from "./ArtifactScopeLabel";
 import { useArtifactCardPicture } from "./artifactCardPicture";
 import { ArtifactCardExcerpt } from "./ArtifactCardExcerpt";
@@ -37,8 +37,9 @@ import { ArtifactCardExcerpt } from "./ArtifactCardExcerpt";
 // The file badge on the glyph: the file type as people know it, not a word
 // for the kind. A card has no file name (AttachmentTypeBadge reads one), so
 // the badge comes from the kind.
-export function KindGlyph({ card }: { card: ArtifactCard }) {
-  const badge = ARTIFACT_KIND_BADGE[card.kind];
+export function KindGlyph({ card, timelineArtifactBadge }: { card: ArtifactCard; timelineArtifactBadge?: string }) {
+  // Layout redesign (4.2): on the timeline every Artifact reads "ART", whatever its kind.
+  const badge = timelineArtifactBadge ?? ARTIFACT_KIND_BADGE[card.kind];
   // The picture itself is the card's preview above; the glyph only names the type.
   return (
     <FilePreview>
@@ -207,19 +208,11 @@ function OkCard({ card, preview = false }: { card: ArtifactCard; preview?: boole
   const handleOpenComments = useCallback((event: MouseEvent<HTMLButtonElement>) => {
     if (!openArtifactCardInPlace(card, event.currentTarget, true)) openArtifactWindow(url, card.id);
   }, [card, url]);
-  // Installed on a computer, Open in new page is a window of its own (artifactWindow); the href stays for a
-  // middle click, Cmd/Ctrl-click and Copy link.
-  const handleOpenInNewPage = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
-    if (!isPlainPrimaryClick(event) || !opensArtifactWindows()) return;
-    event.preventDefault();
-    openArtifactWindow(url, card.id);
-  }, [card.id, url]);
   const target = useMemo(() => ({ id: card.id, version: card.pinned ? card.version : null }), [card.id, card.pinned, card.version]);
   // The title's ::after covers the card: pressing, hovering or focusing it is intent to open.
   const intent = useArtifactOpenIntent(target, card);
   const [picture, pictureRef] = useArtifactCardPicture(card);
   const meta = formatArtifactUpdated(card, intl);
-  const openInNewPage = formatMessage({ id: artifactOpenLabelId("artifacts.card.openInNewPage") });
   const marks = unseenMarks(card, preview);
   const parts = messageCard();
   const titleClass = parts.title({ className: "min-w-0 flex-[1_1_8rem] break-words" });
@@ -250,7 +243,7 @@ function OkCard({ card, preview = false }: { card: ArtifactCard; preview?: boole
         </MessageEmbedContent>
       ) : null}
       <MessageEmbedHeader className="flex min-w-0 items-start gap-2.5">
-        <KindGlyph card={card} />
+        <KindGlyph card={card} timelineArtifactBadge="ART" />
         <div className="grid min-w-0 flex-1 gap-0.5">
           {/* The title keeps at least 8rem: the version and the sticker wrap under it before it shrinks further (Kirby, #12873). */}
           <div className="flex min-w-0 flex-wrap items-start gap-x-1.5 gap-y-1">
@@ -277,7 +270,10 @@ function OkCard({ card, preview = false }: { card: ArtifactCard; preview?: boole
               <NewSticker newerVersion={marks.newerVersion} newComments={marks.newComments} />
             </span>
           </div>
-          {facts ? <p className={parts.meta()} data-testid="artifact-card-facts">{facts}</p> : null}
+          {/* Layout redesign (4.2): where it opens — the workspace — under the title. */}
+          <p className={parts.meta()} data-testid="artifact-card-facts">
+            {facts ? `${facts} · ` : ""}{formatMessage({ id: "artifacts.card.opensInWorkspace" })}
+          </p>
           {card.description ? (
             <p className={`${facts ? "line-clamp-1" : "line-clamp-2"} text-callout break-words text-foreground-muted`}>{card.description}</p>
           ) : null}
@@ -286,7 +282,8 @@ function OkCard({ card, preview = false }: { card: ArtifactCard; preview?: boole
           <PanelAction
             className="relative z-raised -mt-1 -mr-1"
             nativeButton={false}
-            render={<a href={url} target="_blank" rel="noopener noreferrer" onClick={handleOpenInNewPage} aria-label={openInNewPage} />}
+            // Layout redesign (4.2): opens in the workspace (the viewer's head still opens a new page).
+            render={<a href={url} onClick={handleOpen} aria-label={formatMessage({ id: "artifacts.card.opensInWorkspace" })} data-testid="artifact-card-open-in-workspace" />}
           >
             <ArrowUpRight aria-hidden />
           </PanelAction>

@@ -17,3 +17,10 @@ export const RowColumnSlotContext = createContext<HTMLElement | null | undefined
  * Undefined outside MainLayout; null until mounted.
  */
 export const ConversationHeaderSlotContext = createContext<HTMLElement | null | undefined>(undefined);
+
+/**
+ * Layout redesign (F3): where the workspace (an open Artifact's column) goes
+ * on a desktop — beside the conversation's header and row, from the window's
+ * top, not under the channel's header. Undefined outside MainLayout.
+ */
+export const WorkspaceSlotContext = createContext<HTMLElement | null | undefined>(undefined);

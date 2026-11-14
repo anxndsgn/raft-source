@@ -1,4 +1,5 @@
-import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { WorkspaceSlotContext } from "../layout/rowColumnSlot";
+import { Fragment, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useIntl } from "react-intl";
@@ -854,6 +855,7 @@ export default function ChannelSideArea() {
   }, [entries, room.threadCoversRow, room.threadInRow, room.threadOpen]);
   // The open Artifact (F41): a section like the others, in the layout's place for it.
   const artifact = entries.artifact?.artifact ?? null;
+  const workspaceSlot = useContext(WorkspaceSlotContext);
   const expandArtifact = !!artifact?.expanded;
   // The row planned by the #189 rules on a desktop (rowLayout): every open column, the thread's included, each at
   // its saved width; the plan says whether the thread folds.
@@ -980,18 +982,24 @@ export default function ChannelSideArea() {
     <>
       <div ref={setMarker} hidden data-side-area="" data-testid="channel-side-area" />
       <SideDragLayer />
-      {placement.row.map((column) => (
-        <SideColumn
-          key={column.sections.join("+")}
-          kind="beside"
-          column={column.column}
-          widthColumn={column.column}
-          sections={column.sections}
-          titles={entries}
-          width={column.width}
-          minWidth={column.minWidth}
-        />
-      ))}
+      {placement.row.map((column) => {
+        const node = (
+          <SideColumn
+            key={column.sections.join("+")}
+            kind="beside"
+            column={column.column}
+            widthColumn={column.column}
+            sections={column.sections}
+            titles={entries}
+            width={column.width}
+            minWidth={column.minWidth}
+          />
+        );
+        // Layout redesign (F3): an Artifact's own column is the workspace, beside the channel's header.
+        return workspaceSlot && column.sections.length === 1 && column.sections[0] === "artifact"
+          ? createPortal(node, workspaceSlot, column.sections.join("+"))
+          : node;
+      })}
       {surface}
       {expandedSurface}
     </>
