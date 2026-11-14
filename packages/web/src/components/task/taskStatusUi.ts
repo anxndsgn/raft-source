@@ -1,3 +1,4 @@
+import { useChannelStore } from "../../store/channelStore";
 import type { TaskStatusId } from "@botiverse/raft-ui";
 import type { MessageId } from "../../i18n/messages";
 import { TASK_STATUSES } from "@botiverse/raft-shared";
@@ -78,7 +79,9 @@ export function getTaskStatusOptions(task: Task, _currentUserId: string | undefi
   const v2Task = opensAsTaskConversation(task, taskV2);
   // in_review is retired for task v2 (#wg-task-v2:f7043517): the server stores
   // in_progress when asked for it. A task still in it keeps it as its current option.
-  const retiredInReview = v2Task && current !== "in_review";
+  // Reply mode retires it too (the channel's tasks are done or handed to a person).
+  const replyModeChannel = channelUsesReplies(task.channelId);
+  const retiredInReview = (v2Task || replyModeChannel) && current !== "in_review";
   // Backlog is task v2 only: the server refuses it on a pre-v2 task with the flag
   // off (task_status_not_available). A task already in it keeps it, as above.
   const noBacklog = !v2Task && current !== "backlog";
@@ -90,4 +93,9 @@ export function getTaskStatusOptions(task: Task, _currentUserId: string | undefi
       ? ("task.status.reopenToTodo" satisfies MessageId)
       : TASK_STATUS_UI[status].labelId,
   }));
+}
+
+/** Whether the task's channel uses replies (a regular-store read, no subscription). */
+function channelUsesReplies(channelId: string): boolean {
+  return useChannelStore.getState().channels.find((c) => c.id === channelId)?.replyMode === true;
 }

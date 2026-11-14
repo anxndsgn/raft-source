@@ -27,7 +27,7 @@ import { TaskAssigneeLabel } from "./TaskAssignee";
 import { CreateTaskDialog } from "./DeferredCreateTaskDialog";
 import TaskChipList from "./TaskChipList";
 import { TASK_STATUS_UI, toRuiTaskStatus } from "./taskStatusUi";
-import { useOpenTask } from "./useOpenTask";
+import ChannelTaskDetail from "./ChannelTaskDetail";
 import { SideCardContext } from "./sideCardsLayout";
 
 /** Work that is moving first (In Progress, In Review), then what waits (Todo,
@@ -66,7 +66,12 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   const filter = useChannelSideCardStore((s) => s.taskFilter);
   const setFilter = useChannelSideCardStore((s) => s.setTaskFilter);
   const { channelAgents, channelHumans } = useChannelMembers(channelId);
-  const openTask = useOpenTask();
+  // Layout redesign: a task opens its details here, in place of the task dialog.
+  const detailTaskId = useChannelSideCardStore((s) => s.taskDetail[channelId] ?? null);
+  const openTaskDetail = useChannelSideCardStore((s) => s.openTaskDetail);
+  const closeTaskDetail = useChannelSideCardStore((s) => s.closeTaskDetail);
+  const openTask = useCallback((task: Task) => openTaskDetail(channelId, task.id), [channelId, openTaskDetail]);
+  const detailTask = detailTaskId ? tasks.find((t) => t.id === detailTaskId) ?? null : null;
   const [creating, setCreating] = useState(false);
   const [collapsed, setCollapsed] = useState(INITIALLY_COLLAPSED);
   // No fetch here: the panel only sits beside its own channel, and ChatPanel
@@ -119,6 +124,9 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
       // Its own action: a button where the head has room, else in its ⋯ (#189 rule 6).
       ownActions={newTaskAction}
     >
+      {detailTask ? (
+        <ChannelTaskDetail task={detailTask} onBack={() => closeTaskDetail(channelId)} />
+      ) : (<>
       {/* The Tasks page's toolbar spacing (20px in, 12px above and below the
           control), without its seam: a lone segmented control is no bar of its
           own, the tasks start right under it (stdrc, 2026-11-04). With a mouse
@@ -170,6 +178,7 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
           </div>
         )}
       </ScrollArea>
+      </>)}
       {creating ? <CreateTaskDialog channelId={channelId} onClose={closeCreate} /> : null}
     </ChannelSideCard>
   );

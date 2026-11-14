@@ -47,6 +47,10 @@ interface ChannelSideCardState {
   /** When each card was last opened or picked; the latest one shows where only one fits. */
   cardFocusAt: Record<ChannelSideColumnCard, number>;
   taskFilter: ChannelTasksFilter;
+  /** Layout redesign: the task whose details the Tasks panel shows, per channel (the task dialog's place now). */
+  taskDetail: Record<string, string | null>;
+  openTaskDetail: (channelId: string, taskId: string) => void;
+  closeTaskDetail: (channelId: string) => void;
   setCardOpen: (card: ChannelSideCard, open: boolean) => void;
   setCardCollapsed: (card: ChannelSideCard, collapsed: boolean) => void;
   focusCard: (card: ChannelSideColumnCard) => void;
@@ -58,6 +62,12 @@ export const useChannelSideCardStore = create<ChannelSideCardState>((set, get) =
   collapsed: readFlags(COLLAPSED_KEY),
   cardFocusAt: { tasks: 0, files: 0, app: 0, context: 0, details: 0 },
   taskFilter: "all",
+  taskDetail: {},
+  openTaskDetail: (channelId, taskId) => {
+    get().setCardOpen("tasks", true);
+    set({ taskDetail: { ...get().taskDetail, [channelId]: taskId } });
+  },
+  closeTaskDetail: (channelId) => set({ taskDetail: { ...get().taskDetail, [channelId]: null } }),
   setCardOpen: (card, open) => {
     const next = { ...get().open, [card]: open };
     writeFlags(OPEN_KEY, next);

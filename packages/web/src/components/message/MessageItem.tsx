@@ -144,7 +144,7 @@ import type { Task } from "../../store/taskStore";
 // Parked with its render site below — see the note there.
 import TaskChipList from "../task/TaskChipList";
 import { CreateTaskDialog } from "../task/DeferredCreateTaskDialog";
-import { openTaskConversationDialog, useOpenTask } from "../task/useOpenTask";
+import { openTaskConversationDialog, useOpenTask, openTaskInSidePanel } from "../task/useOpenTask";
 import { isThreadFollowed, useThreadStore } from "../../store/threadStore";
 import { useEnclosingThreadMarkUnread } from "./threadUnreadHold";
 import { useMessageMenuMarkUnread } from "./messageMenuMarkUnread";
@@ -3245,6 +3245,8 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
       openTaskConversationDialog(linkedTask);
       return;
     }
+    // Layout redesign: the task's details in this channel's Tasks panel.
+    if (!linkedTask.isLegacy && openTaskInSidePanel(linkedTask)) return;
     if (linkedTask.messageId) {
       // Declares intent rather than leaving the host to infer it: the thread icon
     // on this same message opens the replies in the side panel, and only the

@@ -6,6 +6,20 @@ import { useLegacyTaskPanelStore } from "../../store/legacyTaskPanelStore";
 import { useProfileStore } from "../../store/profileStore";
 import { TASK_V2_CONVERSATIONS_FLAG_KEY, useServerFeatureFlag } from "../../store/serverFeatureFlags";
 import { directTaskConversationChannelId, opensAsTaskConversation } from "../../utils/taskConversation";
+import { useChannelSideCardStore } from "../../store/channelSideCardStore";
+import { useAppNavigate } from "../../hooks/useAppNavigate";
+
+/**
+ * Layout redesign (F2): on a desktop a task (not a legacy card, not a task v2
+ * conversation) opens its details in its channel's Tasks panel, in place of
+ * the task dialog. Returns whether it did.
+ */
+export function openTaskInSidePanel(task: Task, toChannel?: (channelId: string) => void): boolean {
+  if (typeof window === "undefined" || window.innerWidth < 768) return false;
+  useChannelSideCardStore.getState().openTaskDetail(task.channelId, task.id);
+  toChannel?.(task.channelId);
+  return true;
+}
 
 /**
  * Task v2: open the task dialog on the task's own conversation, keyed by the
@@ -36,8 +50,10 @@ export function useOpenTask() {
   const openLegacyTask = useLegacyTaskPanelStore((s) => s.openLegacyTask);
   const closeLegacyTask = useLegacyTaskPanelStore((s) => s.closeLegacyTask);
   const taskV2 = useServerFeatureFlag(TASK_V2_CONVERSATIONS_FLAG_KEY).enabled;
+  const nav = useAppNavigate();
   return useCallback((task: Task) => {
     closeProfile();
+    if (!task.isLegacy && !opensAsTaskConversation(task, taskV2) && openTaskInSidePanel(task, nav.toChannel)) return;
     if (task.isLegacy) {
       closeThread();
       openLegacyTask(task);
@@ -49,5 +65,5 @@ export function useOpenTask() {
       return;
     }
     void openThread({ parentChannelId: task.channelId, parentMessageId: task.messageId, intent: "task" });
-  }, [closeProfile, closeThread, closeLegacyTask, openLegacyTask, openThread, taskV2]);
+  }, [closeProfile, closeThread, closeLegacyTask, nav, openLegacyTask, openThread, taskV2]);
 }
