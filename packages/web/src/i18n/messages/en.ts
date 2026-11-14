@@ -4770,6 +4770,8 @@ export const en = {
   "message.reply.oldDiscussion": "Old discussion",
   "message.reply.replyOnTimeline": "Reply on the timeline",
   "artifacts.card.factsOpensInWorkspace": "{facts} · Opens in the workspace",
+  "workspace.drawer.collapse": "Push the workspace back",
+  "workspace.drawer.handle": "Workspace {count}",
   "timelineView.task": "Only task #{number}",
   "timelineView.taskWithTitle": "Only task #{number}: {title}",
   "timelineView.chain": "Only the reply chain: {name}: {excerpt}",

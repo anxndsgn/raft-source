@@ -4672,6 +4672,8 @@ export const zhCn: Record<MessageId, string> = {
   "message.reply.oldDiscussion": "旧讨论",
   "message.reply.replyOnTimeline": "在时间线里回复",
   "artifacts.card.factsOpensInWorkspace": "{facts} · 在工作区打开",
+  "workspace.drawer.collapse": "收起工作区",
+  "workspace.drawer.handle": "工作区 {count}",
   "timelineView.task": "只看任务 #{number}",
   "timelineView.taskWithTitle": "只看任务 #{number}：{title}",
   "timelineView.chain": "只看回复链：{name}：{excerpt}",

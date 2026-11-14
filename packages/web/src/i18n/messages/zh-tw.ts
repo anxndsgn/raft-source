@@ -4561,6 +4561,8 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "message.reply.oldDiscussion": "舊討論",
   "message.reply.replyOnTimeline": "在時間軸裡回覆",
   "artifacts.card.factsOpensInWorkspace": "{facts} · 在工作區開啟",
+  "workspace.drawer.collapse": "收起工作區",
+  "workspace.drawer.handle": "工作區 {count}",
   "timelineView.task": "只看任務 #{number}",
   "timelineView.taskWithTitle": "只看任務 #{number}：{title}",
   "timelineView.chain": "只看回覆鏈：{name}：{excerpt}",

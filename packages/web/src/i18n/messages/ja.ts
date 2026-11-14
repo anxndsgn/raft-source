@@ -4562,6 +4562,8 @@ export const ja: Partial<Record<MessageId, string>> = {
   "message.reply.oldDiscussion": "以前の議論",
   "message.reply.replyOnTimeline": "タイムラインで返信",
   "artifacts.card.factsOpensInWorkspace": "{facts} · ワークスペースで開く",
+  "workspace.drawer.collapse": "ワークスペースを閉じる",
+  "workspace.drawer.handle": "ワークスペース {count}",
   "timelineView.task": "タスク #{number} のみ",
   "timelineView.taskWithTitle": "タスク #{number} のみ：{title}",
   "timelineView.chain": "返信チェーンのみ：{name}：{excerpt}",

@@ -4561,6 +4561,8 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "message.reply.oldDiscussion": "Discussão anterior",
   "message.reply.replyOnTimeline": "Responder na linha do tempo",
   "artifacts.card.factsOpensInWorkspace": "{facts} · Abre no espaço de trabalho",
+  "workspace.drawer.collapse": "Recolher o espaço de trabalho",
+  "workspace.drawer.handle": "Espaço de trabalho {count}",
   "timelineView.task": "Só a tarefa #{number}",
   "timelineView.taskWithTitle": "Só a tarefa #{number}: {title}",
   "timelineView.chain": "Só a cadeia de respostas: {name}: {excerpt}",

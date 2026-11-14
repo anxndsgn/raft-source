@@ -1,5 +1,5 @@
 import { detailsTakeSidePanel, DRAWER_SECTIONS, drawerHost, inWorkspace, sidePanelWidths, threadTakesSidePanel, useWorkspaceDrawer, WORKSPACE_DRAWER_CLASS } from "./sideAreaLayoutRedesign";
-import { WorkspaceDrawerScrim } from "./WorkspaceDrawerScrim";
+import { WorkspaceDrawerHandle, WorkspaceDrawerScrim } from "./WorkspaceDrawerScrim";
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -870,7 +870,7 @@ export default function ChannelSideArea() {
   // the detail column's width, as the thread beside its channel; its Focus Mode is its Expand (rule 5).
   const taskColumn = useRowPlanStore((s) => s.taskColumn !== null);
   const taskExpanded = useRowPlanStore((s) => s.taskColumn?.focused ?? false);
-  const { rowOpen, drawerColumn, workspaceSlot } = useWorkspaceDrawer(layout, open, room.rowWidth, room.viewportWidth >= 768);
+  const { rowOpen, drawerColumn, workspaceSlot, drawerCollapsed } = useWorkspaceDrawer(layout, open, room.rowWidth, room.viewportWidth >= 768);
   const columnsForPlan = useMemo<PlanColumn[]>(() => {
     if (!planned) return NO_PLAN_COLUMNS;
     let columns = planColumns(visibleChannelSideColumns(layout, rowOpen), threadWidth);
@@ -996,7 +996,7 @@ export default function ChannelSideArea() {
         />
       )))}
       {surface}
-      {drawerColumn && drawerHost(row) ? createPortal(<><WorkspaceDrawerScrim /><div className={WORKSPACE_DRAWER_CLASS} data-testid="workspace-drawer"><SideColumn kind="beside" column={drawerColumn.column} sections={DRAWER_SECTIONS} titles={entries} width={560} minWidth={420} /></div></>, drawerHost(row)!) : null}
+      {drawerColumn && drawerHost(row) ? createPortal(drawerCollapsed ? <WorkspaceDrawerHandle /> : <><WorkspaceDrawerScrim /><div className={WORKSPACE_DRAWER_CLASS} data-testid="workspace-drawer"><SideColumn kind="beside" column={drawerColumn.column} sections={DRAWER_SECTIONS} titles={entries} width={560} minWidth={420} /></div></>, drawerHost(row)!) : null}
       {expandedSurface}
     </>
   );

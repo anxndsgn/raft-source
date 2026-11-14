@@ -62,6 +62,9 @@ interface ArtifactViewerState {
   tabs: OpenArtifact[];
   /** The tabs' titles, as the viewer learns them. */
   tabTitles: Record<string, string>;
+  /** Layout redesign: the workspace as a drawer, pushed back to a handle at the timeline's edge (its tabs kept). */
+  drawerCollapsed: boolean;
+  setDrawerCollapsed: (collapsed: boolean) => void;
   activateTab: (id: ArtifactId) => void;
   closeTab: (id: ArtifactId) => void;
   setTabTitle: (id: ArtifactId, title: string) => void;
@@ -108,6 +111,8 @@ export const useArtifactViewerStore = create<ArtifactViewerState>((set) => ({
   open: null,
   tabs: [],
   tabTitles: {},
+  drawerCollapsed: false,
+  setDrawerCollapsed: (drawerCollapsed) => set({ drawerCollapsed }),
   activateTab: (id) => set((state) => {
     const tab = state.tabs.find((t) => t.id === id);
     if (!tab || state.open?.id === id) return state;
@@ -136,6 +141,7 @@ export const useArtifactViewerStore = create<ArtifactViewerState>((set) => ({
     openedAt: Date.now(),
     expanded: false,
     picked: null,
+    drawerCollapsed: false,
   })),
   showVersion: (version) => set((state) => (state.open ? { picked: { version } } : state)),
   // Closing the workspace's shown Artifact: its tab goes, the one before it shows (none left: the workspace closes).

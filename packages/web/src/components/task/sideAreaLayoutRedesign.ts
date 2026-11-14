@@ -74,9 +74,10 @@ export const DRAWER_SECTIONS: "artifact"[] = ["artifact"];
 export function useWorkspaceDrawer(layout: ChannelSideLayout, open: Set<ChannelSideSection>, rowWidth: number, desktop: boolean) {
   const drawer = workspaceAsDrawer(open, rowWidth, desktop);
   const rowOpen = useMemo(() => rowSections(open, drawer), [drawer, open]);
+  const collapsed = useArtifactViewerStore((st) => st.drawerCollapsed);
   const drawerColumn = drawer ? visibleChannelSideColumns(layout, open).find((c) => c.sections.includes("artifact")) : undefined;
   const workspaceSlot = useContext(WorkspaceSlotContext);
-  return { rowOpen, drawerColumn, workspaceSlot };
+  return { rowOpen, drawerColumn, workspaceSlot, drawerCollapsed: drawer && collapsed };
 }
 
 /** The drawer covers the timeline only (not the channel's header or side panel): the row's conversation column. */
@@ -84,7 +85,7 @@ export function drawerHost(row: HTMLElement | null): HTMLElement | null {
   return row?.querySelector<HTMLElement>(":scope > .thread-main-column") ?? null;
 }
 
-/** The drawer's scrim pressed: the workspace's shown Artifact closes (its tab with it). */
-export function closeWorkspace(): void {
-  useArtifactViewerStore.getState().close();
+/** The drawer's scrim pressed: the drawer pushes back to its handle; the Artifact and its tabs stay (Figmama 11/15). */
+export function collapseWorkspace(): void {
+  useArtifactViewerStore.getState().setDrawerCollapsed(true);
 }

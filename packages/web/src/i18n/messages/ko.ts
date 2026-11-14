@@ -4561,6 +4561,8 @@ export const ko: Partial<Record<MessageId, string>> = {
   "message.reply.oldDiscussion": "이전 토론",
   "message.reply.replyOnTimeline": "타임라인에서 답장",
   "artifacts.card.factsOpensInWorkspace": "{facts} · 작업 공간에서 열기",
+  "workspace.drawer.collapse": "작업 공간 접기",
+  "workspace.drawer.handle": "작업 공간 {count}",
   "timelineView.task": "작업 #{number}만",
   "timelineView.taskWithTitle": "작업 #{number}만: {title}",
   "timelineView.chain": "답장 체인만: {name}: {excerpt}",
