@@ -12,6 +12,7 @@ import {
   Settings,
   Users,
   ListTodo,
+  Inbox,
 } from "lucide-react";
 import { useFeedbackUnread } from "../../feedback/useFeedbackUnread";
 import { useAuthStore } from "../../store/authStore";
@@ -301,14 +302,16 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
     tabs.push(tab("chat", chatLabel, ({ dragProps, guardClick }) => (
       <RailTabButton {...dragProps} icon={<MessageIcon width={18} height={18} />} label={chatLabel} active={railMode === "chat"} onClick={guardClick(railModeSelectors.chat)} showDot={hasChatUnread} dotInactiveOnly testId="left-rail-tab-chat" />
     )));
-    const activityLabel = formatMessage({ id: "layout.leftRail.tabActivity" });
+    // Layout redesign: Activity and the bell are one inbox, its unread counted on the rail.
+    const activityLabel = formatMessage({ id: "layout.leftRail.tabInbox" });
     tabs.push(tab("activity", activityLabel, ({ dragProps, guardClick }) => (
       <RailTabButton
         {...dragProps}
-        icon={<Activity size={18} />}
+        icon={<Inbox size={18} />}
         label={activityLabel}
         active={railMode === "activity"}
         showDot={hasActivityUnread}
+        badgeCount={currentServerActivityCount ?? 0}
         dotInactiveOnly
         onClick={guardClick(handleClassicActivityClick)}
         onDoubleClick={focusFirstUnreadActivity}
@@ -368,7 +371,7 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
       )));
     }
     return tabs;
-  }, [appsAttention.lit, computerAttentionTooltip, formatMessage, handleClassicActivityClick, hasActivityUnread, hasChatUnread, isGuest, railMode, railModeSelectors, showArtifacts, showAssistant, showComputerAttentionDot, topBar, onlineAgentCount]);
+  }, [appsAttention.lit, computerAttentionTooltip, formatMessage, handleClassicActivityClick, hasActivityUnread, hasChatUnread, isGuest, railMode, railModeSelectors, showArtifacts, showAssistant, showComputerAttentionDot, topBar, onlineAgentCount, currentServerActivityCount]);
   const selectPublicChatMode = useCallback(() => publicProjection?.onSelectMode("chat"), [publicProjection]);
   const selectPublicSettingsMode = useCallback(() => publicProjection?.onSelectMode("settings"), [publicProjection]);
   const openPublicFeedback = useCallback(() => publicProjection?.onSelectSettingsTab("feedback"), [publicProjection]);
@@ -585,7 +588,8 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
 
       {/* With the top bar, the Bell lives in its right region; Help stays here
           above Settings. */}
-      {topBar ? null : pending ? <PendingNotificationTrigger flavor="rail-bottom" /> : <NotificationTrigger flavor="rail-bottom" />}
+      {/* Layout redesign: the bell is part of the inbox (its head), not a rail button. */}
+      {topBar || !pending ? null : <PendingNotificationTrigger flavor="rail-bottom" />}
 
       {/* Each footer item is the bare 40px rail button: the footer's 6px gap
           spaces them like the items above (Raft DS › Rail). */}

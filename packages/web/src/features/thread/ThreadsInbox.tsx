@@ -10,6 +10,9 @@ import { inboxItemChannelId } from "../../store/inboxItem";
 import { isScopeMarkedUnread } from "../../store/markedUnreadStore";
 import { activityFilterOf, inboxStateForActivityFilter, parseActivityFilterChoice, writeActivityFilterChoice } from "../../store/activityFilterPreference";
 import type { ActivityFilterChoice } from "../../store/activityFilterPreference";
+import { SegmentedControl, SegmentedControlItem, SegmentedControlLabel } from "@botiverse/raft-ui";
+import NotificationTrigger from "../../components/layout/NotificationTrigger";
+import InboxAssignedTasks from "./InboxAssignedTasks";
 import { ActivityInboxPanel, Banner, BannerAction, BannerDescription, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItemLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger, PickerTriggerButton, ScrollArea, useLocated } from "@botiverse/raft-ui";
 import { MessageIcon } from "@botiverse/ricons";
 import { InboxItemListGroup, InboxItemListHeading } from "@botiverse/raft-ui/wip";
@@ -532,47 +535,23 @@ export function ThreadsInbox() {
       className={`@container flex h-[calc(--spacing(12)+1px)] md:pointer-fine:h-(--header-height) shrink-0 items-center justify-between gap-4 border-b border-line-seam bg-layer-canvas px-(--column-margin) ${isPhoneTabRoot ? "sticky top-0 z-chrome" : ""}`}
     >
       <div className="flex min-w-0 items-center gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            ref={filterTriggerRef}
-            data-testid="inbox-filter-button"
-            // Open, the outlined trigger takes its hover fill, like any
-            // button whose popup is open (mockup s1-option-a).
-            className="data-popup-open:bg-fill-medium"
-            render={<PickerTriggerButton type="button" />}
-          >
-            <ListFilter aria-hidden data-icon="inline-start" />
-            {formatMessage({ id: "thread.filter.button" })}
-            <span data-picker-trigger-indicator="" aria-hidden="true">
-              <ChevronDown />
-            </span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent aria-label={formatMessage({ id: "thread.filter.ariaLabel" })} data-testid="inbox-filter-menu">
-            <DropdownMenuRadioGroup value={activeFilter} onValueChange={handleFilterChange}>
-              {ACTIVITY_FILTER_MENU.map(({ choice, separated }) => {
-                const Icon = ACTIVITY_FILTER_ICON[choice];
-                return (
-                  <Fragment key={choice}>
-                    {separated && <DropdownMenuSeparator />}
-                    <DropdownMenuRadioItem value={choice} data-testid={`inbox-filter-${choice}`}>
-                      <Icon aria-hidden />
-                      <DropdownMenuItemLabel>{formatMessage({ id: ACTIVITY_FILTER_LABEL_ID[choice] })}</DropdownMenuItemLabel>
-                    </DropdownMenuRadioItem>
-                  </Fragment>
-                );
-              })}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        {activeFilter !== "all" && (
-          <ActiveFilterChip
-            choice={activeFilter}
-            label={formatMessage({ id: ACTIVITY_FILTER_LABEL_ID[activeFilter] })}
-            clearLabel={formatMessage({ id: "thread.filter.clear" })}
-            onClear={clearFilter}
-          />
-        )}
+        {/* Layout redesign (F4): two lists, what is waiting on me (replies to me, @me) and everything. */}
+        <SegmentedControl<"mine" | "all">
+          value={activeFilter === "mentions" ? "mine" : "all"}
+          onValueChange={(value) => chooseFilter(value === "mine" ? "mentions" : "all")}
+          aria-label={formatMessage({ id: "thread.filter.ariaLabel" })}
+        >
+          <SegmentedControlItem value="mine" data-testid="inbox-tab-mine">
+            <SegmentedControlLabel>{formatMessage({ id: "inbox.tab.forMe" })}</SegmentedControlLabel>
+          </SegmentedControlItem>
+          <SegmentedControlItem value="all" data-testid="inbox-tab-all">
+            <SegmentedControlLabel>{formatMessage({ id: "inbox.tab.all" })}</SegmentedControlLabel>
+          </SegmentedControlItem>
+        </SegmentedControl>
       </div>
+      <div className="flex shrink-0 items-center gap-1">
+      {/* The bell (system notices: computers, feedback replies…) lives in the inbox now. */}
+      <NotificationTrigger flavor="top-bar" />
       {showMarkAllRead && (
         <Tooltip content={formatMessage({ id: "thread.markAllRead.title" })}>
           <Button
@@ -592,6 +571,7 @@ export function ThreadsInbox() {
           </Button>
         </Tooltip>
       )}
+      </div>
     </div>
   );
 
@@ -624,7 +604,7 @@ export function ThreadsInbox() {
           shell draws its own title bar, so the web draws none. */}
       {!isHostShell() && (
         <TabRootBar
-          name={formatMessage({ id: "thread.header.title" })}
+          name={formatMessage({ id: "layout.leftRail.tabInbox" })}
           // Before any page has settled the counts are not known: the
           // subtitle's line stays (so the head keeps its height) but shows
           // nothing; it is the subtitle itself, invisible and hidden from
@@ -675,6 +655,7 @@ export function ThreadsInbox() {
             {/* Phone tab root: the filter row is the scroller's first child
                 and pins under the bar, like Tasks' (TasksPanel). */}
             {isPhoneTabRoot && toolbar}
+            {activeFilter === "mentions" ? <InboxAssignedTasks /> : null}
             {newUpdateCount > 0 && (
               <Button
                 onClick={scrollToTop}

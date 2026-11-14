@@ -1,5 +1,5 @@
 import { forwardRef, useCallback } from "react";
-import { AppRailItem, AppRailItemAttention, AppRailItemIcon, AppRailItemLabel } from "@botiverse/raft-ui";
+import { AppRailItem, AppRailItemAttention, AppRailItemBadge, AppRailItemIcon, AppRailItemLabel } from "@botiverse/raft-ui";
 
 import Tooltip from "../ui/Tooltip";
 
@@ -23,6 +23,8 @@ type RailTabButtonProps = Omit<
   showDot?: boolean;
   /** A small green dot (presence, not attention): e.g. Members while agents are online. */
   presenceDot?: boolean;
+  /** A count instead of the dot (the inbox's unread). */
+  badgeCount?: number;
   dotInactiveOnly?: boolean;
   dotTooltip?: string;
   tooltipSide?: "left" | "right";
@@ -41,6 +43,7 @@ export const RailTabButton = forwardRef<HTMLButtonElement, RailTabButtonProps>(f
   active,
   showDot,
   presenceDot,
+  badgeCount,
   dotInactiveOnly,
   dotTooltip,
   tooltipSide = "right",
@@ -78,7 +81,9 @@ export const RailTabButton = forwardRef<HTMLButtonElement, RailTabButtonProps>(f
     >
       <AppRailItemIcon className="relative">
         {icon}
-        {dotVisible ? (
+        {badgeCount && badgeCount > 0 ? (
+          <AppRailItemBadge data-testid={testId ? `${testId}-badge` : undefined}>{badgeCount > 99 ? "99+" : badgeCount}</AppRailItemBadge>
+        ) : dotVisible ? (
           <AppRailItemAttention title={dotTooltip ?? label} />
         ) : presenceDot ? (
           <span aria-hidden className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-success" data-testid={testId ? `${testId}-presence` : undefined} />
