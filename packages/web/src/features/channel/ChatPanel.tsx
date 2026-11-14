@@ -1233,7 +1233,8 @@ export function ChatPanel({
   const standaloneMessageIds = useMemo(() => {
     const ids = new Set<string>();
     for (const m of messages) {
-      if (forumMode || threadSummaries[m.id] || taskByMessageId.has(m.id)) ids.add(m.id);
+      // Layout redesign: a reply starts its own block (with its quote), never merged under the message above.
+      if (forumMode || threadSummaries[m.id] || taskByMessageId.has(m.id) || m.replyToMessageId) ids.add(m.id);
     }
     return ids;
   }, [forumMode, messages, threadSummaries, taskByMessageId]);
@@ -1375,7 +1376,7 @@ export function ChatPanel({
             that the last 30 days start here. */}
         {!forumMode && groupState?.showDayDivider && <DateDivider createdAt={msg.createdAt} recentHistory={index === 0 && topHistoryState === "history_limited"} />}
         <div
-          className={TIMELINE_ROW_INSET}
+          className={msg.replyToMessageId ? `${TIMELINE_ROW_INSET} pt-3` : TIMELINE_ROW_INSET}
           // `overflow: clip visible` keeps the horizontal clip (wide code /
           // attachments can't blow out the column) while letting the hover
           // toolbar overflow upward to ride on the message's top border.
