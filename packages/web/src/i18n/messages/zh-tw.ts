@@ -4557,6 +4557,7 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "search.tasks": "任務",
   "search.taskWhere": "#{channel} · #{number}",
   "channelHead.infoAndSettings": "頻道資訊與設定",
+  "inbox.openInChannel": "在頻道中開啟",
   "timelineView.task": "只看任務 #{number}",
   "timelineView.taskWithTitle": "只看任務 #{number}：{title}",
   "timelineView.chain": "只看回覆鏈：{name}：{excerpt}",

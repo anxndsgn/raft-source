@@ -2,10 +2,13 @@ import { useEffect, useMemo } from "react";
 import { useIntl } from "react-intl";
 import { ListTodo } from "lucide-react";
 
-import { useAppNavigate } from "../../hooks/useAppNavigate";
 import { useAuthStore } from "../../store/authStore";
 import { useTaskStore } from "../../store/taskStore";
-import { openTaskInSidePanel } from "../../components/task/useOpenTask";
+import { useChannelSideCardStore } from "../../store/channelSideCardStore";
+import { useChannelStore } from "../../store/channelStore";
+import { useSearchContentStore } from "../../store/searchContentStore";
+import { useTimelineViewStore } from "../../store/timelineViewStore";
+import type { Task as AssignedTask } from "../../store/taskStore";
 
 const OPEN = new Set(["todo", "in_progress", "in_review"]);
 
@@ -16,7 +19,6 @@ const OPEN = new Set(["todo", "in_progress", "in_review"]);
  */
 export function InboxAssignedTasks() {
   const { formatMessage } = useIntl();
-  const nav = useAppNavigate();
   const viewerId = useAuthStore((s) => s.user?.id ?? null);
   const serverTasks = useTaskStore((s) => s.serverTasks);
   const loaded = useTaskStore((s) => s.serverTasksLoaded);
@@ -38,7 +40,7 @@ export function InboxAssignedTasks() {
           key={task.id}
           type="button"
           className="mx-2 flex items-start gap-3 rounded-container px-3 py-2.5 text-left hover:overlay-subtle"
-          onClick={() => { if (!openTaskInSidePanel(task, nav.toChannel)) nav.toChannel(task.channelId); }}
+          onClick={() => openAssignedTaskInInbox(task)}
           data-testid={`inbox-assigned-task-${task.taskNumber}`}
         >
           <ListTodo size={16} aria-hidden className="mt-0.5 shrink-0 text-foreground-hint" />
@@ -55,4 +57,15 @@ export function InboxAssignedTasks() {
       ))}
     </div>
   );
+}
+
+/**
+ * Layout redesign (F4): a task row stays in the inbox — its channel opens in the inbox's detail area (filtered to the
+ * task where the channel uses replies), the task's details in the side panel. "Open in channel" leaves for the chat.
+ */
+function openAssignedTaskInInbox(task: AssignedTask) {
+  useChannelSideCardStore.getState().openTaskDetail(task.channelId, task.id);
+  const replyMode = useChannelStore.getState().channels.find((c) => c.id === task.channelId)?.replyMode === true;
+  if (replyMode) void useTimelineViewStore.getState().openView(task.channelId, { kind: "task", taskNumber: task.taskNumber, title: task.title });
+  useSearchContentStore.getState().open({ kind: "channel", id: task.channelId });
 }

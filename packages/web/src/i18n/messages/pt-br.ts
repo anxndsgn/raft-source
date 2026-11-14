@@ -4557,6 +4557,7 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "search.tasks": "Tarefas",
   "search.taskWhere": "#{channel} · #{number}",
   "channelHead.infoAndSettings": "Informações e configurações do canal",
+  "inbox.openInChannel": "Abrir no canal",
   "timelineView.task": "Só a tarefa #{number}",
   "timelineView.taskWithTitle": "Só a tarefa #{number}: {title}",
   "timelineView.chain": "Só a cadeia de respostas: {name}: {excerpt}",

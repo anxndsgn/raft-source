@@ -4558,6 +4558,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "search.tasks": "タスク",
   "search.taskWhere": "#{channel} · #{number}",
   "channelHead.infoAndSettings": "チャンネル情報と設定",
+  "inbox.openInChannel": "チャンネルで開く",
   "timelineView.task": "タスク #{number} のみ",
   "timelineView.taskWithTitle": "タスク #{number} のみ：{title}",
   "timelineView.chain": "返信チェーンのみ：{name}：{excerpt}",

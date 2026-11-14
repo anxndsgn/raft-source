@@ -4557,6 +4557,7 @@ export const ko: Partial<Record<MessageId, string>> = {
   "search.tasks": "작업",
   "search.taskWhere": "#{channel} · #{number}",
   "channelHead.infoAndSettings": "채널 정보 및 설정",
+  "inbox.openInChannel": "채널에서 열기",
   "timelineView.task": "작업 #{number}만",
   "timelineView.taskWithTitle": "작업 #{number}만: {title}",
   "timelineView.chain": "답장 체인만: {name}: {excerpt}",

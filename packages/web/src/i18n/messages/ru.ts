@@ -4559,6 +4559,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "search.tasks": "Задачи",
   "search.taskWhere": "#{channel} · #{number}",
   "channelHead.infoAndSettings": "Сведения и настройки канала",
+  "inbox.openInChannel": "Открыть в канале",
   "timelineView.task": "Только задача #{number}",
   "timelineView.taskWithTitle": "Только задача #{number}: {title}",
   "timelineView.chain": "Только цепочка ответов: {name}: {excerpt}",

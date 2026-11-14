@@ -71,7 +71,6 @@ import { rosterHumanAsMember } from "../../utils/rosterHumanAsMember";
 import { useChannelMembers } from "../../hooks/useChannelMembers";
 import Tooltip from "../../components/ui/Tooltip";
 import AppBadge from "../../components/agent/AppBadge";
-import { useThreadStore } from "../../store/threadStore";
 import { useForumTimeline } from "./useForumTimeline";
 import { ChannelForumOrderBadge } from "../../components/channel/ChannelForumOrderBadge";
 import { useUIStore } from "../../store/uiStore";
@@ -88,9 +87,10 @@ import { useProfileStore } from "../../store/profileStore";
 import MessageItem, { buildMentionMap } from "../../components/message/MessageItem";
 import HistoryTopState from "../../components/message/HistoryTopState";
 import { MessageInput } from "../composer/MessageInput";
+import { useThreadStore } from "../../store/threadStore";
 import { TimelineViewBar } from "./TimelineViewBar";
 import { useTimelineViewStore } from "../../store/timelineViewStore";
-import { timelineViewComposerPlaceholder, timelineViewSource, useChatTimelineView, useConversationHeaderPortal, useMineViewSwitch, useViewHiddenRows } from "./useChatTimelineView";
+import { timelineViewComposerPlaceholder, timelineViewSource, useChatTimelineView, useConversationHeaderPortal, useMineViewSwitch, useOpenInChannelAction, useThreadAwareCardToggles, useViewHiddenRows } from "./useChatTimelineView";
 import type { ComposerReference } from "../composer/composerTypes";
 import MessageTimeline from "../../components/message/MessageTimeline";
 import type {
@@ -277,7 +277,6 @@ export function ChatPanel({
   const { loadingNewer, hasNewer, contextLoadError } = channelWindowMeta;
   // Forum-style channels (#proj-chat:#24): useForumTimeline.ts.
   const { forumChannel, forumMode, messages: timelineMessages, hasMore: timelineHasMore, historyLimited, loading: timelineLoading, loadingOlder, loadOlderActivity } = useForumTimeline(channel, seqMessages, channelWindowMeta);
-  // Reply mode, step 2: a filtered view of the timeline in place of the channel's (useChatTimelineView).
   const { view: timelineView, rows: timelineViewRowsResult, messages, hasMore, loading } = useChatTimelineView(channel, seqMessages, { messages: timelineMessages, hasMore: timelineHasMore, loading: timelineLoading });
   const messagesBelongToChannel = !!channelId;
   const shouldShowMessageTimeline = messages.length > 0;
@@ -1690,10 +1689,8 @@ export function ChatPanel({
   const dmPeerAvatar = useMemo(() => resolveDmPeerAvatarFromDirectory(channel ?? {}, agents, members), [channel, agents, members]);
   // The head always fits (#189 rule 6): its own buttons (Search, an agent DM's Lounge, Tasks, Files, Settings) fold into ⋯.
   const { mineView, openTaskCount } = useMineViewSwitch(channel, timelineView, isDesktopShell, channelTasks);
-  // Layout redesign: a thread open here holds the side panel's place; the switches show it, and pressing one closes it.
-  const threadHere = useThreadStore((s) => !!s.openParentMessageId && s.openParentChannelId === channelId && !s.taskModal);
-  const showTasksCard = useCallback(() => { if (threadHere) { useThreadStore.getState().closeThread(); if (!tasksCardOpen) toggleTasksCard(); } else toggleTasksCard(); }, [threadHere, tasksCardOpen, toggleTasksCard]);
-  const showFilesCard = useCallback(() => { if (threadHere) { useThreadStore.getState().closeThread(); if (!filesCardOpen) toggleFilesCard(); } else toggleFilesCard(); }, [threadHere, filesCardOpen, toggleFilesCard]);
+  const openInChannelAction = useOpenInChannelAction(channelId);
+  const { threadHere, showTasksCard, showFilesCard } = useThreadAwareCardToggles(channelId, { tasksCardOpen, filesCardOpen, toggleTasksCard, toggleFilesCard });
   const { cardToggles, containerProps: headContainerProps, fit: fitHead } = useChannelHeadToggles({ cards: sideCards && supportsChannelTasks, tasksOpen: tasksCardOpen && !threadHere, filesOpen: filesCardOpen && !threadHere, onToggleTasks: showTasksCard, onToggleFiles: showFilesCard, onOpenLounge: handleOpenLounge, mineView, taskCount: openTaskCount });
   if (!channel) return <ChatPanelNoChannel onBack={onMobileBack ?? routeMobileBack} backAlwaysVisible={Boolean(contentSlotBack)} />;
 
@@ -1918,7 +1915,7 @@ export function ChatPanel({
           ) : undefined
         }
         // The conversation's Expand (#189 rule 5) last: it has no Close.
-        actions={channelHeaderActions}
+        actions={<>{openInChannelAction}{channelHeaderActions}</>}
       />
       )}
 
