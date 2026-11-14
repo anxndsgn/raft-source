@@ -1,3 +1,4 @@
+import { WorkspaceTabStrip } from "./WorkspaceTabStrip";
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
@@ -261,6 +262,8 @@ function LoadedViewer({ chrome, switching, failedVersion, onRetry, phone, onOpen
   useEffect(() => {
     shownTitleRef.current?.(card.title);
   }, [card.title]);
+  // The workspace tab's name (WorkspaceTabStrip).
+  useEffect(() => { useArtifactViewerStore.getState().setTabTitle(card.id, card.title); }, [card.id, card.title]);
   useEffect(() => () => shownTitleRef.current?.(null), []);
   const openInNewPage = useCallback(() => {
     // Addresses are built from the id, never taken from the payload.
@@ -514,6 +517,7 @@ function ViewerFrame({
           20px margin, so stacked above Tasks and Files its title and buttons
           line up with theirs. Covering, the Back comes first (on a phone the
           channel header's Back stands for it). */}
+      {covering ? null : <WorkspaceTabStrip />}
       <PanelHeader data-testid="artifact-viewer-header" {...(covering ? null : chrome?.props)} ref={measureHead}>
         {covering ? (
           // A narrow desktop panel has no header Back, so the card keeps its

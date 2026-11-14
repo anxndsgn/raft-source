@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { ArtifactCommentId } from "@botiverse/raft-shared";
+import type { ArtifactCommentId, ArtifactId } from "@botiverse/raft-shared";
 import { focusLost } from "../../utils/focusGuard";
 import { watchFocusIntent } from "../../utils/focusRequest";
 
@@ -55,6 +55,16 @@ export interface ArtifactCommentsOpening {
 
 interface ArtifactViewerState {
   open: OpenArtifact | null;
+  /**
+   * Layout redesign (workspace tabs, anxndsgn 11/15): every Artifact opened in the workspace, in opening order;
+   * `open` is the one shown. Closing the shown one shows the one before it.
+   */
+  tabs: OpenArtifact[];
+  /** The tabs' titles, as the viewer learns them. */
+  tabTitles: Record<string, string>;
+  activateTab: (id: ArtifactId) => void;
+  closeTab: (id: ArtifactId) => void;
+  setTabTitle: (id: ArtifactId, title: string) => void;
   openedAt: number;
   expanded: boolean;
   /**
@@ -96,13 +106,45 @@ function samePlaces(a: ArtifactAddressedPlaces | null, b: ArtifactAddressedPlace
 
 export const useArtifactViewerStore = create<ArtifactViewerState>((set) => ({
   open: null,
+  tabs: [],
+  tabTitles: {},
+  activateTab: (id) => set((state) => {
+    const tab = state.tabs.find((t) => t.id === id);
+    if (!tab || state.open?.id === id) return state;
+    // A tab shows where the workspace is now (the place of the one shown), not where it was first opened.
+    const here = state.open ? ({ conversationId: state.open.conversationId, cover: state.open.cover } as ArtifactPlace) : null;
+    const open = (here ? { ...tab, ...here } : tab) as OpenArtifact;
+    return { open, openedAt: Date.now(), picked: null };
+  }),
+  closeTab: (id) => set((state) => {
+    const tabs = state.tabs.filter((t) => t.id !== id);
+    if (state.open?.id !== id) return { tabs };
+    const next = tabs[tabs.length - 1] ?? null;
+    return { tabs, open: next, openedAt: Date.now(), expanded: next ? state.expanded : false, picked: null };
+  }),
+  setTabTitle: (id, title) => set((state) => (state.tabTitles[id] === title ? state : { tabTitles: { ...state.tabTitles, [id]: title } })),
   openedAt: 0,
   expanded: false,
   addressed: null,
   picked: null,
-  openArtifact: (open) => set({ open, openedAt: Date.now(), expanded: false, picked: null }),
+  openArtifact: (open) => set((state) => ({
+    open,
+    // A tab per Artifact, at most 8: opening one already there brings it forward in its place.
+    tabs: state.tabs.some((t) => t.id === open.id)
+      ? state.tabs.map((t) => (t.id === open.id ? open : t))
+      : [...state.tabs, open].slice(-8),
+    openedAt: Date.now(),
+    expanded: false,
+    picked: null,
+  })),
   showVersion: (version) => set((state) => (state.open ? { picked: { version } } : state)),
-  close: () => set({ open: null, expanded: false, picked: null }),
+  // Closing the workspace's shown Artifact: its tab goes, the one before it shows (none left: the workspace closes).
+  close: () => set((state) => {
+    if (!state.open) return { open: null, expanded: false, picked: null };
+    const tabs = state.tabs.filter((t) => t.id !== state.open!.id);
+    const next = tabs[tabs.length - 1] ?? null;
+    return { tabs, open: next, openedAt: Date.now(), expanded: next ? state.expanded : false, picked: null };
+  }),
   setExpanded: (expanded) => set({ expanded }),
   setAddressed: (addressed) => set((state) => (samePlaces(state.addressed, addressed) ? state : { addressed })),
 }));
