@@ -10,8 +10,9 @@ import { inboxItemChannelId } from "../../store/inboxItem";
 import { isScopeMarkedUnread } from "../../store/markedUnreadStore";
 import { activityFilterOf, inboxStateForActivityFilter, parseActivityFilterChoice, writeActivityFilterChoice } from "../../store/activityFilterPreference";
 import type { ActivityFilterChoice } from "../../store/activityFilterPreference";
-import { SegmentedControl, SegmentedControlItem, SegmentedControlLabel } from "@botiverse/raft-ui";
-import NotificationTrigger from "../../components/layout/NotificationTrigger";
+import { SegmentedControl, SegmentedControlCount, SegmentedControlItem, SegmentedControlLabel } from "@botiverse/raft-ui";
+import InboxSystemNotices from "./InboxSystemNotices";
+import { useInboxForMeCount } from "./inboxForMe";
 import InboxAssignedTasks from "./InboxAssignedTasks";
 import { ActivityInboxPanel, Banner, BannerAction, BannerDescription, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItemLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger, PickerTriggerButton, ScrollArea, useLocated } from "@botiverse/raft-ui";
 import { MessageIcon } from "@botiverse/ricons";
@@ -507,6 +508,7 @@ export function ThreadsInbox() {
   // All. The choice is kept per server (store/activityFilterPreference) and
   // the inbox store restores it when the server becomes current.
   const activeFilter = activityFilterOf(filter, scope);
+  const forMeCount = useInboxForMeCount();
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
   const chooseFilter = useCallback((choice: ActivityFilterChoice) => {
     writeActivityFilterChoice(serverId, choice);
@@ -543,6 +545,7 @@ export function ThreadsInbox() {
         >
           <SegmentedControlItem value="mine" data-testid="inbox-tab-mine">
             <SegmentedControlLabel>{formatMessage({ id: "inbox.tab.forMe" })}</SegmentedControlLabel>
+            {forMeCount > 0 ? <SegmentedControlCount>{forMeCount}</SegmentedControlCount> : null}
           </SegmentedControlItem>
           <SegmentedControlItem value="all" data-testid="inbox-tab-all">
             <SegmentedControlLabel>{formatMessage({ id: "inbox.tab.all" })}</SegmentedControlLabel>
@@ -550,8 +553,6 @@ export function ThreadsInbox() {
         </SegmentedControl>
       </div>
       <div className="flex shrink-0 items-center gap-1">
-      {/* The bell (system notices: computers, feedback replies…) lives in the inbox now. */}
-      <NotificationTrigger flavor="top-bar" />
       {showMarkAllRead && (
         <Tooltip content={formatMessage({ id: "thread.markAllRead.title" })}>
           <Button
@@ -655,6 +656,8 @@ export function ThreadsInbox() {
             {/* Phone tab root: the filter row is the scroller's first child
                 and pins under the bar, like Tasks' (TasksPanel). */}
             {isPhoneTabRoot && toolbar}
+            {/* Layout redesign (F4): the bell's notices — to act on in For me, the rest atop All. */}
+            <InboxSystemNotices actionable={activeFilter === "mentions"} />
             {activeFilter === "mentions" ? <InboxAssignedTasks /> : null}
             {newUpdateCount > 0 && (
               <Button

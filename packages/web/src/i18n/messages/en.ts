@@ -4755,6 +4755,8 @@ export const en = {
   "inbox.tab.all": "All",
   "inbox.assignedTask.kind": "Task",
   "inbox.assignedTask.title": "Task #{number} is assigned to you",
+  "channel.details.about": "About",
+  "inbox.systemNotices": "Notices",
   "timelineView.task": "Only task #{number}",
   "timelineView.taskWithTitle": "Only task #{number}: {title}",
   "timelineView.chain": "Only the reply chain: {name}: {excerpt}",

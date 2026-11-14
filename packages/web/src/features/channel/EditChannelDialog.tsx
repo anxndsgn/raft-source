@@ -1611,16 +1611,23 @@ export function EditChannelDialog({
       <div className="stack-y-6" data-testid="channel-settings-panel">
         {jointConversionSection}
         {jointAttachmentUploadSection}
-        {identity}
+        {/* Layout redesign (F6): About — the name, description and announcement — first. */}
+        <section className="stack-y-3" data-testid="channel-details-about" aria-labelledby="channel-details-about-heading">
+          <SectionHeader
+            icon={<Info size={16} aria-hidden="true" />}
+            label={<span id="channel-details-about-heading">{formatMessage({ id: "channel.details.about" })}</span>}
+          />
+          {identity}
+          {/* Channel announcements (#proj-chat:#29): its own row, only while the flag is on, and to who can't change
+              it only while there is one. */}
+          <ChannelAnnouncementField
+            channelId={channelId}
+            channelName={initialName}
+            channelType={channel?.type}
+            canEdit={Boolean(effectiveCapabilities.editChannelMetadata) && !isArchived}
+          />
+        </section>
         {membersSlot}
-        {/* Channel announcements (#proj-chat:#29): its own row, only while the flag is on, and to who can't change
-            it only while there is one. */}
-        <ChannelAnnouncementField
-          channelId={channelId}
-          channelName={initialName}
-          channelType={channel?.type}
-          canEdit={Boolean(effectiveCapabilities.editChannelMetadata) && !isArchived}
-        />
         {serversSection}
         {channelSettingsSection}
         <ChannelPreferencesSection

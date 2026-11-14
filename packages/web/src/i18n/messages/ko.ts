@@ -4546,6 +4546,8 @@ export const ko: Partial<Record<MessageId, string>> = {
   "inbox.tab.all": "전체",
   "inbox.assignedTask.kind": "작업",
   "inbox.assignedTask.title": "작업 #{number}이(가) 나에게 배정됨",
+  "channel.details.about": "정보",
+  "inbox.systemNotices": "시스템 알림",
   "timelineView.task": "작업 #{number}만",
   "timelineView.taskWithTitle": "작업 #{number}만: {title}",
   "timelineView.chain": "답장 체인만: {name}: {excerpt}",

@@ -4546,6 +4546,8 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "inbox.tab.all": "Tudo",
   "inbox.assignedTask.kind": "Tarefa",
   "inbox.assignedTask.title": "A tarefa #{number} foi atribuída a você",
+  "channel.details.about": "Sobre",
+  "inbox.systemNotices": "Avisos",
   "timelineView.task": "Só a tarefa #{number}",
   "timelineView.taskWithTitle": "Só a tarefa #{number}: {title}",
   "timelineView.chain": "Só a cadeia de respostas: {name}: {excerpt}",

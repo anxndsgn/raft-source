@@ -4546,6 +4546,8 @@ export const es: Partial<Record<MessageId, string>> = {
   "inbox.tab.all": "Todo",
   "inbox.assignedTask.kind": "Tarea",
   "inbox.assignedTask.title": "La tarea #{number} está asignada a ti",
+  "channel.details.about": "Acerca de",
+  "inbox.systemNotices": "Avisos",
   "timelineView.task": "Solo la tarea #{number}",
   "timelineView.taskWithTitle": "Solo la tarea #{number}: {title}",
   "timelineView.chain": "Solo la cadena de respuestas: {name}: {excerpt}",

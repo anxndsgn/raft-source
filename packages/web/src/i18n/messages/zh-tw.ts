@@ -4546,6 +4546,8 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "inbox.tab.all": "全部",
   "inbox.assignedTask.kind": "任務",
   "inbox.assignedTask.title": "任務 #{number} 指派給了你",
+  "channel.details.about": "關於",
+  "inbox.systemNotices": "系統通知",
   "timelineView.task": "只看任務 #{number}",
   "timelineView.taskWithTitle": "只看任務 #{number}：{title}",
   "timelineView.chain": "只看回覆鏈：{name}：{excerpt}",

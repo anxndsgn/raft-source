@@ -23,6 +23,7 @@ import { useInboxStore } from "../../store/inboxStore";
 import { useChannelStore } from "../../store/channelStore";
 import { isMachineOffline, useMachineStore } from "../../store/machineStore";
 import { useAgentStore } from "../../store/agentStore";
+import { useInboxForMeCount } from "../../features/thread/inboxForMe";
 import { SERVER_NOTIFICATION_PREFS_UPDATED_EVENT } from "../../store/events/notificationPrefsEvents";
 import type { RailMode } from "../../hooks/useSidebarTab";
 import { useRailMode } from "../../hooks/useSidebarTab";
@@ -289,6 +290,8 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
     () => agents.filter((agent) => agent.status === "active" && !agent.external && !!agent.machineId && !isMachineOffline(machines, agent.machineId)).length,
     [agents, machines],
   );
+  // The inbox badge counts what is waiting on me (the inbox's For me), not all Activity.
+  const forMeCount = useInboxForMeCount();
   const railTabs = useMemo<RailTab[]>(() => {
     const tab = (id: RailTab["id"], label: string, button: (drag: RailTabDrag) => React.ReactNode): RailTab => ({ id, label, render: button });
     const tabs: RailTab[] = [];
@@ -311,7 +314,7 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
         label={activityLabel}
         active={railMode === "activity"}
         showDot={hasActivityUnread}
-        badgeCount={currentServerActivityCount ?? 0}
+        badgeCount={forMeCount}
         dotInactiveOnly
         onClick={guardClick(handleClassicActivityClick)}
         onDoubleClick={focusFirstUnreadActivity}
@@ -371,7 +374,7 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
       )));
     }
     return tabs;
-  }, [appsAttention.lit, computerAttentionTooltip, formatMessage, handleClassicActivityClick, hasActivityUnread, hasChatUnread, isGuest, railMode, railModeSelectors, showArtifacts, showAssistant, showComputerAttentionDot, topBar, onlineAgentCount, currentServerActivityCount]);
+  }, [appsAttention.lit, computerAttentionTooltip, formatMessage, handleClassicActivityClick, hasActivityUnread, hasChatUnread, isGuest, railMode, railModeSelectors, showArtifacts, showAssistant, showComputerAttentionDot, topBar, onlineAgentCount, forMeCount]);
   const selectPublicChatMode = useCallback(() => publicProjection?.onSelectMode("chat"), [publicProjection]);
   const selectPublicSettingsMode = useCallback(() => publicProjection?.onSelectMode("settings"), [publicProjection]);
   const openPublicFeedback = useCallback(() => publicProjection?.onSelectSettingsTab("feedback"), [publicProjection]);

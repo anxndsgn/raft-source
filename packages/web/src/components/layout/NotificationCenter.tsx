@@ -116,7 +116,7 @@ const NotificationCenter = forwardRef<HTMLDivElement, NotificationCenterProps>(
 
 export default NotificationCenter;
 
-function NotificationActions({
+export function NotificationActions({
   entry,
   dismiss,
   close,

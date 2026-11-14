@@ -4547,6 +4547,8 @@ export const ja: Partial<Record<MessageId, string>> = {
   "inbox.tab.all": "すべて",
   "inbox.assignedTask.kind": "タスク",
   "inbox.assignedTask.title": "タスク #{number} があなたに割り当てられました",
+  "channel.details.about": "概要",
+  "inbox.systemNotices": "お知らせ",
   "timelineView.task": "タスク #{number} のみ",
   "timelineView.taskWithTitle": "タスク #{number} のみ：{title}",
   "timelineView.chain": "返信チェーンのみ：{name}：{excerpt}",

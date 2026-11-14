@@ -4657,6 +4657,8 @@ export const zhCn: Record<MessageId, string> = {
   "inbox.tab.all": "全部",
   "inbox.assignedTask.kind": "任务",
   "inbox.assignedTask.title": "任务 #{number} 指派给了你",
+  "channel.details.about": "关于",
+  "inbox.systemNotices": "系统通知",
   "timelineView.task": "只看任务 #{number}",
   "timelineView.taskWithTitle": "只看任务 #{number}：{title}",
   "timelineView.chain": "只看回复链：{name}：{excerpt}",

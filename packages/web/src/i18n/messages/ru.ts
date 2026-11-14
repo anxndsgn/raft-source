@@ -4548,6 +4548,8 @@ export const ru: Partial<Record<MessageId, string>> = {
   "inbox.tab.all": "Все",
   "inbox.assignedTask.kind": "Задача",
   "inbox.assignedTask.title": "Задача #{number} назначена вам",
+  "channel.details.about": "О канале",
+  "inbox.systemNotices": "Уведомления",
   "timelineView.task": "Только задача #{number}",
   "timelineView.taskWithTitle": "Только задача #{number}: {title}",
   "timelineView.chain": "Только цепочка ответов: {name}: {excerpt}",
