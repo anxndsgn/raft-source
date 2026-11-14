@@ -4558,6 +4558,8 @@ export const es: Partial<Record<MessageId, string>> = {
   "search.taskWhere": "#{channel} · #{number}",
   "channelHead.infoAndSettings": "Información y ajustes del canal",
   "inbox.openInChannel": "Abrir en el canal",
+  "message.reply.oldDiscussion": "Conversación anterior",
+  "message.reply.replyOnTimeline": "Responder en la línea de tiempo",
   "timelineView.task": "Solo la tarea #{number}",
   "timelineView.taskWithTitle": "Solo la tarea #{number}: {title}",
   "timelineView.chain": "Solo la cadena de respuestas: {name}: {excerpt}",

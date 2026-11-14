@@ -1,4 +1,5 @@
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import { isActivityMasterDetailViewport } from "../../components/thread/activityLayout";
 import type { InboxFilter, InboxItem, ObjectActivityItem } from "../../store/inboxStore";
 import { getInboxItemKey } from "../../store/inboxItem";
 import { isTaskConversationItem } from "../../utils/taskConversation";
@@ -21,6 +22,8 @@ export function moveRowFocus(event: ReactKeyboardEvent<HTMLElement>) {
   const next = triggers[triggers.indexOf(trigger) + (event.key === "ArrowDown" ? 1 : -1)];
   event.preventDefault();
   next?.focus();
+  // Layout redesign (F4): beside the list, the right side follows — the row moved to opens.
+  if (next && isActivityMasterDetailViewport()) next.click();
 }
 
 /** A row's open trigger (raft-ui InboxItemTrigger), the row's first stop. */

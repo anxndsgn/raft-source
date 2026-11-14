@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { OldDiscussionFooter } from "./OldDiscussionFooter";
 import type { ReactNode, RefObject } from "react";
 import { useIntl } from "react-intl";
 import { Button, TextLink, ThreadPanelFooter } from "@botiverse/raft-ui";
@@ -189,7 +190,7 @@ export function ThreadPanelComposer({
         composerReplacement
       ) : parentChannel?.replyMode === true && !hideParentMessage ? (
         /* Reply mode: old threads are read-only; reply on the channel's timeline. */
-        <ReadOnlyComposer notice={formatMessage({ id: "message.reply.oldThreadReadOnly" })} />
+        <OldDiscussionFooter parentMessage={parentMessage} />
       ) : canReplyInParentThread ? (
         /* Thread message input — use parent channel members for @mention autocomplete */
         <MessageInput

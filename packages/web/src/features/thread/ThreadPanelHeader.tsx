@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
 import { X, ChevronLeft } from "lucide-react";
-import { DropdownMenuItem, PanelAction, PanelMeta, PanelTitle, TextLink } from "@botiverse/raft-ui";
+import { Badge, DropdownMenuItem, PanelAction, PanelMeta, PanelTitle, TextLink } from "@botiverse/raft-ui";
 import type { SideSectionHead } from "../../components/task/sideSectionDrag";
 import Tooltip from "../../components/ui/Tooltip";
 import PanelHeader from "../../components/ui/PanelHeader";
@@ -197,6 +197,8 @@ export function ThreadPanelHeader({
             {formatMessage({ id: "message.threadPanel.thread" })}
           </PanelTitle>
           </Tooltip>
+          {/* Layout redesign (Figmama 11/15): a thread from before the channel used replies, read-only. */}
+          {parentChannel?.replyMode === true ? <Badge appearance="soft" variant="muted" data-testid="thread-old-discussion">{formatMessage({ id: "message.reply.oldDiscussion" })}</Badge> : null}
           {parentChannelId && (() => {
             // Stryker disable all: pre-existing parent label resolution is outside the workspace mutation corpus.
             const ch = parentChannel;

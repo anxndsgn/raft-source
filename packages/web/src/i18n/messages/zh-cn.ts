@@ -4669,6 +4669,8 @@ export const zhCn: Record<MessageId, string> = {
   "search.taskWhere": "#{channel} · #{number}",
   "channelHead.infoAndSettings": "频道信息与设置",
   "inbox.openInChannel": "在频道中打开",
+  "message.reply.oldDiscussion": "旧讨论",
+  "message.reply.replyOnTimeline": "在时间线里回复",
   "timelineView.task": "只看任务 #{number}",
   "timelineView.taskWithTitle": "只看任务 #{number}：{title}",
   "timelineView.chain": "只看回复链：{name}：{excerpt}",

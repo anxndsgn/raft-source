@@ -4767,6 +4767,8 @@ export const en = {
   "search.taskWhere": "#{channel} · #{number}",
   "channelHead.infoAndSettings": "Channel info and settings",
   "inbox.openInChannel": "Open in channel",
+  "message.reply.oldDiscussion": "Earlier discussion",
+  "message.reply.replyOnTimeline": "Reply on the timeline",
   "timelineView.task": "Only task #{number}",
   "timelineView.taskWithTitle": "Only task #{number}: {title}",
   "timelineView.chain": "Only the reply chain: {name}: {excerpt}",
