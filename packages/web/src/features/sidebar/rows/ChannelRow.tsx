@@ -2,7 +2,8 @@ import { Badge, SidebarItem, SidebarItemChannelIcon, SidebarItemContent, Sidebar
 import Tooltip from "../../../components/ui/Tooltip";
 import { useCallback, memo } from "react";
 import { useIntl } from "react-intl";
-import { Pencil, AtSign } from "lucide-react";
+import { Pencil, AtSign, ListFilter } from "lucide-react";
+import { useTimelineViewStore } from "../../../store/timelineViewStore";
 import type { Channel } from "../../../store/channelStore";
 import { slackSyncHeaderState } from "../../../components/channel/slackSyncHeaderState";
 import { useMessageStore } from "../../../store/messageStore";
@@ -59,6 +60,7 @@ export const ChannelRow = memo(function ChannelRow({
   const hasNew = useMessageStore((s) => s.newFlags[channel.id] === true);
   const markedUnread = useScopeMarkedUnread(channel.id);
   const hasDraft = useMessageStore((s) => !!s.drafts[channel.id]);
+  const viewOpen = useTimelineViewStore((s) => channel.replyMode === true && !!s.views[channel.id]);
   // Not joined: no scan, no thread-unread mark.
   const threadUnread = useParentThreadUnread(channel.joined ? channel.id : null);
   // Display-language (react-intl) — the row owns its own marker copy so the
@@ -117,6 +119,10 @@ export const ChannelRow = memo(function ChannelRow({
         {/* One line with an ellipsis, as every sidebar row (DS `rf-srow__name`).
             The row's tone sets its ink and weight (raft-ui SidebarItem `tone`). */}
         <SidebarItemTitle>{channel.name}</SidebarItemTitle>
+        {/* Reply mode: this channel is seen through a filtered view (timelineViewStore). */}
+        {viewOpen && (
+          <ListFilter size={12} aria-label={formatMessage({ id: "timelineView.close" })} className="ml-1 shrink-0 text-foreground-hint" data-testid="sidebar-channel-view-filter" />
+        )}
         {channel.bridge?.provider === "slack" && (
           <Badge appearance="soft" variant={slackSyncHeaderState(channel) ? "warning" : "accent"}>
             {formatMessage({ id: "settings.slackBridge.providerBadge" })}

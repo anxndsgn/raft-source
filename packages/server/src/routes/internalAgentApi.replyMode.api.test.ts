@@ -370,4 +370,10 @@ test("reply mode views: task, reply chain and mine, with hidden gaps and counts"
     .where(and(eq(userChannelReadCursors.userId, owner.id), eq(userChannelReadCursors.channelId, channel.id)));
   const fromInbox = await readReplyModeViewPage({ channelId: channel.id, userId: owner.id, view: { kind: "chain", messageId: ids.m3 }, limit: 50, readThroughSeq: Number.MAX_SAFE_INTEGER });
   assert.equal(fromInbox.hiddenUnread?.count, 3);
+
+  // Activity: a reply to me opens its chain, a task's message the task, a plain message nothing.
+  const { viewForActivityMessage } = await import("../services/replyModeViewService");
+  assert.deepEqual(await viewForActivityMessage(channel.id, ids.m2, owner.id), { kind: "chain", messageId: ids.m2 });
+  assert.deepEqual(await viewForActivityMessage(channel.id, ids.t1, owner.id), { kind: "task", taskNumber: 1, title: "Fix deploy" });
+  assert.equal(await viewForActivityMessage(channel.id, ids.noise1, owner.id), null);
 });

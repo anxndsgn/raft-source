@@ -10,6 +10,7 @@ import { useThreadStore } from "../../store/threadStore";
 import { useSearchContentStore } from "../../store/searchContentStore";
 import type { SearchContentSlot } from "../../store/searchContentStore";
 import { holdAutoRead, releaseAutoRead } from "../../store/autoReadHold";
+import { openActivityTimelineView } from "../../store/timelineViewActivity";
 import { pickReopen, readLastOpenedActivityKey, writeLastOpenedActivityKey } from "../../components/thread/activityArrivalOpen";
 import { trackActivityItemOpen } from "../../analytics/activity";
 import type { useAppNavigate } from "../../hooks/useAppNavigate";
@@ -170,9 +171,13 @@ export function useThreadsInboxOpen({
     // Reopened on arrival (`automatic`, see `reopen`): no open event and no
     // read; the hold keeps it unread until the person acts in it.
     releaseAutoRead({ read: false });
+    // Reply mode, step 2: a channel row opens the view its notification
+    // belongs to (reply chain / task), which reads only up to that message
+    // and only when the view hides no unread (timelineViewActivity).
+    const replyModeEntry = !automatic && item.kind === "channel" ? openActivityTimelineView(item) : null;
     if (!automatic) {
       trackActivityItemOpen(item.kind);
-      if (item.unreadCount > 0 || isScopeMarkedUnread(inboxItemChannelId(item))) void markRead(item);
+      if (!replyModeEntry && (item.unreadCount > 0 || isScopeMarkedUnread(inboxItemChannelId(item)))) void markRead(item);
     }
     // Every width opens the conversation in Activity's detail slot, the same
     // interaction as picking a /search result (stdrc #proj-activity:171042a3
@@ -215,7 +220,7 @@ export function useThreadsInboxOpen({
       : item.lastMessageId;
     // A phone opens at the first message that mentions you, as it always has;
     // beside the list it opens at the first unread.
-    const targetMessageId = masterDetail ? unreadTarget : item.firstMentionMessageId ?? unreadTarget;
+    const targetMessageId = replyModeEntry ?? (masterDetail ? unreadTarget : item.firstMentionMessageId ?? unreadTarget);
     // Swapping the opened conversation drops any col-4 thread from the
     // previous one (mirror MessageSearchPage.openResult).
     useThreadStore.getState().closeThread();

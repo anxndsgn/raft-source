@@ -46,20 +46,17 @@ export function ReplyQuote({
 }
 
 /**
- * Reply mode: "N replies" under a message others replied to. Toggles the list
- * of its replies (those loaded on the timeline) right below it; only a view,
- * not a thread.
+ * Reply mode: "N replies" under a message others replied to. Opens the
+ * timeline's view of its reply chain (timelineViewStore).
  */
 export function ReplyCountToggle({
   messageId,
   count,
-  expanded,
-  onToggle,
+  onOpen,
 }: {
   messageId: string;
   count: number;
-  expanded: boolean;
-  onToggle: () => void;
+  onOpen: () => void;
 }) {
   const { formatMessage } = useIntl();
   return (
@@ -68,15 +65,12 @@ export function ReplyCountToggle({
       className="mt-1 inline-flex items-center gap-1 text-footnote text-foreground-hint hover:text-foreground-muted"
       onClick={(event) => {
         event.stopPropagation();
-        onToggle();
+        onOpen();
       }}
-      aria-expanded={expanded}
       data-testid={`message-reply-count-${messageId}`}
     >
       <CornerUpLeft size={12} aria-hidden="true" className="shrink-0" />
-      {expanded
-        ? formatMessage({ id: "message.reply.hideReplies" })
-        : formatMessage({ id: "message.reply.replyCount" }, { count })}
+      {formatMessage({ id: "message.reply.replyCount" }, { count })}
     </button>
   );
 }

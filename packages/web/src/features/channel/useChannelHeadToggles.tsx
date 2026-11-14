@@ -1,13 +1,14 @@
 import { useCallback, useMemo } from "react";
 import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
-import { ListTodo, Paperclip } from "lucide-react";
+import { ListTodo, Paperclip, UserRoundSearch } from "lucide-react";
 
 import { AgentLoungeIcon } from "../../components/agent/agentLounge";
 import type { ColumnMenuItem } from "../../components/layout/ColumnOverflowMenu";
 import { shownOwnActions, useHeadWidth } from "../../components/layout/headFit";
 import { useRowExpand, useRowPlanned } from "../../components/layout/rowPlanStore";
 import ChannelFilesToggle from "../../components/task/ChannelFilesToggle";
+import ChannelMineViewToggle from "../../components/task/ChannelMineViewToggle";
 import ChannelTasksToggle from "../../components/task/ChannelTasksToggle";
 import { OverflowMenuTrigger } from "../../components/ui/OverflowSheet";
 
@@ -21,8 +22,10 @@ interface HeadToggles {
  * as a ⋯ item, and how many of Search, those and Settings fold into ⋯ so the head always fits (#189 rule 6): the
  * last first; ⋯ and Expand never fold.
  */
-export function useChannelHeadToggles({ cards, tasksOpen, filesOpen, onToggleTasks, onToggleFiles, onOpenLounge }: {
+export function useChannelHeadToggles({ cards, tasksOpen, filesOpen, onToggleTasks, onToggleFiles, onOpenLounge, mineView }: {
   cards: boolean;
+  /** Reply mode: the "What concerns me" view switch, first of the toggles. */
+  mineView?: { open: boolean; onToggle: () => void } | null;
   tasksOpen: boolean;
   filesOpen: boolean;
   onToggleTasks: () => void;
@@ -33,13 +36,23 @@ export function useChannelHeadToggles({ cards, tasksOpen, filesOpen, onToggleTas
   const tasksLabel = formatMessage({ id: tasksOpen ? "task.sidePanel.close" : "task.sidePanel.open" });
   const filesLabel = formatMessage({ id: filesOpen ? "message.chatPanel.filesCard.close" : "message.chatPanel.filesCard.open" });
   const loungeLabel = formatMessage({ id: "agent.lounge.label" });
-  const cardToggles = useMemo<HeadToggles>(() => (cards ? {
-    nodes: [<ChannelTasksToggle key="tasks" open={tasksOpen} onToggle={onToggleTasks} />, <ChannelFilesToggle key="files" open={filesOpen} onToggle={onToggleFiles} />],
-    items: [
-      { id: "tasks", label: tasksLabel, icon: <ListTodo />, onSelect: onToggleTasks, testId: "channel-header-overflow-tasks" },
-      { id: "files", label: filesLabel, icon: <Paperclip />, onSelect: onToggleFiles, testId: "channel-header-overflow-files" },
-    ],
-  } : { nodes: [], items: [] }), [cards, filesLabel, filesOpen, onToggleFiles, onToggleTasks, tasksLabel, tasksOpen]);
+  const mineLabel = formatMessage({ id: "timelineView.mineToggle" });
+  const mineOpen = mineView?.open ?? false;
+  const onToggleMine = mineView?.onToggle;
+  const cardToggles = useMemo<HeadToggles>(() => {
+    const base: HeadToggles = cards ? {
+      nodes: [<ChannelTasksToggle key="tasks" open={tasksOpen} onToggle={onToggleTasks} />, <ChannelFilesToggle key="files" open={filesOpen} onToggle={onToggleFiles} />],
+      items: [
+        { id: "tasks", label: tasksLabel, icon: <ListTodo />, onSelect: onToggleTasks, testId: "channel-header-overflow-tasks" },
+        { id: "files", label: filesLabel, icon: <Paperclip />, onSelect: onToggleFiles, testId: "channel-header-overflow-files" },
+      ],
+    } : { nodes: [], items: [] };
+    if (!onToggleMine) return base;
+    return {
+      nodes: [<ChannelMineViewToggle key="mine" open={mineOpen} onToggle={onToggleMine} />, ...base.nodes],
+      items: [{ id: "mine", label: mineLabel, icon: <UserRoundSearch />, onSelect: onToggleMine, testId: "channel-header-overflow-mine" }, ...base.items],
+    };
+  }, [cards, filesLabel, filesOpen, mineLabel, mineOpen, onToggleFiles, onToggleMine, onToggleTasks, tasksLabel, tasksOpen]);
   const loungeToggles = useMemo<HeadToggles>(() => ({
     nodes: [<OverflowMenuTrigger key="lounge" labelId="agent.lounge.label" onClick={onOpenLounge} icon={<AgentLoungeIcon size={22} />} testId="agent-dm-open-lounge" />, ...cardToggles.nodes],
     items: [{ id: "lounge", label: loungeLabel, icon: <AgentLoungeIcon />, onSelect: onOpenLounge, testId: "channel-header-overflow-lounge" }, ...cardToggles.items],

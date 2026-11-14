@@ -1,4 +1,5 @@
 import * as replyModeService from "../services/replyModeService";
+import { canView } from "../services/visibilityService";
 import { refuse } from "../lib/refusal";
 import { respondToTaskWriteError } from "../lib/taskWriteErrorResponse";
 import { Router, type Request, type Response, type Router as RouterType } from "express";
@@ -518,9 +519,16 @@ taskRouter.get("/:taskId/history", async (req, res) => {
 // ("N messages · view in channel") shows them.
 taskRouter.get("/:taskId/linked-messages", async (req, res) => {
   try {
-    const task = await requireTaskInServer(req, res);
-    if (!task) return;
-    res.json(await replyModeService.taskLinkedMessageSummary(task.id));
+    const owner = await taskService.resolveTaskById(String(req.params.taskId));
+    const surface = owner ? await resolveTaskChannelSurfaceForStorage(req.serverId!, owner.row.channelId) : null;
+    const [visible] = surface
+      ? await canView({ type: "user", id: req.userId!, serverId: req.serverId! }, [{ kind: "conversation", channelId: surface.localChannel.id }])
+      : [false];
+    if (!owner || !visible) {
+      res.status(404).json({ error: "Task not found" });
+      return;
+    }
+    res.json(await replyModeService.taskLinkedMessageSummary(owner.row.id));
   } catch {
     res.status(500).json({ error: "Failed to read the task's messages" });
   }

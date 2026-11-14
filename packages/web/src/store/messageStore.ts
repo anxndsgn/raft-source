@@ -1,5 +1,6 @@
 import { isAxiosError } from "axios";
 import { isAutoReadHeld } from "./autoReadHold";
+import { timelineViewComposerTaskNumber } from "./timelineViewStore";
 import { useProfileStore } from "./profileStore";
 import { useReplyTargetStore } from "./replyTargetStore";
 import { create } from "zustand";
@@ -2562,12 +2563,15 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     noteMessageHistoryRequest();
     // Reply mode: the composer's reply target (replyTargetStore), if any.
     const replyTarget = useReplyTargetStore.getState().targets[channelId];
+    // Reply mode, task view: what is sent there is linked to the view's task.
+    const viewTaskNumber = timelineViewComposerTaskNumber(channelId);
     const { data } = await api.post("/v2/messages", {
       channelId,
       content,
       attachmentIds,
       asTask: asTask || undefined,
       ...(replyTarget ? { replyToMessageId: replyTarget.messageId } : {}),
+      ...(viewTaskNumber ? { taskNumbers: [viewTaskNumber] } : {}),
       randomId,
       mentions: mentions && mentions.length > 0 ? mentions : undefined,
       // The sender's IANA zone, recorded on the message for agents only.

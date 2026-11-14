@@ -122,9 +122,11 @@ export type ReplyModeViewPage = {
    * With `readThrough` (a message's seq): unread timeline messages up to it
    * that are not in the view, counted from the viewer's read position.
    */
-  hiddenUnread: { count: number; firstSeq: number | null } | null;
+  hiddenUnread: { count: number; firstSeq: number | null; firstId: string | null } | null;
   /** The view's newest seq (0 for an empty view). */
   latestSeq: number;
+  /** The channel timeline's newest seq: the client's `since` for later reads. */
+  channelLatestSeq: number;
 };
 
 export async function readReplyModeViewPage(opts: {
@@ -170,12 +172,13 @@ export async function readReplyModeViewPage(opts: {
     WITH v AS (${members})
     SELECT (SELECT count(*) FROM v)::int AS total,
            coalesce((SELECT max(seq) FROM v), 0)::bigint AS latest,
+           coalesce((SELECT max(seq) FROM messages WHERE channel_id = ${opts.channelId}::uuid), 0)::bigint AS channel_latest,
            ${opts.sinceSeq !== undefined
              ? sql`(SELECT count(*) FROM messages m
                      WHERE m.channel_id = ${opts.channelId}::uuid AND m.seq > ${opts.sinceSeq}
                        AND m.id NOT IN (SELECT id FROM v))::int`
              : sql`0`} AS new_outside
-  `)).rows as Array<{ total: number; latest: string | number; new_outside: number }>;
+  `)).rows as Array<{ total: number; latest: string | number; channel_latest: string | number; new_outside: number }>;
 
   let hiddenUnread: ReplyModeViewPage["hiddenUnread"] = null;
   if (opts.readThroughSeq !== undefined) {
@@ -185,14 +188,14 @@ export async function readReplyModeViewPage(opts: {
         SELECT coalesce((SELECT last_read_seq FROM user_channel_read_cursors
                           WHERE user_id = ${opts.userId}::uuid AND channel_id = ${opts.channelId}::uuid), 0) AS last
       )
-      SELECT count(*)::int AS n, min(m.seq)::bigint AS first
+      SELECT count(*)::int AS n, min(m.seq)::bigint AS first, (array_agg(m.id::text ORDER BY m.seq))[1] AS first_id
         FROM messages m, cursor c
        WHERE m.channel_id = ${opts.channelId}::uuid
          AND m.seq > c.last AND m.seq <= ${opts.readThroughSeq}
          AND m.id NOT IN (SELECT id FROM v)
          AND NOT (m.sender_type = 'user' AND m.sender_id = ${opts.userId})
-    `)).rows as Array<{ n: number; first: string | number | null }>;
-    hiddenUnread = { count: Number(row?.n ?? 0), firstSeq: row?.first == null ? null : Number(row.first) };
+    `)).rows as Array<{ n: number; first: string | number | null; first_id: string | null }>;
+    hiddenUnread = { count: Number(row?.n ?? 0), firstSeq: row?.first == null ? null : Number(row.first), firstId: row?.first_id ?? null };
   }
 
   return {
@@ -203,5 +206,39 @@ export async function readReplyModeViewPage(opts: {
     newOutside: Number(summary?.new_outside ?? 0),
     hiddenUnread,
     latestSeq: Number(summary?.latest ?? 0),
+    channelLatestSeq: Number(summary?.channel_latest ?? 0),
   };
+}
+
+/**
+ * Which view Activity opens for a message that concerns `userId` (PRD step 2
+ * §6): a reply to me or on my chain → its reply chain; one that @s me → the
+ * full timeline (null); one linked to a task → that task's view; else null.
+ */
+export async function viewForActivityMessage(channelId: string, messageId: string, userId: string, executor?: DatabaseExecutor): Promise<
+  | { kind: "chain"; messageId: string }
+  | { kind: "task"; taskNumber: number; title: string }
+  | null
+> {
+  const db = executor ?? getDb();
+  const [row] = (await db.execute(sql`
+    SELECT m.id::text AS id,
+           m.reply_to_message_id IS NOT NULL AS is_reply,
+           EXISTS (SELECT 1 FROM message_mentions mm WHERE mm.message_id = m.id AND mm.target_type = 'user'
+                     AND mm.target_id = ${userId}::uuid AND mm.source = 'reply') AS reply_attention,
+           EXISTS (SELECT 1 FROM message_mentions mm WHERE mm.message_id = m.id AND mm.target_type = 'user'
+                     AND mm.target_id = ${userId}::uuid AND mm.source <> 'reply') AS mentioned,
+           (SELECT t.task_number FROM message_tasks mt JOIN tasks t ON t.id = mt.task_id
+             WHERE mt.message_id = m.id ORDER BY mt.created_at LIMIT 1) AS task_number,
+           (SELECT t.title FROM message_tasks mt JOIN tasks t ON t.id = mt.task_id
+             WHERE mt.message_id = m.id ORDER BY mt.created_at LIMIT 1) AS task_title
+      FROM messages m
+     WHERE m.id = ${messageId}::uuid AND m.channel_id = ${channelId}::uuid
+  `)).rows as Array<{ id: string; is_reply: boolean; reply_attention: boolean; mentioned: boolean; task_number: number | null; task_title: string | null }>;
+  if (!row) return null;
+  if (row.reply_attention) return { kind: "chain", messageId: row.id };
+  if (row.mentioned) return null;
+  if (row.task_number != null) return { kind: "task", taskNumber: Number(row.task_number), title: row.task_title ?? "" };
+  if (row.is_reply) return { kind: "chain", messageId: row.id };
+  return null;
 }

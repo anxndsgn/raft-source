@@ -4,6 +4,7 @@ import { trackMessageAction, messageMenuSurface } from "../../analytics/entries"
 import { MessageLinkCardsProvider, useMessageLinkCards } from "./useMessageLinkCards";
 import { ReplyCountToggle, ReplyQuote } from "./ReplyQuote";
 import { REPLY_TARGET_FOCUS_EVENT, useReplyTargetStore } from "../../store/replyTargetStore";
+import { timelineViewHasMessage, useTimelineViewStore } from "../../store/timelineViewStore";
 import { replyExcerpt } from "@botiverse/raft-shared";
 import {
   InlineAudioKeepAliveContext,
@@ -16,7 +17,7 @@ import type { ChangeEvent, MouseEvent, PointerEvent as ReactPointerEvent, ReactN
 import { createPortal } from "react-dom";
 import { useIntl } from "react-intl";
 import type { IntlShape } from "react-intl";
-import { Copy, Download, Play, Pause, Volume2, SquareCheckBig, Link, Bookmark, BookmarkMinus, Languages, AlertTriangle, Plus, Eye, Music, Paperclip, ListChecks, SquareDashedText, RefreshCw, MessageSquareDot, CornerUpLeft } from "lucide-react";
+import { Copy, Download, Play, Pause, Volume2, SquareCheckBig, Link, Bookmark, BookmarkMinus, Languages, AlertTriangle, Plus, Eye, Music, Paperclip, ListChecks, SquareDashedText, RefreshCw, MessageSquareDot, CornerUpLeft, ListFilter } from "lucide-react";
 import {
   Badge,
   Button,
@@ -579,7 +580,6 @@ interface DocumentAttachmentPreviewState {
 }
 
 const EMPTY_IMAGE_INLINE_FALLBACK_URLS: Record<string, string> = {};
-const EMPTY_REPLIES: Message[] = [];
 
 function ImageInlineFallbackLoader({
   fallbackKey,
@@ -2623,14 +2623,26 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
   const handleJumpToReplyOriginal = useCallback(() => {
     const originalId = message.replyTo?.messageId;
     if (!originalId) return;
+    // In a filtered view: the original is found there, or in the full timeline.
+    if (!timelineViewHasMessage(message.channelId, originalId)) useTimelineViewStore.getState().closeView(message.channelId);
     requestTransientFocus(message.channelId, originalId);
   }, [message.channelId, message.replyTo?.messageId, requestTransientFocus]);
-  const [repliesExpanded, setRepliesExpanded] = useState(false);
-  const timelineMessages = useMessageStore((s) => (repliesExpanded ? s.messages : EMPTY_REPLIES));
-  const loadedReplies = useMemo(
-    () => (repliesExpanded ? timelineMessages.filter((m) => m.replyToMessageId === message.id) : EMPTY_REPLIES),
-    [message.id, repliesExpanded, timelineMessages],
-  );
+  // Reply mode, step 2: in a filtered view, "View in full timeline" leaves it at this message.
+  const inTimelineView = useTimelineViewStore((s) => !!s.views[message.channelId]);
+  const handleViewInFullTimeline = useCallback(() => {
+    setCtxMenu(null);
+    useTimelineViewStore.getState().closeView(message.channelId);
+    requestTransientFocus(message.channelId, message.id);
+  }, [message.channelId, message.id, requestTransientFocus]);
+  // "N replies" opens the timeline's reply-chain view of this message.
+  const openReplyChainView = useCallback(() => {
+    void useTimelineViewStore.getState().openView(message.channelId, {
+      kind: "chain",
+      messageId: message.id,
+      senderName: message.senderDisplayName || message.senderName || "",
+      excerpt: replyExcerpt(message.content ?? ""),
+    });
+  }, [message.channelId, message.content, message.id, message.senderDisplayName, message.senderName]);
 
   const openInDetailSlot = useDetailSlotThreadOpener();
   const handleOpenThreadRef = useCallback(async (intent: ThreadRefIntent) => {
@@ -4764,35 +4776,15 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
               ) : null}
           </MessageItemFooter>
         ) : null}
-        {/* Reply mode: "N replies" under a message others replied to; opening
-            it lists the loaded replies here (a view, not a thread). */}
+        {/* Reply mode: "N replies" under a message others replied to opens
+            the timeline's view of its reply chain (step 2). */}
         {!readOnlyProjection && (message.directReplyCount ?? 0) > 0 ? (
           <div data-testid={`message-replies-${message.id}`}>
             <ReplyCountToggle
               messageId={message.id}
               count={message.directReplyCount ?? 0}
-              expanded={repliesExpanded}
-              onToggle={() => setRepliesExpanded((open) => !open)}
+              onOpen={openReplyChainView}
             />
-            {repliesExpanded ? (
-              <div className="mt-1 flex flex-col gap-0.5 pl-3">
-                {loadedReplies.map((reply) => (
-                  <ReplyQuote
-                    key={reply.id}
-                    messageId={`${message.id}-reply-${reply.id}`}
-                    replyTo={{
-                      messageId: reply.id,
-                      senderName: reply.senderDisplayName || reply.senderName || null,
-                      senderType: reply.senderType,
-                      excerpt: replyExcerpt(reply.content ?? ""),
-                      deleted: false,
-                      seq: reply.seq ?? null,
-                    }}
-                    onJump={() => requestTransientFocus(reply.channelId, reply.id)}
-                  />
-                ))}
-              </div>
-            ) : null}
           </div>
         ) : null}
         {/* Inside the Thread panel the replies ARE the surface — previewing them
@@ -4899,6 +4891,15 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
                   data-testid="message-context-reply"
                 >
                   {formatMessage({ id: "message.messageItem.reply" })}
+                </MenuItem>
+              )}
+              {replyModeHere && inTimelineView && (
+                <MenuItem
+                  icon={<ListFilter size={14} aria-hidden="true" />}
+                  onClick={handleViewInFullTimeline}
+                  data-testid="message-context-view-in-full"
+                >
+                  {formatMessage({ id: "timelineView.viewInFull" })}
                 </MenuItem>
               )}
               {!hideThreadActions && !replyModeHere && (

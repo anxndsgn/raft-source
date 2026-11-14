@@ -5,12 +5,13 @@ import { ArrowRight } from "lucide-react";
 import api from "../../api/client";
 import { useAppNavigate } from "../../hooks/useAppNavigate";
 import type { Task } from "../../store/taskStore";
+import { useTimelineViewStore } from "../../store/timelineViewStore";
 
 /**
  * Reply mode: the task dialog's footer in place of the old task thread's
  * composer. The task's discussion is on the channel's timeline (messages
- * linked to the task), so the dialog only counts them and leads there: to the
- * newest one. A timeline filtered to the task comes later.
+ * linked to the task), so the dialog only counts them and leads there: the
+ * channel's timeline opens filtered to the task (timelineViewStore).
  */
 export default function TaskLinkedMessagesBar({ task, onNavigate }: { task: Task; onNavigate: () => void }) {
   const { formatMessage } = useIntl();
@@ -33,7 +34,8 @@ export default function TaskLinkedMessagesBar({ task, onNavigate }: { task: Task
           className={`${base} bg-layer-card text-left outline-none hover:overlay-subtle active:overlay-medium focus-visible:shadow-focus`}
           onClick={() => {
             onNavigate();
-            nav.toMessage(task.channelId, summary.latestMessageId!);
+            void useTimelineViewStore.getState().openView(task.channelId, { kind: "task", taskNumber: task.taskNumber, title: task.title });
+            nav.toChannel(task.channelId);
           }}
         >
           <span className="font-medium text-foreground">{formatMessage({ id: "task.linkedMessages.count" }, { count: summary.count })}</span>

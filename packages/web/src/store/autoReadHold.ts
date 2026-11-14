@@ -23,8 +23,19 @@ export function holdAutoRead(id: string, hooks: { read: () => void; end?: () => 
   onEnd = hooks.end ?? null;
 }
 
+/**
+ * Reply mode, step 2: while a channel is seen through a filtered view, its
+ * read position stays (the hidden messages are not read). Registered by
+ * timelineViewStore so this module keeps no store import.
+ */
+let viewHoldReader: ((id: string) => boolean) | null = null;
+export function registerTimelineViewReadHold(reader: (id: string) => boolean): void {
+  viewHoldReader = reader;
+}
+
 /** Whether auto-read is held for this conversation. */
 export function isAutoReadHeld(id: string | null | undefined): boolean {
+  if (id && viewHoldReader?.(id)) return true;
   return heldId !== null && id === heldId;
 }
 

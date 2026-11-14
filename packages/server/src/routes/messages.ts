@@ -1074,6 +1074,35 @@ messageRouter.get("/context/:messageId", async (req, res) => {
 // messages, a reply chain, or what concerns me), newest page first like the
 // timeline. `since` counts newer messages outside the view; `readThrough`
 // (a message id) counts unread messages the view hides up to it.
+// Reply mode, step 2: the view Activity opens a message of this channel in.
+messageRouter.get("/channel/:channelId/view-entry", async (req, res) => {
+  try {
+    const channelId = req.params.channelId;
+    const channel = await channelService.getChannel(channelId);
+    if (!channel || channel.serverId !== req.serverId) {
+      res.status(404).json(CHANNEL_NOT_FOUND_BODY);
+      return;
+    }
+    const [visible] = await canView({ type: "user", id: req.userId!, serverId: req.serverId! }, [{ kind: "conversation", channelId }]);
+    if (!visible) {
+      await denyChannelAccess(res, req.userId!, channelId, "You do not have access to this channel");
+      return;
+    }
+    const messageId = String(req.query.message ?? "").toLowerCase();
+    if (!/^[0-9a-f-]{36}$/.test(messageId) || !(await replyModeService.isReplyModeChannel(channelId))) {
+      res.json({ view: null, seq: null });
+      return;
+    }
+    const target = await replyModeService.resolveReplyTarget(channelId, messageId).catch(() => null);
+    res.json({
+      view: target ? await replyModeViewService.viewForActivityMessage(channelId, messageId, req.userId!) : null,
+      seq: target?.seq ?? null,
+    });
+  } catch {
+    res.status(500).json({ error: "Failed to read the view" });
+  }
+});
+
 messageRouter.get("/channel/:channelId/view", async (req, res) => {
   try {
     const channelId = req.params.channelId;
@@ -1082,7 +1111,8 @@ messageRouter.get("/channel/:channelId/view", async (req, res) => {
       res.status(404).json(CHANNEL_NOT_FOUND_BODY);
       return;
     }
-    if (!(await channelService.canUserAccessChannel(channelId, req.userId!, req.serverId!))) {
+    const [visible] = await canView({ type: "user", id: req.userId!, serverId: req.serverId! }, [{ kind: "conversation", channelId }]);
+    if (!visible) {
       await denyChannelAccess(res, req.userId!, channelId, "You do not have access to this channel");
       return;
     }
@@ -1127,6 +1157,7 @@ messageRouter.get("/channel/:channelId/view", async (req, res) => {
       newOutside: page.newOutside,
       hiddenUnread: page.hiddenUnread,
       latestSeq: page.latestSeq,
+      channelLatestSeq: page.channelLatestSeq,
       readThroughSeq: readThroughSeq ?? null,
     });
   } catch (err) {

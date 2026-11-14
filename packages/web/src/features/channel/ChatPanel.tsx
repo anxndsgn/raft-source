@@ -88,6 +88,8 @@ import { useProfileStore } from "../../store/profileStore";
 import MessageItem, { buildMentionMap } from "../../components/message/MessageItem";
 import HistoryTopState from "../../components/message/HistoryTopState";
 import { MessageInput } from "../composer/MessageInput";
+import { TimelineViewBar, TimelineViewHiddenRow } from "./TimelineViewBar";
+import { timelineViewRows, useTimelineViewStore } from "../../store/timelineViewStore";
 import type { ComposerReference } from "../composer/composerTypes";
 import MessageTimeline from "../../components/message/MessageTimeline";
 import type {
@@ -277,7 +279,14 @@ export function ChatPanel({
   const channelWindowMeta = useMessageStore((s) => selectChannelWindowMeta(s, channelId));
   const { loadingNewer, hasNewer, contextLoadError } = channelWindowMeta;
   // Forum-style channels (#proj-chat:#24): useForumTimeline.ts.
-  const { forumChannel, forumMode, messages, hasMore, historyLimited, loading, loadingOlder, loadOlderActivity } = useForumTimeline(channel, seqMessages, channelWindowMeta);
+  const { forumChannel, forumMode, messages: timelineMessages, hasMore: timelineHasMore, historyLimited, loading: timelineLoading, loadingOlder, loadOlderActivity } = useForumTimeline(channel, seqMessages, channelWindowMeta);
+  // Reply mode, step 2: a filtered view of the timeline (timelineViewStore)
+  // shows its own messages, with "N hidden" rows between them.
+  const timelineView = useTimelineViewStore((s) => (channelId && channel?.replyMode === true ? s.views[channelId] ?? null : null));
+  const timelineViewRowsResult = useMemo(() => (timelineView ? timelineViewRows(timelineView) : null), [timelineView]);
+  const messages = timelineViewRowsResult ? timelineViewRowsResult.messages : timelineMessages;
+  const hasMore = timelineView ? timelineView.hasMore : timelineHasMore;
+  const loading = timelineView ? timelineView.loading && timelineView.messages.length === 0 : timelineLoading;
   const messagesBelongToChannel = !!channelId;
   const shouldShowMessageTimeline = messages.length > 0;
   // The timeline's visible window feeds translation through a store read by
@@ -855,11 +864,13 @@ export function ChatPanel({
     });
   }, [channelId, clearFocusedMessageParam, exitContextWindow, focusMessageId, hasNewer, setHighlightedMessageId, setNearBottom]);
 
+  const timelineViewOpen = timelineView !== null;
   const loadOlderForChannel = useCallback(() => {
     if (!channelId) return Promise.resolve();
+    if (timelineViewOpen) return useTimelineViewStore.getState().loadOlder(channelId);
     if (forumMode) return loadOlderActivity(channelId);
     return loadOlderMessages(channelId);
-  }, [channelId, forumMode, loadOlderActivity, loadOlderMessages]);
+  }, [channelId, forumMode, loadOlderActivity, loadOlderMessages, timelineViewOpen]);
 
   const loadNewerForChannel = useCallback(() => {
     if (!channelId) return Promise.resolve();
@@ -1162,7 +1173,18 @@ export function ChatPanel({
     return map;
   }, [tasksByMessageId, taskV2]);
 
-  const messageSource = useMemo<MessageTimelineSource>(() => ({
+  const timelineViewFocusId = timelineView?.focusMessageId ?? null;
+  const messageSource = useMemo<MessageTimelineSource>(() => timelineViewOpen ? {
+    messages,
+    hasOlder: hasMore,
+    hasNewer: false,
+    loading,
+    loadOlder: loadOlderForChannel,
+    loadNewer: () => Promise.resolve(),
+    initialFocusMessageId: timelineViewFocusId,
+    initialAtStart: false,
+    atStartKey: null,
+  } : ({
     messages,
     hasOlder: hasMore,
     hasNewer,
@@ -1173,7 +1195,15 @@ export function ChatPanel({
     initialAtStart: showsHiddenTarget,
     // Each jump bumps the nonce; a jump clears the paywall until it lands.
     atStartKey: showsHiddenTarget ? highlightNonce : null,
-  }), [messages, hasMore, hasNewer, loading, loadOlderForChannel, loadNewerForChannel, highlightedMessageId, focusMessageId, showsHiddenTarget, highlightNonce]);
+  }), [timelineViewOpen, timelineViewFocusId, messages, hasMore, hasNewer, loading, loadOlderForChannel, loadNewerForChannel, highlightedMessageId, focusMessageId, showsHiddenTarget, highlightNonce]);
+
+  // A view follows the channel live: anything new or changed on the timeline
+  // (a message, an edit, a task link) reads the view again, a little later.
+  useEffect(() => {
+    if (!timelineViewOpen || !channelId) return;
+    const timer = setTimeout(() => { void useTimelineViewStore.getState().refreshView(channelId); }, 400);
+    return () => clearTimeout(timer);
+  }, [timelineViewOpen, channelId, seqMessages]);
 
   const systemMessageRenderStates = useMemo(
     () => buildSystemMessageRenderStates(messages, formatMessage),
@@ -1267,7 +1297,7 @@ export function ChatPanel({
     agentById,
   });
   const agentReadActive = agentReadProgress !== null;
-  const renderChannelItem = useCallback((msg: Message, index: number) => {
+  const renderChannelItemInner = useCallback((msg: Message, index: number) => {
     const systemMessageState = systemMessageRenderStates[index];
     const wrapMessageRender = (children: ReactNode) =>
       messageRenderScope && channelId
@@ -1375,6 +1405,18 @@ export function ChatPanel({
       </>
     );
   }, [forumMode, agentById, agentReadActive, agentReadStatusMessageId, canReactInChannel, channel?.id, channelId, channels, dmReadStatusMessageId, topHistoryState, expandedSystemMessageGroups, externalById, locatedMessageId, memberById, mentionMap, messageRenderScope, messages, messageGrouping, onOpenProfile, onOpenThread, preserveChannelAnchorForThreadOpen, systemMessageRenderStates, taskByMessageId, taskListsByMessageId, threadSummaries, toggleSystemMessageGroup]);
+
+  const renderChannelItem = useCallback((msg: Message, index: number) => {
+    const hiddenRow = timelineViewRowsResult?.hiddenRowBefore.get(msg.id);
+    const rendered = renderChannelItemInner(msg, index);
+    if (!hiddenRow || !channelId) return rendered;
+    return (
+      <>
+        <TimelineViewHiddenRow channelId={channelId} viewMessageId={hiddenRow.viewMessageId} count={hiddenRow.count} />
+        {rendered}
+      </>
+    );
+  }, [timelineViewRowsResult, channelId, renderChannelItemInner]);
 
   // The list's one leading row: the history boundary (with the context-jump
   // banners). Keyed by its variant, so it is a row of the timeline like the
@@ -1684,7 +1726,16 @@ export function ChatPanel({
   // A DM peer's face: the live agent / member directory once it knows them (a reset included), else the DM's snapshot.
   const dmPeerAvatar = useMemo(() => resolveDmPeerAvatarFromDirectory(channel ?? {}, agents, members), [channel, agents, members]);
   // The head always fits (#189 rule 6): its own buttons (Search, an agent DM's Lounge, Tasks, Files, Settings) fold into ⋯.
-  const { cardToggles, containerProps: headContainerProps, fit: fitHead } = useChannelHeadToggles({ cards: taskV2 && supportsChannelTasks, tasksOpen: tasksCardOpen, filesOpen: filesCardOpen, onToggleTasks: toggleTasksCard, onToggleFiles: toggleFilesCard, onOpenLounge: handleOpenLounge });
+  const mineViewOpen = timelineView?.spec.kind === "mine";
+  const toggleMineView = useCallback(() => {
+    if (!channelId) return;
+    const store = useTimelineViewStore.getState();
+    if (store.views[channelId]?.spec.kind === "mine") store.closeView(channelId);
+    else void store.openView(channelId, { kind: "mine" });
+  }, [channelId]);
+  const mineViewAvailable = channel?.replyMode === true && channel?.type !== "dm";
+  const mineView = useMemo(() => (mineViewAvailable ? { open: mineViewOpen, onToggle: toggleMineView } : null), [mineViewAvailable, mineViewOpen, toggleMineView]);
+  const { cardToggles, containerProps: headContainerProps, fit: fitHead } = useChannelHeadToggles({ cards: taskV2 && supportsChannelTasks, tasksOpen: tasksCardOpen, filesOpen: filesCardOpen, onToggleTasks: toggleTasksCard, onToggleFiles: toggleFilesCard, onOpenLounge: handleOpenLounge, mineView });
   if (!channel) return <ChatPanelNoChannel onBack={onMobileBack ?? routeMobileBack} backAlwaysVisible={Boolean(contentSlotBack)} />;
 
   const isDM = channel.type === "dm";
@@ -1978,6 +2029,7 @@ export function ChatPanel({
               onOpenSettings={canEditAnnouncement ? openAnnouncementSettings : undefined}
             />
           ) : null}
+          {timelineView && channelId ? <TimelineViewBar channelId={channelId} view={timelineView} /> : null}
           {/* Messages — virtualized.
               stdrc 2026-05-02 #proj-uiux:95e25b5b e33f2924: main panel
               整个 white 底，messages scroller 也跟上 — the whole chat column
@@ -2026,7 +2078,7 @@ export function ChatPanel({
               {/* Select mode: a row's toggle or range (Shift+click), in this timeline's order. */}
               <AgentReadProgressContext.Provider value={agentReadProgress}><MessageSelectIntentProvider timelineRef={timelineRef}>
               <MessageTimeline
-                key={channel.id}
+                key={timelineView ? `${channel.id}:view:${timelineView.key}` : channel.id}
                 ref={timelineRef}
                 source={messageSource}
                 renderItem={renderChannelItem}
@@ -2037,7 +2089,7 @@ export function ChatPanel({
                 onAtBottomChange={handleAtBottomStateChange}
                 onVisibleMessageWindowChange={translationWindow.set}
                 onViewportChange={selectToHere.onViewportChange}
-                persistKey={forumMode ? `channel-forum:${channel.id}` : `channel:${channel.id}`}
+                persistKey={timelineView ? `channel-view:${channel.id}:${timelineView.key}` : forumMode ? `channel-forum:${channel.id}` : `channel:${channel.id}`}
                 className="h-full"
                 sparseAnchor="bottom"
               />
@@ -2049,7 +2101,7 @@ export function ChatPanel({
                 being cut. At the end of the list it lies over the list's empty end. */}
             {showComposer ? <AgentTypingLine channelId={channel.id} parentMessageId={null} workingAgentIdKey={workingAgentIdKey} /> : null}
             {showComposer ? <MessageListEndFade className={`${END_FADE_ABOVE_COMPOSER} ${END_FADE_UNDER_AGENT_TYPING_LINE_CLASS}`} /> : null}
-            {!isDM && !isThread ? (
+            {!isDM && !isThread && !timelineView ? (
               <ThreadUnreadJumpPill
                 channelId={channel.id}
                 onJumpToMessage={handleJumpToParentMessage}
@@ -2173,6 +2225,9 @@ export function ChatPanel({
                     : undefined}
                   frameEdge={<AssistantOtterAnchor hostId={otterHostId} channelId={channel.id} />}
                   composerReference={composerReference}
+                  placeholder={timelineView?.spec.kind === "task"
+                    ? formatMessage({ id: "timelineView.composerTask" }, { channel: `#${channel.name}`, number: timelineView.spec.taskNumber })
+                    : undefined}
                 />
               </div>
             )
