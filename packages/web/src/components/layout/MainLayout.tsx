@@ -46,7 +46,7 @@ import ShellSidebarColumn from "./ShellSidebarColumn";
 import ShellArtifactHost from "./ShellArtifactHost";
 import { useMediaQuery } from "../../hooks/effectPrimitives";
 import { Routes, Route, Navigate, UNSAFE_NavigationContext as NavigationContext, useParams, useNavigate, useLocation, useNavigationType } from "react-router-dom";
-import { directTaskConversationChannelId, isTaskV2Task, opensAsTaskConversation, parseTaskConversationParam } from "../../utils/taskConversation";
+import { directTaskConversationChannelId, opensAsTaskConversation, parseTaskConversationParam } from "../../utils/taskConversation";
 import { dismissTaskConversationDialog, TaskConversationDialog } from "../task/taskConversationDialogChunk";
 import { DRAFTS_SECTION_FLAG_KEY, TASK_V2_CONVERSATIONS_FLAG_KEY, useServerFeatureFlag } from "../../store/serverFeatureFlags";
 import { WORKSPACE_ARTIFACTS_FEATURE_FLAG_KEY } from "@botiverse/raft-shared";
@@ -140,7 +140,7 @@ import { ContentSlotThreadPanel } from "./ContentSlotThreadPanel";
 import { CONTENT_SLOT_ENTRY_MARK, historyEntryIndex, isContentSlotEntry, stampContentSlotEntry } from "./contentSlotEntry";
 import { TaskContentSlot } from "./TaskContentSlot";
 import { TasksRoute } from "./TasksRoute";
-import { ConversationHeaderSlotContext, RowColumnSlotContext, WorkspaceSlotContext } from "./rowColumnSlot";
+import { RowColumnSlotContext } from "./rowColumnSlot";
 import { DetailSlotThreadContext, useThreadInDetailSlotOpener } from "./detailSlotThread";
 import { ContentSlotBackContext, useContentSlotBack } from "./contentSlotBack";
 import { ACTIVITY_MASTER_DETAIL_QUERY, isActivityMasterDetailViewport } from "../thread/activityLayout";
@@ -201,7 +201,7 @@ const ProfilePanel = lazyPanel<ProfilePanelProps>(() => observeProfileOpenE2eImp
 ));
 const LegacyTaskPanel = lazyPanel(() => import("../task/LegacyTaskPanel"));
 const TaskModalHead = lazyPanel(() => import("../task/TaskModalHead"));
-const TaskLinkedMessagesBar = lazyPanel(() => import("../task/TaskLinkedMessagesBar"));
+import { ConversationFrame, useReplyModeTaskFooter } from "./layoutRedesign";
 
 /** Returns true when the mobile bottom tab bar should be visible on the
  *  current route. Used by both the bar itself and its in-flow spacer so that
@@ -377,7 +377,6 @@ export function MobileTabBar() {
     selectTab(tab);
   };
   const tabs = [
-    // Layout redesign (M1): the tab bar is the rail — Chat, Inbox, Tasks, Search, Me.
     { id: "chat", label: formatMessage({ id: "layout.leftRail.tabChat" }), icon: MessageSquare },
     { id: "activity", label: formatMessage({ id: "layout.leftRail.tabInbox" }), icon: Inbox },
     { id: "tasks", label: formatMessage({ id: "layout.mobileTabBar.tasks" }), icon: ListTodo },
@@ -1544,14 +1543,7 @@ function MessageThreadPanelWrapper({ presentation = "side" }: { presentation?: "
     });
   }, [hostTask, openTaskConversation, redirectToTaskConversation]);
   // Only a pre-v2 task has a host message whose thread to view.
-  // Reply mode: the task's discussion is its linked messages on the channel's
-  // timeline; the old task thread is read-only and the dialog leads there instead.
-  const hostReplyMode = useChannelStore((s) => (hostTask ? s.channels.find((c) => c.id === hostTask.channelId)?.replyMode === true : false));
-  const replyModeFooter = hostTask && hostReplyMode && !isTaskV2Task(hostTask)
-    ? <Suspense fallback={null}><TaskLinkedMessagesBar task={hostTask} onNavigate={closeSurface} /></Suspense>
-    : undefined;
-  const replyModeEmpty = replyModeFooter ? <div className="flex-1" /> : undefined;
-  const canViewInThread = !taskV2 && !hostReplyMode && !!hostTask && !hostTask.isLegacy && !isTaskV2Task(hostTask) && hostTask.channelType !== "thread";
+  const { canViewInThread, replyModeFooter, replyModeEmpty } = useReplyModeTaskFooter(hostTask, closeSurface, taskV2);
   // The task sheet owns the current history entry. Close the store first so
   // the panel disappears synchronously, then consume the PUSH that opened it.
   // On a cold deep link there is no safe entry to pop, so the callback fallback
@@ -1571,8 +1563,7 @@ function MessageThreadPanelWrapper({ presentation = "side" }: { presentation?: "
       >
         {hostTask && <TaskModalBar task={hostTask} onClose={closeSurface} onViewInThread={canViewInThread ? viewInThread : undefined} />}
         <div className="flex min-h-0 flex-1 flex-col">
-          <ThreadPanel key={parentMessageId} presentation="modal" threadIdentity={surfaceThreadIdentity} hideHeader={!!hostTask} hideParentMessage={!!hostTask}
-            composerReplacement={replyModeFooter} emptyState={replyModeEmpty}
+          <ThreadPanel key={parentMessageId} presentation="modal" threadIdentity={surfaceThreadIdentity} hideHeader={!!hostTask} hideParentMessage={!!hostTask} composerReplacement={replyModeFooter} emptyState={replyModeEmpty}
             parentSlot={hostTask ? <Suspense fallback={<div className="stack-y-3 border-b border-line-hairline bg-layer-canvas p-4"><Skeleton className="h-6 w-2/3" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-4/5" /></div>}><TaskModalHead task={hostTask} /></Suspense> : undefined} />
         </div>
       </DialogSurface>
@@ -1585,8 +1576,7 @@ function MessageThreadPanelWrapper({ presentation = "side" }: { presentation?: "
           <TaskModalBar task={hostTask} onClose={mobileTaskBack} onViewInThread={canViewInThread ? viewInThread : undefined} mobile />
         )}
         <div className="flex min-h-0 flex-1 flex-col">
-          <ThreadPanel key={parentMessageId} presentation="mobile-modal" threadIdentity={surfaceThreadIdentity} hideHeader={!!hostTask} hideParentMessage={!!hostTask}
-            composerReplacement={replyModeFooter} emptyState={replyModeEmpty}
+          <ThreadPanel key={parentMessageId} presentation="mobile-modal" threadIdentity={surfaceThreadIdentity} hideHeader={!!hostTask} hideParentMessage={!!hostTask} composerReplacement={replyModeFooter} emptyState={replyModeEmpty}
             parentSlot={hostTask ? <Suspense fallback={<div className="stack-y-3 border-b border-line-hairline bg-layer-canvas p-4"><Skeleton className="h-6 w-2/3" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-4/5" /></div>}><TaskModalHead task={hostTask} /></Suspense> : undefined} />
         </div>
       </div>
@@ -2268,8 +2258,6 @@ export default function MainLayout() {
   const contentColumnRef = useRef<HTMLDivElement | null>(null);
   // A page's own column beside the conversation in the row (the Tasks page's task; rowColumnSlot).
   const [rowColumnSlot, setRowColumnSlot] = useState<HTMLElement | null>(null);
-  const [conversationHeaderSlot, setConversationHeaderSlot] = useState<HTMLElement | null>(null);
-  const [workspaceSlot, setWorkspaceSlot] = useState<HTMLElement | null>(null);
   usePageViewTracking(location.pathname);
   // Raft Desktop: its move to the official Computer, as product events (analytics/computerMigration.ts).
   useComputerMigrationReporting();
@@ -2555,7 +2543,6 @@ export default function MainLayout() {
               <Sidebar
                 mobileInline={mobileShowSidebarInline}
                 announcementSlot={sidebarAnnouncementSlot}
-                // Layout redesign: the sidebar shows only its area's content, no title row.
                 hideTitle={showTopBar || isDesktop}
               />
             )}
@@ -2566,11 +2553,7 @@ export default function MainLayout() {
       // visible on mobile detail views and always on desktop.
       mainHidden={mobileShowSidebarInline}
       main={(
-        <div className="flex min-h-0 min-w-0 flex-1" data-testid="workspace-frame">
-        <WorkspaceSlotContext.Provider value={workspaceSlot}>
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col" data-testid="conversation-frame">
-        {/* Layout redesign: the conversation's header, above the row (ConversationHeaderSlotContext). */}
-        <div ref={setConversationHeaderSlot} className="shrink-0 empty:hidden" data-testid="conversation-header-slot" />
+        <ConversationFrame>
         <div
           ref={contentColumnRef}
           className="thread-layout-container relative flex min-h-0 min-w-0 flex-1"
@@ -2594,7 +2577,6 @@ export default function MainLayout() {
             data-otter-dock="conversation"
           >
             <RowColumnSlotContext.Provider value={rowColumnSlot}>
-            <ConversationHeaderSlotContext.Provider value={conversationHeaderSlot}>
             <Routes location={backgroundLocation ?? location}>
               <Route path="channel/:channelId" element={<ChannelRoute />} />
               <Route path="channel/:channelId/search" element={<ConversationSearchRoute kind="channel" />} />
@@ -2635,7 +2617,6 @@ export default function MainLayout() {
               <Route path="workspace" element={<LegacyWorkspaceGridRedirect />} />
               <Route path="*" element={<DefaultRoute />} />
             </Routes>
-            </ConversationHeaderSlotContext.Provider>
             </RowColumnSlotContext.Provider>
             {/* Workspace Artifacts: where one clicked outside a channel panel opens (the opening rule). */}
             <ShellArtifactHost />
@@ -2658,11 +2639,7 @@ export default function MainLayout() {
           <div hidden data-slot="thread-layout-end" />
           </SideSectionDnd>
         </div>
-        </div>
-        </WorkspaceSlotContext.Provider>
-        {/* Layout redesign (F3): the workspace, beside the header and the row (WorkspaceSlotContext). */}
-        <div ref={setWorkspaceSlot} className="contents" data-testid="workspace-slot" />
-        </div>
+        </ConversationFrame>
       )}
       after={(
         <>

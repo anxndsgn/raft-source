@@ -25,7 +25,7 @@ import { TaskAssigneeLabel } from "./TaskAssignee";
 import { CreateTaskDialog } from "./DeferredCreateTaskDialog";
 import TaskChipList from "./TaskChipList";
 import { TASK_STATUS_UI, toRuiTaskStatus } from "./taskStatusUi";
-import ChannelTaskDetail from "./ChannelTaskDetail";
+import { ChannelTaskDetail } from "./ChannelTaskDetail";
 import { SideCardContext } from "./sideCardsLayout";
 
 /** Work that is moving first (In Progress, In Review), then what waits (Todo,

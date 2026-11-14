@@ -9,7 +9,7 @@ import { isExternalAgentRuntime, REASONING_EFFORT_RUNTIMES, runtimeConfigModelVa
 import { useAgentDisplayState, useAgentStore } from "../../store/agentStore";
 import type { Agent } from "../../store/agentStore";
 import { useMachineStore } from "../../store/machineStore";
-import ProfileCardFooter from "./ProfileCardFooter";
+import { ProfileCardFooter } from "./ProfileCardFooter";
 import { resolveAgentMachineRow } from "../../utils/agentMachineRow";
 import { useServerStore } from "../../store/serverStore";
 import type { ServerMember } from "../../store/serverStore";

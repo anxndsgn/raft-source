@@ -17,7 +17,7 @@ import TaskModalHead from "./TaskModalHead";
  * that uses replies, "N messages" opens the timeline filtered to the task
  * (step 2) and says so while it is.
  */
-export default function ChannelTaskDetail({ task, onBack }: { task: Task; onBack: () => void }) {
+export function ChannelTaskDetail({ task, onBack }: { task: Task; onBack: () => void }) {
   const { formatMessage } = useIntl();
   const replyMode = useChannelStore((s) => s.channels.find((c) => c.id === task.channelId)?.replyMode === true);
   const filtering = useTimelineViewStore((s) => {

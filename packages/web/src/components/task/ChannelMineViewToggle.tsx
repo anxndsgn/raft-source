@@ -4,7 +4,7 @@ import { PanelToggleAction } from "@botiverse/raft-ui";
 import Tooltip from "../ui/Tooltip";
 
 /** Reply mode, step 2: the channel header's switch for the "What concerns me" view of the timeline. */
-export default function ChannelMineViewToggle({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+export function ChannelMineViewToggle({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const { formatMessage } = useIntl();
   const label = formatMessage({ id: "timelineView.mineToggle" });
   return (

@@ -13,7 +13,7 @@ import { useTimelineViewStore } from "../../store/timelineViewStore";
  * linked to the task), so the dialog only counts them and leads there: the
  * channel's timeline opens filtered to the task (timelineViewStore).
  */
-export default function TaskLinkedMessagesBar({ task, onNavigate }: { task: Task; onNavigate: () => void }) {
+export function TaskLinkedMessagesBar({ task, onNavigate }: { task: Task; onNavigate: () => void }) {
   const { formatMessage } = useIntl();
   const nav = useAppNavigate();
   const [summary, setSummary] = useState<{ count: number; latestMessageId: string | null } | null>(null);

@@ -13,7 +13,7 @@ import { openTaskInSidePanel } from "../task/useOpenTask";
  * doing now — its task in progress ("Working on Task #1 in #channel ›", opens
  * the task) — then Message (an agent's DM) and View details (the profile).
  */
-export default function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: string }) {
+export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: string }) {
   const { formatMessage } = useIntl();
   const nav = useAppNavigate();
   const openProfile = useProfileStore((s) => s.openProfile);

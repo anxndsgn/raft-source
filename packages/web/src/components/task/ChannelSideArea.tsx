@@ -1,4 +1,5 @@
 import { WorkspaceSlotContext } from "../layout/rowColumnSlot";
+import { detailsTakeSidePanel, inWorkspace, threadTakesSidePanel } from "./sideAreaLayoutRedesign";
 import { Fragment, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -850,12 +851,8 @@ export default function ChannelSideArea() {
 
   const open = useMemo(() => {
     const set = new Set<ChannelSideSection>(Object.keys(entries) as PortalSection[]);
-    if (room.threadOpen || room.threadInRow || room.threadCoversRow) {
-      set.add("thread");
-      // Layout redesign (anxndsgn/Figmama 11/15): the channel's side panel is one place — a thread takes it,
-      // the Tasks, Files and details step aside until it closes.
-      set.delete("tasks"); set.delete("files"); set.delete("details");
-    }
+    if (room.threadOpen || room.threadInRow || room.threadCoversRow) threadTakesSidePanel(set);
+    else detailsTakeSidePanel(set);
     return set;
   }, [entries, room.threadCoversRow, room.threadInRow, room.threadOpen]);
   // The open Artifact (F41): a section like the others, in the layout's place for it.
@@ -987,24 +984,18 @@ export default function ChannelSideArea() {
     <>
       <div ref={setMarker} hidden data-side-area="" data-testid="channel-side-area" />
       <SideDragLayer />
-      {placement.row.map((column) => {
-        const node = (
-          <SideColumn
-            key={column.sections.join("+")}
-            kind="beside"
-            column={column.column}
-            widthColumn={column.column}
-            sections={column.sections}
-            titles={entries}
-            width={column.width}
-            minWidth={column.minWidth}
-          />
-        );
-        // Layout redesign (F3): an Artifact's own column is the workspace, beside the channel's header.
-        return workspaceSlot && column.sections.length === 1 && column.sections[0] === "artifact"
-          ? createPortal(node, workspaceSlot, column.sections.join("+"))
-          : node;
-      })}
+      {placement.row.map((column) => inWorkspace(workspaceSlot, column.sections, (
+        <SideColumn
+          key={column.sections.join("+")}
+          kind="beside"
+          column={column.column}
+          widthColumn={column.column}
+          sections={column.sections}
+          titles={entries}
+          width={column.width}
+          minWidth={column.minWidth}
+        />
+      )))}
       {surface}
       {expandedSurface}
     </>

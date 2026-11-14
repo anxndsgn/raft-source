@@ -119,8 +119,19 @@ export function useConversationHeaderPortal(ownsUrl: boolean) {
  * Layout redesign (Figmama 11/15): a thread open in this channel holds the side panel's place. The Tasks and Files
  * switches don't show pressed meanwhile, and pressing one closes the thread and shows that panel.
  */
-export function useThreadAwareCardToggles(channelId: string | null, cards: { tasksCardOpen: boolean; filesCardOpen: boolean; toggleTasksCard: () => void; toggleFilesCard: () => void }) {
-  const { tasksCardOpen, filesCardOpen, toggleTasksCard, toggleFilesCard } = cards;
+export function useThreadAwareCardToggles(channelId: string | null, cards: { tasksCardOpen: boolean; filesCardOpen: boolean; toggleTasksCard: () => void; toggleFilesCard: () => void; detailsOpen: boolean; closeDetails: (open: false) => void }) {
+  const { tasksCardOpen, filesCardOpen, toggleTasksCard: toggleTasks, toggleFilesCard: toggleFiles, detailsOpen, closeDetails } = cards;
+  // The channel's info holds the same place: pressing Tasks or Files over it closes it and shows that panel.
+  const toggleTasksCard = useCallback(() => {
+    if (!detailsOpen) return toggleTasks();
+    closeDetails(false);
+    if (!tasksCardOpen) toggleTasks();
+  }, [closeDetails, detailsOpen, tasksCardOpen, toggleTasks]);
+  const toggleFilesCard = useCallback(() => {
+    if (!detailsOpen) return toggleFiles();
+    closeDetails(false);
+    if (!filesCardOpen) toggleFiles();
+  }, [closeDetails, detailsOpen, filesCardOpen, toggleFiles]);
   const threadHere = useThreadStore((s) => !!s.openParentMessageId && s.openParentChannelId === channelId && !s.taskModal);
   const showTasksCard = useCallback(() => {
     if (!threadHere) return toggleTasksCard();

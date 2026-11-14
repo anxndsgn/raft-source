@@ -8,7 +8,7 @@ import type { ColumnMenuItem } from "../../components/layout/ColumnOverflowMenu"
 import { shownOwnActions, useHeadWidth } from "../../components/layout/headFit";
 import { useRowExpand, useRowPlanned } from "../../components/layout/rowPlanStore";
 import ChannelFilesToggle from "../../components/task/ChannelFilesToggle";
-import ChannelMineViewToggle from "../../components/task/ChannelMineViewToggle";
+import { ChannelMineViewToggle } from "../../components/task/ChannelMineViewToggle";
 import ChannelTasksToggle from "../../components/task/ChannelTasksToggle";
 import { OverflowMenuTrigger } from "../../components/ui/OverflowSheet";
 
