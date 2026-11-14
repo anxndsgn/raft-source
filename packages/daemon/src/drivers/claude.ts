@@ -6,6 +6,7 @@ import { ClaudeEventNormalizer } from "./claudeEventNormalizer";
 import { assertClaudeStartupPayloadWithinBudget } from "./claudeInputBudget";
 import { buildClaudeArgs, buildClaudeHostIsolationEnv, buildClaudeManagedMcpConfig, buildClaudeSpawnSpec, probeClaude, probeClaudeLaunch, resolveClaudeLaunchCommand, resolveClaudeLaunchCommandAsync, writeClaudeSystemPromptFile } from "./claudeLaunch";
 import { detectClaudeModelSource } from "./claudeModels";
+import { installMissingClaudePlugins } from "./claudePluginInstall";
 import { ProbeChildError } from "./probeChild";
 import {
   buildClaudeProviderIsolationEnv,
@@ -165,6 +166,21 @@ export class ClaudeDriver implements RuntimeDriver {
     // task #1277: the PATH lookup runs as a bounded probe child under this
     // start attempt's signal; a cancelled lookup is rethrown, never a verdict.
     const claudeCommand = await resolveClaudeLaunchCommandAsync(ctx.config, { signal: ctx.launchSignal });
+
+    // Skills Hub plugins are only enabled in the workspace settings; install
+    // the ones this computer does not have yet, or Claude Code skips them.
+    for (const outcome of await installMissingClaudePlugins({
+      config: ctx.config,
+      claudeCommand,
+      workspace: ctx.workingDirectory,
+      env: spawnEnv as NodeJS.ProcessEnv,
+      signal: ctx.launchSignal,
+    })) {
+      const message = `[Agent ${ctx.agentId}] Skills Hub plugin ${outcome.plugin}: ${outcome.ok ? "installed" : "install failed"}${outcome.detail ? ` (${outcome.detail})` : ""}`;
+      if (outcome.ok) logger.info(message);
+      else logger.warn(message);
+    }
+
     const spawnSpec = buildClaudeSpawnSpec(claudeCommand, args, { env: spawnEnv as NodeJS.ProcessEnv });
 
     // task #365: after the last await, right before the child exists.
