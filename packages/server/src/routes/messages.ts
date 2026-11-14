@@ -1,4 +1,5 @@
 import * as replyModeService from "../services/replyModeService";
+import * as replyModeViewService from "../services/replyModeViewService";
 import { JointChannelAccessChangedError } from "../lib/channelActorPermissions";
 import { refuse } from "../lib/refusal";
 import { DmPeerNotMemberError } from "../services/dmSendPolicy";
@@ -1069,6 +1070,74 @@ messageRouter.get("/context/:messageId", async (req, res) => {
 });
 
 // List messages for a channel
+// Reply mode, step 2: one filtered view of a channel's timeline (a task's
+// messages, a reply chain, or what concerns me), newest page first like the
+// timeline. `since` counts newer messages outside the view; `readThrough`
+// (a message id) counts unread messages the view hides up to it.
+messageRouter.get("/channel/:channelId/view", async (req, res) => {
+  try {
+    const channelId = req.params.channelId;
+    const channel = await channelService.getChannel(channelId);
+    if (!channel || channel.serverId !== req.serverId) {
+      res.status(404).json(CHANNEL_NOT_FOUND_BODY);
+      return;
+    }
+    if (!(await channelService.canUserAccessChannel(channelId, req.userId!, req.serverId!))) {
+      await denyChannelAccess(res, req.userId!, channelId, "You do not have access to this channel");
+      return;
+    }
+    if (!(await replyModeService.isReplyModeChannel(channelId))) {
+      res.status(400).json({ error: "Views are only for channels that use replies.", code: "reply_mode_off" });
+      return;
+    }
+    const view = replyModeViewService.parseReplyModeView(req.query as Record<string, unknown>);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
+    const beforeSeq = parseMessagePageCursor(req.query.before);
+    const sinceSeq = parseMessagePageCursor(req.query.since);
+    if (beforeSeq === "invalid" || sinceSeq === "invalid") {
+      res.status(400).json({ error: "Invalid message page cursor", code: "invalid_message_page_cursor" });
+      return;
+    }
+    let readThroughSeq: number | undefined;
+    if (typeof req.query.readThrough === "string" && req.query.readThrough) {
+      const target = await replyModeService.resolveReplyTarget(channelId, req.query.readThrough).catch(() => null);
+      if (target) readThroughSeq = target.seq;
+    }
+    const page = await replyModeViewService.readReplyModeViewPage({
+      channelId,
+      userId: req.userId!,
+      view,
+      limit,
+      beforeSeq,
+      sinceSeq,
+      readThroughSeq,
+      historyCutoff: getHistoryCutoff(await getServerPlan(req.serverId!)) ?? undefined,
+    });
+    const loaded = await messageService.listMessagesByIds(page.messageIds, {
+      attachmentCommentViewerUserId: req.userId,
+      forwardedBundleViewerUserId: req.userId,
+      viewerServerId: req.serverId,
+    });
+    const projected = await messageService.projectJointMessagesToLocalChannel(loaded, channelId, req.serverId!);
+    res.json({
+      messages: projected,
+      hasMore: page.hasMore,
+      total: page.total,
+      hiddenBefore: page.hiddenBefore,
+      newOutside: page.newOutside,
+      hiddenUnread: page.hiddenUnread,
+      latestSeq: page.latestSeq,
+      readThroughSeq: readThroughSeq ?? null,
+    });
+  } catch (err) {
+    if (err instanceof replyModeService.ReplyModeRefusal) {
+      res.status(err.status).json({ error: err.message, code: err.code });
+      return;
+    }
+    res.status(500).json({ error: "Failed to read the view" });
+  }
+});
+
 messageRouter.get("/channel/:channelId", async (req, res) => {
   try {
     addTraceEvent("messages.page.started");

@@ -9,7 +9,7 @@ import { randomUUID } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 
 import { getDb } from "../db/index";
-import { channels, messageMentions, messages, messageTasks, taskEvents, tasks, users } from "../db/schema";
+import { channels, messageMentions, messages, messageTasks, taskEvents, tasks, userChannelReadCursors, users } from "../db/schema";
 import { createApiTest } from "../test/integration/apiTest";
 import { fixturePasswordHash } from "../test/integration/credentials";
 import { mintAgentCredential } from "../services/agentCredentialService";
@@ -316,4 +316,58 @@ test("reply mode without task v2: task create with a source message links it ins
   assert.equal(reply.status, 200, JSON.stringify(reply.body));
   const replyLinks = await getDb().select().from(messageTasks).where(eq(messageTasks.messageId, sentId(reply.body)));
   assert.deepEqual(replyLinks.map((l) => l.taskId), [task!.id]);
+});
+
+test("reply mode views: task, reply chain and mine, with hidden gaps and counts", async ({ app }) => {
+  installRecordingOrchestrator(app.app);
+  const { readReplyModeViewPage } = await import("../services/replyModeViewService");
+  const { owner, channel, a } = await setup("rm-view");
+  await updateChannel(channel.id, { replyMode: true });
+  const [task] = await getDb().insert(tasks).values({
+    channelId: channel.id, taskNumber: 1, title: "Fix deploy", status: "in_progress",
+    createdByType: "agent", createdById: a.id,
+  }).returning();
+
+  const m1 = await humanSend(app, channel.id, owner.id, "root question");                       // mine
+  const noise1 = await agentSend(app.baseUrl, a.key, { target: `#${channel.name}`, content: "noise 1" });
+  const m2 = await agentSend(app.baseUrl, a.key, { target: `#${channel.name}`, content: "answer", replyTo: m1 }); // reply to me
+  const noise2 = await agentSend(app.baseUrl, a.key, { target: `#${channel.name}`, content: "noise 2" });
+  const t1 = await agentSend(app.baseUrl, a.key, { target: `#${channel.name}`, content: "task progress", tasks: [1] });
+  const m3 = await agentSend(app.baseUrl, a.key, { target: `#${channel.name}`, content: "follow-up", replyTo: sentId(m2.body) });
+  await settle();
+  const ids = { noise1: sentId(noise1.body), m2: sentId(m2.body), noise2: sentId(noise2.body), t1: sentId(t1.body), m3: sentId(m3.body) };
+
+  // Task view: only the linked message; everything before it is hidden.
+  const byTask = await readReplyModeViewPage({ channelId: channel.id, userId: owner.id, view: { kind: "task", taskNumber: 1 }, limit: 50 });
+  assert.deepEqual(byTask.messageIds, [ids.t1]);
+  assert.equal(byTask.total, 1);
+  assert.equal(byTask.hiddenBefore[ids.t1], 4);
+
+  // Chain view from the middle: root, reply, reply-to-reply; gaps between them.
+  const chain = await readReplyModeViewPage({ channelId: channel.id, userId: owner.id, view: { kind: "chain", messageId: ids.m2 }, limit: 50, sinceSeq: 0 });
+  assert.deepEqual(chain.messageIds, [m1, ids.m2, ids.m3]);
+  assert.deepEqual([chain.hiddenBefore[m1], chain.hiddenBefore[ids.m2], chain.hiddenBefore[ids.m3]], [0, 1, 2]);
+  assert.equal(chain.newOutside, 3, "noise 1, noise 2, task progress");
+
+  // Mine: what I sent, the reply to me, and the reply further down my chain
+  // (Activity tells me of it too); not the task (I don't take part yet).
+  const mine = await readReplyModeViewPage({ channelId: channel.id, userId: owner.id, view: { kind: "mine" }, limit: 50 });
+  assert.deepEqual(mine.messageIds, [m1, ids.m2, ids.m3]);
+  // Once I write in the task, its messages are mine too.
+  await humanSend(app, channel.id, owner.id, "on it", { replyToMessageId: null, taskIds: [task!.id] });
+  await settle();
+  const mine2 = await readReplyModeViewPage({ channelId: channel.id, userId: owner.id, view: { kind: "mine" }, limit: 50 });
+  assert.ok(mine2.messageIds.includes(ids.t1));
+
+  // Paging: newest first, `hasMore` when older ones are left.
+  const page = await readReplyModeViewPage({ channelId: channel.id, userId: owner.id, view: { kind: "chain", messageId: m1 }, limit: 2 });
+  assert.deepEqual(page.messageIds, [ids.m2, ids.m3]);
+  assert.equal(page.hasMore, true);
+
+  // Hidden unread from the read position through m3, outside the chain view,
+  // not my own. (Sending moved my read position: put it back to the start.)
+  await getDb().update(userChannelReadCursors).set({ lastReadSeq: 0 })
+    .where(and(eq(userChannelReadCursors.userId, owner.id), eq(userChannelReadCursors.channelId, channel.id)));
+  const fromInbox = await readReplyModeViewPage({ channelId: channel.id, userId: owner.id, view: { kind: "chain", messageId: ids.m3 }, limit: 50, readThroughSeq: Number.MAX_SAFE_INTEGER });
+  assert.equal(fromInbox.hiddenUnread?.count, 3);
 });

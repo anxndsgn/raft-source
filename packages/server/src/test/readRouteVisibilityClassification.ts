@@ -42,6 +42,7 @@ export const READ_ROUTE_VISIBILITY_CLASSIFICATION: readonly ReadRouteClassificat
   { route: "GET /api/messages/attachment-preview/enabled", entry: "none", reason: "feature flag check; no conversation objects" },
   { route: "GET /api/messages/channel/:channelId/by-activity", entry: "unified", reason: "forum-style channel page by latest activity (channel_thread_sort_v0): canView on the conversation, regular channels set to activity only, the plan's history cutoff" },
   { route: "GET /api/messages/channel/:channelId/human-outline", entry: "unified", reason: "the conversation outline: canView on the conversation; resolveChannelAccess for joint storage" },
+  { route: "GET /api/messages/channel/:channelId/view", entry: "legacy:canUserAccessChannel", reason: "reply mode: a filtered view of the channel timeline (task, reply chain, mine); canUserAccessChannel; the plan's history cutoff" },
   { route: "GET /api/messages/channel/:channelId", entry: "legacy:canUserAccessChannel", reason: "channel history gated by canUserAccessChannel; resolveChannelAccess for joint storage" },
   { route: "GET /api/messages/context/:messageId", entry: "legacy:canUserAccessChannel", reason: "message context window; resolveChannelAccess for joint, canUserAccessChannel on response channel" },
   { route: "GET /api/messages/forward/enabled", entry: "none", reason: "static compat flag; no conversation objects" },
