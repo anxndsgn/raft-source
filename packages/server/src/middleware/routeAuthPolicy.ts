@@ -222,6 +222,12 @@ export const routeAuthPolicy: readonly RouteAuthPolicyEntry[] = [
   },
   {
     method: "POST",
+    path: "/internal/agent-api/messages/:msgId/tasks",
+    principal: "sk_agent",
+    note: "Reply mode — link a channel message to tasks or unlink it (actor = bound agent)",
+  },
+  {
+    method: "POST",
     path: "/internal/agent-api/channels/:channelId/join",
     principal: "sk_agent",
     note: "RFC v0.8 — join a visible public channel (actor = bound agent)",

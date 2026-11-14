@@ -25,6 +25,7 @@ import { showToast } from "../../components/toastBridge";
 import { useAuthStore } from "../../store/authStore";
 import { ChannelPreferencesSection } from "../../components/channel/ChannelPreferencesSection";
 import { ChannelThreadSortField } from "../../components/channel/ChannelThreadSortField";
+import { ChannelReplyModeField } from "../../components/channel/ChannelReplyModeField";
 import { ChannelAnnouncementField } from "../../components/channel/ChannelAnnouncementField";
 import { ChannelVisitorVisibleField } from "../../components/channel/ChannelVisitorVisibleField";
 import {
@@ -1155,6 +1156,8 @@ export function EditChannelDialog({
   // Forum-style order (#proj-chat:#24): the channel's own setting, the same
   // for everyone, so only for those who may edit its info.
   const showThreadSort = channelThreadSortEnabled && Boolean(effectiveCapabilities.editChannelMetadata) && !isArchived && regularChannel;
+  // Reply mode: same audience as the thread order (editChannelMetadata, regular channels).
+  const showReplyMode = Boolean(effectiveCapabilities.editChannelMetadata) && !isArchived && regularChannel;
   const showSlack = canEditChannel && !isArchived && regularChannel && bridgeEditor.available;
 
   const jointConversionSection = showJointConversionSection && (
@@ -1452,6 +1455,7 @@ export function EditChannelDialog({
   const channelSettingsRows = [
     visibilityRow,
     showThreadSort && <ChannelThreadSortField key="sort" channelId={channelId} threadSort={channel?.threadSort} disabled={saving} />,
+    showReplyMode && <ChannelReplyModeField key="reply-mode" channelId={channelId} replyMode={channel?.replyMode} disabled={saving} />,
     showVisitorVisible && (
       <ChannelVisitorVisibleField key={`visitors-${channelId}`} channelId={channelId} visitorVisible={visitorVisible} canTurnOn={visitorVisibleCanTurnOn} disabled={saving} />
     ),

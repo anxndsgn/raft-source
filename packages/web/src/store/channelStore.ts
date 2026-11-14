@@ -16,7 +16,7 @@ import {
   toChannel,
   touchChannelActivity as reduceChannelActivity,
 } from "./channelDomain";
-import type { ChannelConversionCommandView, ChannelConversionJobView, ChannelConversionState, ChannelAdminBasis, ChannelRole, ChannelThreadSort, ChannelThreadSortFields, InboxScopeReadFrontier, ServerCapability } from "@botiverse/raft-shared";
+import type { ChannelConversionCommandView, ChannelConversionJobView, ChannelConversionState, ChannelAdminBasis, ChannelRole, ChannelThreadSort, ChannelThreadSortFields, ChannelReplyModeFields, InboxScopeReadFrontier, ServerCapability } from "@botiverse/raft-shared";
 import { bootListKey, coalesce, noteFreshLoad, useServerStore } from "./serverStore";
 import { consumeReadStateSnapshotRows, getReadStateLedgerGeneration } from "./readStateSync";
 import { registerServerReset } from "./serverResetRegistry";
@@ -31,7 +31,7 @@ import { channelTraceStateChanged, transitionOutcomeDetail } from "../utils/stat
 import { findStoredChannel } from "./storedChannel";
 import { noteChannelOpenResult } from "./channelAccessLoss";
 
-export interface Channel extends ExternalFreezeFields, ChannelThreadSortFields {
+export interface Channel extends ExternalFreezeFields, ChannelThreadSortFields, ChannelReplyModeFields {
   id: string;
   serverId?: string;
   name: string;
@@ -242,7 +242,7 @@ interface ChannelState {
     actionCardMessageId?: string;
     actionCardConfirmationVersion?: number;
   }) => Promise<Channel>;
-  updateChannel: (channelId: string, updates: { name?: string; description?: string; visibility?: "public" | "private"; visitorVisible?: boolean; threadSort?: ChannelThreadSort; announcement?: string | null }) => Promise<Channel>;
+  updateChannel: (channelId: string, updates: { name?: string; description?: string; visibility?: "public" | "private"; visitorVisible?: boolean; threadSort?: ChannelThreadSort; replyMode?: boolean; announcement?: string | null }) => Promise<Channel>;
   restoreAllChannel: () => Promise<Channel>;
   hideAllChannel: () => Promise<Channel>;
   convertChannelToJoint: (channelId: string, opts?: { observeProgress?: boolean; commandId?: string }) => Promise<Channel>;

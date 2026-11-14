@@ -407,8 +407,8 @@ export function formatAgentClaimResults(channel: string, data: AgentClaimTasksDa
   const claimedReplyMode = data.results
     .filter((r) => r.success && !r.taskRef && r.messageId && r.provisionalTitle !== undefined)
     .map((r) => [
-      `#${r.taskNumber} has the provisional title "${r.provisionalTitle}". Replace it with a short title that says in one sentence what will be done: raft task amend --target "${canonicalAgentTaskTarget(channel)}" --number ${r.taskNumber} --title "<title>"`,
-      `  Reply to the message on the channel: raft message send --target "${canonicalAgentTaskTarget(channel)}" --reply-to ${r.messageId!.slice(0, 8)}`,
+      `#${r.taskNumber} has the provisional title "${r.provisionalTitle}". Replace it with a short title that says in one sentence what will be done: ${formatHint(RAFT_HINTS.taskAmendTitle({ target: canonicalAgentTaskTarget(channel), taskNumber: r.taskNumber! }), style)}`,
+      `  Reply to the message on the channel: ${formatHint(RAFT_HINTS.messageSendReplyTo({ target: canonicalAgentTaskTarget(channel), replyTo: r.messageId!.slice(0, 8) }), style)}`,
     ].join("\n"))
     .join("\n");
   // Answer the person who asked where they spoke: `task view` names who

@@ -117,6 +117,9 @@ export const SYSTEM_MESSAGE_BORN_READ_CLASSIFICATION = {
   // A Slack Bridge pair paused on its first blocked send. No human caused it
   // at that moment; the configurer it mentions must see it unread.
   "slack_bridge.binding_paused": "notify-exclude",
+  // Reply mode: agents in a reply chain stopped waking each other; the people
+  // in the chain it names must see it unread.
+  "reply_mode.loop_paused": "notify-exclude",
   // A notice to a server's owners and admins in their own DM with themselves
   // (#13746; retired by #wg-rbac:#42, no longer sent, kept for the rows it
   // wrote): someone else, often on another server, caused it.
@@ -223,6 +226,8 @@ export const SYSTEM_MESSAGE_NOTIFICATION_EVENT = {
   "external_projection.inbound": "none",
   // Reaches the configurer as a personal mention in the channel's inbox.
   "slack_bridge.binding_paused": "none",
+  // Reaches the people in the chain as personal mentions.
+  "reply_mode.loop_paused": "none",
   // Retired (#wg-rbac:#42): it notified through its own `system_notice` outbox row.
   "server.admin_notice": "none",
 } satisfies Record<ProductionSystemMessageProducer, SystemMessageNotificationEvent>;

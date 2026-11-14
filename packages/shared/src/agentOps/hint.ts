@@ -284,6 +284,16 @@ export const RAFT_HINTS = {
       ["content"],
     ),
   /** The send command's name alone (prose, never a call). */
+  /** Reply mode: reply to one message on the channel's timeline (the body on stdin). */
+  messageSendReplyTo: ({ target, replyTo }: { target: string; replyTo: string }): RaftHint => hint(
+    ["message", "send", "--target", q(target), "--reply-to", replyTo],
+    { name: "messages.send", args: { target, replyTo } },
+    ["content"],
+  ),
+  /** Reply mode: give a task created from a message a real title (CLI form only). */
+  taskAmendTitle: ({ target, taskNumber }: { target: string; taskNumber: number }): RaftHint => hint(
+    ["task", "amend", "--target", q(target), "--number", String(taskNumber), "--title", shellWord("<title>")],
+  ),
   messageSendName: (): RaftHint => hint(["message", "send"], { name: "messages.send", args: {} }, ["target", "content"]),
   messageCheck: (): RaftHint => hint(["message", "check"], { name: "inbox.check", args: {} }),
   inboxList: ({ view, before }: { view?: "mentions"; before?: number } = {}): RaftHint => hint(

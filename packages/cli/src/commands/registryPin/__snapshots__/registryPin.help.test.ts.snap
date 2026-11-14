@@ -1167,6 +1167,8 @@ Commands:
   resolve <id>                 Resolve a message id exactly and print the
                                canonical message
   react [options]              Add or remove your reaction on a message
+  retag [options] <msgId>      Link a message to tasks of its channel, or
+                               unlink it (channels that use replies)
   update-card [options]        Replace the card of a card message you sent
                                (notifies no one)
   help [command]               display help for command
@@ -1246,6 +1248,11 @@ Options:
                       right after your read position and move it forward
   --limit <n>         Max messages to return (server default applies if
                       omitted)
+  --replies <msgId>   Channels that use replies: read the whole reply chain
+                      this message is in (what it replies to, and every reply
+                      under it)
+  --task <number>     Channels that use replies: read the messages linked to
+                      this task
   -h, --help          display help for command
 
 Which read to use:
@@ -1341,6 +1348,11 @@ Options:
   --card <file>               Post the message as a card, from this JSON file
                               (see Card messages below). The text on stdin is
                               then optional.
+  --reply-to <msgId>          Reply to this message (its msg= id) in the same
+                              channel or DM. The reply links to the tasks the
+                              original is linked to.
+  --task <number>             Link the message to this task number in the
+                              target's channel (repeatable).
   -h, --help                  display help for command
 
 The message body is read from stdin, never from arguments. Use a quoted heredoc so the shell leaves quotes, $vars and backticks alone:
@@ -2078,6 +2090,7 @@ exports[`--peer-kind > raft message send --target dm:@richard --peer-kind human 
         "draftReholdCount": 0,
         "draftReplacedExisting": false,
         "idempotencyKey": "<uuid>",
+        "issuedAt": "<time>",
         "target": "dm:@richard~human",
       },
       "method": "POST",
@@ -2337,6 +2350,8 @@ Commands:
   resolve <id>                 Resolve a message id exactly and print the
                                canonical message
   react [options]              Add or remove your reaction on a message
+  retag [options] <msgId>      Link a message to tasks of its channel, or
+                               unlink it (channels that use replies)
   update-card [options]        Replace the card of a card message you sent
                                (notifies no one)
   help [command]               display help for command
@@ -2354,7 +2369,7 @@ exports[`parse errors > raft message frobnicate (unknown subcommand) 1`] = `
   "requests": [],
   "stderr": "Error: unknown command 'frobnicate'
 Code: INVALID_ARG
-Next action: Run \`raft message --help\` to list valid subcommands: send, check, read, search, resolve, react, update-card.
+Next action: Run \`raft message --help\` to list valid subcommands: send, check, read, search, resolve, react, retag, update-card.
 ",
   "stdout": "",
 }

@@ -1,6 +1,6 @@
 {
   "schema": "raft-agent-api-description.v1",
-  "manifestVersion": "a3e643c6f6e06751",
+  "manifestVersion": "1cbc2439280c8fde",
   "basePath": "/internal/agent-api",
   "capabilities": [
     "read",
@@ -1685,6 +1685,12 @@
             "limit": {
               "type": "string"
             },
+            "replies": {
+              "type": "string"
+            },
+            "task": {
+              "type": "string"
+            },
             "consume": {
               "type": "string",
               "enum": [
@@ -3252,6 +3258,21 @@
                 "inline",
                 "withheld"
               ]
+            },
+            "replyTo": {
+              "type": "string"
+            },
+            "tasks": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "issuedAt": {
+              "type": "number"
             }
           },
           "additionalProperties": {}
@@ -6045,6 +6066,21 @@
                 "inline",
                 "withheld"
               ]
+            },
+            "replyTo": {
+              "type": "string"
+            },
+            "tasks": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "issuedAt": {
+              "type": "number"
             },
             "mentions": {
               "type": "array",
@@ -10368,6 +10404,113 @@
               }
             }
           },
+          "additionalProperties": {}
+        }
+      }
+    },
+    {
+      "key": "messageRetag",
+      "method": "POST",
+      "path": "/messages/:msgId/tasks",
+      "fullPath": "/internal/agent-api/messages/:msgId/tasks",
+      "client": {
+        "resource": "messages",
+        "method": "retag"
+      },
+      "capability": "send",
+      "description": "Reply mode: link a visible channel message to tasks of its channel, or unlink it.",
+      "sideEffect": "write",
+      "idempotency": "natural",
+      "destructive": false,
+      "audience": "both",
+      "retryPolicy": "retry",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true
+      },
+      "request": {
+        "params": {
+          "type": "object",
+          "properties": {
+            "msgId": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "msgId"
+          ],
+          "additionalProperties": {}
+        },
+        "query": null,
+        "body": {
+          "type": "object",
+          "properties": {
+            "add": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "remove": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "none": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": {}
+        }
+      },
+      "response": {
+        "kind": "json",
+        "body": {
+          "type": "object",
+          "properties": {
+            "messageId": {
+              "type": "string"
+            },
+            "taskNumbers": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "added": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "removed": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            }
+          },
+          "required": [
+            "messageId",
+            "taskNumbers",
+            "added",
+            "removed"
+          ],
           "additionalProperties": {}
         }
       }
@@ -19424,6 +19567,9 @@
                         "type": "string"
                       },
                       "title": {
+                        "type": "string"
+                      },
+                      "provisionalTitle": {
                         "type": "string"
                       },
                       "success": {

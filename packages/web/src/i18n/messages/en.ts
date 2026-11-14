@@ -4726,6 +4726,17 @@ export const en = {
   "message.messageItem.previewFile": "Preview {filename}",
   "message.messageItem.downloadFile": "Download {filename}",
   "message.messageItem.replyInThread": "Reply in thread",
+  "message.messageItem.reply": "Reply",
+  "message.reply.replyingTo": "Replying to {name}",
+  "message.reply.cancel": "Cancel reply",
+  "message.reply.originalDeleted": "Original message deleted",
+  "message.reply.jumpToOriginal": "Go to the message from {name}",
+  "message.reply.replyCount": "{count, plural, one {# reply} other {# replies}}",
+  "message.reply.hideReplies": "Hide replies",
+  "message.reply.oldThreadReadOnly": "This channel uses replies now. This earlier discussion is read-only: reply to the message in the channel.",
+  "channel.edit.replyModeTitle": "Replies instead of threads",
+  "channel.edit.replyModeDescription": "Everyone talks on one timeline and replies to a message instead of opening a thread. Existing threads stay readable but closed.",
+  "channel.edit.replyModeSaveFailed": "Couldn't change how this channel replies.",
 
   // --- message: MessageItem MI-2 (attachment/preview chrome), 2026-07-26, 赵梓淇-reviewed ---
   "message.messageItem.diffPreview": "Diff preview",

@@ -2,6 +2,9 @@ import { ArtifactMessageRefs, ArtifactSavedAttachments, useArtifactAttachmentMen
 import { channelAnnouncementNoticeLine } from "../channel/channelAnnouncementNotice";
 import { trackMessageAction, messageMenuSurface } from "../../analytics/entries";
 import { MessageLinkCardsProvider, useMessageLinkCards } from "./useMessageLinkCards";
+import { ReplyCountToggle, ReplyQuote } from "./ReplyQuote";
+import { REPLY_TARGET_FOCUS_EVENT, useReplyTargetStore } from "../../store/replyTargetStore";
+import { replyExcerpt } from "@botiverse/raft-shared";
 import {
   InlineAudioKeepAliveContext,
   keepInlineAudioPlaying,
@@ -13,7 +16,7 @@ import type { ChangeEvent, MouseEvent, PointerEvent as ReactPointerEvent, ReactN
 import { createPortal } from "react-dom";
 import { useIntl } from "react-intl";
 import type { IntlShape } from "react-intl";
-import { Copy, Download, Play, Pause, Volume2, SquareCheckBig, Link, Bookmark, BookmarkMinus, Languages, AlertTriangle, Plus, Eye, Music, Paperclip, ListChecks, SquareDashedText, RefreshCw, MessageSquareDot } from "lucide-react";
+import { Copy, Download, Play, Pause, Volume2, SquareCheckBig, Link, Bookmark, BookmarkMinus, Languages, AlertTriangle, Plus, Eye, Music, Paperclip, ListChecks, SquareDashedText, RefreshCw, MessageSquareDot, CornerUpLeft } from "lucide-react";
 import {
   Badge,
   Button,
@@ -576,6 +579,7 @@ interface DocumentAttachmentPreviewState {
 }
 
 const EMPTY_IMAGE_INLINE_FALLBACK_URLS: Record<string, string> = {};
+const EMPTY_REPLIES: Message[] = [];
 
 function ImageInlineFallbackLoader({
   fallbackKey,
@@ -2601,6 +2605,32 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
   const findNavigableChannel = useCallback((id: string | null | undefined) => findStoredChannel({ channels, dmChannels, loungeChannels }, id), [channels, dmChannels, loungeChannels]);
   const taskSurfaceChannel = useMemo(() => findNavigableChannel(parentChannelId || message.channelId), [findNavigableChannel, message.channelId, parentChannelId]);
   const supportsMessageTasks = taskSurfaceChannel !== undefined && taskSurfaceChannel.type !== "thread";
+  // Reply mode (the channel uses replies instead of threads): a message on its
+  // main timeline gets "Reply" instead of "Reply in thread".
+  const replyModeHere = !parentMessageId && !readOnlyProjection && message.messageType !== "system"
+    && !message.id.startsWith("optimistic-")
+    && (message.inReplyModeChannel === true || findNavigableChannel(message.channelId)?.replyMode === true);
+  const setReplyTarget = useReplyTargetStore((s) => s.setReplyTarget);
+  const handleReplyToMessage = useCallback(() => {
+    setReplyTarget(message.channelId, {
+      messageId: message.id,
+      senderName: message.senderDisplayName || message.senderName || "",
+      excerpt: replyExcerpt(message.content ?? ""),
+    });
+    setCtxMenu(null);
+    window.dispatchEvent(new CustomEvent(REPLY_TARGET_FOCUS_EVENT, { detail: { channelId: message.channelId } }));
+  }, [message.channelId, message.content, message.id, message.senderDisplayName, message.senderName, setReplyTarget]);
+  const handleJumpToReplyOriginal = useCallback(() => {
+    const originalId = message.replyTo?.messageId;
+    if (!originalId) return;
+    requestTransientFocus(message.channelId, originalId);
+  }, [message.channelId, message.replyTo?.messageId, requestTransientFocus]);
+  const [repliesExpanded, setRepliesExpanded] = useState(false);
+  const timelineMessages = useMessageStore((s) => (repliesExpanded ? s.messages : EMPTY_REPLIES));
+  const loadedReplies = useMemo(
+    () => (repliesExpanded ? timelineMessages.filter((m) => m.replyToMessageId === message.id) : EMPTY_REPLIES),
+    [message.id, repliesExpanded, timelineMessages],
+  );
 
   const openInDetailSlot = useDetailSlotThreadOpener();
   const handleOpenThreadRef = useCallback(async (intent: ThreadRefIntent) => {
@@ -2963,7 +2993,7 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
   const touchTaps = useMessageTouchTaps({
     rowRef: messageRef,
     enabled: actionable && !isSystem && !selectionActive,
-    onTap: hideThreadActions ? null : handleReplyInThread,
+    onTap: hideThreadActions || replyModeHere ? null : handleReplyInThread,
     onDoubleTap: canReact && !isSystem ? openQuickReactionsAtTap : null,
     longPressFired: readLongPressFired,
   });
@@ -3021,7 +3051,7 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
     // Select mode's click is the capture handler's.
     if (selectionScopedHere) return;
     if (touchTapsOwnClick()) return;
-    if (hideThreadActions) return;
+    if (hideThreadActions || replyModeHere) return;
     // Don't open thread if long-press context menu just fired
     if (longPressFired.current) return;
     // Only on touch devices (no hover capability); jsdom suites without a
@@ -3032,7 +3062,7 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
     const target = e.target as HTMLElement;
     if (target.closest("a, button, pre, code, img")) return;
     handleReplyInThread();
-  }, [hideThreadActions, handleReplyInThread, selectionScopedHere, touchTapsOwnClick]);
+  }, [hideThreadActions, replyModeHere, handleReplyInThread, selectionScopedHere, touchTapsOwnClick]);
 
   const handleContextMenu = useCallback((e: MouseEvent) => {
     if (isSystem) return;
@@ -3799,6 +3829,7 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
   // as Unread / task action (cindyz, #wg-thread-unread: the thread's own
   // actions sit with Reply). Its divider renders only when one of them does.
   const showThreadTaskSection = !hideThreadActions
+    || replyModeHere
     || showOwnThreadFollowAction
     || !!enclosingThreadFollowCommand
     || !!markThreadUnread
@@ -4077,7 +4108,7 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
         reactionActive={!!reactionPicker}
         quickReaction={quickReaction}
         quickReacted={hasCurrentUserReaction(quickReaction)}
-        hideThreadActions={hideThreadActions}
+        hideThreadActions={hideThreadActions || replyModeHere}
         isSystem={isSystem}
         canReact={canReact}
         onReplyInThread={handleToolbarReplyInThread}
@@ -4257,6 +4288,9 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
           )}
           </MessageItemHeader>
         )}
+        {message.replyTo ? (
+          <ReplyQuote messageId={message.id} replyTo={message.replyTo} onJump={readOnlyProjection ? undefined : handleJumpToReplyOriginal} />
+        ) : null}
         <AttachmentCommentRefChip
           commentRef={message.commentRef}
           onJumpToHost={handleJumpToCommentHost}
@@ -4730,6 +4764,37 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
               ) : null}
           </MessageItemFooter>
         ) : null}
+        {/* Reply mode: "N replies" under a message others replied to; opening
+            it lists the loaded replies here (a view, not a thread). */}
+        {!readOnlyProjection && (message.directReplyCount ?? 0) > 0 ? (
+          <div data-testid={`message-replies-${message.id}`}>
+            <ReplyCountToggle
+              messageId={message.id}
+              count={message.directReplyCount ?? 0}
+              expanded={repliesExpanded}
+              onToggle={() => setRepliesExpanded((open) => !open)}
+            />
+            {repliesExpanded ? (
+              <div className="mt-1 flex flex-col gap-0.5 pl-3">
+                {loadedReplies.map((reply) => (
+                  <ReplyQuote
+                    key={reply.id}
+                    messageId={`${message.id}-reply-${reply.id}`}
+                    replyTo={{
+                      messageId: reply.id,
+                      senderName: reply.senderDisplayName || reply.senderName || null,
+                      senderType: reply.senderType,
+                      excerpt: replyExcerpt(reply.content ?? ""),
+                      deleted: false,
+                      seq: reply.seq ?? null,
+                    }}
+                    onJump={() => requestTransientFocus(reply.channelId, reply.id)}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         {/* Inside the Thread panel the replies ARE the surface — previewing them
             on the parent is redundant (artin, #proj-message:a18243dc). */}
         {replyScope && !hideThreadActions ? (
@@ -4827,7 +4892,16 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
               shortcut for this menu and keeps its order. */}
           {showThreadTaskSection && (
             <>
-              {!hideThreadActions && (
+              {replyModeHere && (
+                <MenuItem
+                  icon={<CornerUpLeft size={14} aria-hidden="true" />}
+                  onClick={handleReplyToMessage}
+                  data-testid="message-context-reply"
+                >
+                  {formatMessage({ id: "message.messageItem.reply" })}
+                </MenuItem>
+              )}
+              {!hideThreadActions && !replyModeHere && (
                 <MenuItem
                   icon={<ThreadIcon width={14} height={14} />}
                   onClick={handleOpenThreadFromContextMenu}

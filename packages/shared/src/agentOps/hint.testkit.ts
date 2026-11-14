@@ -83,6 +83,7 @@ export const RAFT_HINT_SAMPLES: Record<RaftHintBuilderName, RaftHintSample[]> = 
     },
   ],
   messageSendName: [{ hint: RAFT_HINTS.messageSendName(), cli: "raft message send", tool: "messages_send({ target: …, content: … })" }],
+  messageSendReplyTo: [{ hint: RAFT_HINTS.messageSendReplyTo({ target: "#proj-x", replyTo: "3f2a1c9e" }), cli: `raft message send --target "#proj-x" --reply-to 3f2a1c9e`, tool: `messages_send({ target: "#proj-x", replyTo: "3f2a1c9e", content: … })` }],
   messageCheck: [{ hint: RAFT_HINTS.messageCheck(), cli: "raft message check", tool: "inbox_check({})" }],
   inboxList: [
     { hint: RAFT_HINTS.inboxList(), cli: "raft inbox check", tool: "inbox_list({})" },
@@ -185,6 +186,7 @@ export const RAFT_HINT_SAMPLES: Record<RaftHintBuilderName, RaftHintSample[]> = 
   taskHandoff: [{ hint: RAFT_HINTS.taskHandoff(), cli: 'raft task assign "#channel:#N" @who --reason "what you need from them"', tool: "tasks_assign({ target: …, taskNumber: …, assignee: …, reason: … })" }],
   taskClaimName: [{ hint: RAFT_HINTS.taskClaimName(), cli: "raft task claim", tool: "tasks_claim({ target: …, taskNumbers: … })" }],
   taskListName: [{ hint: RAFT_HINTS.taskListName(), cli: "raft task list --target <board>", tool: "tasks_list({ target: … })" }],
+  taskAmendTitle: [{ hint: RAFT_HINTS.taskAmendTitle({ target: "#proj-x", taskNumber: 7 }), cli: `raft task amend --target "#proj-x" --number 7 --title '<title>'`, tool: RAFT_NO_TOOL_WORDING }],
   taskCreateFromMessage: [
     {
       hint: RAFT_HINTS.taskCreateFromMessage({ target: "#proj-sdk", messageId: "abcdef12", title: "ship it" }),

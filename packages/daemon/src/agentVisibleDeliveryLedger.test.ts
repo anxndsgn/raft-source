@@ -482,6 +482,32 @@ test("a whole notice preview recorded under a context stops counting after the c
   assert.equal(afterCompaction.isModelSeen("#general", previewed), false);
 });
 
+// 11/14 count test: Cindy's "2" replaced a held draft over Anna's "2", which a
+// busy notice had previewed after her send command was already issued.
+test("a notice preview does not vouch for a send issued before the notice was written", () => {
+  const ledger = new AgentVisibleDeliveryLedger();
+  const earlier = pendingMessage({ message_id: "m-70", seq: 70 });
+  const later = pendingMessage({ message_id: "m-71", seq: 71 });
+  ledger.recordWholePreviewSeen("agent-1", { messages: [earlier], now: 1_000 });
+  ledger.recordWholePreviewSeen("agent-1", { messages: [later], now: 2_000 });
+
+  const issuedBetween = ledger.freshnessView("agent-1", undefined, { issuedAt: 1_500 });
+  assert.equal(issuedBetween.isModelSeen("#general", earlier), true, "previewed before the command: seen");
+  assert.equal(issuedBetween.isModelSeen("#general", later), false, "previewed after the command: not seen");
+  assert.deepEqual(issuedBetween.getExactSeenSeqs("#general"), [70]);
+
+  assert.deepEqual(ledger.freshnessView("agent-1", undefined, { issuedAt: 2_000 }).getExactSeenSeqs("#general"), [70, 71]);
+  assert.deepEqual(ledger.freshnessView("agent-1", undefined).getExactSeenSeqs("#general"), [70, 71], "no issue time: every preview counts, as before");
+
+  // Recorded again later keeps the first time.
+  ledger.recordWholePreviewSeen("agent-1", { messages: [earlier], now: 3_000 });
+  assert.equal(ledger.freshnessView("agent-1", undefined, { issuedAt: 1_500 }).isModelSeen("#general", earlier), true);
+
+  ledger.recordWholePreviewSeen("agent-1", { messages: [pendingMessage({ message_id: "m-72", seq: 72 })], contextId: "ctx-1", now: 5_000 });
+  const scoped = ledger.freshnessView("agent-1", { contextId: "ctx-1" }, { issuedAt: 4_000 });
+  assert.deepEqual(scoped.getExactSeenSeqs("#general"), [], "the same rule under a context");
+});
+
 test("AgentVisibleDeliveryLedger counts messages the model had already seen before the batch", () => {
   const ledger = new AgentVisibleDeliveryLedger();
   const thread = { channel_type: "thread", channel_name: "thread-aaaabbbb", parent_channel_name: "general", parent_channel_type: "channel" };

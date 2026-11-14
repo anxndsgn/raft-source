@@ -4518,6 +4518,17 @@ export const ja: Partial<Record<MessageId, string>> = {
   "message.messageItem.previewFile": "{filename} をプレビュー",
   "message.messageItem.downloadFile": "{filename} をダウンロード",
   "message.messageItem.replyInThread": "スレッドに返信",
+  "message.messageItem.reply": "返信",
+  "message.reply.replyingTo": "{name} に返信",
+  "message.reply.cancel": "返信をやめる",
+  "message.reply.originalDeleted": "元のメッセージは削除されました",
+  "message.reply.jumpToOriginal": "{name} の元のメッセージへ移動",
+  "message.reply.replyCount": "{count} 件の返信",
+  "message.reply.hideReplies": "返信を閉じる",
+  "message.reply.oldThreadReadOnly": "このチャンネルは返信を使うようになりました。以前の議論は閲覧のみです。チャンネルでメッセージに返信してください。",
+  "channel.edit.replyModeTitle": "スレッドの代わりに返信",
+  "channel.edit.replyModeDescription": "全員が一つのタイムラインで話し、スレッドを開く代わりにメッセージへ返信します。既存のスレッドは閲覧のみになります。",
+  "channel.edit.replyModeSaveFailed": "このチャンネルの返信方法を変更できませんでした。",
 
   // --- message: MessageItem MI-2 (attachment/preview chrome), 2026-07-26, 赵梓淇-reviewed ---
   "message.messageItem.diffPreview": "差分プレビュー",

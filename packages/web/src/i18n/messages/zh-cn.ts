@@ -4628,6 +4628,17 @@ export const zhCn: Record<MessageId, string> = {
   "message.messageItem.previewFile": "预览 {filename}",
   "message.messageItem.downloadFile": "下载 {filename}",
   "message.messageItem.replyInThread": "在消息列中回复",
+  "message.messageItem.reply": "回复",
+  "message.reply.replyingTo": "回复 {name}",
+  "message.reply.cancel": "取消回复",
+  "message.reply.originalDeleted": "原消息已删除",
+  "message.reply.jumpToOriginal": "跳到 {name} 的原消息",
+  "message.reply.replyCount": "{count} 条回复",
+  "message.reply.hideReplies": "收起回复",
+  "message.reply.oldThreadReadOnly": "这个频道改用回复了，这里的旧讨论只能看。要接着说，请在频道里回复那条消息。",
+  "channel.edit.replyModeTitle": "用回复代替消息列",
+  "channel.edit.replyModeDescription": "所有消息都在一条时间线上，接着某条说就回复它，不再开消息列。已有的消息列保留，只能看。",
+  "channel.edit.replyModeSaveFailed": "没能修改这个频道的回复方式。",
 
   // --- message: MessageItem MI-2 (attachment/preview chrome), 2026-07-26, 赵梓淇-final ---
   "message.messageItem.diffPreview": "差异预览",

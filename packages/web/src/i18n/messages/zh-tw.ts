@@ -4517,6 +4517,17 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "message.messageItem.previewFile": "預覽 {filename}",
   "message.messageItem.downloadFile": "下載 {filename}",
   "message.messageItem.replyInThread": "在討論串中回覆",
+  "message.messageItem.reply": "回覆",
+  "message.reply.replyingTo": "回覆 {name}",
+  "message.reply.cancel": "取消回覆",
+  "message.reply.originalDeleted": "原訊息已刪除",
+  "message.reply.jumpToOriginal": "跳到 {name} 的原訊息",
+  "message.reply.replyCount": "{count} 則回覆",
+  "message.reply.hideReplies": "收起回覆",
+  "message.reply.oldThreadReadOnly": "這個頻道改用回覆了，這裡的舊討論只能看。要接著說，請在頻道裡回覆那則訊息。",
+  "channel.edit.replyModeTitle": "用回覆取代討論串",
+  "channel.edit.replyModeDescription": "所有訊息都在一條時間線上，接著某則說就回覆它，不再開討論串。既有的討論串保留，只能看。",
+  "channel.edit.replyModeSaveFailed": "無法修改這個頻道的回覆方式。",
 
   // --- message: MessageItem MI-2 (attachment/preview chrome), 2026-07-26, 赵梓淇-reviewed ---
   "message.messageItem.diffPreview": "差異預覽",

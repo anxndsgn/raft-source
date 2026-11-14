@@ -4517,6 +4517,17 @@ export const ko: Partial<Record<MessageId, string>> = {
   "message.messageItem.previewFile": "{filename} 미리보기",
   "message.messageItem.downloadFile": "{filename} 다운로드",
   "message.messageItem.replyInThread": "스레드에서 답장",
+  "message.messageItem.reply": "답장",
+  "message.reply.replyingTo": "{name}에게 답장",
+  "message.reply.cancel": "답장 취소",
+  "message.reply.originalDeleted": "원본 메시지가 삭제됨",
+  "message.reply.jumpToOriginal": "{name}의 원본 메시지로 이동",
+  "message.reply.replyCount": "답장 {count}개",
+  "message.reply.hideReplies": "답장 숨기기",
+  "message.reply.oldThreadReadOnly": "이 채널은 이제 답장을 사용합니다. 이전 논의는 읽기 전용입니다. 채널에서 메시지에 답장하세요.",
+  "channel.edit.replyModeTitle": "스레드 대신 답장",
+  "channel.edit.replyModeDescription": "모두 하나의 타임라인에서 대화하고 스레드를 여는 대신 메시지에 답장합니다. 기존 스레드는 읽기 전용으로 남습니다.",
+  "channel.edit.replyModeSaveFailed": "이 채널의 답장 방식을 바꾸지 못했습니다.",
 
   // --- message: MessageItem MI-2 (attachment/preview chrome), 2026-07-26, 赵梓淇-reviewed ---
   "message.messageItem.diffPreview": "Diff 미리보기",

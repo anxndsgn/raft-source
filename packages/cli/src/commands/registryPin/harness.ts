@@ -164,5 +164,7 @@ export function scrub(run: PinRun): PinRun {
   let text = JSON.stringify(run);
   for (const value of generated) text = text.split(value).join("<uuid>");
   text = text.replace(/[^"\s]*raft-registry-pin-[A-Za-z0-9]+/g, "<state-dir>");
+  // When a send was issued (ms): differs per run.
+  text = text.replace(/"issuedAt":\d+/g, '"issuedAt":"<time>"');
   return JSON.parse(text) as PinRun;
 }

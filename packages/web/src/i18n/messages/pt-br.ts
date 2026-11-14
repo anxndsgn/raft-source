@@ -4517,6 +4517,17 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "message.messageItem.previewFile": "Pré-visualizar {filename}",
   "message.messageItem.downloadFile": "Baixar {filename}",
   "message.messageItem.replyInThread": "Responder na thread",
+  "message.messageItem.reply": "Responder",
+  "message.reply.replyingTo": "Respondendo a {name}",
+  "message.reply.cancel": "Cancelar resposta",
+  "message.reply.originalDeleted": "Mensagem original excluída",
+  "message.reply.jumpToOriginal": "Ir para a mensagem de {name}",
+  "message.reply.replyCount": "{count, plural, one {# resposta} other {# respostas}}",
+  "message.reply.hideReplies": "Ocultar respostas",
+  "message.reply.oldThreadReadOnly": "Este canal agora usa respostas. Esta conversa anterior é somente leitura: responda à mensagem no canal.",
+  "channel.edit.replyModeTitle": "Respostas em vez de threads",
+  "channel.edit.replyModeDescription": "Todos conversam em uma única linha do tempo e respondem a uma mensagem em vez de abrir uma thread. As threads existentes continuam legíveis, mas fechadas.",
+  "channel.edit.replyModeSaveFailed": "Não foi possível mudar como este canal responde.",
 
   // --- message: MessageItem MI-2 (attachment/preview chrome), 2026-07-26, 赵梓淇-reviewed ---
   "message.messageItem.diffPreview": "Pré-visualização do diff",

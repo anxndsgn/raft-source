@@ -1,6 +1,7 @@
 import { isAxiosError } from "axios";
 import { isAutoReadHeld } from "./autoReadHold";
 import { useProfileStore } from "./profileStore";
+import { useReplyTargetStore } from "./replyTargetStore";
 import { create } from "zustand";
 import { isThreadMaximized, useUIStore } from "./uiStore";
 import { clearHiddenHistory, clearHiddenTarget, readHistoryLimitedError, recordHiddenHistory, recordHiddenTarget } from "./hiddenHistoryStore";
@@ -10,6 +11,7 @@ import type {
   CanonicalReactionFact,
   ExternalMessageAuthorProjection,
   LegacyReactionRosterDto,
+  MessageReplyToView,
 } from "@botiverse/raft-shared";
 import { ACTIVE_INPUT_WINDOW_MS, resolveMarkUnreadOutcome } from "@botiverse/raft-shared";
 import { isOlderCardRevision, messageCardRevision } from "./messageCardRevision";
@@ -241,6 +243,15 @@ export interface Message {
     amendedByName: string | null;
     source: "tasks_current_projection";
   } | null;
+  /** Reply mode: the message this one replies to (same conversation), and its display facts. */
+  replyToMessageId?: string | null;
+  replyTo?: MessageReplyToView | null;
+  /** Reply mode: how many messages reply to this one. */
+  directReplyCount?: number;
+  /** Reply mode: numbers of the tasks this message is linked to (not shown on the timeline). */
+  linkedTaskNumbers?: number[];
+  /** Whether this message's channel uses replies instead of threads. */
+  inReplyModeChannel?: boolean;
 }
 
 export {
@@ -2534,16 +2545,22 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     // The reply raises lastSeq to the sent message's seq: a starting sync
     // horizon that arrives after this write is not safe to use either.
     noteMessageHistoryRequest();
+    // Reply mode: the composer's reply target (replyTargetStore), if any.
+    const replyTarget = useReplyTargetStore.getState().targets[channelId];
     const { data } = await api.post("/v2/messages", {
       channelId,
       content,
       attachmentIds,
       asTask: asTask || undefined,
+      ...(replyTarget ? { replyToMessageId: replyTarget.messageId } : {}),
       randomId,
       mentions: mentions && mentions.length > 0 ? mentions : undefined,
       // The sender's IANA zone, recorded on the message for agents only.
       timezone: detectBrowserTimezone() ?? undefined,
     });
+    if (replyTarget && useReplyTargetStore.getState().targets[channelId]?.messageId === replyTarget.messageId) {
+      useReplyTargetStore.getState().clearReplyTarget(channelId);
+    }
     const normalizedResponse = normalizeSendMessageResponse(data);
     const message = coerceCurrentReceiverPrivateMessage(
       normalizedResponse.message,

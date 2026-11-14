@@ -239,30 +239,34 @@ export async function loadReplyModeMessageFacts(
   const ids = rows.map((row) => row.id);
   const originalIds = [...new Set(rows.map((row) => row.replyToMessageId).filter((id): id is string => typeof id === "string"))];
   const channelIds = [...new Set(rows.map((row) => row.channelId))];
-  const [originals, counts, links, modeRows] = await Promise.all([
-    originalIds.length === 0 ? Promise.resolve([]) : db.execute(sql`
+  // One at a time: the caller runs this inside one slot of its query limiter.
+  // One statement for the page (two when it has replies): this runs inside
+  // one slot of the enrichment's query limiter.
+  const combined = (await db.execute(sql`
+    SELECT 'count' AS kind, reply_to_message_id::text AS id, count(*)::int AS n
+      FROM messages
+     WHERE reply_to_message_id IN (${sql.join(ids.map((id) => sql`${id}::uuid`), sql`, `)})
+     GROUP BY reply_to_message_id
+    UNION ALL
+    SELECT 'task', mt.message_id::text, t.task_number
+      FROM message_tasks mt JOIN tasks t ON t.id = mt.task_id
+     WHERE mt.message_id IN (${sql.join(ids.map((id) => sql`${id}::uuid`), sql`, `)})
+    UNION ALL
+    SELECT 'mode', c.id::text, 0
+      FROM channels c
+     WHERE c.id IN (${sql.join(channelIds.map((id) => sql`${id}::uuid`), sql`, `)}) AND c.reply_mode
+  `)).rows as Array<Record<string, unknown>>;
+  const counts = combined.filter((row) => row.kind === "count");
+  const links = combined.filter((row) => row.kind === "task").sort((x, y) => Number(x.n) - Number(y.n));
+  const modeRows = combined.filter((row) => row.kind === "mode").map((row) => ({ id: String(row.id) }));
+  const originals = originalIds.length === 0 ? [] : (await db.execute(sql`
       SELECT m.id, m.seq, m.sender_type, m.content, m.deleted_at,
              COALESCE(u.display_name, u.name, a.display_name, a.name) AS sender_name
         FROM messages m
         LEFT JOIN users u ON m.sender_type = 'user' AND u.id::text = m.sender_id
         LEFT JOIN agents a ON m.sender_type = 'agent' AND a.id::text = m.sender_id
        WHERE m.id IN (${sql.join(originalIds.map((id) => sql`${id}::uuid`), sql`, `)})
-    `).then((result) => result.rows as Array<Record<string, unknown>>),
-    db.execute(sql`
-      SELECT reply_to_message_id AS id, count(*)::int AS n
-        FROM messages
-       WHERE reply_to_message_id IN (${sql.join(ids.map((id) => sql`${id}::uuid`), sql`, `)})
-       GROUP BY reply_to_message_id
-    `).then((result) => result.rows as Array<Record<string, unknown>>),
-    db.execute(sql`
-      SELECT mt.message_id AS id, t.task_number AS n
-        FROM message_tasks mt JOIN tasks t ON t.id = mt.task_id
-       WHERE mt.message_id IN (${sql.join(ids.map((id) => sql`${id}::uuid`), sql`, `)})
-       ORDER BY t.task_number
-    `).then((result) => result.rows as Array<Record<string, unknown>>),
-    db.select({ id: channels.id }).from(channels)
-      .where(and(inArray(channels.id, channelIds), eq(channels.replyMode, true))),
-  ]);
+    `)).rows as Array<Record<string, unknown>>;
   for (const row of modeRows) facts.replyModeChannelIds.add(row.id);
   const byId = new Map(originals.map((row) => [String(row.id), row]));
   for (const row of rows) {
@@ -352,3 +356,4 @@ export async function taskNumbersByIds(taskIds: readonly string[], executor?: Da
   const rows = await db.select({ id: tasks.id, n: tasks.taskNumber }).from(tasks).where(inArray(tasks.id, [...new Set(taskIds)]));
   return new Map(rows.map((row) => [row.id, row.n]));
 }
+

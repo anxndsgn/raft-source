@@ -1641,7 +1641,9 @@ test("message send-draft re-hold exits nonzero and retains the draft without tar
   );
 
   assert.equal(typeof bodies[0]!.idempotencyKey, "string");
-  const { idempotencyKey: _idempotencyKey, ...sentBody } = bodies[0]!;
+  // When the command was issued: the local daemon reads it (a notice written later does not vouch for this send).
+  assert.equal(typeof bodies[0]!.issuedAt, "number");
+  const { idempotencyKey: _idempotencyKey, issuedAt: _issuedAt, ...sentBody } = bodies[0]!;
   assert.deepEqual(sentBody, {
     target: "#room",
     content: "saved body\n",

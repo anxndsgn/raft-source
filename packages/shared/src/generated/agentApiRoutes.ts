@@ -452,6 +452,31 @@ export const AGENT_API_ROUTE_MANIFEST = [
     }
   },
   {
+    "key": "messageRetag",
+    "method": "POST",
+    "path": "/messages/:msgId/tasks",
+    "fullPath": "/internal/agent-api/messages/:msgId/tasks",
+    "client": {
+      "resource": "messages",
+      "method": "retag"
+    },
+    "capability": "send",
+    "description": "Reply mode: link a visible channel message to tasks of its channel, or unlink it.",
+    "sideEffect": "write",
+    "idempotency": "natural",
+    "destructive": false,
+    "audience": "both",
+    "request": {
+      "params": true,
+      "query": false,
+      "body": true
+    },
+    "response": {
+      "kind": "json",
+      "body": true
+    }
+  },
+  {
     "key": "messageReactionRemove",
     "method": "DELETE",
     "path": "/messages/:msgId/reactions",
@@ -3679,4 +3704,4 @@ export const AGENT_API_ROUTE_MANIFEST = [
 ] as const;
 
 /** Content hash of AGENT_API_ROUTE_MANIFEST; see computeAgentApiManifestVersion. */
-export const AGENT_API_MANIFEST_VERSION = "a3e643c6f6e06751";
+export const AGENT_API_MANIFEST_VERSION = "1cbc2439280c8fde";

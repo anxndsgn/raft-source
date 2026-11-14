@@ -183,6 +183,9 @@ export function ThreadPanelComposer({
         <ReadOnlyComposer notice={<RemovedAppBotDmNotice handle={parentDmAgent.name} />} />
       ) : parentLoungeReadOnly ? (
         <ReadOnlyComposer />
+      ) : parentChannel?.replyMode === true && !hideParentMessage ? (
+        /* Reply mode: old threads are read-only; reply on the channel's timeline. */
+        <ReadOnlyComposer notice={formatMessage({ id: "message.reply.oldThreadReadOnly" })} />
       ) : canReplyInParentThread ? (
         /* Thread message input — use parent channel members for @mention autocomplete */
         <MessageInput

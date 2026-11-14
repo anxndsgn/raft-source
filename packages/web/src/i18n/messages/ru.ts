@@ -4519,6 +4519,17 @@ export const ru: Partial<Record<MessageId, string>> = {
   "message.messageItem.previewFile": "Просмотреть {filename}",
   "message.messageItem.downloadFile": "Скачать {filename}",
   "message.messageItem.replyInThread": "Ответить в ветке",
+  "message.messageItem.reply": "Ответить",
+  "message.reply.replyingTo": "Ответ для {name}",
+  "message.reply.cancel": "Отменить ответ",
+  "message.reply.originalDeleted": "Исходное сообщение удалено",
+  "message.reply.jumpToOriginal": "Перейти к сообщению от {name}",
+  "message.reply.replyCount": "{count, plural, one {# ответ} few {# ответа} many {# ответов} other {# ответа}}",
+  "message.reply.hideReplies": "Скрыть ответы",
+  "message.reply.oldThreadReadOnly": "Теперь в этом канале используются ответы. Это прежнее обсуждение доступно только для чтения: ответьте на сообщение в канале.",
+  "channel.edit.replyModeTitle": "Ответы вместо веток",
+  "channel.edit.replyModeDescription": "Все общаются в одной ленте и отвечают на сообщение вместо того, чтобы открывать ветку. Существующие ветки остаются доступными для чтения, но закрыты.",
+  "channel.edit.replyModeSaveFailed": "Не удалось изменить способ ответа в этом канале.",
 
   // --- message: MessageItem MI-2 (attachment/preview chrome), 2026-07-26, 赵梓淇-reviewed ---
   "message.messageItem.diffPreview": "Предпросмотр изменений",

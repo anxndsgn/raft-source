@@ -96,6 +96,7 @@ const coreValidResponses: Record<CoreAgentApiRouteKey, unknown> = {
     message_id: "msg-1",
     timestamp: "2026-06-28T02:00:00.000Z",
   },
+  messageRetag: { messageId: "msg-1", taskNumbers: [3], added: [3], removed: [] },
   messageCardUpdate: { ok: true, messageId: "msg-1", revision: 2, updatedAt: "2026-11-03T12:03:00.000Z", unnotifiedMentionHandles: [], notice: "Updating notifies no one. To tell someone, send a new message." },
   channelJoin: {
     ok: true,
@@ -751,6 +752,7 @@ const coreMethodInputs: Record<CoreAgentApiRouteKey, unknown[]> = {
   messageSearch: [{ q: "review status", channel: "#proj-runtime", sender: "xxchan", sort: "recent", limit: "20" }],
   messageReactionAdd: [{ msgId: asMessageId("msg/with space") }, { emoji: "👀" }],
   messageReactionRemove: [{ msgId: asMessageId("msg-1") }, { emoji: "👀" }],
+  messageRetag: [{ msgId: asMessageId("msg-1") }, { add: [3] }],
   messageCardUpdate: [{ messageId: asMessageId("msg-1") }, { card: { version: 1, root: "t", elements: { t: { type: "Text", props: { text: "Ready for testing" } } } }, expectedRevision: 1 }],
   channelJoin: [{ channelId: asChannelId("chan/with spaces") }],
   channelLeave: [{ channelId: asChannelId("chan-1") }],
@@ -967,6 +969,7 @@ test("raw client exposes every contract client binding and sends generated route
       { routeKey: "messageResolve", method: "GET", path: "/internal/agent-api/messages/msg%2Fwith%20space/resolve", body: undefined },
       { routeKey: "messageSearch", method: "GET", path: "/internal/agent-api/search?q=review+status&channel=%23proj-runtime&sender=xxchan&sort=recent&limit=20", body: undefined },
       { routeKey: "messageReactionAdd", method: "POST", path: "/internal/agent-api/messages/msg%2Fwith%20space/reactions", body: { emoji: "👀" } },
+      { routeKey: "messageRetag", method: "POST", path: "/internal/agent-api/messages/msg-1/tasks", body: { add: [3] } },
       { routeKey: "messageReactionRemove", method: "DELETE", path: "/internal/agent-api/messages/msg-1/reactions", body: { emoji: "👀" } },
       { routeKey: "messageCardUpdate", method: "PUT", path: "/internal/agent-api/messages/msg-1/card", body: { card: { version: 1, root: "t", elements: { t: { type: "Text", props: { text: "Ready for testing" } } } }, expectedRevision: 1 } },
       { routeKey: "channelJoin", method: "POST", path: "/internal/agent-api/channels/chan%2Fwith%20spaces/join", body: undefined },

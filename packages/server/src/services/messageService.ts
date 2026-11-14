@@ -59,6 +59,7 @@ import { DEPRECATED_GRAVATAR_HASH,
   type ChannelActivityCursor,
   type ForwardedBundleTargetSnapshot,
   type MessageReplyToView,
+  REPLY_CHAIN_AGENT_LOOP_LIMIT,
 } from "@botiverse/raft-shared";
 import { sqlUuidOrNull } from "../db/sqlUuid";
 import { isShownUserAvatarUrl } from "./avatarService";
@@ -1167,6 +1168,7 @@ export type SystemMessageInboxFactProducer =
   | "task.deleted_summary"
   | "external_projection.inbound"
   | "slack_bridge.binding_paused"
+  | "reply_mode.loop_paused"
   | "server.admin_notice"
   | `test.${string}`;
 
@@ -11793,6 +11795,12 @@ export async function broadcastAndDeliver(
       };
     preparedDeliveries.push({ agentId: agent.id, deliveryPayload });
   }
+  // Reply mode loop guard: the message that paused the chain tells the people
+  // in it, by name (a personal mention for each), that agents stopped waking.
+  if (replyModeAudience?.kind === "some" && replyModeAudience.pausedNow && replyModeAudience.userIds.size > 0) {
+    void notifyReplyChainPaused(io, agentOrchestrator, channelId, message.id, [...replyModeAudience.userIds])
+      .catch((error: unknown) => console.error("reply mode loop notice failed:", serializeErrorForLog(error)));
+  }
 
   // One batched resolve+persist for every target-visible mentioned agent, BEFORE any delivery is
   // initiated. Under the state-machine recovery predicate an existing un-acked occurrence is
@@ -11915,4 +11923,23 @@ export async function broadcastAndDeliver(
   }
 
   return enriched;
+}
+
+/** Reply mode loop guard notice: names the people in the paused chain. */
+async function notifyReplyChainPaused(
+  io: SocketServer,
+  agentOrchestrator: AgentOrchestrator,
+  channelId: string,
+  messageId: string,
+  userIds: string[],
+): Promise<void> {
+  const rows = await getDb().select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, userIds));
+  if (rows.length === 0) return;
+  const handles = rows.map((row) => `@${row.name}`).join(" ");
+  const content = `${handles} Agents in this reply chain (msg=${messageId.slice(0, 8)}) have sent ${REPLY_CHAIN_AGENT_LOOP_LIMIT}+ messages without a person: they stop waking each other until someone replies in the chain.`;
+  await broadcastSystemMessage(io, agentOrchestrator, channelId, content, {
+    inboxFactPolicy: { mode: "record", producer: "reply_mode.loop_paused", reason: "reply chain paused by the loop guard" },
+    personalAttentionTargets: rows.map((row) => ({ type: "user" as const, id: row.id, name: row.name })),
+    targetAgentIds: [],
+  });
 }

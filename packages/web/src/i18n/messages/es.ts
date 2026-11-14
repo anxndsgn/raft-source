@@ -4517,6 +4517,17 @@ export const es: Partial<Record<MessageId, string>> = {
   "message.messageItem.previewFile": "Previsualizar {filename}",
   "message.messageItem.downloadFile": "Descargar {filename}",
   "message.messageItem.replyInThread": "Responder en el hilo",
+  "message.messageItem.reply": "Responder",
+  "message.reply.replyingTo": "Respondiendo a {name}",
+  "message.reply.cancel": "Cancelar respuesta",
+  "message.reply.originalDeleted": "Mensaje original eliminado",
+  "message.reply.jumpToOriginal": "Ir al mensaje de {name}",
+  "message.reply.replyCount": "{count, plural, one {# respuesta} other {# respuestas}}",
+  "message.reply.hideReplies": "Ocultar respuestas",
+  "message.reply.oldThreadReadOnly": "Este canal ahora usa respuestas. Esta conversación anterior es de solo lectura: responde al mensaje en el canal.",
+  "channel.edit.replyModeTitle": "Respuestas en lugar de hilos",
+  "channel.edit.replyModeDescription": "Todos hablan en una sola línea de tiempo y responden a un mensaje en lugar de abrir un hilo. Los hilos existentes se pueden leer, pero quedan cerrados.",
+  "channel.edit.replyModeSaveFailed": "No se pudo cambiar cómo se responde en este canal.",
 
   // --- message: MessageItem MI-2 (attachment/preview chrome), 2026-07-26, 赵梓淇-reviewed ---
   "message.messageItem.diffPreview": "Vista previa de diferencias",

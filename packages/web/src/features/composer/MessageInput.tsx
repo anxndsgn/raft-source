@@ -1,7 +1,8 @@
+import { REPLY_TARGET_FOCUS_EVENT, useReplyTargetStore } from "../../store/replyTargetStore";
 import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import type { ChangeEvent } from "react";
 import { useIntl } from "react-intl";
-import { Send, Paperclip, ImagePlus } from "lucide-react";
+import { Send, Paperclip, ImagePlus, CornerUpLeft, X } from "lucide-react";
 import { ChannelIcon } from "../../components/channel/channelKindIcon";
 import { Badge, CheckboxIndicator, Composer, ComposerActions, ComposerAttachments, ComposerDropOverlay, ComposerDropOverlayLabel, ComposerIconButton, ComposerInput, ComposerRoot, ComposerSubmit, ComposerSuggestionAside, ComposerSuggestionContent, ComposerSuggestionGroup, ComposerSuggestionIcon, ComposerSuggestionList, ComposerSuggestionMeta, ComposerSuggestionTitle, ComposerToolbar, ComposerToolbarLabel, Separator, Spinner } from "@botiverse/raft-ui";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
@@ -895,6 +896,20 @@ export function MessageInput({
   // Native field-sizing follows typography changes automatically; fallback
   // engines need a fresh measurement even when the draft and width stay put.
   useEffect(() => { scheduleAutoResize(); }, [messageBodyFontSize, scheduleAutoResize]);
+
+  // Reply mode: the message this composer replies to (replyTargetStore), and
+  // focus when "Reply" was chosen on a message of this conversation.
+  const replyTarget = useReplyTargetStore((s) => s.targets[channelId]);
+  const clearReplyTarget = useReplyTargetStore((s) => s.clearReplyTarget);
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ channelId: string }>).detail;
+      if (!detail || detail.channelId !== channelId) return;
+      textareaRef.current?.focus();
+    };
+    window.addEventListener(REPLY_TARGET_FOCUS_EVENT, handler);
+    return () => window.removeEventListener(REPLY_TARGET_FOCUS_EVENT, handler);
+  }, [channelId]);
 
   // Selection-quote v0 (#proj-chat task #32): a message's selection context
   // menu "Quote" dispatches SELECTED_TEXT_QUOTE_EVENT with the target composer
@@ -2376,6 +2391,27 @@ export function MessageInput({
           <div className="flex flex-wrap items-center gap-1.5">
             {accessoryRow}
             {composerReference?.chip}
+          </div>
+        ) : null}
+
+        {/* Reply mode: what this message will reply to, with ✕ to cancel. */}
+        {replyTarget ? (
+          <div
+            className="flex min-w-0 items-center gap-1.5 rounded-md border border-line px-2 py-1 text-footnote text-foreground-muted"
+            data-testid="composer-reply-bar"
+          >
+            <CornerUpLeft size={12} aria-hidden="true" className="shrink-0" />
+            <span className="shrink-0">{formatMessage({ id: "message.reply.replyingTo" }, { name: replyTarget.senderName })}</span>
+            <span className="min-w-0 flex-1 truncate text-foreground-hint">{replyTarget.excerpt}</span>
+            <button
+              type="button"
+              className="shrink-0 text-foreground-hint hover:text-foreground"
+              onClick={() => clearReplyTarget(channelId)}
+              aria-label={formatMessage({ id: "message.reply.cancel" })}
+              data-testid="composer-reply-bar-cancel"
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
           </div>
         ) : null}
 

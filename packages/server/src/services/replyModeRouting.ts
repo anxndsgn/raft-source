@@ -22,7 +22,7 @@ import { getDb, type DatabaseExecutor } from "../db/index";
  */
 export type ReplyModeAudience =
   | { kind: "all" }
-  | { kind: "some"; agentIds: Set<string>; userIds: Set<string>; loopGuarded: boolean };
+  | { kind: "some"; agentIds: Set<string>; userIds: Set<string>; loopGuarded: boolean; pausedNow?: boolean };
 
 type Row = Record<string, unknown>;
 
@@ -113,16 +113,23 @@ export async function resolveReplyModeAudience(input: {
   const agentIds = new Set<string>();
   const userIds = new Set<string>();
   let loopGuarded = false;
+  let pausedNow = false;
+  let lastHumanId: string | null = null;
   if (message.replyToMessageId) {
     const ancestors = await replyChainAncestors(message.id, Math.max(REPLY_CHAIN_PARTICIPANT_WINDOW, REPLY_CHAIN_AGENT_LOOP_LIMIT + 1) * 5, executor);
     // Loop guard: agent messages since the chain's latest human message.
     if (message.senderType === "agent") {
       let agentRun = 1;
       for (const row of ancestors) {
-        if (row.senderType === "user" && row.messageType === "chat" && row.senderId !== "system") break;
+        if (row.senderType === "user" && row.messageType === "chat" && row.senderId !== "system") {
+          // The person who last spoke in the chain hears about a pause.
+          lastHumanId = row.senderId;
+          break;
+        }
         if (row.senderType === "agent") agentRun += 1;
       }
       loopGuarded = agentRun > REPLY_CHAIN_AGENT_LOOP_LIMIT;
+      pausedNow = agentRun === REPLY_CHAIN_AGENT_LOOP_LIMIT + 1;
     }
     if (!loopGuarded) {
       for (const row of ancestors.slice(0, REPLY_CHAIN_PARTICIPANT_WINDOW)) {
@@ -134,6 +141,7 @@ export async function resolveReplyModeAudience(input: {
       for (const row of ancestors.slice(0, REPLY_CHAIN_PARTICIPANT_WINDOW)) {
         if (row.senderType === "user" && row.senderId !== "system") userIds.add(row.senderId);
       }
+      if (lastHumanId) userIds.add(lastHumanId);
     }
   }
   if (taskIds.length > 0 && !loopGuarded) {
@@ -143,7 +151,7 @@ export async function resolveReplyModeAudience(input: {
   }
   if (message.senderType === "agent") agentIds.delete(message.senderId);
   if (message.senderType === "user") userIds.delete(message.senderId);
-  return { kind: "some", agentIds, userIds, loopGuarded };
+  return { kind: "some", agentIds, userIds, loopGuarded, pausedNow };
 }
 
 /**

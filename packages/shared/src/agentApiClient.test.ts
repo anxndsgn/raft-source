@@ -158,6 +158,10 @@ const coreSdkFixtures: Record<CoreAgentApiRouteKey, {
       timestamp: "2026-06-28T02:00:00.000Z",
     },
   },
+  messageRetag: {
+    input: [{ msgId: asMessageId("msg-1") }, { add: [3] }],
+    response: { messageId: "msg-1", taskNumbers: [3], added: [3], removed: [] },
+  },
   messageCardUpdate: {
     input: [{ messageId: asMessageId("msg-1") }, { card: { version: 1, root: "t", elements: { t: { type: "Text", props: { text: "Ready for testing" } } } }, expectedRevision: 1, idempotencyKey: "build-11900001-r2" }],
     response: { ok: true, messageId: "msg-1", revision: 2, updatedAt: "2026-11-03T12:03:00.000Z", unnotifiedMentionHandles: [], notice: "Updating notifies no one. To tell someone, send a new message." },

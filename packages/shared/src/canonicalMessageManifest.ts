@@ -235,7 +235,9 @@ export const CANONICAL_MESSAGE_EXCLUSIONS = Object.freeze({
     // RFC 077: delegatedBy / delegatedByAgentId (sent by an assistant for its owner) ride every
     // message row; promote to canonical when the web / mobile label consumes them. deletedAt
     // (retracted) was promoted to an optionalAggregate canonical field in manifest v7.
-    fields: ["updatedAt", "delegatedBy", "delegatedByAgentId"] as readonly string[],
+    // Reply mode: the original a reply points at and its display facts, reply count, linked task
+    // numbers and the channel's mode ride every enriched row; web reads them, mobile not yet (D3).
+    fields: ["updatedAt", "delegatedBy", "delegatedByAgentId", "replyToMessageId", "replyTo", "directReplyCount", "linkedTaskNumbers", "inReplyModeChannel"] as readonly string[],
     migrationStatus: "web canonical zero-consumption; mobile legacy consumption to retire in round-2 (label/event-key/SQL cache -> (epoch,seq,id/revision) adjudication); RFC 077 delegation fields: web/mobile label pending (Kirby / Lagoon)",
   }),
   /** Viewer-scoped nested metadata: shared broadcasts strip these; truth comes
