@@ -9,6 +9,7 @@ import { isExternalAgentRuntime, REASONING_EFFORT_RUNTIMES, runtimeConfigModelVa
 import { useAgentDisplayState, useAgentStore } from "../../store/agentStore";
 import type { Agent } from "../../store/agentStore";
 import { useMachineStore } from "../../store/machineStore";
+import ProfileCardFooter from "./ProfileCardFooter";
 import { resolveAgentMachineRow } from "../../utils/agentMachineRow";
 import { useServerStore } from "../../store/serverStore";
 import type { ServerMember } from "../../store/serverStore";
@@ -339,6 +340,7 @@ export default function ProfilePreviewCardContent({ mentionType, mentionId, fall
               }
             />
           ) : null}
+          {!profileOrigin.external && !isManagedBot ? <ProfileCardFooter type="agent" id={profileAgent.id} /> : null}
         </div>
       );
     }
@@ -384,6 +386,7 @@ export default function ProfilePreviewCardContent({ mentionType, mentionId, fall
           </Tooltip>
           </>
         ) : null}
+        {!profileOrigin.external ? <ProfileCardFooter type="human" id={profileMember.userId} /> : null}
       </div>
     );
   }, [mentionType, profileAgent, agentMachine, agentMachineRow.kind, runtimeConfig, runtimeModels, canViewPrivateAgentSurfaces, isChannelSummaryAgent, hideAgentServerFacts, profileOrigin, displayState, trajectoryLog, formatClockWithSeconds, profileMember, readOnlyProfile, readOnlyHandle, unavailableHandle, formatMessage, intl, onOpenAgentActivity, handleOpenActivity, readReceipt, deprecatedHere]);
