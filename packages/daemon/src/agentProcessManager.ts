@@ -2732,8 +2732,8 @@ export class AgentProcessManager {
     return ap?.passiveAx ? { contextId: ap.contextId } : undefined;
   }
 
-  private visibleFreshnessView(agentId: string): AgentVisibleFreshnessView {
-    return this.agentVisibleDelivery.freshnessView(agentId, this.freshnessContext(agentId));
+  private visibleFreshnessView(agentId: string, opts: { issuedAt?: number } = {}): AgentVisibleFreshnessView {
+    return this.agentVisibleDelivery.freshnessView(agentId, this.freshnessContext(agentId), opts);
   }
 
   private projectThreadJoinContextsForRuntimeInput(
@@ -5581,8 +5581,8 @@ export class AgentProcessManager {
       // facts from before a compaction must not vouch for a send or a claim.
       getBoundary: (target) => this.visibleFreshnessView(agentId).getBoundary(target),
       getPendingMessages: (target) => this.pendingVisibleMessages(agentId, target),
-      isMessageModelSeen: ({ target, message }) => this.visibleFreshnessView(agentId).isModelSeen(target, message),
-      getExactSeenSeqs: (target) => this.visibleFreshnessView(agentId).getExactSeenSeqs(target),
+      isMessageModelSeen: ({ target, message, issuedAt }) => this.visibleFreshnessView(agentId, { issuedAt }).isModelSeen(target, message),
+      getExactSeenSeqs: (target, opts) => this.visibleFreshnessView(agentId, opts ?? {}).getExactSeenSeqs(target),
       getContextId: () => this.agents.get(agentId)?.contextId ?? null,
       getAllPendingMessages: () => this.allPendingVisibleMessages(agentId),
       consumeVisibleMessages: (input) => this.consumeVisibleMessages(agentId, input),

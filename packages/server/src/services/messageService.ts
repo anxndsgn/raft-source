@@ -58,10 +58,13 @@ import { DEPRECATED_GRAVATAR_HASH,
   notificationPlainText,
   type ChannelActivityCursor,
   type ForwardedBundleTargetSnapshot,
+  type MessageReplyToView,
 } from "@botiverse/raft-shared";
 import { sqlUuidOrNull } from "../db/sqlUuid";
 import { isShownUserAvatarUrl } from "./avatarService";
 import * as channelService from "./channelService";
+import { linkMessageToTasks, loadReplyModeMessageFacts } from "./replyModeService";
+import { resolveReplyModeAudience } from "./replyModeRouting";
 import * as mentionDeliveryOccurrenceService from "./mentionDeliveryOccurrenceService";
 import { CompatibilityReadMutationPendingError, isReadMutationFenceRefusal } from "./readMutationSequencer";
 import { emitScopeReadUpdated } from "./readReceiptService";
@@ -2289,7 +2292,7 @@ export async function createMessage(
   content: string,
   messageType: "chat" | "system" = "chat",
   taskFields?: { taskStatus: "todo"; taskNumber: number },
-  extraFields?: { threadId?: string | null; agentSendKey?: string | null; randomId?: string | null; actionMetadata?: unknown | null; causalActorType?: "user" | "agent" | null; causalActorId?: string | null; systemSubtype?: string | null; senderTimezone?: string | null; delegatedByAgentId?: string | null },
+  extraFields?: { threadId?: string | null; agentSendKey?: string | null; randomId?: string | null; actionMetadata?: unknown | null; causalActorType?: "user" | "agent" | null; causalActorId?: string | null; systemSubtype?: string | null; senderTimezone?: string | null; delegatedByAgentId?: string | null; replyToMessageId?: string | null },
   executor?: DatabaseExecutor,
 ) {
   const persist = async (db: DatabaseExecutor) => {
@@ -2376,6 +2379,7 @@ export async function prepareSystemMessageForOrderedDelivery(
     // Set by the insert trigger from the channel.
     serverId: null,
     threadId: null,
+    replyToMessageId: null,
     taskStatus: null,
     taskNumber: null,
     taskAssigneeType: null,
@@ -2778,6 +2782,7 @@ async function createOrReplayUserRandomSend(opts: {
   jointThreadProjection: channelService.JointThreadProjection | null;
   ordinaryExternalProjectionDecision: OrdinaryMessageExternalProjectionDecision;
   deps: MessageServiceDeps;
+  replyToMessageId?: string | null;
 }, executor?: DatabaseExecutor) {
   const run = async (tx: DatabaseExecutor) => {
     await runSlackBridgeOutboundAdmissionStage(
@@ -2804,6 +2809,7 @@ async function createOrReplayUserRandomSend(opts: {
         messageType: "chat",
         searchText: buildSearchText(opts.content),
         actionMetadata: opts.actionMetadata ?? null,
+        replyToMessageId: opts.replyToMessageId ?? null,
       })
       .onConflictDoNothing()
       .returning();
@@ -2991,6 +2997,21 @@ async function emitFrontendSocketBestEffort(input: {
   }
 }
 
+/** Reply mode: the agent payload's `reply_to` / `linked_tasks`, from an enriched message row. */
+export function agentReplyModeFields(row: { replyTo?: MessageReplyToView | null; linkedTaskNumbers?: number[] }): Pick<AgentMessage, "reply_to" | "linked_tasks"> {
+  return {
+    ...(row.replyTo ? {
+      reply_to: {
+        message_id: row.replyTo.messageId,
+        sender_name: row.replyTo.senderName,
+        excerpt: row.replyTo.excerpt,
+        deleted: row.replyTo.deleted,
+      },
+    } : {}),
+    ...(row.linkedTaskNumbers && row.linkedTaskNumbers.length > 0 ? { linked_tasks: row.linkedTaskNumbers } : {}),
+  };
+}
+
 /**
  * The `message:new` body (and HTTP send response) for a freshly persisted
  * row. It must carry every key the canonical manifest declares present on
@@ -3022,6 +3043,10 @@ export function buildPersistedMessageFrontendPayload<
     mentions: ResolvedMentionFact[];
     /** RFC 077: the assistant that sent this for its owner (the label message lists carry). */
     delegatedBy?: DelegatedByLabel | null;
+    /** Reply mode: the original this replies to and the linked task numbers (as REST enrichment). */
+    replyTo?: MessageReplyToView | null;
+    linkedTaskNumbers?: number[];
+    inReplyModeChannel?: boolean;
   },
 ) {
   return {
@@ -3039,6 +3064,11 @@ export function buildPersistedMessageFrontendPayload<
     reactions: [] as MessageReactionSummary[],
     commentRef: null as EnrichedMessageRow["commentRef"],
     externalAuthor: null as EnrichedMessageRow["externalAuthor"],
+    replyToMessageId: message.replyToMessageId ?? null,
+    replyTo: fields.replyTo ?? null,
+    directReplyCount: 0,
+    linkedTaskNumbers: fields.linkedTaskNumbers ?? [],
+    inReplyModeChannel: fields.inReplyModeChannel ?? false,
   };
 }
 
@@ -6556,6 +6586,7 @@ async function enrichWithSenderNames<T extends MessageRowForEnrichment>(
     externalAuthorMap,
     attachmentMap,
     channelRows,
+    replyModeFacts,
   ] = await Promise.all([
     cardIds.length === 0 ? [] : limit(() => db
       .select({ messageId: actionCards.messageId, serverId: actionCards.serverId, createdAt: actionCards.createdAt, requesterUserId: actionCards.requesterUserId })
@@ -6580,6 +6611,11 @@ async function enrichWithSenderNames<T extends MessageRowForEnrichment>(
         .from(channels)
         .where(inArray(channels.id, senderChannelIds)),
       () => ({ input_count: senderChannelIds.length }),
+    )),
+    // Reply mode: the original each reply points at, reply counts, task links.
+    limit(() => loadReplyModeMessageFacts(
+      inputRows.map((row) => ({ id: row.id, channelId: row.channelId, replyToMessageId: (row as { replyToMessageId?: string | null }).replyToMessageId ?? null })),
+      db,
     )),
   ]);
   const cardOrigins = new Map(cardOriginRows.map((card) => [card.messageId, card.serverId] as const));
@@ -6987,6 +7023,11 @@ async function enrichWithSenderNames<T extends MessageRowForEnrichment>(
       canReadForwardedSource,
     ),
     commentRef: commentRefMap.get(msg.id) ?? null,
+    replyToMessageId: (msg as { replyToMessageId?: string | null }).replyToMessageId ?? null,
+    replyTo: replyModeFacts.replyTo.get(msg.id) ?? null,
+    directReplyCount: replyModeFacts.replyCount.get(msg.id) ?? 0,
+    linkedTaskNumbers: replyModeFacts.taskNumbers.get(msg.id) ?? [],
+    inReplyModeChannel: replyModeFacts.replyModeChannelIds.has(msg.channelId),
     delegatedBy: (() => {
       const delegatedByAgentId = (msg as { delegatedByAgentId?: string | null }).delegatedByAgentId;
       return delegatedByAgentId ? delegatedByMap.get(delegatedByAgentId) ?? null : null;
@@ -10569,6 +10610,12 @@ export async function broadcastAndDeliver(
      * the WeChat mirror mark (wechatMirrorDecision.ts) runs in its own savepoint.
      */
     afterAgentInsertInTransaction?: (executor: DatabaseExecutor, message: typeof messages.$inferSelect) => Promise<unknown>;
+    /**
+     * Reply mode (replyModeService): the message this one replies to (already
+     * checked by the caller) and the task ids to link it to (the caller adds
+     * the original's). Written with the message, in its transaction.
+     */
+    reply?: { replyToMessageId: string | null; taskIds: string[] };
   }
 ) {
   const deps = resolveMessageServiceDeps();
@@ -10593,6 +10640,12 @@ export async function broadcastAndDeliver(
       });
     }
     await opts.afterAgentInsertInTransaction?.(executor, insertedMessage);
+  };
+  const replyToMessageId = opts.reply?.replyToMessageId ?? null;
+  const linkReplyTasksInTransaction = async (executor: DatabaseExecutor, insertedMessage: typeof messages.$inferSelect) => {
+    if (opts.reply && opts.reply.taskIds.length > 0) {
+      await linkMessageToTasks(executor, insertedMessage.id, opts.reply.taskIds, { type: senderType, id: senderId });
+    }
   };
   const senderTimezone = senderType === "user" ? opts.senderTimezone ?? null : null;
   const delegatedByAgentId = senderType === "user" ? opts.delegatedByAgentId ?? null : null;
@@ -10856,6 +10909,7 @@ export async function broadcastAndDeliver(
           agentSendKey,
           attachmentIds,
           actionMetadata: actionMetadata ?? null,
+          replyToMessageId,
           rejectMismatchedReplay: opts.rejectMismatchedAgentSendReplay === true,
           senderWroteContent: opts.contentMentions !== false,
           beforeInsert: tx && useAtomicMessageTransaction
@@ -10871,6 +10925,8 @@ export async function broadcastAndDeliver(
             ? async ({ executor, message: insertedMessage }: AgentSendInsertedTransactionInput) => {
               if (isDmSend) await assertDmHumanPeersAreMembers(executor, storageChannelId, "agent", senderId);
               if (idempotentMentionResolutionError) throw idempotentMentionResolutionError;
+              // Before the message's facts: who it notifies depends on its tasks.
+              await linkReplyTasksInTransaction(executor, insertedMessage);
               const facts = await finalizeNewChatMessageInTransaction({
                 executor,
                 message: insertedMessage,
@@ -10969,7 +11025,9 @@ export async function broadcastAndDeliver(
         jointThreadProjection,
         ordinaryExternalProjectionDecision,
         deps,
+        replyToMessageId,
       }, tx);
+        if (!result.replayed) await linkReplyTasksInTransaction(tx, result.message);
         if (asTask) createdTask = await ensureTaskForMessage(result.message.id, senderType, senderId, tx, requestedChannel?.serverId);
         return result;
       }), { onRetry: traceSendTransactionRetry("user") }));
@@ -11004,9 +11062,11 @@ export async function broadcastAndDeliver(
           randomId: randomId ?? null,
           ...(senderTimezone ? { senderTimezone } : {}),
           ...(delegatedByAgentId ? { delegatedByAgentId } : {}),
+          ...(replyToMessageId ? { replyToMessageId } : {}),
         },
         executor,
       );
+      if (executor) await linkReplyTasksInTransaction(executor, createdMessage);
       const linked = executor && attachmentIds && attachmentIds.length > 0
         ? await linkAttachmentRowsToMessageWithExecutor(
           executor,
@@ -11240,6 +11300,15 @@ export async function broadcastAndDeliver(
     mentions: targetVisibleMentions,
     // The live message:new carries the same "sent by {assistant}" label as a re-read list.
     delegatedBy: message.delegatedByAgentId ? await delegatedByLabelOf(message.delegatedByAgentId) : null,
+    ...(await (async () => {
+      if (!channel?.replyMode && !message.replyToMessageId) return {};
+      const facts = await loadReplyModeMessageFacts([{ id: message.id, channelId: message.channelId, replyToMessageId: message.replyToMessageId ?? null }]);
+      return {
+        replyTo: facts.replyTo.get(message.id) ?? null,
+        linkedTaskNumbers: facts.taskNumbers.get(message.id) ?? [],
+        inReplyModeChannel: facts.replyModeChannelIds.has(message.channelId),
+      };
+    })()),
   });
   const targetVisibleMentionedAgentIds = new Set(targetVisibleMentions.filter((mention) => mention.type === "agent").map((mention) => mention.id));
   // Sender-side only (mention-AX M-4/N-6): outsider mentions that produced no
@@ -11623,9 +11692,26 @@ export async function broadcastAndDeliver(
         piercedAgentIds: agentMutePiercedIds,
       })
     : new Set<string>();
+  // Reply mode (replyModeRouting.ts): a reply, a task-linked message or an
+  // agent's message wakes only the agents it concerns; the rest keep it as
+  // unread, as a muted channel does. @mentions wake as always.
+  const replyModeAudience = !isThread && channel?.replyMode === true
+    ? await resolveReplyModeAudience({ message })
+    : null;
+  if (replyModeAudience) {
+    addTraceEvent("message_pipeline.reply_mode.audience", {
+      kind: replyModeAudience.kind,
+      agent_count: replyModeAudience.kind === "some" ? replyModeAudience.agentIds.size : -1,
+      loop_guarded: replyModeAudience.kind === "some" && replyModeAudience.loopGuarded,
+    });
+  }
   for (const agent of deliveryAgents) {
     if (senderType === "agent" && agent.id === senderId) continue;
     if (mutedAgentDeliveryIds.has(agent.id)) continue;
+    // Loop guard: once paused, an agent's @mention does not wake either (only a person's does).
+    if (replyModeAudience?.kind === "some"
+      && (replyModeAudience.loopGuarded
+        || (!replyModeAudience.agentIds.has(agent.id) && !targetVisibleMentionedAgentIds.has(agent.id)))) continue;
     const recipientForwardedSnapshot = formatForwardedBundleForAgent(
       await scrubForwardedBundleMetadataForViewer(actionMetadata, {
         type: "agent",
@@ -11698,6 +11784,7 @@ export async function broadcastAndDeliver(
           task_assignee_name: getAgentVisibleTaskAssigneeName(message),
         }),
         ...(threadJoinContext && { thread_join_context: threadJoinContext }),
+        ...agentReplyModeFields(enriched),
         ...(isThread && threadShortId && parentChannelType && parentNameForAgent && reactivatedThreadAgentIds.has(agent.id) && {
           thread_follow_reactivation: {
             thread_target: formatSubConversationTarget(parentChannelType, parentNameForAgent, threadShortId, taskConversationNumber),

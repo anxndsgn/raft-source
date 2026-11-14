@@ -380,6 +380,11 @@ export function createAgentApiClient(client: CliAgentApiHttpClient, agentId: str
         body: AgentApiRequestBodyByRoute["messageReactionRemove"],
       ) =>
         requestClientAsApiResponse(agentApi.messages.removeReaction(params, body)),
+      retag: (
+        params: AgentApiRequestParamsByRoute["messageRetag"],
+        body: AgentApiRequestBodyByRoute["messageRetag"],
+      ) =>
+        requestClientAsApiResponse(agentApi.messages.retag(params, body)),
       updateCard: (
         params: AgentApiRequestParamsByRoute["messageCardUpdate"],
         body: AgentApiRequestBodyByRoute["messageCardUpdate"],
@@ -527,6 +532,11 @@ export function createAgentApiSurfaceClient(client: CliAgentApiHttpClient, optio
         body: AgentApiRequestBodyByRoute["messageReactionRemove"],
       ) =>
         requestClientAsApiResponse(agentApi.messages.removeReaction(params, body)),
+      retag: (
+        params: AgentApiRequestParamsByRoute["messageRetag"],
+        body: AgentApiRequestBodyByRoute["messageRetag"],
+      ) =>
+        requestClientAsApiResponse(agentApi.messages.retag(params, body)),
       updateCard: (
         params: AgentApiRequestParamsByRoute["messageCardUpdate"],
         body: AgentApiRequestBodyByRoute["messageCardUpdate"],

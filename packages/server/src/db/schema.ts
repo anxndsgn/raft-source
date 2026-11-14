@@ -3455,6 +3455,10 @@ export const channels = pgTable("channels", {
   // v2 task (no host message keeps its number) does not free its number.
   // 0 = nothing recorded yet: existing channels still get their max from rows.
   taskNumberHighWater: integer("task_number_high_water").notNull().default(0),
+  // Reply mode: no new threads; messages carry reply_to_message_id and link to
+  // tasks (message_tasks), and agent wakes follow replies, @mentions and task
+  // followers. Old threads stay readable but closed. Regular channels only.
+  replyMode: boolean("reply_mode").notNull().default(false),
 }, (t) => [
   index("idx_channels_server").on(t.serverId),
   // Name uniqueness spans archived and active channels: archive must not
@@ -4190,6 +4194,11 @@ export const messages = pgTable("messages", {
   // Renaming the column would require a migration; reading code should rely on
   // this comment, not the field name's natural reading.
   threadId: text("thread_id"),
+  // Reply mode (channels.reply_mode): the message this one replies to, in the
+  // same conversation's main timeline. NULL for a non-reply. No foreign key
+  // (an FK on messages would scan the table to add, and a deleted original
+  // must leave its replies in place, read as "original deleted").
+  replyToMessageId: uuid("reply_to_message_id"),
   // 061 Stage 2 (P5/A2): causal actor for system messages, and the system-subtype
   // discriminator. Together they let the derivation apply the born-read / skip /
   // notify-exclude classification (systemMessageBornReadRegistry) without a fact
@@ -4241,6 +4250,7 @@ export const messages = pgTable("messages", {
   // post-migration lifecycle step; 0248 is a protected no-op marker.
   index("idx_messages_sender_created_at").on(t.senderId, t.createdAt, t.id),
   index("idx_messages_thread").on(t.threadId),
+  index("idx_messages_reply_to").on(t.replyToMessageId).where(sql`reply_to_message_id IS NOT NULL`),
   index("idx_messages_search_vector_gin").using("gin", t.searchVector).with({ fastupdate: false }),
   uniqueIndex("idx_messages_channel_task_number").on(t.channelId, t.taskNumber),
   uniqueIndex("idx_messages_agent_send_key")
@@ -6735,7 +6745,7 @@ export const taskEvents = pgTable("task_events", {
   seq: bigserial("seq", { mode: "number" }).notNull(),
   taskId: uuid("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
   eventType: text("event_type", {
-    enum: ["created", "status_changed", "assignee_changed", "reopened", "closed", "resource_receipt_recorded", "amended"],
+    enum: ["created", "status_changed", "assignee_changed", "reopened", "closed", "resource_receipt_recorded", "amended", "message_linked", "message_unlinked"],
   }).notNull(),
   actorType: text("actor_type", { enum: ["user", "agent", "system"] }).notNull(),
   actorId: text("actor_id"), // nullable for system events
@@ -6745,6 +6755,21 @@ export const taskEvents = pgTable("task_events", {
   index("idx_task_events_task").on(t.taskId, t.seq),
   // RFC-067 product-data derivation reads task events by a seq watermark.
   index("idx_task_events_seq").on(t.seq),
+]);
+
+// Reply mode: which tasks a message is linked to (many-to-many). Not shown on
+// the timeline; the task view lists a task's messages through it, and task
+// followers are woken for linked messages. Deleting the task drops its links;
+// deleting a message drops its links. Link/unlink history is in task_events.
+export const messageTasks = pgTable("message_tasks", {
+  messageId: uuid("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
+  taskId: uuid("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
+  linkedByType: text("linked_by_type", { enum: ["user", "agent", "system"] }).notNull(),
+  linkedById: text("linked_by_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.messageId, t.taskId] }),
+  index("idx_message_tasks_task").on(t.taskId, t.createdAt),
 ]);
 
 // Idle task reminder (#wg-task-v2:#9, services/idleTaskReminderService.ts):

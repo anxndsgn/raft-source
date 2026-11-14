@@ -115,6 +115,28 @@ export function formatAgentSourceTasksSuffix(
   return ` [tasks ${entries.join(", ")}]`;
 }
 
+/** Reply mode: header fields ` reply_to=<short id>` and ` task=#3,#5` (empty when neither). */
+export function formatAgentReplyHeaderFields(m: {
+  reply_to?: { message_id: string } | null;
+  linked_tasks?: number[] | null;
+}): string {
+  const replyTo = m.reply_to?.message_id ? ` reply_to=${m.reply_to.message_id.slice(0, 8)}` : "";
+  const tasks = m.linked_tasks && m.linked_tasks.length > 0 ? ` task=${m.linked_tasks.map((n) => `#${n}`).join(",")}` : "";
+  return `${replyTo}${tasks}`;
+}
+
+/** Reply mode: the line under a reply naming what it answers (empty for a non-reply). */
+export function formatAgentReplyQuoteSuffix(m: {
+  reply_to?: { message_id: string; sender_name: string | null; excerpt: string; deleted: boolean } | null;
+}): string {
+  const r = m.reply_to;
+  if (!r?.message_id) return "";
+  const short = r.message_id.slice(0, 8);
+  if (r.deleted) return `\n  ↳ replying to msg=${short} (original deleted)`;
+  const who = r.sender_name ? `@${r.sender_name}` : "someone";
+  return `\n  ↳ replying to ${who} msg=${short}: ${indentAgentBodyContinuationLines(r.excerpt)}`;
+}
+
 /** The wire-shaped message fields the canonical text reads. Extra keys are ignored. */
 export interface AgentMessageLike {
   /**
@@ -157,6 +179,9 @@ export interface AgentMessageLike {
   task_conversation_number?: number | null;
   /** The message's reactions, one entry per emoji (AgentApiMessageEnvelope.reactions); printed under it (formatAgentMessageReactionsLine). */
   reactions?: AgentApiMessageReaction[] | null;
+  /** Reply mode: what this message replies to, and the tasks it is linked to. */
+  reply_to?: { message_id: string; sender_name: string | null; excerpt: string; deleted: boolean } | null;
+  linked_tasks?: number[] | null;
   non_member_mention?: boolean;
   third_party_event?: {
     id: string;
@@ -438,7 +463,7 @@ export function formatAgentMessageLine(m: AgentMessageLike, style: RaftHintStyle
   const msgId = m.message_id ? m.message_id.slice(0, 8) : "-";
   const time = m.timestamp ? formatUtcTimestamp(m.timestamp) : "-";
   // RFC 077: sent by an assistant as its owner (the sender); never hidden.
-  const senderType = ` type=${m.sender_type}${m.delegated_by?.name ? ` delegated_by=@${m.delegated_by.name}` : ""}${formatAgentMessageCardHeaderFields(m.message_card)}`;
+  const senderType = ` type=${m.sender_type}${m.delegated_by?.name ? ` delegated_by=@${m.delegated_by.name}` : ""}${formatAgentMessageCardHeaderFields(m.message_card)}${formatAgentReplyHeaderFields(m)}`;
   const content = indentAgentBodyContinuationLines(m.content ?? "");
   const attachSuffix = formatAgentAttachmentSuffix(m.attachments, style);
   // Task v2 (source_tasks present): the list of every task hanging under the
@@ -450,7 +475,7 @@ export function formatAgentMessageLine(m: AgentMessageLike, style: RaftHintStyle
       ? ` [task #${m.task_number} status=${m.task_status}${formatAgentTaskAssigneeSuffix(m.task_assignee_id, m.task_assignee_name)}]`
       : "";
   const taskReplySuffix = options.omitTaskReplyHint ? "" : formatAgentTaskReplySuffix(m, style);
-  return (`[target=${target} msg=${msgId} time=${time}${senderType}] ${formatAgentSenderHandle(m)}: ${content}${attachSuffix}${taskSuffix}${taskReplySuffix}${formatAgentReplyAffordanceSuffix(m)}${formatAgentMessageCardBlock(m.message_card, m.content)}${formatAgentTaskCurrentProjection(m.task_current_projection)}${formatAgentMessageReactionsLine(m.reactions)}`);
+  return (`[target=${target} msg=${msgId} time=${time}${senderType}] ${formatAgentSenderHandle(m)}: ${content}${formatAgentReplyQuoteSuffix(m)}${attachSuffix}${taskSuffix}${taskReplySuffix}${formatAgentReplyAffordanceSuffix(m)}${formatAgentMessageCardBlock(m.message_card, m.content)}${formatAgentTaskCurrentProjection(m.task_current_projection)}${formatAgentMessageReactionsLine(m.reactions)}`);
 }
 
 /** Batch of received-message lines (`raft message check` output). */

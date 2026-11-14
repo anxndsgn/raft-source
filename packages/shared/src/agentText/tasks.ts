@@ -325,6 +325,11 @@ export interface AgentClaimConflict {
 export interface AgentClaimResult {
   taskNumber?: number;
   messageId?: string;
+  /**
+   * Reply mode: the claimed message's channel uses replies; the task got this
+   * provisional title (the message's first sentence), to be replaced.
+   */
+  provisionalTitle?: string;
   /** Task v2: the claimed task's conversation parent when it differs from `messageId` (claimed via its source message). */
   conversationMessageId?: string;
   /** Task v2 (flag-on servers): the task's address, `#channel:#7`. */
@@ -395,8 +400,16 @@ export function formatAgentClaimResults(channel: string, data: AgentClaimTasksDa
     .map((r) => `${r.taskRef} → ${formatHint(RAFT_HINTS.taskReply(r.taskRef!), style)}`)
     .join("\n");
   const claimedMsgs = data.results
-    .filter((r) => r.success && !r.taskRef && r.messageId)
+    .filter((r) => r.success && !r.taskRef && r.messageId && r.provisionalTitle === undefined)
     .map((r) => `#${r.taskNumber} → ${formatHint(RAFT_HINTS.messageSend({ target: agentTaskThreadTarget(channel, r.conversationMessageId ?? r.messageId!) }), style)}`)
+    .join("\n");
+  // Reply mode: no thread to follow up in; reply to the message, and title the task.
+  const claimedReplyMode = data.results
+    .filter((r) => r.success && !r.taskRef && r.messageId && r.provisionalTitle !== undefined)
+    .map((r) => [
+      `#${r.taskNumber} has the provisional title "${r.provisionalTitle}". Replace it with a short title that says in one sentence what will be done: raft task amend --target "${canonicalAgentTaskTarget(channel)}" --number ${r.taskNumber} --title "<title>"`,
+      `  Reply to the message on the channel: raft message send --target "${canonicalAgentTaskTarget(channel)}" --reply-to ${r.messageId!.slice(0, 8)}`,
+    ].join("\n"))
     .join("\n");
   // Answer the person who asked where they spoke: `task view` names who
   // created the task and the message it came from.
@@ -406,8 +419,9 @@ export function formatAgentClaimResults(channel: string, data: AgentClaimTasksDa
     : claimedMsgs
       ? `\n\nFollow up in each task's thread:\n${claimedMsgs}`
       : "";
+  const replyModeHint = claimedReplyMode ? `\n\n${claimedReplyMode}` : "";
 
-  return (`Claim results (${summary}):\n${lines.join("\n")}${threadHint}`);
+  return (`Claim results (${summary}):\n${lines.join("\n")}${threadHint}${replyModeHint}`);
 }
 
 /** `#channel:#7` on a task v2 server (the server sends `taskRef`), `#7` otherwise. */

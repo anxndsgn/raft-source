@@ -4866,6 +4866,13 @@
       "when": 1794557465976,
       "tag": "0694_skills_hub_github_import",
       "breakpoints": true
+    },
+    {
+      "idx": 695,
+      "version": "7",
+      "when": 1794664039610,
+      "tag": "0695_reply_mode_message_tasks",
+      "breakpoints": true
     }
   ]
 }

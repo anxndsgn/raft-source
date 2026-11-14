@@ -65,6 +65,12 @@ export const messageServiceBasePayloadKeys = [
   "taskCurrentProjection",
   "threadId",
   "updatedAt",
+  // Reply mode: the original's id, its display facts, this message's reply count and linked task numbers.
+  "replyToMessageId",
+  "replyTo",
+  "directReplyCount",
+  "linkedTaskNumbers",
+  "inReplyModeChannel",
 ] as const;
 export const enrichedMessagePayloadKeys = [
   ...messageServiceBasePayloadKeys,

@@ -1,3 +1,4 @@
+import * as replyModeService from "../services/replyModeService";
 import { JointChannelAccessChangedError } from "../lib/channelActorPermissions";
 import { refuse } from "../lib/refusal";
 import { DmPeerNotMemberError } from "../services/dmSendPolicy";
@@ -178,6 +179,10 @@ type HumanMessageCreateBody = {
   content: unknown;
   attachmentIds?: string[];
   asTask: boolean;
+  /** Reply mode: the message id this one replies to. */
+  replyToMessageId?: string;
+  /** Reply mode: task numbers in the channel to link the message to. */
+  taskNumbers?: number[];
 };
 
 function parseHumanMessageCreateBody(value: unknown): HumanMessageCreateBody | "invalid" {
@@ -198,11 +203,26 @@ function parseHumanMessageCreateBody(value: unknown): HumanMessageCreateBody | "
     asTask = raw.asTask;
   }
 
+  let replyToMessageId: string | undefined;
+  if (raw.replyToMessageId !== undefined && raw.replyToMessageId !== null) {
+    if (typeof raw.replyToMessageId !== "string" || !UUID_RE.test(raw.replyToMessageId)) return "invalid";
+    replyToMessageId = raw.replyToMessageId;
+  }
+
+  let taskNumbers: number[] | undefined;
+  if (raw.taskNumbers !== undefined) {
+    if (!Array.isArray(raw.taskNumbers) || raw.taskNumbers.length > 20) return "invalid";
+    if (raw.taskNumbers.some((n) => !Number.isInteger(n) || (n as number) <= 0)) return "invalid";
+    taskNumbers = raw.taskNumbers as number[];
+  }
+
   return {
     channelId: raw.channelId,
     content: raw.content,
     attachmentIds,
     asTask,
+    ...(replyToMessageId ? { replyToMessageId } : {}),
+    ...(taskNumbers && taskNumbers.length > 0 ? { taskNumbers } : {}),
   };
 }
 
@@ -1753,7 +1773,7 @@ async function createHumanMessage(
       res.status(400).json({ error: "Invalid message request body" });
       return;
     }
-    const { channelId, content, attachmentIds, asTask } = parsedBody;
+    const { channelId, content, attachmentIds, asTask, replyToMessageId, taskNumbers } = parsedBody;
     const randomId = parseRandomId(req.body.randomId);
     if (randomId === INVALID_RANDOM_ID) {
       res.status(400).json({ error: `randomId must be a non-empty string with at most ${MAX_RANDOM_ID_LENGTH} characters` });
@@ -1795,6 +1815,31 @@ async function createHumanMessage(
       return;
     }
     const { channel } = admission;
+    // Reply mode: old threads are read-only; replies and task links are checked here.
+    if (channel.type === "thread" && await replyModeService.isThreadOfReplyModeChannel(channelId)) {
+      res.status(409).json({ error: "This channel uses replies instead of threads: reply to the message on the main timeline.", code: "thread_closed_reply_mode" });
+      return;
+    }
+    let replyFacts: { replyToMessageId: string | null; taskIds: string[] } | undefined;
+    if (replyToMessageId || taskNumbers) {
+      const replyModeOn = channel.type === "dm" || await replyModeService.isReplyModeChannel(channelId);
+      if (!replyModeOn || channel.type === "thread") {
+        res.status(400).json({ error: "This conversation does not use replies.", code: "reply_mode_off" });
+        return;
+      }
+      try {
+        const original = replyToMessageId ? await replyModeService.resolveReplyTarget(channelId, replyToMessageId) : null;
+        const explicitTaskIds = taskNumbers && channel.type !== "dm" ? await replyModeService.resolveTaskNumbers(channelId, taskNumbers) : [];
+        const inheritedTaskIds = original ? await replyModeService.getLinkedTaskIds(original.id) : [];
+        replyFacts = { replyToMessageId: original?.id ?? null, taskIds: [...new Set([...explicitTaskIds, ...inheritedTaskIds])] };
+      } catch (err) {
+        if (err instanceof replyModeService.ReplyModeRefusal) {
+          res.status(err.status).json({ error: err.message, code: err.code });
+          return;
+        }
+        throw err;
+      }
+    }
     // Agent Lounge: posting is joining (announced as POST /channels/:id/join does).
     if (channel.type === "channel" && await channelService.ensureLoungeHumanMember(channelId, userId)) {
       req.app.get("io")?.to(`server:${req.serverId}`).emit("channel:members-updated", { channelId });
@@ -1828,6 +1873,7 @@ async function createHumanMessage(
       asTask,
       mentionContract,
       senderTimezone,
+      ...(replyFacts ? { reply: replyFacts } : {}),
     });
 
     if (mentions.some((m) => m.type === "agent")) {

@@ -36,6 +36,10 @@ interface ReadOpts extends TargetAliasOpts {
   around?: string;
   limit?: string;
   unread?: boolean;
+  /** Reply mode: read this message's reply chain. */
+  replies?: string;
+  /** Reply mode: read the messages linked to this task number. */
+  task?: string;
 }
 
 function parsePositiveInt(name: string, raw: string | undefined): number | undefined {
@@ -143,6 +147,8 @@ export const messageReadCommand = defineCommand(
       { flags: "--around <idOrSeq>", description: "Center the window on this anchor: a message id, its 8-character short id, or a seq (an 8-digit value that is no short id here is a seq)" },
       { flags: "--unread", description: "Read this target's unread messages from others: start right after your read position and move it forward" },
       { flags: "--limit <n>", description: "Max messages to return (server default applies if omitted)" },
+      { flags: "--replies <msgId>", description: "Channels that use replies: read the whole reply chain this message is in (what it replies to, and every reply under it)" },
+      { flags: "--task <number>", description: "Channels that use replies: read the messages linked to this task" },
     ],
     helpAfter:
       "\nWhich read to use:\n" +
@@ -163,6 +169,24 @@ export const messageReadCommand = defineCommand(
         code: TASK_TARGET_USE_TASK_COMMAND_ERROR_CODE,
         message: formatTaskTargetUseTaskCommand({ ref: taskRef.ref, action: "read" }),
       });
+    }
+    const replies = opts.replies?.trim();
+    const task = opts.task?.trim();
+    if (replies || task) {
+      if (replies && task) {
+        throw new CliError({ code: "INVALID_ARG", message: "--replies and --task cannot be combined: read one at a time." });
+      }
+      if (readOpts.unread || readOpts.before || readOpts.after || readOpts.around !== undefined) {
+        throw new CliError({ code: "INVALID_ARG", message: "--replies / --task read a filtered set: they cannot be combined with --unread, --before, --after or --around." });
+      }
+      // A filtered read is not a contiguous window: record what it showed as exact seqs (as --around does).
+      const filtered = { ...readOpts, around: replies ?? `task:${task}` };
+      await executeHistoryRead(ctx, filtered, (agentApi) => agentApi.history.read({
+        channel: readOpts.channel,
+        ...(replies ? { replies } : { task: task! }),
+        ...(readOpts.limit !== undefined ? { limit: String(readOpts.limit) } : {}),
+      }));
+      return;
     }
     await executeHistoryRead(ctx, readOpts, (agentApi) => agentApi.history.read({
       channel: readOpts.channel,

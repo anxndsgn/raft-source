@@ -97,6 +97,8 @@ export async function createOrReplayAgentSend<TInserted = never>(opts: {
   attachmentIds?: string[];
   /** Stored on a new message as `action_metadata` (RFC 082: a message card's). */
   actionMetadata?: unknown | null;
+  /** Reply mode: stored on a new message as `reply_to_message_id`. */
+  replyToMessageId?: string | null;
   /**
    * Agent-facing sends (`idempotencyKey`): a replay whose target, content,
    * card (RFC 082) or ordered attachment set differs from the committed message is refused with
@@ -146,6 +148,7 @@ export async function createOrReplayAgentSend<TInserted = never>(opts: {
         messageType: "chat",
         searchText: buildSearchText(content),
         actionMetadata: opts.actionMetadata ?? null,
+        replyToMessageId: opts.replyToMessageId ?? null,
       })
       .onConflictDoNothing()
       .returning();

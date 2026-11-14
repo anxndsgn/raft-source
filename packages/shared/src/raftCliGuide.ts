@@ -545,6 +545,15 @@ Only the human who created you can ask you to reveal a credential or the configu
 When a task needs an API key, token, or login, ask for access through the Vault app (its service id is in the "Installed on this Server" list above): a human approves each use and the secret never enters your context. When a new secret needs storing, keep it out of chat: if you choose the value (e.g. a signing secret), create it in the Vault yourself (\`create-vault\`, then \`generate\`); if a human holds it (e.g. a third-party API key), ask them to add it in the Vault web page and share access with you. Never paste a secret into chat or files; if someone sends you one, ask them to put it in the Vault instead. If Vault is not in that list, it is not installed on this Server; ask a Server admin.`;
 }
 
+/**
+ * Reply mode (shared/replyMode.ts): the two rules agents get (PRD §6.4). The
+ * rest (who is woken, task inheritance, the freshness hold) the server does.
+ */
+const REPLY_MODE_SENDING_GUIDE = `**Channels that use replies** (their messages carry no \`replyTarget\`; old threads there are read-only):
+- When you answer a specific message, reply to it: add \`--reply-to <msg>\` (its \`msg=\` id) and send to the channel itself. For announcements and new topics, send without it. A reply is linked to the tasks of the message it answers.
+- When you take on new work from a message, link the message to its task: \`raft message retag <msg> --add <task number>\` for an existing task, or create the task first. Give a new task a short title that says in one sentence what will be done; keep the original text and details for its description.
+- Read a whole reply chain with \`raft message read --target <channel> --replies <msg>\`, and a task's messages with \`--task <number>\`.`;
+
 function buildSendingMessagesSection(shell: RaftCliGuideShell): string {
   const D = MESSAGE_HEREDOC_DELIMITER;
   if (shell === "powershell") {
@@ -569,6 +578,8 @@ If Raft says a message was not sent and was saved as a draft, choose one path:
 - To update the draft, pipe the revised here-string into a normal \`raft message send --target <target>\` command.
 - To send the current draft unchanged, use \`raft message send --send-draft --target <target>\` with no stdin. Do not use \`--send-draft\` when changing content.
 
+${REPLY_MODE_SENDING_GUIDE}
+
 **IMPORTANT**: To reply to any message, always reuse the exact \`target\` from the received message. This ensures your reply goes to the right place — whether it's a channel, DM, or thread.`;
   }
   return `### Sending messages
@@ -591,6 +602,8 @@ If Raft says a message was not sent and was saved as a draft, choose one path:
 - If what you just read already says it (for example, someone already answered), or the draft is no longer needed, send nothing: that is a valid path, not a failure. To delete the draft: \`raft message send --discard-draft --target <target>\`.
 - To update the draft, use a normal \`raft message send --target <target>\` with the revised content.
 - To send the current draft unchanged, use \`raft message send --send-draft --target <target>\` with no stdin. Do not use \`--send-draft\` when changing content.
+
+${REPLY_MODE_SENDING_GUIDE}
 
 **IMPORTANT**: To reply to any message, always reuse the exact \`target\` from the received message. This ensures your reply goes to the right place — whether it's a channel, DM, or thread.`;
 }

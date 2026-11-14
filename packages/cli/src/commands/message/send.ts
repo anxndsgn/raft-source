@@ -140,6 +140,10 @@ interface SendOpts extends ReviewerIsolationOpts {
   json?: boolean;
   /** RFC 082: post the message as a card read from this JSON file; stdin is then optional (the card's fallback text). */
   card?: string;
+  /** Reply mode: the message this one replies to (msg= id). */
+  replyTo?: string;
+  /** Reply mode: task numbers to link this message to (repeatable). */
+  task?: string[];
 }
 
 const MESSAGE_HEREDOC_DELIMITER = "RAFTMSG";
@@ -945,6 +949,34 @@ interface SendBodyInput {
   /** The same held message again (`--send-draft`), and whether anyway (`--anyway`). */
   sendDraft: boolean;
   anyway: boolean;
+  /** Reply mode: `--reply-to` (message id) and `--task` numbers. */
+  replyTo?: string;
+  tasks?: number[];
+}
+
+/**
+ * When this command was issued (ms since epoch): the process start. The local
+ * daemon counts an inbox notice it wrote after this as unseen by the model
+ * that wrote the send (a busy runtime reads a notice only at its next input
+ * boundary).
+ */
+/** `--task` values as task numbers; a value that is not one fails before anything is sent. */
+function parseTaskNumberFlags(values: string[] | undefined): number[] {
+  const numbers: number[] = [];
+  for (const raw of values ?? []) {
+    for (const part of raw.split(/[\s,]+/).filter(Boolean)) {
+      const n = Number(part.replace(/^#/, ""));
+      if (!Number.isInteger(n) || n <= 0) {
+        throw cliError("INVALID_TASK_NUMBER", `--task expects a task number like 3 or #3, got "${part}".`);
+      }
+      if (!numbers.includes(n)) numbers.push(n);
+    }
+  }
+  return numbers;
+}
+
+function commandIssuedAt(): number {
+  return Math.floor(performance.timeOrigin);
 }
 
 interface SendBodyPlan {
@@ -987,7 +1019,10 @@ function buildSendBody(agentId: string, input: SendBodyInput): SendBodyPlan {
     ...(input.card ? { card: input.card } : {}),
     idempotencyKey: input.idempotencyKey,
     draftReholdCount: input.reholdCount,
+    issuedAt: commandIssuedAt(),
   };
+  if (input.replyTo) body.replyTo = input.replyTo;
+  if (input.tasks && input.tasks.length > 0) body.tasks = input.tasks;
   if (reviewerIsolation) {
     body.freshnessContextMode = "withheld";
   }
@@ -1251,6 +1286,9 @@ async function handleMessageSend(
   // RFC 082: `--card <file>` (checked here), or the card a saved draft was sent with.
   let loadedCard: LoadedCard | undefined;
   let outgoingCard: MessageCardInput | undefined;
+  // Reply mode: `--reply-to` / `--task`, or what a saved draft was sent with.
+  let outgoingReplyTo: string | undefined = opts.replyTo?.trim() || undefined;
+  let outgoingTasks: number[] = parseTaskNumberFlags(opts.task);
   let previousDraftReholdCount = 0;
   let seenUpToSeq: number | undefined;
   let seenExactSeqs: number[] = [];
@@ -1381,6 +1419,8 @@ async function handleMessageSend(
     }
     outgoingContent = savedDraft.content;
     outgoingCard = savedDraft.card;
+    outgoingReplyTo = savedDraft.replyTo;
+    outgoingTasks = savedDraft.tasks ?? [];
     outgoingAttachmentIds = savedDraft.attachmentIds;
     outgoingMentions = explicitMentions.length > 0 ? explicitMentions : (savedDraft.mentions ?? []);
     idempotencyKey = savedDraft.idempotencyKey ?? idempotencyKey;
@@ -1432,6 +1472,8 @@ async function handleMessageSend(
         idempotencyKey,
         mentions: outgoingMentions,
         ...(outgoingCard ? { card: outgoingCard } : {}),
+        ...(outgoingReplyTo ? { replyTo: outgoingReplyTo } : {}),
+        ...(outgoingTasks.length > 0 ? { tasks: outgoingTasks } : {}),
         savedAt: currentTimeMs(),
         reholdCount: previousDraftReholdCount,
         seenUpToSeq,
@@ -1459,6 +1501,8 @@ async function handleMessageSend(
     target,
     content: outgoingContent,
     ...(outgoingCard ? { card: outgoingCard } : {}),
+        ...(outgoingReplyTo ? { replyTo: outgoingReplyTo } : {}),
+        ...(outgoingTasks.length > 0 ? { tasks: outgoingTasks } : {}),
     attachmentIds: outgoingAttachmentIds,
     mentions: outgoingMentions,
     idempotencyKey,
@@ -1485,6 +1529,8 @@ async function handleMessageSend(
         idempotencyKey,
         mentions: outgoingMentions,
         ...(outgoingCard ? { card: outgoingCard } : {}),
+        ...(outgoingReplyTo ? { replyTo: outgoingReplyTo } : {}),
+        ...(outgoingTasks.length > 0 ? { tasks: outgoingTasks } : {}),
         savedAt: currentTimeMs(),
         reholdCount: previousDraftReholdCount,
         seenUpToSeq,
@@ -1515,7 +1561,7 @@ async function handleMessageSend(
     // only here, where it changes something; off, unknown or unreadable keeps
     // the draft flow below. A card message is not plain text: its draft keeps
     // the card (RFC 082).
-    if (!opts.sendDraft && !opts.json && !reviewerIsolation && !outgoingCard && continuationsSupportedRuntime(ctx.env) && await continuationsPilotOn(ctx, agentContext)) {
+    if (!opts.sendDraft && !opts.json && !reviewerIsolation && !outgoingCard && !outgoingReplyTo && outgoingTasks.length === 0 && continuationsSupportedRuntime(ctx.env) && await continuationsPilotOn(ctx, agentContext)) {
       await continueHeldSend(ctx, agentContext, {
         target,
         content: outgoingContent,
@@ -1536,6 +1582,8 @@ async function handleMessageSend(
         idempotencyKey,
         mentions: outgoingMentions,
         ...(outgoingCard ? { card: outgoingCard } : {}),
+        ...(outgoingReplyTo ? { replyTo: outgoingReplyTo } : {}),
+        ...(outgoingTasks.length > 0 ? { tasks: outgoingTasks } : {}),
         savedAt: currentTimeMs(),
         reholdCount: previousDraftReholdCount + 1,
         // A hold for the card alone showed no messages: keep what was attested.
@@ -1693,6 +1741,15 @@ export const messageSendCommand = defineCommand(
       {
         flags: "--card <file>",
         description: "Post the message as a card, from this JSON file (see Card messages below). The text on stdin is then optional.",
+      },
+      {
+        flags: "--reply-to <msgId>",
+        description: "Reply to this message (its msg= id) in the same channel or DM. The reply links to the tasks the original is linked to.",
+      },
+      {
+        flags: "--task <number>",
+        description: "Link the message to this task number in the target's channel (repeatable).",
+        parse: (value, prev: string[] = []) => prev.concat(value),
       },
     ],
   },

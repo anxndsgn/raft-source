@@ -277,6 +277,14 @@ export interface AgentMessage {
    * with `raft task reply`. Absent everywhere else; older daemons ignore it.
    */
   task_conversation_number?: number;
+  /**
+   * Reply mode: the message this one replies to, with its author and first
+   * line. Renderers add `reply_to=<short id>` to the header and a quoted
+   * line under it. Absent on a message that is not a reply.
+   */
+  reply_to?: { message_id: string; sender_name: string | null; excerpt: string; deleted: boolean } | null;
+  /** Reply mode: numbers of the tasks this message is linked to (header `task=#3,#5`). */
+  linked_tasks?: number[];
   /** Present when the agent was auto-joined into a thread and would otherwise only see the triggering @message. */
   thread_join_context?: AgentThreadJoinContext;
   /** Present only when this direct @mention reactivated an explicitly unfollowed thread. */
@@ -378,6 +386,7 @@ export * from "./composerSendKey";
 export * from "./shortcutOverrides";
 export * from "./channelPermissions";
 export * from "./channelThreadSort";
+export * from "./replyMode";
 export * from "./channelAnnouncement";
 export * from "./raftPermalinks";
 export * from "./notificationDisplay";

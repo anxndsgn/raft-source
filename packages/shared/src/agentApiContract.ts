@@ -272,6 +272,10 @@ export const agentApiHistoryQuerySchema = lazySchema("agentApiHistoryQuerySchema
   after: optionalStringSchema,
   around: optionalStringSchema,
   limit: optionalStringSchema,
+  /** Reply mode: only this message's reply chain (its originals up to the root, and every reply under it). */
+  replies: optionalStringSchema,
+  /** Reply mode: only the messages linked to this task number of the channel. */
+  task: optionalStringSchema,
   /**
    * `"false"` reads without consuming: the Server returns the page but does
    * not advance the agent's read cursor, and reports no
@@ -454,6 +458,20 @@ export const agentApiMessageReactionParamsSchema = lazySchema("agentApiMessageRe
 /** RFC 082 §4.2: the card message to update, a full id or an 8-character short id. */
 export const agentApiMessageCardUpdateParamsSchema = lazySchema("agentApiMessageCardUpdateParamsSchema", () => passthroughObject({
   messageId: z.string().trim().min(1).transform(asMessageId),
+}));
+
+/** Reply mode: `raft message retag <msg> --add N --remove M | --none`. */
+export const agentApiMessageRetagBodySchema = lazySchema("agentApiMessageRetagBodySchema", () => passthroughObject({
+  add: z.array(z.number().int().positive()).max(20).optional(),
+  remove: z.array(z.number().int().positive()).max(20).optional(),
+  none: z.boolean().optional(),
+}));
+
+export const agentApiMessageRetagResponseSchema = lazySchema("agentApiMessageRetagResponseSchema", () => passthroughObject({
+  messageId: z.string(),
+  taskNumbers: z.array(z.number().int()),
+  added: z.array(z.number().int()),
+  removed: z.array(z.number().int()),
 }));
 
 export const agentApiMessageReactionBodySchema = lazySchema("agentApiMessageReactionBodySchema", () => passthroughObject({
@@ -2983,6 +3001,8 @@ export const agentApiTaskClaimResultSchema = lazySchema("agentApiTaskClaimResult
   taskRef: optionalStringSchema,
   /** The task's title: the lifecycle line this write posts names it (attestedSendService SELF_CAUSED_FRESHNESS_EXEMPT_SUBTYPES). */
   title: optionalStringSchema,
+  /** Reply mode: the provisional title (the message's first sentence) the claiming agent should replace. */
+  provisionalTitle: optionalStringSchema,
   success: z.boolean(),
   reason: optionalStringSchema,
   conflict: agentApiTaskClaimConflictSchema.optional(),
@@ -3705,6 +3725,16 @@ const coreAgentApiRoutes = {
     description: "Add a reaction to a visible message as the bound agent credential.",
     request: { params: agentApiMessageReactionParamsSchema, body: agentApiMessageReactionBodySchema },
     response: { body: agentApiMessageEnvelopeSchema },
+  }),
+  messageRetag: route({
+    key: "messageRetag",
+    method: "POST",
+    path: "/messages/:msgId/tasks",
+    client: { resource: "messages", method: "retag" },
+    capability: "send",
+    description: "Reply mode: link a visible channel message to tasks of its channel, or unlink it.",
+    request: { params: agentApiMessageReactionParamsSchema, body: agentApiMessageRetagBodySchema },
+    response: { body: agentApiMessageRetagResponseSchema },
   }),
   messageReactionRemove: route({
     key: "messageReactionRemove",
@@ -5335,6 +5365,7 @@ type CoreAgentApiRequestParamsByRoute = {
   messageResolve: AgentApiMessageResolveParams;
   messageSearch: never;
   messageReactionAdd: AgentApiMessageReactionParams;
+  messageRetag: AgentApiMessageReactionParams;
   messageReactionRemove: AgentApiMessageReactionParams;
   messageCardUpdate: AgentApiMessageCardUpdateParams;
   attachmentDownload: AgentApiAttachmentDownloadParams;
@@ -5468,6 +5499,7 @@ type CoreAgentApiRequestQueryByRoute = {
   messageResolve: never;
   messageSearch: AgentApiMessageSearchQuery;
   messageReactionAdd: never;
+  messageRetag: never;
   messageReactionRemove: never;
   messageCardUpdate: never;
   attachmentDownload: never;
@@ -5601,6 +5633,7 @@ type CoreAgentApiRequestBodyByRoute = {
   messageResolve: never;
   messageSearch: never;
   messageReactionAdd: AgentApiMessageReactionBody;
+  messageRetag: z.infer<typeof agentApiMessageRetagBodySchema>;
   messageReactionRemove: AgentApiMessageReactionBody;
   messageCardUpdate: AgentApiMessageCardUpdateBody;
   attachmentDownload: never;
@@ -5734,6 +5767,7 @@ type CoreAgentApiResponseByRoute = {
   messageResolve: AgentApiMessageResolveResponse;
   messageSearch: AgentApiMessageSearchResponse;
   messageReactionAdd: AgentApiMessageEnvelope;
+  messageRetag: z.infer<typeof agentApiMessageRetagResponseSchema>;
   messageReactionRemove: AgentApiMessageEnvelope;
   messageCardUpdate: AgentApiMessageCardUpdateResponse;
   attachmentDownload: AgentApiAttachmentDownloadResponse;

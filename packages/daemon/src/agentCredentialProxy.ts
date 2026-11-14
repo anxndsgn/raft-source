@@ -218,9 +218,10 @@ export type AgentProxyVisibleMessage = {
 export type AgentProxyInboxCoordinator = {
   getBoundary(target: string): number | undefined;
   getPendingMessages(target: string): AgentProxyVisibleMessage[];
-  isMessageModelSeen?(input: { target: string; message: AgentProxyVisibleMessage }): boolean;
+  /** `issuedAt`: when the asking command was issued (ms); evidence the model got after it does not count. */
+  isMessageModelSeen?(input: { target: string; message: AgentProxyVisibleMessage; issuedAt?: number }): boolean;
   /** Exact model-seen seqs for a target, ascending (task #360); merged into a send's `seenExactSeqs`. */
-  getExactSeenSeqs?(target: string): number[];
+  getExactSeenSeqs?(target: string, opts?: { issuedAt?: number }): number[];
   /** The id of the model context the agent is in now (new on compaction), or null when none was published. */
   getContextId?(): string | null;
   /**
@@ -2800,6 +2801,11 @@ async function prepareAgentApiSideEffectForward(
     return { bodyText: JSON.stringify(body), target, freshnessContextMode, taskWriteKey };
   }
   const pending = coordinator.getPendingMessages(target);
+  // When the CLI command was issued: notice previews written after it were
+  // not in front of the model that wrote this send.
+  const issuedAt = typeof body.issuedAt === "number" && Number.isFinite(body.issuedAt) ? body.issuedAt : undefined;
+  delete body.issuedAt;
+  const exactSeenOpts = issuedAt === undefined ? undefined : { issuedAt };
 
   const continueAnyway = body.continueAnyway === true;
   // A blind seat must not materialize target bodies merely to perform a
@@ -2820,17 +2826,17 @@ async function prepareAgentApiSideEffectForward(
     modelSeenSeq: coordinator.getBoundary(target),
     pendingMessages: pending,
     recentMessages: recent,
-    isMessageModelSeen: (messageInput) => coordinator.isMessageModelSeen?.(messageInput) === true,
+    isMessageModelSeen: (messageInput) => coordinator.isMessageModelSeen?.({ ...messageInput, issuedAt }) === true,
     heldContextLimit: LOCAL_HELD_CONTEXT_LIMIT,
   });
   if (!options.localHold && plan.localResponse) {
     // A hold the agent will not see must not record its context as consumed.
-    mergeDaemonExactSeenSeqs(body, coordinator.getExactSeenSeqs?.(target) ?? []);
+    mergeDaemonExactSeenSeqs(body, coordinator.getExactSeenSeqs?.(target, exactSeenOpts) ?? []);
     return { bodyText: JSON.stringify(body), target, freshnessContextMode };
   }
   await applyAgentInboxStateMachineEffects(coordinator, plan.effects);
   if (typeof plan.forwardSeenUpToSeq === "number") body.seenUpToSeq = plan.forwardSeenUpToSeq;
-  if (!plan.localResponse) mergeDaemonExactSeenSeqs(body, coordinator.getExactSeenSeqs?.(target) ?? []);
+  if (!plan.localResponse) mergeDaemonExactSeenSeqs(body, coordinator.getExactSeenSeqs?.(target, exactSeenOpts) ?? []);
   return {
     bodyText: JSON.stringify(body),
     target,

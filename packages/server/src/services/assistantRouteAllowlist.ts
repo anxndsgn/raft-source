@@ -47,6 +47,7 @@ export const ASSISTANT_ROUTE_DECISIONS = {
   historyRead: { allow: true, reason: "Reads its owner DM (held there in the handler)." },
   messageReactionAdd: { allow: true, reason: "Reacts in its owner DM (held there in the handler)." },
   messageReactionRemove: { allow: true, reason: "Reacts in its owner DM (held there in the handler)." },
+  messageRetag: { allow: false, reason: "Task links are for channels that use replies; an assistant works in its owner DM." },
   messageCardUpdate: { allow: true, reason: "Updates a card message it sent in its owner DM (held there in the handler).", pairsWith: ["messageSendV2"] },
   attachmentUploadCapabilities: { allow: true, reason: OWNER_DM_ATTACHMENT, pairsWith: ["attachmentUploadSessionCreate"] },
   attachmentUploadSessionCreate: { allow: true, reason: OWNER_DM_ATTACHMENT, pairsWith: ["attachmentUploadSessionComplete", "attachmentUploadSessionCancel", "attachmentUploadSessionStatus"] },

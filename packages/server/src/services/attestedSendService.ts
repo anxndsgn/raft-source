@@ -162,6 +162,40 @@ export async function withTargetFreshnessGate<T>(channelId: string, work: () => 
   }
 }
 
+/**
+ * The same per-channel gate as `withTargetFreshnessGate`, for a caller whose
+ * check and write cannot be one closure: resolves once earlier holders of the
+ * channel's gate are done, with a release to call when the write has landed
+ * (idempotent; call it in a `finally` too). Serializes the freshness check and
+ * the insert of sends to one channel within this server process, so two sends
+ * a few milliseconds apart cannot both pass the "nothing new since you read"
+ * check.
+ */
+export async function acquireTargetFreshnessGate(channelId: string): Promise<() => void> {
+  const start = Date.now();
+  const previous = targetFreshnessGates.get(channelId) ?? Promise.resolve();
+  let releaseCurrent: () => void = () => {};
+  const current = new Promise<void>((resolve) => {
+    releaseCurrent = resolve;
+  });
+  const queued = previous.catch(() => {}).then(() => current);
+  targetFreshnessGates.set(channelId, queued);
+  await previous.catch(() => {});
+  addTraceEvent("attested_send.target_gate.acquired", {
+    wait_ms: Date.now() - start,
+    backend: "server_process",
+  });
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    releaseCurrent();
+    if (targetFreshnessGates.get(channelId) === queued) {
+      targetFreshnessGates.delete(channelId);
+    }
+  };
+}
+
 async function recordEvent(
   eventType: AttestedSendEventType,
   subject: AttestedSendEventSubject,

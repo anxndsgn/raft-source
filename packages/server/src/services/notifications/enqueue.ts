@@ -18,6 +18,7 @@
  * collapse to the copy whose own levels let it through. After the
  * transaction settles, exactly the inserted rows are drained.
  */
+import { replyModePersonalUserIds } from "../replyModeRouting";
 import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { DEFAULT_NOTIFICATION_ACCOUNT_SETTINGS, type NotificationCategory } from "@botiverse/raft-shared";
 import { afterAmbientTransaction } from "../../db/ambientTransaction";
@@ -344,8 +345,15 @@ export async function enqueueNotificationsForFacts(
     const mentionedUserIds = context && (context.channel.type === "thread" || context.channel.type === "task")
       ? await mentionedFollowerIds(executor, context.message.id, userFacts)
       : null;
+    // Reply mode: a reply to your message, in a reply chain you wrote in, or
+    // on a task you follow is addressed to you, as a mention is.
+    const replyModeUserIds = context && (context.channel.type === "channel" || context.channel.type === "private")
+      ? await replyModePersonalUserIds(context.message.id, executor)
+      : null;
     rows = userFacts.map((fact) => {
-      const personal = fact.personalMention === true || (mentionedUserIds?.has(fact.receiverId) ?? false);
+      const personal = fact.personalMention === true
+        || (mentionedUserIds?.has(fact.receiverId) ?? false)
+        || (replyModeUserIds?.has(fact.receiverId) ?? false);
       return rowFromFact(fact, messageFactCategory({ ...fact, personalMention: personal }), personal);
     });
     if (context?.mentionOnlyUserIds?.length && context.channel.type === "channel") {

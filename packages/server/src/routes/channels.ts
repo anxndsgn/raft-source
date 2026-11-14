@@ -53,7 +53,7 @@ import {
   serializeServerConnectOutcome,
 } from "./externalInvites";
 import { refusedOutcome, type ConnectFinishedOutcome } from "../services/externalConnectProductEvents";
-import { asServerId, CHANNEL_THREAD_SORT_FEATURE_FLAG_KEY, channelTypeSupportsThreadSort, isChannelThreadSort, EXTERNAL_CHANNELS_FEATURE_FLAG_KEY, MAX_JOINT_CHANNEL_SERVERS, PUBLIC_SERVER_FEATURE_FLAG_KEY, channelTypeSupportsActivityMute, noopTracer, validateName, type ServerCapability, type ActiveSpan, type ServerId, type TraceAttributes, type Tracer } from "@botiverse/raft-shared";
+import { asServerId, CHANNEL_THREAD_SORT_FEATURE_FLAG_KEY, channelTypeSupportsReplyMode, channelTypeSupportsThreadSort, isChannelThreadSort, EXTERNAL_CHANNELS_FEATURE_FLAG_KEY, MAX_JOINT_CHANNEL_SERVERS, PUBLIC_SERVER_FEATURE_FLAG_KEY, channelTypeSupportsActivityMute, noopTracer, validateName, type ServerCapability, type ActiveSpan, type ServerId, type TraceAttributes, type Tracer } from "@botiverse/raft-shared";
 import { getServerPlan, getHistoryCutoff, channelBillingReadOnlyBody, getChannelBillingReadOnly, isChannelReadOnlyByQuota } from "../services/planService";
 import { setRequestTraceErrorCode, setRequestTraceLimitSide } from "../middleware/requestObservability";
 import { noteLimitPaywallHit, notePaywallHit } from "./paywallHit";
@@ -2987,7 +2987,7 @@ channelRouter.patch("/:id", async (req, res) => {
     // itself, so the field is no longer read. visitorVisible (legacy alias
     // guestVisible) puts the channel on its public server's page for
     // signed-out visitors (cindyz, #wg-rbac:#51, msg 4987425b).
-    const { name, description, visibility, threadSort } = req.body;
+    const { name, description, visibility, threadSort, replyMode } = req.body;
     const visitorVisibilityRequested = req.body.visitorVisible !== undefined || req.body.guestVisible !== undefined;
     // Forum-style channels (#proj-chat:#24): behind channel_thread_sort_v0
     // (404 while off, like an unknown field), editChannelMetadata like the name,
@@ -3012,6 +3012,22 @@ channelRouter.patch("/:id", async (req, res) => {
       }
       if (!channelTypeSupportsThreadSort(channel.type)) {
         res.status(400).json({ error: "Thread sort is supported only for ordinary channels", code: "thread_sort_unsupported" });
+        return;
+      }
+    }
+    // Reply mode (shared/replyMode.ts): editChannelMetadata like the name,
+    // regular channels only.
+    if (replyMode !== undefined) {
+      if (!canEditChannelMetadata) {
+        res.status(403).json({ error: "You do not have permission to edit channel metadata" });
+        return;
+      }
+      if (typeof replyMode !== "boolean") {
+        res.status(400).json({ error: "replyMode must be a boolean" });
+        return;
+      }
+      if (!channelTypeSupportsReplyMode(channel.type)) {
+        res.status(400).json({ error: "Reply mode is supported only for ordinary channels", code: "reply_mode_unsupported" });
         return;
       }
     }
@@ -3118,7 +3134,7 @@ channelRouter.patch("/:id", async (req, res) => {
       }
     }
     const requiredCapabilities: ServerCapability[] = [];
-    if (name !== undefined || description !== undefined || threadSort !== undefined || announcementArtifactId !== undefined) requiredCapabilities.push("editChannelMetadata");
+    if (name !== undefined || description !== undefined || threadSort !== undefined || replyMode !== undefined || announcementArtifactId !== undefined) requiredCapabilities.push("editChannelMetadata");
     if (visibility !== undefined) requiredCapabilities.push("changeChannelVisibility");
     if (visitorVisible !== undefined) requiredCapabilities.push("manageVisitorAccess");
     // The announcement as it was under the lock: which change the event line names (set, replaced, removed).
@@ -3144,6 +3160,7 @@ channelRouter.patch("/:id", async (req, res) => {
         type,
         guestVisible: visitorVisible,
         threadSort,
+        replyMode,
         announcementArtifactId,
       }, tx);
       // Also when making the channel private turned it off.

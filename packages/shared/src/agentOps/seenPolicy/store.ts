@@ -31,6 +31,9 @@ export interface CommandStateDraftEntry {
   seenExactSeqs?: number[];
   /** As stored; drafts.ts reads it through `savedDraftCauseOf`. */
   cause?: string;
+  /** Reply mode, as stored; drafts.ts validates them. */
+  replyTo?: unknown;
+  tasks?: unknown;
 }
 
 /**

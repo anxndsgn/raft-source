@@ -67,6 +67,8 @@ const CORE_AGENT_API_ROUTE_META = {
   messageResolve: read,
   messageSearch: read,
   messageReactionAdd: naturalWrite,
+  // Reply mode: linking is idempotent; unlinking removes a link (recorded on the task).
+  messageRetag: naturalWrite,
   messageReactionRemove: naturalDestructive,
   // RFC 082: the sender replaces its own card (every revision is kept, and
   // another update replaces it again), so not destructive; `idempotencyKey`

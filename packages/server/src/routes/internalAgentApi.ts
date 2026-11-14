@@ -293,6 +293,7 @@ import {
   putAgentInboxPushRegistration,
 } from "../services/agentInboxPushService";
 import * as attestedSendService from "../services/attestedSendService";
+import * as replyModeService from "../services/replyModeService";
 import { emitScopeReadUpdated } from "../services/readReceiptService";
 import { emitThreadFollowersUpdated } from "../services/threadFollowerRealtimeService";
 import { noteAgentChannelMuteChanged } from "../services/agentReadProgressService";
@@ -3767,7 +3768,7 @@ registerAgentApiRoute("historyRead", async (req, res) => {
   await serveAgentHistoryRead(req, res, historyQuery, null);
 });
 
-type AgentHistoryReadQuery = Pick<AgentApiHistoryQuery, "channel" | "before" | "after" | "around" | "limit" | "consume" | "unread">;
+type AgentHistoryReadQuery = Pick<AgentApiHistoryQuery, "channel" | "before" | "after" | "around" | "limit" | "consume" | "unread" | "replies" | "task">;
 
 /**
  * One history read window (`historyRead`). `taskConversation` (task v2,
@@ -4030,7 +4031,30 @@ async function serveAgentHistoryRead(
     let rawMsgs;
     let hasOlder = false;
     let hasNewer = false;
-    if (around) {
+    // Reply mode: `--replies <msg>` (a reply chain) or `--task <n>` (a task's
+    // messages) reads a filtered set, oldest first, without moving the read
+    // position (it is not a contiguous window).
+    let replyModeFilterIds: string[] | null = null;
+    if (historyQuery.replies || historyQuery.task) {
+      try {
+        replyModeFilterIds = historyQuery.replies
+          ? await replyModeService.replyChainMessageIds(storageChannelId, historyQuery.replies, limit)
+          : await replyModeService.taskMessageIds(storageChannelId, Number(String(historyQuery.task).replace(/^#/, "")), limit);
+      } catch (err) {
+        if (err instanceof replyModeService.ReplyModeRefusal) {
+          res.status(err.status).json({ error: err.message, code: err.code });
+          return;
+        }
+        throw err;
+      }
+    }
+    if (replyModeFilterIds) {
+      rawMsgs = await messageService.listMessagesByIds(replyModeFilterIds, {
+        forwardedBundleViewerAgentId: actingAgentId,
+        viewerServerId: serverId,
+        includeSenderTimezone: true,
+      });
+    } else if (around) {
       if (!isHistoryAnchorShape(around)) {
         refuseHistoryAnchor(res, channelRef, around, "invalid");
         return;
@@ -4091,7 +4115,7 @@ async function serveAgentHistoryRead(
     const msgs = jointThreadProjection || resolvedAccess?.kind === "joint"
       ? await messageService.projectJointMessagesToLocalChannel(rawMsgs, projectionChannelId, serverId)
       : rawMsgs;
-    const page = around
+    const page = around || replyModeFilterIds
       ? { messages: msgs, hasOlder, hasNewer }
       : paginateHistoryProbe(
           msgs,
@@ -4138,7 +4162,7 @@ async function serveAgentHistoryRead(
     const commitReadPosition = async (): Promise<void> => {
       for (const move of readPositionMoves) await move();
     };
-    if (consume && !around && pageMsgs.length > 0) {
+    if (consume && !around && !replyModeFilterIds && pageMsgs.length > 0) {
       const pageSeqs = pageMsgs
         .map((message) => Number(message.seq))
         .filter((seq) => Number.isInteger(seq) && seq > 0);
@@ -4752,6 +4776,74 @@ registerAgentApiRoute("messageReactionAdd", ...agentApiRequestValidators("messag
     sendJsonServerError(req, res, {
       error: "Failed to add reaction",
       logPrefix: "internal.agent-api.reactions.add error:",
+      err,
+    });
+  }
+});
+
+// Reply mode: `raft message retag <msg> --add N --remove M | --none`. Any
+// member of the channel may link a message to tasks or unlink it; each change
+// is recorded on the task (task_events message_linked / message_unlinked).
+registerAgentApiRoute("messageRetag", ...agentApiRequestValidators("messageRetag"), validateAgentApiResponseMiddleware("messageRetag"), async (req, res) => {
+  try {
+    const actingAgentId = req.actingAgentId!;
+    const serverId = req.serverId!;
+    const msgId = typeof req.params.msgId === "string" ? req.params.msgId : "";
+    const body = (req.body ?? {}) as { add?: number[]; remove?: number[]; none?: boolean };
+    const add = Array.isArray(body.add) ? body.add : [];
+    const remove = Array.isArray(body.remove) ? body.remove : [];
+    if (add.length === 0 && remove.length === 0 && body.none !== true) {
+      res.status(400).json({ error: "Name what to change: --add <task>, --remove <task>, or --none.", code: "retag_empty" });
+      return;
+    }
+    const access = await resolveMessageResourceAccess({
+      messageId: msgId,
+      serverId,
+      actor: { type: "agent", id: actingAgentId, alsoRequire: (channelId) => assistantConfinedToOwnerDm(req, channelId) },
+    });
+    if (access.kind === "no_access") {
+      res.status(access.status).json({ error: access.reason === "channel_not_found" ? "Channel not found" : access.error });
+      return;
+    }
+    if (access.kind === "history_limited") {
+      refuse(res, 404, agentHistoryLimitedRefusal(access.historyWindow));
+      return;
+    }
+    const { message, localChannelId } = access;
+    if (!await replyModeService.isReplyModeChannel(message.channelId)) {
+      res.status(400).json({ error: "Only messages on the timeline of a channel that uses replies can be linked to tasks.", code: "reply_mode_off" });
+      return;
+    }
+    if (!await channelService.canAgentPostToChannel(localChannelId, actingAgentId)) {
+      res.status(403).json({ error: "Only members of the channel can change which tasks its messages are linked to.", code: "target_forbidden" });
+      return;
+    }
+    const actor = { type: "agent" as const, id: actingAgentId };
+    const result = await getDb().transaction(async (tx) => {
+      const addIds = await replyModeService.resolveTaskNumbers(message.channelId, add, tx);
+      const removeIds = remove.length > 0 ? await replyModeService.resolveTaskNumbers(message.channelId, remove, tx) : [];
+      const removed = body.none === true
+        ? await replyModeService.unlinkMessageFromTasks(tx, message.id, "all", actor)
+        : await replyModeService.unlinkMessageFromTasks(tx, message.id, removeIds, actor);
+      const added = await replyModeService.linkMessageToTasks(tx, message.id, addIds, actor);
+      return { added, removed };
+    });
+    const numbers = await replyModeService.taskNumbersByIds([...result.added, ...result.removed]);
+    const facts = await replyModeService.loadReplyModeMessageFacts([{ id: message.id, channelId: message.channelId }]);
+    sendAgentApiResponse("messageRetag", res, {
+      messageId: message.id,
+      taskNumbers: facts.taskNumbers.get(message.id) ?? [],
+      added: result.added.map((id) => numbers.get(id)!).filter((n) => n !== undefined),
+      removed: result.removed.map((id) => numbers.get(id)!).filter((n) => n !== undefined),
+    });
+  } catch (err) {
+    if (err instanceof replyModeService.ReplyModeRefusal) {
+      res.status(err.status).json({ error: err.message, code: err.code });
+      return;
+    }
+    sendJsonServerError(req, res, {
+      error: "Failed to change the message's tasks",
+      logPrefix: "internal.agent-api.messages.retag error:",
       err,
     });
   }
@@ -7033,6 +7125,8 @@ async function handleAgentApiMessageSend(
   res: Response,
   routeKey: "messageSend" | "messageSendV2" | "taskReply",
 ): Promise<void> {
+  // Held from the freshness check until the message is written (see below).
+  let releaseFreshnessGate: (() => void) | null = null;
   try {
     const actingAgentId = req.actingAgentId!;
     const serverId = req.serverId!;
@@ -7379,6 +7473,32 @@ async function handleAgentApiMessageSend(
       }));
     }
 
+    // Reply mode: `--reply-to` and `--task` (replyModeService). Checked
+    // before the freshness hold so a bad reference fails without a draft.
+    let replyFacts: { replyToMessageId: string | null; taskIds: string[] } | undefined;
+    {
+      const replyToRef = typeof sendBody.replyTo === "string" && sendBody.replyTo.trim().length > 0 ? sendBody.replyTo.trim() : null;
+      const taskNumbers = Array.isArray(sendBody.tasks) ? sendBody.tasks.filter((n): n is number => Number.isInteger(n) && n > 0) : [];
+      if (replyToRef || taskNumbers.length > 0) {
+        if (resolved.type === "thread" || taskReplyAddress) {
+          throw new replyModeService.ReplyModeRefusal(400, "reply_in_thread_unsupported", "--reply-to and --task are for a channel or DM timeline, not a thread or task conversation.");
+        }
+        const replyModeOn = resolved.type === "dm" || await replyModeService.isReplyModeChannel(resolved.channelId);
+        if (!replyModeOn) {
+          throw new replyModeService.ReplyModeRefusal(400, "reply_mode_off", `${agentFacingTarget} does not use replies: send without --reply-to / --task (reply in a thread as before).`);
+        }
+        if (taskNumbers.length > 0 && resolved.type === "dm") {
+          throw new replyModeService.ReplyModeRefusal(400, "task_link_unsupported", "--task links a channel message to that channel's tasks; DMs have none.");
+        }
+        const original = replyToRef ? await replyModeService.resolveReplyTarget(resolved.channelId, replyToRef) : null;
+        const explicitTaskIds = await replyModeService.resolveTaskNumbers(resolved.channelId, taskNumbers);
+        const inheritedTaskIds = original ? await replyModeService.getLinkedTaskIds(original.id) : [];
+        replyFacts = {
+          replyToMessageId: original?.id ?? null,
+          taskIds: [...new Set([...explicitTaskIds, ...inheritedTaskIds])],
+        };
+      }
+    }
     const io = req.app.get("io");
     const agentOrchestrator = req.app.get("agentOrchestrator") as AgentOrchestrator;
     let attestedSendActivityContext: {
@@ -7388,6 +7508,9 @@ async function handleAgentApiMessageSend(
     } | null = null;
 
     if (shouldRunSendFreshness) {
+      // Sends to one channel check and write one at a time: without this, two
+      // sends milliseconds apart both pass the check before either is written.
+      releaseFreshnessGate = await attestedSendService.acquireTargetFreshnessGate(resolved.channelId);
       const freshness = await tracePhase(
         async () => {
           const evaluation = await evaluateAgentFreshness({
@@ -7512,6 +7635,7 @@ async function handleAgentApiMessageSend(
           ? { agentSendKey: idempotencyKey, rejectMismatchedAgentSendReplay: true }
           : {}),
         ...(markWeChatMirror ? { afterAgentInsertInTransaction: markWeChatMirror } : {}),
+        ...(replyFacts ? { reply: replyFacts } : {}),
       }),
       (_durationMs, result) => ({
         name: "agent_api_send.commit.finished",
@@ -7523,6 +7647,7 @@ async function handleAgentApiMessageSend(
         },
       }),
     );
+    releaseFreshnessGate?.();
 
     // RFC 077: what an assistant says to its owner in their DM is told (references parsed server-side).
     // Only assistants: an ordinary agent's send costs nothing here. Off the response path: the send
@@ -7649,6 +7774,11 @@ async function handleAgentApiMessageSend(
       res.status(err.status).json(err.toResponseBody());
       return;
     }
+    if (err instanceof replyModeService.ReplyModeRefusal) {
+      traceSendRouteFailure("bad_request", err.status);
+      res.status(err.status).json({ error: err.message, code: err.code });
+      return;
+    }
     if (transientTransactionSqlState(err)) {
       // The send transaction lost a deadlock/serialization race on every
       // bounded retry and rolled back: nothing was committed. The same
@@ -7666,6 +7796,8 @@ async function handleAgentApiMessageSend(
     traceSendRouteCatch(err, 500);
     console.error("internal.agent-api.send error:", serializeErrorForLog(err));
     res.status(500).json({ error: "Failed to send message" });
+  } finally {
+    releaseFreshnessGate?.();
   }
 }
 
@@ -11165,6 +11297,7 @@ registerAgentApiRoute("taskClaim", ...agentApiRequestValidators("taskClaim"), as
       messageId?: string;
       /** Task v2: the task's conversation parent when it differs from `messageId`. */
       conversationMessageId?: string;
+      provisionalTitle?: string;
       success: boolean;
       reason?: string;
       conflict?: AgentApiTaskClaimConflict;
@@ -11384,7 +11517,9 @@ registerAgentApiRoute("taskClaim", ...agentApiRequestValidators("taskClaim"), as
               });
             }
             successfulClaimCount += 1;
-            results.push({ messageId: msgId, success: true, taskNumber: facts.taskNumber });
+            // Reply mode: the task has a provisional title the agent should replace.
+            const provisionalTitle = await replyModeService.isReplyModeChannel(ctx.storageChannelId) ? converted.title : undefined;
+            results.push({ messageId: msgId, success: true, taskNumber: facts.taskNumber, ...(provisionalTitle !== undefined ? { provisionalTitle } : {}) });
           } else {
             results.push({ messageId: msgId, success: false, reason: claimed.result, conflict: claimed.conflict });
           }

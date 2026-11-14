@@ -1,3 +1,4 @@
+import { ReplyModeRefusal } from "../services/replyModeService";
 import { parseAgentTaskRef, parseDmPeerRef } from "@botiverse/raft-shared";
 import * as assistantService from "../services/assistantService";
 import { resolveAppBotDmPeerUserId } from "../services/appBotIdentityService";
@@ -176,6 +177,15 @@ async function resolveOrCreateThreadTarget(
   // grants listen access only; it must not grant send rights.
   const canPostToParent = await channelService.canAgentPostToChannel(localParentChannelId ?? parentMsg.channelId, agentId);
   if (!canPostToParent) return "forbidden";
+
+  // Reply mode: no new threads, and old ones are read-only.
+  if (parentChannel.replyMode) {
+    throw new ReplyModeRefusal(
+      409,
+      "thread_closed_reply_mode",
+      `#${parsed.kind === "channel" ? parsed.channelName : `dm:@${parsed.peerName}`} uses replies instead of threads: its threads are read-only. Reply on the main timeline instead: raft message send --target "${parsed.kind === "channel" ? `#${parsed.channelName}` : `dm:@${parsed.peerName}`}" --reply-to ${parsed.shortId}`,
+    );
+  }
 
   const thread = await channelService.getOrCreateThreadForChannel(localParentChannelId ?? parentMsg.channelId, parentMsg.id, agentId, "agent");
   return thread.id;

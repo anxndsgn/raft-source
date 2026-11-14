@@ -63,7 +63,8 @@ import { getJointLimitStatesForJoints, resolveParentJointId } from "./jointChann
 import { getExternalFreezeAtForChannels } from "./externalChannelFreezeState";
 import { DEPRECATED_GRAVATAR_HASH, asServerId, EXTERNAL_CHANNELS_FEATURE_FLAG_KEY, MAX_JOINT_CHANNEL_SERVERS, PLAN_CONFIG, activityMuteSupportedFor, currentDate, currentTimeMs, formatInboxScopeCorruptionLine, getEffectiveLimits, makeInboxScopeReadFrontier, type AgentActivity, type InboxScopeCursorCorruption, type InboxScopeReadFrontier, type ServerId, type ServerPlan, type TraceAttributes, type TrajectoryEntry, CHANNEL_MANAGEMENT_CAPABILITIES, canAddChannelMembers, canGuestPostToChannel, canGuestReadChannel, channelSupportsRoles, getChannelAdminBasis, hasEffectiveChannelCapability, type ChannelRole, type ServerRole } from "@botiverse/raft-shared";
 import { actorRoleHasServerCapability } from "../lib/actorPermissions";
-import { channelTypeSupportsThreadSort, type ChannelThreadSort, RAFT_TASK_REF_SEPARATOR, formatDmPeerRef, formatRaftChannelTaskRef, isSubConversationType, parseDmPeerRef, type DmPeerKind, type MarkUnreadOutcome } from "@botiverse/raft-shared";
+import { onReplyModeEnabled } from "./replyModeService";
+import { channelTypeSupportsReplyMode, channelTypeSupportsThreadSort, type ChannelThreadSort, RAFT_TASK_REF_SEPARATOR, formatDmPeerRef, formatRaftChannelTaskRef, isSubConversationType, parseDmPeerRef, type DmPeerKind, type MarkUnreadOutcome } from "@botiverse/raft-shared";
 import { DmTargetResolutionError } from "./dmTargetResolutionError";
 import { untracedDbQuery, type DbQueryTracer } from "../tracing/dbQueryTrace";
 import { MESSAGE_SHORT_ID_RE, uuidShortIdRange } from "../lib/messageId";
@@ -3084,6 +3085,8 @@ export async function updateChannel(
     type?: RegularChannelType;
     guestVisible?: boolean;
     threadSort?: ChannelThreadSort;
+    /** Reply mode on/off (channels.reply_mode). Turning it on runs the one-time data steps (replyModeService.onReplyModeEnabled). */
+    replyMode?: boolean;
     /**
      * Channel announcements: the object id to store (null removes it), on
      * every projection of a joint. Checked by the caller
@@ -3123,6 +3126,9 @@ export async function updateChannel(
   }
   if (updates.threadSort !== undefined && !channelTypeSupportsThreadSort(channel.type)) {
     throw new Error("Thread sort is supported only for ordinary channels");
+  }
+  if (updates.replyMode !== undefined && !channelTypeSupportsReplyMode(channel.type)) {
+    throw new Error("Reply mode is supported only for ordinary channels");
   }
   if (isAllSystemChannel(channel) && updates.name && updates.name !== "all") {
     throw new Error("Cannot rename the #all channel");
@@ -3178,6 +3184,7 @@ export async function updateChannel(
   if (updates.name !== undefined) setValues.name = updates.name;
   if (updates.description !== undefined) setValues.description = updates.description || null;
   if (updates.threadSort !== undefined && updates.threadSort !== channel.threadSort) setValues.threadSort = updates.threadSort;
+  if (updates.replyMode !== undefined && updates.replyMode !== channel.replyMode) setValues.replyMode = updates.replyMode;
   if (updates.announcementArtifactId !== undefined) setValues.announcementArtifactId = updates.announcementArtifactId;
   if (allSystemVisibilityUpdate) {
     setValues.type = updates.type;
@@ -3214,6 +3221,10 @@ export async function updateChannel(
     // Restoring #all gives the members their rows back (hiding deleted them above).
     if (allSystemVisibilityUpdate && updates.type === "channel") {
       await ensureAllChannelHumanRows(tx, channel.serverId);
+    }
+
+    if (setValues.replyMode === true) {
+      await onReplyModeEnabled(tx, channelId);
     }
 
     const [updated] = await tx.select().from(channels).where(eq(channels.id, channelId));
@@ -8383,6 +8394,7 @@ export function userChannelMembershipRow<Id extends string>(
     // A channel setting, not the caller's: `listChannelsForAgent` rows carry it
     // as a column, so this row does too (user-info parity).
     threadSort: channel.threadSort,
+    replyMode: channel.replyMode,
     joined: true,
     // `listChannelsForAgent` carries `lastPostAt` once its one-time backfill
     // has run (null = no posts yet; absent before that). Forward it verbatim so

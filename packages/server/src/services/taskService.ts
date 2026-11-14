@@ -43,6 +43,7 @@ import {
   resolveTaskCreateStatus,
   type TaskCreateStatus,
   type TaskCreateStatusRefusal,
+  provisionalTaskTitle,
 } from "@botiverse/raft-shared";
 import { isMessageShortId, messageIdShortPrefixConditions, UUID_RE } from "../lib/messageId";
 import { buildSearchText } from "./searchTokenizer";
@@ -57,6 +58,7 @@ import { canView, visibleRootChannelIds } from "./visibilityService";
 import { loadTaskCurrentProjectionsByTaskId } from "./messageTaskProjection";
 import { ensureTaskConversation } from "./taskConversationService";
 import { hasTaskSourceMessage, isTaskV2ConversationsEnabled, isTaskV2ConversationsEnabledForRequest, TaskV2NotEnabledError } from "./taskConversationsGate";
+import { isReplyModeChannel, linkMessageToTasks } from "./replyModeService";
 import { isV2Task, pendingTaskConversationFollowerSql, TASK_V2_RETIRED_IN_REVIEW_REASON, taskAliasColumns, taskUsesOwnConversation, taskV2StoredStatus } from "./taskV2Mode";
 
 type MessageRow = typeof messages.$inferSelect;
@@ -226,8 +228,8 @@ export class TaskStatusNotAvailableError extends Error {
   readonly status = 400;
   readonly code = "task_status_not_available" as const;
 
-  constructor(status: string) {
-    super(`valid status is required (${TASK_STATUSES.filter((known) => known !== "backlog").join(", ")}): ${status} needs task conversations, which this task does not have`);
+  constructor(status: string, message?: string) {
+    super(message ?? `valid status is required (${TASK_STATUSES.filter((known) => known !== "backlog").join(", ")}): ${status} needs task conversations, which this task does not have`);
     this.name = "TaskStatusNotAvailableError";
   }
 }
@@ -3655,12 +3657,18 @@ export async function convertMessageToTask(
     const [linked] = await tx.select({ id: tasks.id }).from(tasks).where(eq(tasks.messageId, messageId)).limit(1);
     if (linked) return null;
     const nextNum = await reserveTaskNumbers(tx, msg.channelId);
+    // Reply mode: the whole message is not a title. Its first sentence is a
+    // provisional one (the claim tells the agent to write a real one) and the
+    // message text is the description; the message is linked to the task.
+    const replyMode = await isReplyModeChannel(msg.channelId, tx);
     const [row] = await tx
       .insert(tasks)
       .values({
         channelId: msg.channelId,
         taskNumber: nextNum,
-        title: msg.content,
+        ...(replyMode
+          ? { title: provisionalTaskTitle(msg.content) || msg.content.slice(0, TASK_TITLE_MAX_LENGTH), description: Array.from(msg.content).slice(0, TASK_DESCRIPTION_MAX_LENGTH).join("") }
+          : { title: msg.content }),
         status: "todo",
         createdByType: convertedByType,
         createdById: convertedById,
@@ -3676,6 +3684,7 @@ export async function convertMessageToTask(
       status: "todo",
       convertedFromMessage: true,
     });
+    if (replyMode) await linkMessageToTasks(tx, messageId, [row.id], { type: convertedByType, id: convertedById });
     return row;
   }, executor);
 
@@ -4187,6 +4196,10 @@ async function writeCanonicalStatus(
       storageChannelId: observed.channelId,
     })
     : false;
+  // Reply mode retires in_review: work is done or handed to a person by assignment.
+  if (requestedStatus === "in_review" && await isReplyModeChannel(observed.channelId)) {
+    throw new TaskStatusNotAvailableError(requestedStatus, "in_review is not used in this channel: set the task to done when finished, or assign it to the person who must decide");
+  }
   // Backlog is task v2 only, for every writer, the admin force path included.
   if (requestedStatus === "backlog" && !taskUsesOwnConversation(observed, flagOn)) {
     throw new TaskStatusNotAvailableError(requestedStatus);

@@ -12,6 +12,8 @@ import {
   RAFT_HINTS,
   formatAgentMessageCardBlock,
   formatAgentMessageCardHeaderFields,
+  formatAgentReplyHeaderFields,
+  formatAgentReplyQuoteSuffix,
   formatUtcTimestamp,
   formatProducerFactLineageBracket,
   formatSenderHandleText,
@@ -192,7 +194,7 @@ function formatIncomingMessage(message: AgentMessage, options: IncomingMessageFo
   const time = message.timestamp ? formatUtcTimestamp(message.timestamp) : "-";
   // RFC 082: a card message says `card=r<revision>` (and `updated=` once replaced) in the header, never in the body;
   // what the card itself says follows the body (formatAgentMessageCardBlock).
-  const senderType = `${formatVisibleActorType(message.sender_type)}${formatAgentMessageCardHeaderFields(message.message_card)}`;
+  const senderType = `${formatVisibleActorType(message.sender_type)}${formatAgentMessageCardHeaderFields(message.message_card)}${formatAgentReplyHeaderFields(message)}`;
   const attachSuffix = formatAttachmentSuffix(message.attachments, options.attachmentHint);
   // Task v2 (server sets source_tasks only where task v2 conversations are on):
   // every task hanging under the message; otherwise the pre-v2 bracket as is.
@@ -209,7 +211,7 @@ function formatIncomingMessage(message: AgentMessage, options: IncomingMessageFo
     if (options.shownTaskReplyHints.has(taskReplySuffix)) taskReplySuffix = "";
     else options.shownTaskReplyHints.add(taskReplySuffix);
   }
-  const body = `[target=${target} msg=${msgId} time=${time}${senderType}] ${formatSenderHandle(message)}: ${indentAgentBodyContinuationLines(message.content)}${formatThirdPartyEventPayloadSuffix(message)}${attachSuffix}${taskSuffix}${taskReplySuffix}${lineageSuffix}${formatAgentReplyAffordanceSuffix(message)}${formatAgentMessageCardBlock(message.message_card, message.content)}`;
+  const body = `[target=${target} msg=${msgId} time=${time}${senderType}] ${formatSenderHandle(message)}: ${indentAgentBodyContinuationLines(message.content)}${formatAgentReplyQuoteSuffix(message)}${formatThirdPartyEventPayloadSuffix(message)}${attachSuffix}${taskSuffix}${taskReplySuffix}${lineageSuffix}${formatAgentReplyAffordanceSuffix(message)}${formatAgentMessageCardBlock(message.message_card, message.content)}`;
   const prefixes = [threadJoinPrefix, threadFollowReactivationPrefix].filter(Boolean);
   return prefixes.length > 0 ? `${prefixes.join("\n")}\n${body}` : body;
 }

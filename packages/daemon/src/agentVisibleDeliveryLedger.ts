@@ -69,10 +69,45 @@ type ContextScope = {
 type PreviewFacts = {
   ids: Map<string, Set<string>>;
   seqs: Map<string, Set<number>>;
+  /**
+   * When each preview fact was first recorded (ms), keyed `target\0id:<id>` /
+   * `target\0seq:<seq>`. A busy runtime reads a notice only at its next input
+   * boundary, so a send whose command was issued before the notice was
+   * written (`issuedAt`) was written without it: the preview does not vouch
+   * for that send (11/14 count test: a draft replacement posted "2" over
+   * another agent's "2" its model had not seen yet).
+   */
+  recordedAt: Map<string, number>;
 };
 
 function emptyPreviewFacts(): PreviewFacts {
-  return { ids: new Map(), seqs: new Map() };
+  return { ids: new Map(), seqs: new Map(), recordedAt: new Map() };
+}
+
+function previewIdKey(target: string, id: string): string {
+  return `${target}\u0000id:${id}`;
+}
+
+function previewSeqKey(target: string, seq: number): string {
+  return `${target}\u0000seq:${seq}`;
+}
+
+/** Whether a preview fact (recorded at `recordedAt`) counts for a command issued at `issuedAt`. */
+function previewCountsFor(recordedAt: number | undefined, issuedAt: number | undefined): boolean {
+  if (typeof issuedAt !== "number" || !Number.isFinite(issuedAt)) return true;
+  return typeof recordedAt === "number" && recordedAt <= issuedAt;
+}
+
+function previewIdsAsOf(facts: PreviewFacts | undefined, target: string, issuedAt: number | undefined): ReadonlySet<string> | undefined {
+  const ids = facts?.ids.get(target);
+  if (!ids || typeof issuedAt !== "number") return ids;
+  return new Set([...ids].filter((id) => previewCountsFor(facts!.recordedAt.get(previewIdKey(target, id)), issuedAt)));
+}
+
+function previewSeqsAsOf(facts: PreviewFacts | undefined, target: string, issuedAt: number | undefined): ReadonlySet<number> | undefined {
+  const seqs = facts?.seqs.get(target);
+  if (!seqs || typeof issuedAt !== "number") return seqs;
+  return new Set([...seqs].filter((seq) => previewCountsFor(facts!.recordedAt.get(previewSeqKey(target, seq)), issuedAt)));
 }
 
 /**
@@ -87,7 +122,9 @@ function heldWriteSpanKey(target: string, writeKey: string): string {
   return `${canonicalVisibleTarget(target)}\u0000${writeKey}`;
 }
 
-function addPreviewFacts(facts: PreviewFacts, target: string, id: string, seq: number): void {
+function addPreviewFacts(facts: PreviewFacts, target: string, id: string, seq: number, now: number): void {
+  if (id.length > 0 && !facts.recordedAt.has(previewIdKey(target, id))) facts.recordedAt.set(previewIdKey(target, id), now);
+  if (seq > 0 && !facts.recordedAt.has(previewSeqKey(target, seq))) facts.recordedAt.set(previewSeqKey(target, seq), now);
   if (id.length > 0) {
     let ids = facts.ids.get(target);
     if (!ids) {
@@ -287,16 +324,27 @@ export class AgentVisibleDeliveryLedger {
    * Delivery suppression never reads this view: those facts must outlive a
    * compaction.
    */
-  freshnessView(agentId: string, context: { contextId: string | null } | undefined): AgentVisibleFreshnessView {
+  freshnessView(
+    agentId: string,
+    context: { contextId: string | null } | undefined,
+    opts: {
+      /**
+       * When the command asking was issued (ms). Notice previews recorded
+       * after it do not count: its model had not read them yet.
+       */
+      issuedAt?: number;
+    } = {},
+  ): AgentVisibleFreshnessView {
+    const { issuedAt } = opts;
     if (!context) {
       const previews = this.previewsByAgent.get(agentId);
       return {
         getBoundary: (target) => this.getBoundary(agentId, target),
         isModelSeen: (target, message) => this.isModelSeen(agentId, target, message)
-          || isSeenIn(undefined, previews?.ids.get(canonicalVisibleTarget(target)), message),
+          || isSeenIn(undefined, previewIdsAsOf(previews, canonicalVisibleTarget(target), issuedAt), message),
         getExactSeenSeqs: (target) => unionSortedSeqs(
           this.exactSeqsByAgent.get(agentId)?.get(canonicalVisibleTarget(target)),
-          previews?.seqs.get(canonicalVisibleTarget(target)),
+          previewSeqsAsOf(previews, canonicalVisibleTarget(target), issuedAt),
         ),
       };
     }
@@ -307,11 +355,11 @@ export class AgentVisibleDeliveryLedger {
       isModelSeen: (target, message) => {
         const key = canonicalVisibleTarget(target);
         return isSeenIn(scope.boundaries.get(key), scope.ids.get(key), message)
-          || isSeenIn(undefined, scope.previews.ids.get(key), message);
+          || isSeenIn(undefined, previewIdsAsOf(scope.previews, key, issuedAt), message);
       },
       getExactSeenSeqs: (target) => {
         const key = canonicalVisibleTarget(target);
-        return unionSortedSeqs(scope.exactSeqs.get(key), scope.previews.seqs.get(key));
+        return unionSortedSeqs(scope.exactSeqs.get(key), previewSeqsAsOf(scope.previews, key, issuedAt));
       },
     };
   }
@@ -466,7 +514,7 @@ export class AgentVisibleDeliveryLedger {
    * as freshness evidence only (see PreviewFacts): never a boundary, never a
    * consumption. `contextId` scopes it as in recordConsumed.
    */
-  recordWholePreviewSeen(agentId: string, input: { messages: readonly AgentMessage[]; contextId?: string | null }): void {
+  recordWholePreviewSeen(agentId: string, input: { messages: readonly AgentMessage[]; contextId?: string | null; now?: number }): void {
     if (input.messages.length === 0) return;
     let facts = this.previewsByAgent.get(agentId);
     if (!facts) {
@@ -474,14 +522,15 @@ export class AgentVisibleDeliveryLedger {
       this.previewsByAgent.set(agentId, facts);
     }
     const scope = input.contextId ? this.contextScope(agentId, input.contextId) : undefined;
+    const now = input.now ?? Date.now();
     for (const message of input.messages) {
       const target = formatProxyVisibleMessageTarget(message);
       if (!target) continue;
       const seq = Number(message.seq ?? 0);
       const normalizedSeq = Number.isFinite(seq) && seq > 0 ? Math.floor(seq) : 0;
       const id = visibleMessageId(message);
-      addPreviewFacts(facts, target, id, normalizedSeq);
-      if (scope) addPreviewFacts(scope.previews, target, id, normalizedSeq);
+      addPreviewFacts(facts, target, id, normalizedSeq, now);
+      if (scope) addPreviewFacts(scope.previews, target, id, normalizedSeq, now);
     }
   }
 

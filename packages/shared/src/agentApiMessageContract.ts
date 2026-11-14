@@ -94,6 +94,11 @@ const agentApiSendBodyKnownSchema = lazySchema("agentApiSendBodyKnownSchema", ()
   seenExactSeqs: optionalExactSeqArraySchema,
   seenCards: agentApiSeenCardsSchema.optional(),
   freshnessContextMode: agentApiFreshnessContextModeSchema.optional(),
+  // Reply mode: the message this one replies to (full id or 8-char short id),
+  // and the task numbers (in the target's channel) to link it to.
+  replyTo: optionalStringSchema,
+  tasks: z.array(z.number().int().positive()).max(20).optional(),
+  issuedAt: optionalNumberSchema,
 }));
 
 export const agentApiSendBodySchema = lazySchema("agentApiSendBodySchema", () => agentApiSendBodyKnownSchema.passthrough());
@@ -404,6 +409,12 @@ interface AgentApiSendBodyKnownFields {
   seenExactSeqs?: number[];
   seenCards?: { channel?: string | null; peer?: string | null };
   freshnessContextMode?: "inline" | "withheld";
+  /** Reply mode: the message this one replies to (full id or 8-char short id). */
+  replyTo?: string;
+  /** Reply mode: task numbers in the target's channel to link this message to. */
+  tasks?: number[];
+  /** When the CLI command was issued (ms since epoch). Read and removed by the local daemon proxy. */
+  issuedAt?: number;
 }
 
 export interface AgentApiSendBody extends AgentApiSendBodyKnownFields {

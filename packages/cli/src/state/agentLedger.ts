@@ -75,6 +75,9 @@ export interface LedgerDraftEntry {
   seenUpToSeq?: number;
   seenExactSeqs?: number[];
   cause?: string;
+  /** Reply mode (`--reply-to`, `--task`); in the JSON payload, so no schema change. */
+  replyTo?: unknown;
+  tasks?: unknown;
 }
 
 const LEDGER_VERSION = 1;

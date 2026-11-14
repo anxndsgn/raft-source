@@ -74,6 +74,8 @@ export {
   formatAgentInboxHint,
   formatAgentMessageCardBlock,
   formatAgentMessageCardHeaderFields,
+  formatAgentReplyHeaderFields,
+  formatAgentReplyQuoteSuffix,
   formatAgentMessageLine,
   formatAgentMessageReactionsLine,
   formatAgentMessages,

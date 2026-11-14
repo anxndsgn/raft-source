@@ -28,6 +28,8 @@ import {
   formatAgentInboxHint,
   formatAgentMessageCardBlock,
   formatAgentMessageCardHeaderFields,
+  formatAgentReplyHeaderFields,
+  formatAgentReplyQuoteSuffix,
   formatAgentMessageCardUpdated,
   formatAgentMessageLine,
   formatAgentMessageReactionsLine,
@@ -165,7 +167,26 @@ export interface HistoryMessage {
   message_card?: AgentMessageCardMarker | null;
   /** The message's reactions, one entry per emoji; printed under it (formatAgentMessageReactionsLine). */
   reactions?: AgentApiMessageReaction[] | null;
+  /** Reply mode: the original this replies to, its own reply count, linked tasks, and whether its channel uses replies. */
+  replyTo?: { messageId: string; senderName: string | null; excerpt: string; deleted: boolean } | null;
+  directReplyCount?: number | null;
+  linkedTaskNumbers?: number[] | null;
+  inReplyModeChannel?: boolean | null;
   [key: string]: unknown;
+}
+
+/** Reply mode facts of a history row, in the agent message's wire shape. */
+function historyReplyModeFields(m: HistoryMessage): {
+  reply_to: { message_id: string; sender_name: string | null; excerpt: string; deleted: boolean } | null;
+  linked_tasks: number[] | null;
+} {
+  const r = m.replyTo;
+  return {
+    reply_to: r && typeof r.messageId === "string"
+      ? { message_id: r.messageId, sender_name: r.senderName ?? null, excerpt: r.excerpt ?? "", deleted: r.deleted === true }
+      : null,
+    linked_tasks: Array.isArray(m.linkedTaskNumbers) ? m.linkedTaskNumbers : null,
+  };
 }
 
 // Match the server's `parseChannelRef`: only the LAST colon can introduce a
@@ -215,9 +236,17 @@ function formatHistoryMessageLine(channel: string, m: HistoryMessage, index: num
   // same thread, and agents replied to it instead of `replyTarget` (the root
   // message's short id), which the daemon then recorded as a different target
   // (2026-10-14). `replyTarget` is the one address to use.
+  const replyModeFields = historyReplyModeFields(m);
+  const replyModeHeader = formatAgentReplyHeaderFields(replyModeFields).trim();
+  if (replyModeHeader) headerParts.push(replyModeHeader);
   if ((m.replyCount ?? 0) > 0) headerParts.push(`replyCount=${m.replyCount}`);
-  const replyTarget = buildReplyTarget(channel, messageId);
-  if (replyTarget) headerParts.push(`replyTarget=${replyTarget}`);
+  if (m.inReplyModeChannel === true) {
+    // Reply mode: no threads; reply on the timeline with --reply-to.
+    if ((m.directReplyCount ?? 0) > 0) headerParts.push(`replies=${m.directReplyCount}`);
+  } else {
+    const replyTarget = buildReplyTarget(channel, messageId);
+    if (replyTarget) headerParts.push(`replyTarget=${replyTarget}`);
+  }
 
   const attachSuffix = formatAttachmentSuffix(m.attachments);
   const assigneeName = m.taskAssigneeName ?? m.task_assignee_name ?? null;
@@ -232,7 +261,7 @@ function formatHistoryMessageLine(channel: string, m: HistoryMessage, index: num
   const handle = formatSenderHandleText(senderName, senderDescription, senderTimezone);
   // RFC 082 §4.3: what the card says, under the body (`card:`, then its markdown).
   const cardBlock = formatAgentMessageCardBlock(m.message_card, m.content);
-  return `[${headerParts.join(" ")}] ${handle}: ${indentAgentBodyContinuationLines(m.content ?? "")}${attachSuffix}${taskSuffix}${cardBlock}${formatTaskCurrentProjection(m.taskCurrentProjection)}${formatAgentMessageReactionsLine(m.reactions)}`;
+  return `[${headerParts.join(" ")}] ${handle}: ${indentAgentBodyContinuationLines(m.content ?? "")}${formatAgentReplyQuoteSuffix(replyModeFields)}${attachSuffix}${taskSuffix}${cardBlock}${formatTaskCurrentProjection(m.taskCurrentProjection)}${formatAgentMessageReactionsLine(m.reactions)}`;
 }
 
 export interface HistoryData {

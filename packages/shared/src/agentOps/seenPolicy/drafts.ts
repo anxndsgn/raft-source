@@ -40,6 +40,9 @@ export interface SavedDraft {
   seenUpToSeq?: number;
   seenExactSeqs?: number[];
   cause?: SavedDraftCause;
+  /** Reply mode: the message the draft replies to and the tasks it links; sending the draft keeps them. */
+  replyTo?: string;
+  tasks?: number[];
 }
 
 /**
@@ -78,6 +81,10 @@ export function lookupSavedDraft(store: CommandStateStore, target: string, now: 
     const cause = savedDraftCauseOf(draft.cause);
     // The CLI checked the card before saving it, and the Server checks it again at send.
     const card = draft.card && typeof draft.card === "object" && !Array.isArray(draft.card) ? draft.card as MessageCardInput : undefined;
+    const replyTo = typeof draft.replyTo === "string" && draft.replyTo.trim().length > 0 ? draft.replyTo.trim() : undefined;
+    const tasks = Array.isArray(draft.tasks)
+      ? draft.tasks.filter((item): item is number => Number.isInteger(item) && item > 0)
+      : [];
     if (now() - savedAt > DEFAULT_LOCAL_DRAFT_TTL_MS) {
       const expired: SavedDraftLookup = { status: "expired", savedAt, content: draft.content };
       // Keyed on savedAt: a fresher draft a concurrent send just saved survives.
@@ -106,6 +113,8 @@ export function lookupSavedDraft(store: CommandStateStore, target: string, now: 
         seenUpToSeq,
         ...(seenExactSeqs.length > 0 ? { seenExactSeqs } : {}),
         ...(cause ? { cause } : {}),
+        ...(replyTo ? { replyTo } : {}),
+        ...(tasks.length > 0 ? { tasks } : {}),
       },
     };
   });

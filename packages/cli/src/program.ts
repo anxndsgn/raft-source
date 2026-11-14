@@ -83,6 +83,7 @@ import { registerReadCommand } from "./commands/message/read";
 import { registerSearchCommand } from "./commands/message/search";
 import { registerResolveCommand } from "./commands/message/resolve";
 import { registerReactCommand } from "./commands/message/react";
+import { registerRetagCommand } from "./commands/message/retag";
 import { registerUpdateCardCommand } from "./commands/message/updateCard";
 import { registerAttachmentUploadCommand } from "./commands/attachment/upload";
 import { registerAttachmentViewCommand } from "./commands/attachment/view";
@@ -358,6 +359,7 @@ export function buildRaftProgram(runtime: RaftProgramOptions = {}): Command {
   registerSearchCommand(messageCmd, runtimeOptions);
   registerResolveCommand(messageCmd, runtimeOptions);
   registerReactCommand(messageCmd, runtimeOptions);
+  registerRetagCommand(messageCmd, runtimeOptions);
   registerUpdateCardCommand(messageCmd, runtimeOptions);
 
   const attachmentCmd = program.command("attachment").description("Attachment operations");
