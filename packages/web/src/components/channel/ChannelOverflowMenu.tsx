@@ -438,7 +438,8 @@ export default function ChannelOverflowMenu({
               activityMute={activityMute}
               collapseLongMessages={collapseLongMessages}
               onStopAllAgents={onStopAllAgents}
-              membersSlot={membersStrip}
+              // Layout redesign: members have their own switch in the head (成员), not a strip here.
+              membersSlot={null}
             />
           ) : !isDmChannel && !channel?.loungeAgentId ? (
             /* Someone who hasn't joined: the channel read-only and its members. */

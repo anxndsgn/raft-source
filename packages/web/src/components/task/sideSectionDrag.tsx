@@ -419,7 +419,7 @@ const SECTION_TITLE: Record<ChannelSideSection, MessageId> = {
   tasks: "task.panel.heading",
   files: "message.chatPanel.tabFiles",
   artifact: "artifacts.viewer.regionLabel",
-  profile: "agent.detail.tab.profile", context: "agentContextView.title", details: "channel.details.title",
+  profile: "agent.detail.tab.profile", context: "agentContextView.title", details: "channel.details.infoTitle",
 };
 
 function sectionTitleId(section: ChannelSideSection): MessageId {

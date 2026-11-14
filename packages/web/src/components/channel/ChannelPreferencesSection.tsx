@@ -3,6 +3,7 @@ import { useIntl } from "react-intl";
 import { UserRound } from "lucide-react";
 import { ListRow, ListRowBody, ListRowDescription, ListRowGroup, ListRowTitle, Switch } from "@botiverse/raft-ui";
 import SectionHeader from "../ui/SectionHeader";
+import { SettingsScopeTag } from "./SettingsScopeTag";
 import { useServerStore } from "../../store/serverStore";
 import { useChannelStore } from "../../store/channelStore";
 import { findStoredChannel } from "../../store/storedChannel";
@@ -89,7 +90,8 @@ export function ChannelPreferencesSection({
           (stdrc 2026-11-10, raft-design writing.md). */}
       <SectionHeader
         icon={<UserRound size={16} aria-hidden="true" />}
-        label={<span id="channel-settings-preferences-heading">{formatMessage({ id: "channel.details.yourPreferences" })}</span>}
+        label={<span id="channel-settings-preferences-heading">{formatMessage({ id: "channel.details.yourSettings" })}</span>}
+        action={<SettingsScopeTag labelId="channel.details.affectsOnlyYou" />}
       />
       {/* Settings rows like the Settings pages' (DS Forms, "A setting's row"): a select of phrases sits under
           the row's text, a switch ends its row. */}

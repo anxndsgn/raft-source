@@ -39,6 +39,7 @@ import {
 } from "@botiverse/raft-shared";
 import Banner from "../../components/ui/Banner";
 import SectionEyebrow from "../../components/ui/SectionEyebrow";
+import { SettingsScopeTag } from "../../components/channel/SettingsScopeTag";
 import SectionHeader from "../../components/ui/SectionHeader";
 import Tooltip from "../../components/ui/Tooltip";
 import ConfirmDialog from "../../components/ConfirmDialog";
@@ -1466,6 +1467,7 @@ export function EditChannelDialog({
       <SectionHeader
         icon={<SlidersHorizontal size={16} aria-hidden="true" />}
         label={<span id="channel-settings-manage-heading">{formatMessage({ id: "channel.details.channelSettings" })}</span>}
+        action={<SettingsScopeTag labelId="channel.details.affectsEveryone" />}
       />
       <ListRowGroup>{channelSettingsRows}</ListRowGroup>
     </section>

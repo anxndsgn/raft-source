@@ -81,7 +81,7 @@ export function ChannelDetailsSurface({
   // MainLayout's row mounts its side area (its hidden `data-side-area` marker; a test id is for tests, not for this) with the app shell, before any channel.
   const [inRow] = useState(() => typeof document !== "undefined" && document.querySelector("[data-side-area]") !== null);
   const belowTitleBar = useHostTitleBar();
-  const title = formatMessage({ id: "channel.details.title" });
+  const title = formatMessage({ id: "channel.details.infoTitle" });
   if (!open) return null;
   if (phone) return <ChannelDetailsPhonePage title={title} onBack={onClose} page={page}>{children}</ChannelDetailsPhonePage>;
   const column = (
