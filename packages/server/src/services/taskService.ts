@@ -58,7 +58,7 @@ import { canView, visibleRootChannelIds } from "./visibilityService";
 import { loadTaskCurrentProjectionsByTaskId } from "./messageTaskProjection";
 import { ensureTaskConversation } from "./taskConversationService";
 import { hasTaskSourceMessage, isTaskV2ConversationsEnabled, isTaskV2ConversationsEnabledForRequest, TaskV2NotEnabledError } from "./taskConversationsGate";
-import { isReplyModeChannel, linkMessageToTasks } from "./replyModeService";
+import { isReplyModeChannel, linkMessageToTasks, loadMessageViews } from "./replyModeService";
 import { isV2Task, pendingTaskConversationFollowerSql, TASK_V2_RETIRED_IN_REVIEW_REASON, taskAliasColumns, taskUsesOwnConversation, taskV2StoredStatus } from "./taskV2Mode";
 
 type MessageRow = typeof messages.$inferSelect;
@@ -2717,13 +2717,19 @@ export async function listTaskHistory(taskId: string): Promise<TaskHistoryEvent[
     for (const actor of actorRows) actorNames.set(`agent:${actor.id}`, actor.name);
   }
 
+  // Reply mode: a linked/unlinked message is shown by its author and first line.
+  const isMessageLinkEvent = (row: (typeof rows)[number]) => (row.eventType === "message_linked" || row.eventType === "message_unlinked") && typeof row.payload?.messageId === "string";
+  const messageViews = await loadMessageViews(rows.filter(isMessageLinkEvent).map((row) => String(row.payload.messageId)));
+
   return rows.map((row) => ({
     id: row.id,
     seq: row.seq,
     eventType: row.eventType,
     actorType: row.actorType,
     actorName: row.actorId ? actorNames.get(`${row.actorType}:${row.actorId}`) ?? null : null,
-    payload: row.payload,
+    payload: isMessageLinkEvent(row)
+      ? { ...row.payload, message: messageViews.get(String(row.payload.messageId)) ?? { messageId: String(row.payload.messageId), senderName: null, senderType: null, excerpt: "", deleted: true, seq: null } }
+      : row.payload,
     createdAt: row.createdAt.toISOString(),
   }));
 }

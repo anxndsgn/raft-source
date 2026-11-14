@@ -224,6 +224,43 @@ export type ReplyModeMessageFacts = {
   replyModeChannelIds: Set<string>;
 };
 
+function deletedMessageView(messageId: string): MessageReplyToView {
+  return { messageId, senderName: null, senderType: null, excerpt: "", deleted: true, seq: null };
+}
+
+/**
+ * Author, first line and seq of each message (as a reply quote shows it); a
+ * deleted or missing message is `deleted`. Used for reply quotes and for the
+ * messages named in a task's history (`message_linked` / `message_unlinked`).
+ */
+export async function loadMessageViews(messageIds: readonly string[], executor?: DatabaseExecutor): Promise<Map<string, MessageReplyToView>> {
+  const views = new Map<string, MessageReplyToView>();
+  const ids = [...new Set(messageIds)];
+  if (ids.length === 0) return views;
+  const db = executor ?? getDb();
+  const rows = (await db.execute(sql`
+      SELECT m.id, m.seq, m.sender_type, m.content, m.deleted_at,
+             COALESCE(u.display_name, u.name, a.display_name, a.name) AS sender_name
+        FROM messages m
+        LEFT JOIN users u ON m.sender_type = 'user' AND u.id::text = m.sender_id
+        LEFT JOIN agents a ON m.sender_type = 'agent' AND a.id::text = m.sender_id
+       WHERE m.id IN (${sql.join(ids.map((id) => sql`${id}::uuid`), sql`, `)})
+    `)).rows as Array<Record<string, unknown>>;
+  for (const row of rows) {
+    const id = String(row.id);
+    if (row.deleted_at != null) { views.set(id, deletedMessageView(id)); continue; }
+    views.set(id, {
+      messageId: id,
+      senderName: row.sender_name == null ? null : String(row.sender_name),
+      senderType: String(row.sender_type) as MessageReplyToView["senderType"],
+      excerpt: replyExcerpt(String(row.content ?? "")),
+      deleted: false,
+      seq: Number(row.seq),
+    });
+  }
+  return views;
+}
+
 /**
  * For each message: the original it replies to (author, first line, seq; or
  * deleted), how many replies it has, and the numbers of the tasks it is
@@ -259,28 +296,11 @@ export async function loadReplyModeMessageFacts(
   const counts = combined.filter((row) => row.kind === "count");
   const links = combined.filter((row) => row.kind === "task").sort((x, y) => Number(x.n) - Number(y.n));
   const modeRows = combined.filter((row) => row.kind === "mode").map((row) => ({ id: String(row.id) }));
-  const originals = originalIds.length === 0 ? [] : (await db.execute(sql`
-      SELECT m.id, m.seq, m.sender_type, m.content, m.deleted_at,
-             COALESCE(u.display_name, u.name, a.display_name, a.name) AS sender_name
-        FROM messages m
-        LEFT JOIN users u ON m.sender_type = 'user' AND u.id::text = m.sender_id
-        LEFT JOIN agents a ON m.sender_type = 'agent' AND a.id::text = m.sender_id
-       WHERE m.id IN (${sql.join(originalIds.map((id) => sql`${id}::uuid`), sql`, `)})
-    `)).rows as Array<Record<string, unknown>>;
   for (const row of modeRows) facts.replyModeChannelIds.add(row.id);
-  const byId = new Map(originals.map((row) => [String(row.id), row]));
+  const views = await loadMessageViews(originalIds, db);
   for (const row of rows) {
     if (!row.replyToMessageId) continue;
-    const original = byId.get(row.replyToMessageId);
-    const deleted = !original || original.deleted_at != null;
-    facts.replyTo.set(row.id, {
-      messageId: row.replyToMessageId,
-      senderName: deleted ? null : (original!.sender_name == null ? null : String(original!.sender_name)),
-      senderType: deleted ? null : String(original!.sender_type) as MessageReplyToView["senderType"],
-      excerpt: deleted ? "" : replyExcerpt(String(original!.content ?? "")),
-      deleted,
-      seq: deleted ? null : Number(original!.seq),
-    });
+    facts.replyTo.set(row.id, views.get(row.replyToMessageId) ?? deletedMessageView(row.replyToMessageId));
   }
   for (const row of counts) facts.replyCount.set(String(row.id), Number(row.n));
   for (const row of links) {

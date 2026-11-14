@@ -394,7 +394,7 @@ export default function TaskProperties({ task, sourceRow, trailingRows, assignee
       {formatMessage({ id: "task.permissions.historicalJoint" })}
     </p>}
     <div className="pt-4"><SectionEyebrow as="button" className="flex w-full items-center gap-1 rounded-sticker text-left outline-none hover:text-foreground focus-visible:shadow-focus" aria-expanded={historyOpen} onClick={toggleHistory}><span>{formatMessage({ id: "task.properties.history" })}</span>{historyOpen ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}</SectionEyebrow>
-      {historyOpen && <div className="mt-3 w-full">{historyError ? <p className="text-caption text-warning-strong">{formatMessage({ id: "task.history.error" })}</p> : visibleHistory.length === 0 ? <p className="text-caption text-foreground-hint">{formatMessage({ id: "task.history.empty" })}</p> : <HistoryTimeline history={visibleHistory} resolveName={displayNameFor} />}</div>}
+      {historyOpen && <div className="mt-3 w-full">{historyError ? <p className="text-caption text-warning-strong">{formatMessage({ id: "task.history.error" })}</p> : visibleHistory.length === 0 ? <p className="text-caption text-foreground-hint">{formatMessage({ id: "task.history.empty" })}</p> : <HistoryTimeline history={visibleHistory} resolveName={displayNameFor} channelId={task.channelId} />}</div>}
     </div>
   </>);
 }
