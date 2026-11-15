@@ -1489,6 +1489,20 @@
 [data-plain-head] [data-slot="panel-actions"] > :not(:last-child) {
   display: none;
 }
+/* A Team page profile expanded covers the page whole (ProfilePanel `teamCover`): the list goes, the column fills. */
+html[data-team-cover] [data-testid="thread-main-column"] {
+  display: none !important;
+}
+/* Over the planned row's own widths (`:not(#_)` as they use, one id-weight more). */
+html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [data-testid="channel-side-column"][data-row-width] {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+}
+/* The Team page's column keeps its ⤢ beside × (PRD 团队页 v2.0 §5.4): it shows the whole page. */
+[data-team-column] [data-plain-head] [data-slot="panel-actions"] > [data-testid^="row-expand-"] {
+  display: flex;
+}
 /* Someone gone from the server (the card's departure badge): no DM to send. */
 [data-testid="channel-side-column"]:has([data-member-departed]) [data-testid="profile-card-message"],
 [data-testid="channel-side-column"]:has([data-member-departed]) [data-testid="profile-card-footer"]:not(:has([data-testid="profile-card-current-task"])) {

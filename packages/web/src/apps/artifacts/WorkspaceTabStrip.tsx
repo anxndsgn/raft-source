@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import type { KeyboardEvent, MouseEvent } from "react";
 import { useIntl } from "react-intl";
-import { Bot, Maximize2, MessagesSquare, Minimize2, UserRound, X } from "lucide-react";
+import { Maximize2, MessagesSquare, Minimize2, X } from "lucide-react";
 import { ArtifactIcon } from "@botiverse/ricons";
 import { ConversationPanelTabs, PanelToggleAction, SortableTabsList, SortableTabsTab, Tabs, TabsLabel } from "@botiverse/raft-ui";
 import type { ArtifactId } from "@botiverse/raft-shared";
@@ -34,7 +34,7 @@ export function WorkspaceTabStrip() {
     <div className="flex h-12 shrink-0 items-center gap-1 border-b border-line-seam pr-2 md:pointer-fine:h-panel-header" data-testid="workspace-tab-strip">
       <ConversationPanelTabs className="flex h-full min-w-0 flex-1 items-center border-b-0" render={<Tabs<string> value={shownId ?? ""} onValueChange={select} />}>
         <SortableTabsList<string> value={ids} onReorder={reorder} aria-label={formatMessage({ id: "workspace.tabs" })}>
-          {tabs.map((tab) => <WorkspaceTab key={tab.id} id={tab.id} kind={tab.thread ? "thread" : tab.member ? tab.member.type : "artifact"} shown={tab.id === shownId} />)}
+          {tabs.map((tab) => <WorkspaceTab key={tab.id} id={tab.id} thread={!!tab.thread} shown={tab.id === shownId} />)}
         </SortableTabsList>
       </ConversationPanelTabs>
       <Tooltip content={expandLabel}>
@@ -46,7 +46,7 @@ export function WorkspaceTabStrip() {
   );
 }
 
-function WorkspaceTab({ id, kind, shown }: { id: ArtifactId; kind: "artifact" | "thread" | "agent" | "human"; shown: boolean }) {
+function WorkspaceTab({ id, thread, shown }: { id: ArtifactId; thread: boolean; shown: boolean }) {
   const { formatMessage } = useIntl();
   const title = useArtifactViewerStore((s) => s.tabTitles[id]) ?? formatMessage({ id: "artifacts.card.loading" });
   const close = useCallback(() => useArtifactViewerStore.getState().closeTab(id), [id]);
@@ -64,7 +64,7 @@ function WorkspaceTab({ id, kind, shown }: { id: ArtifactId; kind: "artifact" | 
     event.preventDefault();
     close();
   }, [close]);
-  const Icon = kind === "thread" ? MessagesSquare : kind === "agent" ? Bot : kind === "human" ? UserRound : ArtifactIcon;
+  const Icon = thread ? MessagesSquare : ArtifactIcon;
   return (
     <span className="group/tab grid max-w-48 min-w-0 flex-[0_1_auto] items-center *:col-start-1 *:row-start-1" data-testid={`workspace-tab-${id}`}>
       <SortableTabsTab

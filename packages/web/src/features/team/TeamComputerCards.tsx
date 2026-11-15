@@ -6,7 +6,7 @@ import { resourceUsedPercent } from "../../components/agentMigration/targetCompu
 import { useRackRuntimeUsages } from "../../components/machine/rack/RackRuntimeUsage";
 import { rackRuntimeCell } from "../../components/machine/rack/rackRuntimeColumns";
 import { useResumeMoment } from "../../components/task/agentTimeText";
-import { useAppNavigate } from "../../hooks/useAppNavigate";
+import { useProfileStore } from "../../store/profileStore";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
 import { isAgentInMemberLists } from "../../store/agentStore";
 import { useAuthStore } from "../../store/authStore";
@@ -29,7 +29,9 @@ export function TeamComputerCards({ machines, workingByMachine }: {
   workingByMachine: ReadonlyMap<string, number>;
 }) {
   const { formatMessage, locale } = useIntl();
-  const nav = useAppNavigate();
+  // A card opens the computer's details in the column beside the Overview (PRD v2.0 §5.4), as a member's do.
+  const openProfile = useProfileStore((s) => s.openProfile);
+  const openComputer = useCallback((id: string) => openProfile("computer", id, { teamColumn: true }), [openProfile]);
   const resumeMoment = useResumeMoment();
   const serverId = useServerStore((s) => s.current?.id ?? null);
   const currentUserId = useAuthStore((s) => s.user?.id ?? null);
@@ -73,7 +75,7 @@ export function TeamComputerCards({ machines, workingByMachine }: {
             onlineLabel={formatMessage({ id: online ? "machine.rack.filter.status.online" : "machine.rack.filter.status.offline" })}
             system={system}
             agents={formatMessage({ id: "team.computer.agents" }, { count: agents, working: workingByMachine.get(machine.id) ?? 0 })}
-            onOpen={nav.toComputer}
+            onOpen={openComputer}
             openId={machine.id}
             openLabel={formatMessage({ id: "team.computer.open" }, { name: machine.name })}
             data-testid="team-computer-card"

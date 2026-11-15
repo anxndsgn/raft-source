@@ -63,8 +63,6 @@ import {
 import type { AgentsGrouping, EntryActivity, MemberEntry, MemberGroup, MembersTab } from "./membersPageModel";
 import { agentMarkState, teamDisplayState } from "../team/teamWorking";
 import { useUsageLimitAttention } from "../../components/layout/useUsageLimitAttention";
-import { useArtifactViewerStore } from "../../apps/artifacts/artifactViewerStore";
-import { useOpenMemberTab } from "../team/useOpenMemberTab";
 
 
 /** How long after arriving the page keeps the located member centred through resizes. */
@@ -226,14 +224,10 @@ export function MembersPage() {
   const addAgentActions = useAddAgentActions(setAddAgent);
   // A tile's or row's menu and double-click (MemberMenuTrigger), and the dialogs they open.
   const { actions: memberActions, dialogs: memberDialogs } = useMemberActions();
-  // A desktop opens the member as a workspace tab (Team page PRD §5.2); a phone pushes their profile.
-  const openMemberTab = useOpenMemberTab();
-  const onOpen = useCallback((entry: MemberEntry) => {
-    if (isDesktop) openMemberTab({ type: entry.kind, id: entry.id });
-    else openProfile(entry.kind, entry.id);
-  }, [isDesktop, openMemberTab, openProfile]);
+  // Team page PRD v2.0 §5.4: the member's details in a column right of the list (a phone: pushed, full screen).
+  const onOpen = useCallback((entry: MemberEntry) => openProfile(entry.kind, entry.id, { teamColumn: true }), [openProfile]);
   // In the usage view a row opens the agent at its Usage tab.
-  const onOpenUsage = useCallback((entry: MemberEntry) => openProfile(entry.kind, entry.id, { defaultAgentTabIntent: "usage" }), [openProfile]);
+  const onOpenUsage = useCallback((entry: MemberEntry) => openProfile(entry.kind, entry.id, { defaultAgentTabIntent: "usage", teamColumn: false }), [openProfile]);
   const viewOptions = useMemo<ListViewOption<AgentsListView>[]>(() => [
     { value: "details", label: formatMessage({ id: "members.page.view.details" }), icon: <TableProperties />, testId: "members-view-details" },
     { value: "usage", label: formatMessage({ id: "members.page.view.usage" }), icon: <ChartColumn />, testId: "members-view-usage" },
@@ -250,9 +244,7 @@ export function MembersPage() {
     else setUsageView({ range: Number(next) as 7 | 14 | 30, day: null });
   }, [setUsageView, usageToday]);
   // The member open in the side panel is the selected tile or row (Raft DS › States, "Selected: content").
-  const profileKey = useProfileStore((s) => (s.profileType === "agent" || s.profileType === "human" ? `${s.profileType}:${s.profileId}` : null));
-  const tabKey = useArtifactViewerStore((s) => (s.open?.member ? `${s.open.member.type}:${s.open.member.id}` : null));
-  const openKey = isDesktop ? tabKey : profileKey;
+  const openKey = useProfileStore((s) => (s.profileType === "agent" || s.profileType === "human" ? `${s.profileType}:${s.profileId}` : null));
   const onMobileBack = useMobileBack(serverSlug ? `/s/${serverSlug}` : "/");
   const mobileBackProps = useMemo(
     () => ({ "data-testid": "members-mobile-back", title: formatMessage({ id: "common.announcement.back" }) }),

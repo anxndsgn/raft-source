@@ -9779,4 +9779,5 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "team.blocked.title": "{name} parado pelo computador",
   "layout.systemNotifications.machineOfflineOne": "{name} offline · {agent} parado",
   "layout.systemNotifications.machineOfflineMany": "{name} offline · {count, plural, one {# agente parado} many {# agentes parados} other {# agentes parados}}",
+  "team.computer.runtimeWindow": "{runtime} · {window}",
 };

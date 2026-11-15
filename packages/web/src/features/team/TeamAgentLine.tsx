@@ -8,6 +8,7 @@ import { ChevronRight } from "lucide-react";
 import { useResumeMoment, useShortSpan } from "../../components/task/agentTimeText";
 import { useAgentDisplayState } from "../../store/agentStore";
 import { useChannelStore } from "../../store/channelStore";
+import { useProfileStore } from "../../store/profileStore";
 import { findStoredChannel } from "../../store/storedChannel";
 import { formatAgentDisplayStateText } from "../../utils/activity";
 import { formatRelativeTime } from "../../utils/relativeTime";
@@ -73,6 +74,8 @@ export function TeamAgentLine({ row, variant, onOpen, onOpenWork, onOpenChannel,
   const openWork = useCallback(() => onOpenWork?.(row), [onOpenWork, row]);
   const openChannel = useCallback(() => { if (task) onOpenChannel?.(task.channelId); }, [onOpenChannel, task]);
   const page = variant === "page";
+  // Its details open in the column beside the Overview: the row says so (ListRow's selected).
+  const selected = useProfileStore((s) => page && s.profileType === "agent" && s.profileId === row.agent.id);
   const name = row.agent.displayName || row.agent.name;
   const channelText = channelName ? `#${channelName}` : null;
   const taskText = task ? formatMessage({ id: "task.modal.taskWithNumber" }, { taskNumber: task.taskNumber }) : null;
@@ -116,6 +119,7 @@ export function TeamAgentLine({ row, variant, onOpen, onOpenWork, onOpenChannel,
       // The page's rows hold links, so the row is not itself a button there.
       render={page ? <div role="button" tabIndex={0} /> : undefined}
       onClick={open}
+      selected={selected}
       // The rule between rows inset to the content on both sides (compact list: the heading's left edge, the time's right).
       className="min-h-0 cursor-pointer px-4 py-2 [--list-row-rule-start:16px] before:right-4 pointer-coarse:min-h-0"
       data-testid={testId}

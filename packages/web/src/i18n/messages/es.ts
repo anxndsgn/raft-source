@@ -9779,4 +9779,5 @@ export const es: Partial<Record<MessageId, string>> = {
   "team.blocked.title": "{name} detenido por su computadora",
   "layout.systemNotifications.machineOfflineOne": "{name} sin conexión · {agent} detenido",
   "layout.systemNotifications.machineOfflineMany": "{name} sin conexión · {count, plural, one {# agente detenido} many {# agentes detenidos} other {# agentes detenidos}}",
+  "team.computer.runtimeWindow": "{runtime} · {window}",
 };

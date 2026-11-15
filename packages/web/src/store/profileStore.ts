@@ -25,6 +25,8 @@ interface ProfileState {
   openedAt: number;
   /** Surface that opened the overlay, used only for reversible shell layout. */
   openSource: "channel" | "thread" | null;
+  /** Opened from the Team page's lists: its column shows the profile alone until expanded (PRD 团队页 v2.0 §5.4). */
+  teamColumn: boolean;
   /** One-shot open intent for agent profile tabs. URL sync consumes this into agentTab. */
   /**
    * Which agent tab the panel should land on: "ordered-first" defers to the
@@ -45,6 +47,8 @@ interface ProfileState {
        */
       defaultAgentTabIntent?: string;
       openSource?: "channel" | "thread";
+      /** From the Team page's lists (its column's shape). A profile opened from inside it keeps the shape. */
+      teamColumn?: boolean;
       /** The channel (a thread's parent) the person was opened from. */
       channelId?: string | null;
     },
@@ -78,6 +82,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
   externalProfileIsMention: false,
   openedAt: 0,
   openSource: null,
+  teamColumn: false,
   defaultAgentTabIntent: null,
 
   // Focus Mode stays on while a profile is open: the layout already shows the
@@ -97,6 +102,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
       // Nested profile navigation stays in the same shell surface unless a
       // conversation entry explicitly supplies a new source.
       openSource: options?.openSource ?? state.openSource,
+      teamColumn: options?.teamColumn ?? (options?.openSource ? false : state.teamColumn),
       defaultAgentTabIntent: type === "agent" ? options?.defaultAgentTabIntent ?? null : null,
     }));
   },
@@ -127,6 +133,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
       externalProfile: null,
       externalProfileChannelId: null,
       openSource: null,
+      teamColumn: false,
       defaultAgentTabIntent: null,
     });
   },

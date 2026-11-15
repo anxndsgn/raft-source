@@ -1,6 +1,7 @@
 import { Badge, Button, ConversationPanelTabs, ScrollArea, SortableTabsList, SortableTabsTab, Tabs, TabsLabel, ProfilePanelBody, useOrderedTabs, Separator, PanelNotice, PanelNoticeActions, PanelNoticeContent } from "@botiverse/raft-ui";
 import Tooltip from "../../components/ui/Tooltip";
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, useContext } from "react";
+import { ProfileCompactContext } from "../../components/profile/profileCompact";
 import { useIntl } from "react-intl";
 import { Archive, Bug, Pencil, Check, X, RotateCcw, Lock, Copy, SquareTerminal } from "lucide-react";
 import { useLocation } from "react-router-dom";
@@ -328,7 +329,9 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
   const requestedTab = rawTab ?? legacyFullPageTab;
   // The retired MCP and Skills tabs' links land on Capabilities, which lists both now.
   const resolvedTab = requestedTab === "mcp" || requestedTab === "skills" ? "integrations" : requestedTab;
-  const activeTab: AgentTab = activityOnly
+  // The Team page's column (PRD v2.0 §5.4): the profile alone, no tab row, until ⤢ shows the whole page.
+  const compact = useContext(ProfileCompactContext);
+  const activeTab: AgentTab = compact ? "profile" : activityOnly
     ? "activity"
     : orderedAgentTabs.some((tab) => tab.id === resolvedTab) ? (resolvedTab as AgentTab) : defaultAgentTab;
   const setActiveTab = useCallback((tab: AgentTab) => {
@@ -703,7 +706,7 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
       {/* Tab bar — the same raft-ui chrome as the chat panel tabs. raft-ui's
           tab row scrolls itself when the tabs do not fit (wheel too), fades
           at the hidden side and keeps the selected tab in view. */}
-      {!activityOnly && <div ref={touchDragRegion} className="min-w-0 max-w-full">
+      {!activityOnly && !compact && <div ref={touchDragRegion} className="min-w-0 max-w-full">
         <ConversationPanelTabs
           render={<Tabs<AgentTab> value={activeTab} onValueChange={setActiveTab} />}
         >

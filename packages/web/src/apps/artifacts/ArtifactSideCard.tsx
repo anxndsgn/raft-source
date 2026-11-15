@@ -20,7 +20,6 @@ import { useWorkspaceArtifactsEnabled } from "./useWorkspaceArtifactsEnabled";
 // The viewer loads off the first screen (artifactViewerChunk.ts).
 const ArtifactViewer = lazyDeferred(() => importHandledLocally(() => import("./ArtifactViewer")));
 const viewerSlot: LazyChunkSlot<ArtifactViewerProps> = { current: ArtifactViewer };
-const WorkspaceMemberPanel = lazyDeferred(() => importHandledLocally(() => import("../../features/team/WorkspaceMemberPanel").then((m) => ({ default: m.WorkspaceMemberPanel }))));
 const WorkspaceThreadPanel = lazyDeferred(() => importHandledLocally(() => import("../../features/thread/WorkspaceThreadPanel").then((m) => ({ default: m.WorkspaceThreadPanel }))));
 
 type ArtifactViewerProps = ComponentProps<typeof ArtifactViewer>;
@@ -161,7 +160,6 @@ function useArtifactCard(showing: boolean, ownBack: boolean, addressed = false):
   const source = showing && open ? open.source : null;
   const comments = showing && open ? open.comments ?? null : null;
   const thread = showing && open ? open.thread ?? null : null;
-  const member = showing && open ? open.member ?? null : null;
 
   usePhoneHistoryEntry(showing && phone && !addressed, close);
 
@@ -189,9 +187,6 @@ function useArtifactCard(showing: boolean, ownBack: boolean, addressed = false):
       render: (place: ArtifactCardPlace) => (thread ? (
         // Layout redesign §5: a thread's tab in the workspace.
         <Suspense fallback={null}><WorkspaceThreadPanel key={id} thread={thread} onClose={close} /></Suspense>
-      ) : member ? (
-        // Team page PRD §5.2: a member's details, the side panel's component, as a tab.
-        <Suspense fallback={null}><WorkspaceMemberPanel key={id} member={member} onClose={close} /></Suspense>
       ) : (
         <DeferredArtifactViewer
           key={`${id}@${version ?? "latest"}`}
@@ -211,7 +206,7 @@ function useArtifactCard(showing: boolean, ownBack: boolean, addressed = false):
         />
       )),
     };
-  }, [close, comments, thread, member, expanded, label, openedAt, ownBack, rememberTitle, showVersion, source, splitLabel, target, toggleExpanded]);
+  }, [close, comments, thread, expanded, label, openedAt, ownBack, rememberTitle, showVersion, source, splitLabel, target, toggleExpanded]);
 }
 
 /**

@@ -9890,4 +9890,5 @@ export const zhCn: Record<MessageId, string> = {
   "team.blocked.title": "{name} 因计算机停工",
   "layout.systemNotifications.machineOfflineOne": "{name} 离线 · {agent} 已停工",
   "layout.systemNotifications.machineOfflineMany": "{name} 离线 · {count} 个 agent 已停工",
+  "team.computer.runtimeWindow": "{runtime} · {window}",
 };

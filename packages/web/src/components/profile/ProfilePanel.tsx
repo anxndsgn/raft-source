@@ -52,6 +52,10 @@ import { RowMoveMenu } from "../layout/ColumnMoveMenu";
 import { RowRegionBody } from "../layout/RowRegionBody";
 import { isCoveredByShortcutHelp } from "../../features/keyboard-shortcuts/shortcutHelpStore";
 import { useShortcutLayer } from "../../features/shortcuts/useShortcutLayer";
+import { ProfileCardFooter } from "../message/ProfileCardFooter";
+import { PanelHeadBelowContext } from "../ui/panelBackCrumb";
+import { useRowExpand } from "../layout/rowPlanStore";
+import { ProfileCompactContext } from "./profileCompact";
 
 recordProfileOpenE2eEvent({ kind: "module-evaluated", module: "profile-panel" });
 
@@ -129,9 +133,46 @@ export interface ProfilePanelTarget {
 const humanProfileUrl = (serverId: string, userId: string) => `/servers/${serverId}/members/${userId}/profile`;
 
 /** The panel's props, for the lazy wrappers that load it (boot/deferredUi lazyPanel). */
-export type ProfilePanelProps = NonNullable<Parameters<typeof ConnectedProfilePanel>[0]>;
+export type ProfilePanelProps = NonNullable<Parameters<typeof ProfilePanelContent>[0]>;
 
-export default function ConnectedProfilePanel({
+/**
+ * The profile, and on the Team page (opened from its lists, `teamColumn`) its column's shape there (PRD v2.0
+ * §5.4): while not expanded, the head has the name, ⤢ and × alone with the side panel's strip under it (what they
+ * are doing now, Message), and the profile alone; ⤢ shows the whole page, every tab.
+ */
+export default function ConnectedProfilePanel(props: ProfilePanelOwnProps = {}) {
+  const team = useProfileStore((s) => s.teamColumn) && !props.target;
+  const { pressed: expanded } = useRowExpand("profile");
+  const profileType = useProfileStore((s) => s.profileType);
+  const profileId = useProfileStore((s) => s.profileId);
+  const strip = useMemo(
+    () => (profileType === "agent" || profileType === "human") && profileId ? <ProfileCardFooter type={profileType} id={profileId} /> : null,
+    [profileId, profileType],
+  );
+  // Expanded, it covers the Team page whole, its tabs and list too (Figmama 11/16), not rule 5's 160px strip beside
+  // it: one row of tabs on screen, the profile's own (index.css `data-team-cover`).
+  const cover = team && expanded;
+  useEffect(() => {
+    if (!cover) return;
+    document.documentElement.dataset.teamCover = "";
+    return () => { delete document.documentElement.dataset.teamCover; };
+  }, [cover]);
+  if (!team || expanded || !strip) return <ProfilePanelContent {...props} />;
+  return (
+    // `contents`: the panel stays its column's own flex child; the mark lets the plain head keep its ⤢ (index.css).
+    <div className="contents" data-team-column="">
+      <PanelHeadBelowContext.Provider value={strip}>
+        <ProfileCompactContext.Provider value>
+          <ProfilePanelContent {...props} />
+        </ProfileCompactContext.Provider>
+      </PanelHeadBelowContext.Provider>
+    </div>
+  );
+}
+
+type ProfilePanelOwnProps = NonNullable<Parameters<typeof ProfilePanelContent>[0]>;
+
+function ProfilePanelContent({
   target,
   channelId: targetChannelId,
   presentation = "overlay",

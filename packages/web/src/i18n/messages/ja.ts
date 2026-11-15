@@ -9780,4 +9780,5 @@ export const ja: Partial<Record<MessageId, string>> = {
   "team.blocked.title": "{name} はコンピューターの問題で停止中",
   "layout.systemNotifications.machineOfflineOne": "{name} がオフライン · {agent} が停止",
   "layout.systemNotifications.machineOfflineMany": "{name} がオフライン · Agent {count} 件が停止",
+  "team.computer.runtimeWindow": "{runtime} · {window}",
 };

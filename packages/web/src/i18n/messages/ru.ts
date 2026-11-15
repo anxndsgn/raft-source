@@ -9781,4 +9781,5 @@ export const ru: Partial<Record<MessageId, string>> = {
   "team.blocked.title": "{name} остановлен из-за компьютера",
   "layout.systemNotifications.machineOfflineOne": "{name} не в сети · {agent} остановлен",
   "layout.systemNotifications.machineOfflineMany": "{name} не в сети · {count, plural, one {# агент остановлен} few {# агента остановлены} many {# агентов остановлены} other {# агента остановлены}}",
+  "team.computer.runtimeWindow": "{runtime} · {window}",
 };

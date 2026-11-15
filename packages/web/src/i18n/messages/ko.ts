@@ -9779,4 +9779,5 @@ export const ko: Partial<Record<MessageId, string>> = {
   "team.blocked.title": "{name} 컴퓨터 문제로 멈춤",
   "layout.systemNotifications.machineOfflineOne": "{name} 오프라인 · {agent} 멈춤",
   "layout.systemNotifications.machineOfflineMany": "{name} 오프라인 · Agent {count}개 멈춤",
+  "team.computer.runtimeWindow": "{runtime} · {window}",
 };

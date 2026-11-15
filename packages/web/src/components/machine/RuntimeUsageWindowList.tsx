@@ -37,10 +37,11 @@ function UsageWindowLine({ window, label }: { window: RuntimeAccountUsageWindow;
 }
 
 export function RuntimeUsageWindowList({ windows, runtimeName }: { windows: readonly RuntimeAccountUsageWindow[]; runtimeName: string }) {
+  const { formatMessage } = useIntl();
   return (
     <div className="flex min-w-0 flex-col gap-3" data-testid="runtime-usage-windows">
       {windows.map((window, index) => (
-        <UsageWindowLine key={`${window.id}-${index}`} window={window} label={windows.length > 1 ? `${runtimeName} · ${window.label}` : runtimeName} />
+        <UsageWindowLine key={`${window.id}-${index}`} window={window} label={windows.length > 1 ? formatMessage({ id: "team.computer.runtimeWindow" }, { runtime: runtimeName, window: window.label }) : runtimeName} />
       ))}
     </div>
   );
