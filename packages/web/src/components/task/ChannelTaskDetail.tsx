@@ -1,5 +1,5 @@
 import { findStoredChannel } from "../../store/storedChannel";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useIntl } from "react-intl";
 import { ArrowLeft, ListFilter } from "lucide-react";
 import { DescriptionDetails, DescriptionItem, DescriptionTerm, PanelAction, ScrollArea, TextLink } from "@botiverse/raft-ui";
@@ -11,7 +11,10 @@ import { useChannelStore } from "../../store/channelStore";
 import type { Task } from "../../store/taskStore";
 import { useTimelineViewStore } from "../../store/timelineViewStore";
 import { useProfileStore } from "../../store/profileStore";
-import TaskModalHead from "./TaskModalHead";
+import { lazyPanel } from "../../boot/deferredUi";
+
+// Deferred, its own chunk (check-entry-chunk-structure: MainLayout loads it lazily too).
+const TaskModalHead = lazyPanel(() => import("./TaskModalHead"));
 
 /**
  * Layout redesign 4.5 (raft-ui panel): over a task's details the Tasks panel's head is Back — the arrow-left action,
@@ -90,13 +93,15 @@ export function ChannelTaskDetail({ task }: { task: Task }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-testid="channel-task-detail">
       <ScrollArea tabIndex={-1} className="min-h-0 flex-1" contentClassName="pb-4">
-        <TaskModalHead
-          task={task}
-          divider={false}
-          fullTitle
-          propertyRows={propertyRows}
-          onOpenProfile={handleOpenProfile}
-        />
+        <Suspense fallback={null}>
+          <TaskModalHead
+            task={task}
+            divider={false}
+            fullTitle
+            propertyRows={propertyRows}
+            onOpenProfile={handleOpenProfile}
+          />
+        </Suspense>
       </ScrollArea>
     </div>
   );
