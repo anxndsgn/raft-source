@@ -44,7 +44,8 @@ function QuestionRow({ question }: { question: ForMeQuestion }) {
       <InboxItemContent>
         <InboxItemHeading><InboxItemTitle>{title}</InboxItemTitle></InboxItemHeading>
         <InboxItemLine>
-          <InboxItemBody>
+          {/* The title only, one line (Anna 11/16): a long task title is its whole brief. */}
+          <InboxItemBody className="line-clamp-1">
             {question.reason && question.reason !== body ? <InboxItemSender>{question.reason}</InboxItemSender> : null}
             {body}
           </InboxItemBody>

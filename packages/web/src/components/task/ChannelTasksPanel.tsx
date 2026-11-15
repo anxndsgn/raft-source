@@ -15,7 +15,6 @@ import { useAuthStore } from "../../store/authStore";
 import { selectChannelTaskBucket, useTaskStore } from "../../store/taskStore";
 import type { Task } from "../../store/taskStore";
 import { useChannelSideCardStore } from "../../store/channelSideCardStore";
-import { TASK_V2_CONVERSATIONS_FLAG_KEY, useServerFeatureFlag } from "../../store/serverFeatureFlags";
 import { requestComposerTaskMode } from "../../features/composer/composerTaskMode";
 import type { ChannelTasksFilter } from "../../store/channelSideCardStore";
 import ChannelSideCard from "./ChannelSideCard";
@@ -69,20 +68,19 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   const visible = filter === "mine" ? mine : filter === "created" ? created : tasks;
   const replyMode = useChannelStore((st) => findStoredChannel(st, channelId)?.replyMode === true);
   const handleFilterChange = useCallback((value: ChannelTasksFilter) => setFilter(value), [setFilter]);
-  // Task v2: a task is a message sent As task (design "新建任务 = 发一条消息"), so "+" turns As task on in the
-  // channel's composer beside the card. Covering the conversation (a phone), or with no composer for the
+  // A task is a message sent As task (design "新建任务 = 发一条消息"), so "+" turns As task on in the channel's
+  // composer beside the card, in every channel (task #10 item 2). Covering the conversation (a phone), or with no composer for the
   // channel mounted, it opens the New task dialog.
-  const taskV2 = useServerFeatureFlag(TASK_V2_CONVERSATIONS_FLAG_KEY).enabled;
   const covering = useContext(SideCardContext)?.mode === "overlay";
   const openCreate = useCallback(() => {
     // Covering the conversation (a phone): the panel steps aside first, so the composer under it takes the task
     // (task #10 item 2: "+" works the same on a phone).
-    if (taskV2 && requestComposerTaskMode(channelId)) {
+    if (requestComposerTaskMode(channelId)) {
       if (covering) onClose();
       return;
     }
     setCreating(true);
-  }, [channelId, covering, onClose, taskV2]);
+  }, [channelId, covering, onClose]);
   const closeCreate = useCallback(() => setCreating(false), []);
 
   const newTaskLabel = formatMessage({ id: "task.board.newTask" });
