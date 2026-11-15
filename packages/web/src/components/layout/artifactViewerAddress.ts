@@ -152,6 +152,7 @@ export function useArtifactViewerAddress(): void {
   useArtifactBackSettled(location.key);
   const kept = useRef<KeptEntry | null>(null);
   const waiting = useRef<(() => void) | null>(null);
+  const restoring = useRef(true);
 
   // Address → store.
   useEffect(() => {
@@ -173,9 +174,14 @@ export function useArtifactViewerAddress(): void {
     if (open?.cover && !places.dialog && asked?.id === open.id) return;
     const here = placeOf(open, places);
     if (!asked) {
-      if (here) store.close();
+      // The tab shown before a reload (doc §5) isn't closed by the first address, which never had it: the address
+      // takes it instead.
+      if (here && restoring.current && open) writeArtifactAddress(navigate, artifactAddressOpening(entry, { id: open.id, version: shownVersion(store) }, open.source, { push: false, place: here }));
+      else if (here) store.close();
+      restoring.current = false;
       return;
     }
+    restoring.current = false;
     const place = addressPlaceOf(entry, places);
     if (open && here === place && open.id === asked.id && shownVersion(store) === asked.version) return;
     const target = { id: asked.id, version: asked.version, source: artifactAddressSource(entry, "link") };

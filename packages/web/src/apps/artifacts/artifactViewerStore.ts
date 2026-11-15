@@ -67,6 +67,8 @@ interface ArtifactViewerState {
   setDrawerCollapsed: (collapsed: boolean) => void;
   activateTab: (id: ArtifactId) => void;
   closeTab: (id: ArtifactId) => void;
+  /** Drag to reorder (doc §5): `id` moves to just before `before` (null: to the end). */
+  moveTab: (id: ArtifactId, before: ArtifactId | null) => void;
   setTabTitle: (id: ArtifactId, title: string) => void;
   openedAt: number;
   expanded: boolean;
@@ -107,10 +109,33 @@ function samePlaces(a: ArtifactAddressedPlaces | null, b: ArtifactAddressedPlace
   return a === b || (!!a && !!b && a.conversationId === b.conversationId && a.shell === b.shell && a.dialog === b.dialog);
 }
 
+const TABS_KEY = "raft:workspaceTabs";
+
+/** Doc §5: the workspace's tabs, their titles and the one shown survive a reload (this browser's). */
+function readTabs(): { tabs: OpenArtifact[]; titles: Record<string, string>; open: OpenArtifact | null } {
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage.getItem(TABS_KEY) : null;
+    const saved = raw ? (JSON.parse(raw) as { tabs?: OpenArtifact[]; titles?: Record<string, string>; shown?: string | null }) : null;
+    const tabs = (saved?.tabs ?? []).filter((t) => t && typeof t.id === "string").map((t) => (t.conversationId ? t : { ...t, conversationId: null, cover: null }) as OpenArtifact).slice(-8);
+    return { tabs, titles: saved?.titles ?? {}, open: tabs.find((t) => t.id === saved?.shown) ?? null };
+  } catch {
+    return { tabs: [], titles: {}, open: null };
+  }
+}
+
+const savedTabs = readTabs();
+
 export const useArtifactViewerStore = create<ArtifactViewerState>((set) => ({
-  open: null,
-  tabs: [],
-  tabTitles: {},
+  open: savedTabs.open,
+  tabs: savedTabs.tabs,
+  tabTitles: savedTabs.titles,
+  moveTab: (id, before) => set((state) => {
+    const tab = state.tabs.find((t) => t.id === id);
+    if (!tab || id === before) return state;
+    const rest = state.tabs.filter((t) => t.id !== id);
+    const at = before === null ? rest.length : rest.findIndex((t) => t.id === before);
+    return { tabs: [...rest.slice(0, at < 0 ? rest.length : at), tab, ...rest.slice(at < 0 ? rest.length : at)] };
+  }),
   drawerCollapsed: false,
   setDrawerCollapsed: (drawerCollapsed) => set({ drawerCollapsed }),
   activateTab: (id) => set((state) => {
@@ -366,4 +391,17 @@ export function returnArtifactFocus(host: HTMLElement | null): void {
   if (!host?.isConnected) return;
   const fallback = [...host.querySelectorAll("textarea, [data-side-card-focus]")].find(canTakeFocus);
   fallback?.focus();
+}
+
+// Remembered as they change: the tabs (without a covered panel's element), their titles and the one shown.
+if (typeof window !== "undefined") {
+  useArtifactViewerStore.subscribe((s, prev) => {
+    if (s.tabs === prev.tabs && s.open?.id === prev.open?.id && s.tabTitles === prev.tabTitles) return;
+    try {
+      const tabs = s.tabs.map((t) => (t.conversationId ? t : { ...t, cover: null }));
+      window.localStorage.setItem(TABS_KEY, JSON.stringify({ tabs, titles: s.tabTitles, shown: s.open?.id ?? null }));
+    } catch {
+      // Storage unavailable: the tabs last this session.
+    }
+  });
 }
