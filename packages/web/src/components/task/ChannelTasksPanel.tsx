@@ -1,51 +1,34 @@
 import { useCallback, useContext, useMemo, useState } from "react";
-import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
-import { ChevronDown, ChevronRight, ListTodo, Plus } from "lucide-react";
+import { ListTodo, Plus } from "lucide-react";
 import {
   Button,
   PanelTitle,
-  TaskStatusIcon,
-  SegmentedControl,
-  SegmentedControlCount,
-  SegmentedControlItem,
-  SegmentedControlLabel,
+  Tabs,
+  TabsLabel,
+  TabsList,
+  TabsTab,
   ScrollArea,
 } from "@botiverse/raft-ui";
 
-import { useChannelMembers } from "../../hooks/useChannelMembers";
 import { useAuthStore } from "../../store/authStore";
 import { selectChannelTaskBucket, useTaskStore } from "../../store/taskStore";
-import type { Task, TaskStatus } from "../../store/taskStore";
+import type { Task } from "../../store/taskStore";
 import { useChannelSideCardStore } from "../../store/channelSideCardStore";
 import { TASK_V2_CONVERSATIONS_FLAG_KEY, useServerFeatureFlag } from "../../store/serverFeatureFlags";
 import { requestComposerTaskMode } from "../../features/composer/composerTaskMode";
 import type { ChannelTasksFilter } from "../../store/channelSideCardStore";
 import ChannelSideCard from "./ChannelSideCard";
+import { TaskSectionList } from "./TaskSectionList";
+import { useChannelStore } from "../../store/channelStore";
+import { findStoredChannel } from "../../store/storedChannel";
 import EmptyState from "../ui/EmptyState";
-import { TaskAssigneeLabel } from "./TaskAssignee";
 import { CreateTaskDialog } from "./DeferredCreateTaskDialog";
-import TaskChipList from "./TaskChipList";
-import { TASK_STATUS_UI, toRuiTaskStatus } from "./taskStatusUi";
 import { ChannelTaskDetail, TaskDetailBack } from "./ChannelTaskDetail";
 
 const NO_ACTIONS: never[] = [];
 import { SideCardContext } from "./sideCardsLayout";
 
-/** Work that is moving first (In Progress, In Review), then what waits (Todo,
- *  Backlog), then what is over; Backlog, Done and Closed start folded and are not
- *  counted. A deliberate exception to the DS board order (Backlog first) for a
- *  narrow card — recorded in raft-design patterns/tasks.md. */
-const STATUS_ORDER: TaskStatus[] = ["in_progress", "in_review", "todo", "backlog", "done", "closed"];
-const ACTIVE_STATUSES = new Set<TaskStatus>(["todo", "in_progress", "in_review"]);
-const INITIALLY_COLLAPSED: Record<TaskStatus, boolean> = {
-  backlog: true,
-  todo: false,
-  in_progress: false,
-  in_review: false,
-  done: true,
-  closed: true,
-};
 
 export function isTaskOnViewer(task: Task, viewerId: string | null | undefined): boolean {
   return !!viewerId && task.claimedByType === "user" && task.claimedById === viewerId;
@@ -67,7 +50,6 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   const loaded = useTaskStore((s) => s.loadedByChannelId[channelId] ?? false);
   const filter = useChannelSideCardStore((s) => s.taskFilter);
   const setFilter = useChannelSideCardStore((s) => s.setTaskFilter);
-  const { channelAgents, channelHumans } = useChannelMembers(channelId);
   // Layout redesign: a task opens its details here, in place of the task dialog.
   const detailTaskId = useChannelSideCardStore((s) => s.taskDetail[channelId] ?? null);
   const openTaskDetail = useChannelSideCardStore((s) => s.openTaskDetail);
@@ -78,24 +60,14 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   // Opened but not among the channel's tasks once they are loaded: deleted, or no longer visible (4.5).
   const detailMissing = !!detailTaskId && !detailTask && loaded;
   const [creating, setCreating] = useState(false);
-  const [collapsed, setCollapsed] = useState(INITIALLY_COLLAPSED);
   // No fetch here: the panel only sits beside its own channel, and ChatPanel
   // already loads that channel's tasks (and realtime keeps the bucket live).
 
   const mine = useMemo(() => tasks.filter((t) => isTaskOnViewer(t, viewerId)), [tasks, viewerId]);
-  const mineActive = useMemo(() => mine.filter((t) => ACTIVE_STATUSES.has(t.status)).length, [mine]);
-  const active = useMemo(() => tasks.filter((t) => ACTIVE_STATUSES.has(t.status)).length, [tasks]);
-  const visible = filter === "mine" ? mine : tasks;
-  const byStatus = useMemo(() => {
-    const groups: Record<TaskStatus, Task[]> = { backlog: [], todo: [], in_progress: [], in_review: [], done: [], closed: [] };
-    for (const task of visible) groups[task.status].push(task);
-    for (const status of STATUS_ORDER) groups[status].sort((a, b) => b.taskNumber - a.taskNumber);
-    return groups;
-  }, [visible]);
-
-  const toggleCollapsed = useCallback((status: TaskStatus) => {
-    setCollapsed((prev) => ({ ...prev, [status]: !prev[status] }));
-  }, []);
+  const created = useMemo(() => tasks.filter((t) => !!viewerId && t.createdByType === "user" && t.createdById === viewerId), [tasks, viewerId]);
+  const openCount = (list: Task[]) => list.filter((t) => t.status !== "done" && t.status !== "closed").length;
+  const visible = filter === "mine" ? mine : filter === "created" ? created : tasks;
+  const replyMode = useChannelStore((st) => findStoredChannel(st, channelId)?.replyMode === true);
   const handleFilterChange = useCallback((value: ChannelTasksFilter) => setFilter(value), [setFilter]);
   // Task v2: a task is a message sent As task (design "新建任务 = 发一条消息"), so "+" turns As task on in the
   // channel's composer beside the card. Covering the conversation (a phone), or with no composer for the
@@ -108,29 +80,24 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   }, [channelId, covering, taskV2]);
   const closeCreate = useCallback(() => setCreating(false), []);
 
-  // The channel roster names the assignee here (it is already loaded for the
-  // card); the label is the one every task row uses.
-  const renderAssignee = useCallback((task: Task) => {
-    const identity = task.claimedByType === "agent"
-      ? channelAgents.find((a) => a.id === task.claimedById)
-      : channelHumans.find((h) => h.id === task.claimedById);
-    return <TaskAssigneeLabel task={task} identity={identity} viewerId={viewerId} />;
-  }, [channelAgents, channelHumans, viewerId]);
-
   const newTaskLabel = formatMessage({ id: "task.board.newTask" });
   const newTaskAction = useMemo(() => [{ id: "new-task", label: newTaskLabel, icon: <Plus />, onSelect: openCreate, testId: "channel-tasks-panel-new" }], [newTaskLabel, openCreate]);
 
+  // raft-ui Tabs, underline (tasks.md): each with its number of open tasks in Space Mono.
+  const tab = (value: ChannelTasksFilter, labelId: "task.filter.tabAll" | "taskSection.tab.assigned" | "taskSection.tab.created", list: Task[]) => (
+    <TabsTab value={value} data-testid={`channel-tasks-filter-${value}`}>
+      <TabsLabel>{formatMessage({ id: labelId })}</TabsLabel>
+      <span className="font-mono text-mono-meta text-foreground-hint">{openCount(list)}</span>
+    </TabsTab>
+  );
   const tasksFilter = (
-    <SegmentedControl<ChannelTasksFilter> value={filter} onValueChange={handleFilterChange} aria-label={formatMessage({ id: "task.sidePanel.filterAria" })}>
-      <SegmentedControlItem value="all" data-testid="channel-tasks-filter-all">
-        <SegmentedControlLabel>{formatMessage({ id: "task.filter.tabAll" })}</SegmentedControlLabel>
-        {active > 0 ? <SegmentedControlCount>{active}</SegmentedControlCount> : null}
-      </SegmentedControlItem>
-      <SegmentedControlItem value="mine" data-testid="channel-tasks-filter-mine">
-        <SegmentedControlLabel>{formatMessage({ id: "task.sidePanel.forMe" })}</SegmentedControlLabel>
-        {mineActive > 0 ? <SegmentedControlCount>{mineActive}</SegmentedControlCount> : null}
-      </SegmentedControlItem>
-    </SegmentedControl>
+    <Tabs<ChannelTasksFilter> value={filter} onValueChange={handleFilterChange}>
+      <TabsList variant="underline" aria-label={formatMessage({ id: "task.sidePanel.filterAria" })}>
+        {tab("all", "task.filter.tabAll", tasks)}
+        {tab("mine", "taskSection.tab.assigned", mine)}
+        {tab("created", "taskSection.tab.created", created)}
+      </TabsList>
+    </Tabs>
   );
   return (
     <ChannelSideCard
@@ -146,7 +113,7 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
       // Layout redesign (anxndsgn, 11/15): no seam under the head; All / Mine right under the title.
       seamless
     >
-      {detailTaskId ? null : <div className="shrink-0 px-(--column-margin) pb-2" data-testid="channel-tasks-toolbar">{tasksFilter}</div>}
+      {detailTaskId ? null : <div className="shrink-0 px-(--column-margin)" data-testid="channel-tasks-toolbar">{tasksFilter}</div>}
       {detailTask ? (
         <ChannelTaskDetail task={detailTask} />
       ) : detailMissing ? (
@@ -167,95 +134,11 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
             description={formatMessage({ id: filter === "mine" ? "task.sidePanel.emptyMineBody" : "task.sidePanel.emptyAllBody" })}
           />
         ) : (
-          // No gap between groups: each heading carries the space above it,
-          // as the DS sidebar section header does (see CompactStatusGroup).
-          <div className="flex flex-col">
-            {STATUS_ORDER.filter((status) => byStatus[status].length > 0).map((status, index) => (
-              <CompactStatusGroup
-                key={status}
-                first={index === 0}
-                status={status}
-                tasks={byStatus[status]}
-                collapsed={collapsed[status]}
-                onToggle={toggleCollapsed}
-                onOpenTask={openTask}
-                renderAssignee={renderAssignee}
-              />
-            ))}
-          </div>
+          <TaskSectionList tasks={visible} replyMode={replyMode} viewerId={viewerId} openTaskId={detailTaskId} onOpenTask={openTask} />
         )}
       </ScrollArea>
       </>)}
       {creating ? <CreateTaskDialog channelId={channelId} onClose={closeCreate} /> : null}
     </ChannelSideCard>
-  );
-}
-
-/**
- * One status lane in the compact form: the DS section header (badge, count,
- * chevron) over the same one-line rows a message shows for its tasks. The
- * lane already names the status, so the rows leave the badge out.
- */
-function CompactStatusGroup({
-  status,
-  tasks,
-  collapsed,
-  onToggle,
-  onOpenTask,
-  renderAssignee,
-  first = false,
-}: {
-  /** The first group sits right under the filter: with a mouse its heading
-   *  starts 8px under it, not with a group's room above. */
-  first?: boolean;
-  status: TaskStatus;
-  tasks: Task[];
-  collapsed: boolean;
-  onToggle: (status: TaskStatus) => void;
-  onOpenTask: (task: Task) => void;
-  renderAssignee: (task: Task) => ReactNode;
-}) {
-  const { formatMessage } = useIntl();
-  const handleOpenChange = useCallback(() => onToggle(status), [onToggle, status]);
-  const label = formatMessage({ id: TASK_STATUS_UI[status].labelId });
-  return (
-    <section data-testid={`channel-tasks-group-${status}`}>
-      <button
-        type="button"
-        onClick={handleOpenChange}
-        aria-expanded={!collapsed}
-        aria-label={formatMessage({ id: collapsed ? "task.status.showGroup" : "task.status.hideGroup" }, { status: label })}
-        // On the rows' line (the section head's 20px, 16px on a phone). A heading is a label
-        // over its rows, not a row: hover darkens its words and chevron and
-        // lays no fill, as the DS collapsible section headers do (Sidebar
-        // section, TaskListSection). A fill would read as one more row, and
-        // its box (words at the bottom, room above for the target) would
-        // frame the words unevenly. Spacing is the DS sidebar section
-        // header's (its grouped list in a side column): 16px above the words,
-        // 6px below, a 40px box and no gap between groups, so a heading is
-        // about twice as far from the rows above as from its own (raft-design
-        // foundations/comfort.md, Spacing rhythm). By touch its target reaches
-        // 4px up, to 44px.
-        className={`group relative flex h-10 w-full items-end px-4 pb-1.5 md:px-(--surface-inset) text-left text-footnote text-foreground-muted outline-none after:absolute after:inset-x-0 after:-top-1 after:bottom-0 after:content-[''] md:pointer-fine:after:top-0 hover:text-foreground focus-visible:inset-ring-2 focus-visible:inset-ring-ink ${first ? "md:pointer-fine:h-auto md:pointer-fine:pt-[7px]" : ""}`}
-      >
-        {/* One line, its pixel, words and chevron on one center line. */}
-        <span className="flex items-center gap-1.5" data-testid="channel-tasks-heading-line">
-          <TaskStatusIcon status={toRuiTaskStatus(status)} className="size-2.5 shrink-0" />
-          <span>{label}</span>
-          <span className="font-mono text-mono-meta text-foreground-hint">{tasks.length}</span>
-          {collapsed ? <ChevronRight className="size-3.5 text-foreground-hint group-hover:text-foreground" /> : <ChevronDown className="size-3.5 text-foreground-hint group-hover:text-foreground" />}
-        </span>
-      </button>
-      {collapsed ? null : (
-        <TaskChipList
-          tasks={tasks}
-          onOpenTask={onOpenTask}
-          showStatus={false}
-          renderAssignee={renderAssignee}
-          variant="plain"
-          testId="channel-tasks-list"
-        />
-      )}
-    </section>
   );
 }

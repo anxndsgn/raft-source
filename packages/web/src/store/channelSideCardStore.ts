@@ -18,7 +18,8 @@ import { create } from "zustand";
 export type ChannelSideCard = "tasks" | "files";
 /** Every card the column can show: Task v2's two, the one an app opens there (a workspace Artifact), a message's context view and the channel details. */
 export type ChannelSideColumnCard = ChannelSideCard | "app" | "context" | "details";
-export type ChannelTasksFilter = "all" | "mine";
+/** The Tasks section's tabs (raft-design tasks.md, anxndsgn 11/15): All, Assigned to me, Created by me. */
+export type ChannelTasksFilter = "all" | "mine" | "created";
 
 const OPEN_KEY = "slock:channelSideCards";
 const COLLAPSED_KEY = "slock:channelSideCardsCollapsed";
