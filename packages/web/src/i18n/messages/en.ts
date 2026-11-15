@@ -9973,6 +9973,15 @@ export const en = {
   "team.page.title": "Team",
   "team.page.overview": "Overview",
   "team.page.counts": "{members, plural, one {# member} other {# members}} ({humans, plural, one {# person} other {# people}}, {agents, plural, one {# agent} other {# agents}}) · {computers, plural, one {# computer} other {# computers}}",
+  "team.preview.title": "{working} working{held, plural, =0 {} other { · # held up}}",
+  "team.preview.viewAll": "View all",
+  "team.held.waitingTask": "Task #{number} waiting",
+  "team.held.waitingTasks": "{count, plural, one {# task waiting} other {# tasks waiting}}",
+  "team.rail.working": "Team · {count, plural, one {# agent working} other {# agents working}}",
+  "team.state.working": "Agent at work",
+  "team.state.idle": "Online, idle",
+  "team.state.offline": "Offline",
+  "team.state.held": "Held by a limit",
 } as const;
 
 export type MessageId = keyof typeof en;

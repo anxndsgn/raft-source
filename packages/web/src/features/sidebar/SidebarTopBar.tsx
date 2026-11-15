@@ -5,7 +5,6 @@ import { PublicPageGlobe } from "../../components/server/PublicPageGlobe";
 import AvatarSlot from "../../components/ui/AvatarSlot";
 import ServerSwitcherMenu from "../../components/ui/ServerSwitcherMenu";
 import { SHOW_STALE_COUNTS_NOTICE_IN_DESKTOP_SIDEBAR, StaleCountsNotice, UNREAD_COUNT_SURFACES } from "../../components/layout/StaleCountsNotice";
-import { WorkingNowSummary } from "../../components/layout/WorkingNowSummary";
 import { TabRootBar } from "../../components/layout/TabRootBar";
 import type { SidebarData } from "./hooks/useSidebarData";
 import type { SidebarViewState } from "./hooks/useSidebarViewState";
@@ -91,9 +90,6 @@ export function SidebarTopBar({ mobileInline, hideTitle, data, view, sync, home 
                 />
               </Popover>
               <div className="min-w-0 flex-1" />
-              {/* Who is working (AgentActivity `rf-working--count`); renders
-                  nothing when nobody is, or the setting is off. */}
-              <WorkingNowSummary variant="count" onFrame />
               {/* Layout redesign: the bell's notices live in the inbox; no bell here. */}
             </>
           ) : undefined}
@@ -110,7 +106,6 @@ export function SidebarTopBar({ mobileInline, hideTitle, data, view, sync, home 
           <SidebarHeaderTitle className="min-w-0 flex-1">
             {railLabel}
           </SidebarHeaderTitle>
-          {railMode === "chat" && <WorkingNowSummary variant="count" />}
         </SidebarHeader>
       )}
 

@@ -12,7 +12,7 @@ import { currentTimeMs } from "@botiverse/raft-shared";
 import { TaskAssigneeLabel, useTaskAssigneeIdentity } from "./TaskAssignee";
 import { useUsageLimitAttention } from "../layout/useUsageLimitAttention";
 import { useTimeFormatter } from "../../hooks/useTimeFormatter";
-import type { IntlShape } from "react-intl";
+import { shortSpan, useResumeMoment } from "./agentTimeText";
 import { TASK_STATUS_UI, toRuiTaskStatus } from "./taskStatusUi";
 
 /** raft-design tasks.md (anxndsgn 11/15): what waits on the person first, then the work moving, then what waits,
@@ -110,7 +110,7 @@ function SectionTaskRow({ task, viewerId, selected, onOpen, resetsAtByAgent }: {
       selected={selected}
       state={state}
       step={live.step}
-      time={movedAt ? <span className={stale ? "text-warning-strong" : undefined} title={formatMediumDateTime(movedAt)}>{shortAgo(movedAt, formatMessage)}</span> : null}
+      time={movedAt ? <span className={stale ? "text-warning-strong" : undefined} title={formatMediumDateTime(movedAt)}>{shortSpan(Date.parse(movedAt), formatMessage)}</span> : null}
       action={<RowAction task={task} viewerId={viewerId} />}
       data-testid={`channel-task-row-${task.taskNumber}`}
     />
@@ -120,19 +120,14 @@ function SectionTaskRow({ task, viewerId, selected, onOpen, resetsAtByAgent }: {
 /** An agent's task: working (for how long, its step) or held (a usage limit, its computer offline). */
 function useLiveState(task: Task, resetsAtByAgent: Map<string, string | null>): { text: string | null; warning: boolean; step: string | null; title?: string } {
   const { formatMessage } = useIntl();
-  const { formatClock, formatCompactDate, formatMediumDateTime } = useTimeFormatter();
+  const resumeMoment = useResumeMoment();
   const agentId = task.claimedByType === "agent" ? task.claimedById ?? "" : "";
   const display = useAgentDisplayState(agentId);
   const startedAt = useLiveAgentActivityStore((s) => (agentId ? s.items.find((i) => i.agentId === agentId && i.idleSince === null)?.startedAt ?? null : null));
   if (!agentId || task.status !== "in_progress") return { text: null, warning: false, step: null };
   if (resetsAtByAgent.has(agentId)) {
-    // A moment, not a span (Figmama 11/15): "09:00" today, "11/21" on another day; the full date on hover.
-    const at = resetsAtByAgent.get(agentId);
-    const date = at ? new Date(at) : null;
-    const when = date && !Number.isNaN(date.getTime())
-      ? (date.toDateString() === new Date(currentTimeMs()).toDateString() ? formatClock(date) : formatCompactDate(date))
-      : null;
-    return { text: when ? formatMessage({ id: "taskSection.heldUntil" }, { when }) : formatMessage({ id: "taskSection.held" }), warning: true, step: null, title: date ? formatMediumDateTime(date) : undefined };
+    const moment = resumeMoment(resetsAtByAgent.get(agentId));
+    return { text: moment ? formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when }) : formatMessage({ id: "taskSection.held" }), warning: true, step: null, title: moment?.title };
   }
   if (display.blocked || display.activityErrorCode === "usage_limit" || display.activity === "error") {
     return { text: display.activityText || formatMessage({ id: "taskSection.held" }), warning: true, step: null };
@@ -162,11 +157,3 @@ function RowAction({ task, viewerId }: { task: Task; viewerId: string | null }) 
   return null;
 }
 
-/** Since it last moved, the row's short Space Mono form (tasks.md): 刚刚, 12 分, 15 时, 3 天; the full time on hover. */
-function shortAgo(at: string, formatMessage: IntlShape["formatMessage"]): string {
-  const minutes = Math.floor(Math.max(0, currentTimeMs() - Date.parse(at)) / 60000);
-  if (minutes < 1) return formatMessage({ id: "taskSection.ago.now" });
-  if (minutes < 60) return formatMessage({ id: "taskSection.ago.minutes" }, { count: minutes });
-  if (minutes < 60 * 24) return formatMessage({ id: "taskSection.ago.hours" }, { count: Math.floor(minutes / 60) });
-  return formatMessage({ id: "taskSection.ago.days" }, { count: Math.floor(minutes / 1440) });
-}

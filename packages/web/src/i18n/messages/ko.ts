@@ -9753,4 +9753,13 @@ export const ko: Partial<Record<MessageId, string>> = {
   "team.page.title": "팀",
   "team.page.overview": "개요",
   "team.page.counts": "멤버 {members}명(사람 {humans}, Agent {agents}) · 컴퓨터 {computers}대",
+  "team.preview.title": "{working}개 작업 중{held, plural, =0 {} other { · #개 멈춤}}",
+  "team.preview.viewAll": "모두 보기",
+  "team.held.waitingTask": "작업 #{number} 대기 중",
+  "team.held.waitingTasks": "작업 {count}개 대기 중",
+  "team.rail.working": "팀 · Agent {count}개 작업 중",
+  "team.state.working": "작업 중",
+  "team.state.idle": "온라인, 대기",
+  "team.state.offline": "오프라인",
+  "team.state.held": "한도로 멈춤",
 };

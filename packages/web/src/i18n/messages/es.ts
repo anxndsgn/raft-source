@@ -9753,4 +9753,13 @@ export const es: Partial<Record<MessageId, string>> = {
   "team.page.title": "Equipo",
   "team.page.overview": "Resumen",
   "team.page.counts": "{members} miembros ({humans} personas, {agents} agentes) · {computers} computadoras",
+  "team.preview.title": "{working} trabajando{held, plural, =0 {} other { · # detenidos}}",
+  "team.preview.viewAll": "Ver todo",
+  "team.held.waitingTask": "Tarea #{number} en espera",
+  "team.held.waitingTasks": "{count, plural, one {# tarea en espera} other {# tareas en espera}}",
+  "team.rail.working": "Equipo · {count, plural, one {# agente trabajando} other {# agentes trabajando}}",
+  "team.state.working": "Trabajando",
+  "team.state.idle": "En línea, inactivo",
+  "team.state.offline": "Sin conexión",
+  "team.state.held": "Detenido por un límite",
 };

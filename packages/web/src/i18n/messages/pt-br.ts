@@ -9753,4 +9753,13 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "team.page.title": "Equipe",
   "team.page.overview": "Visão geral",
   "team.page.counts": "{members} membros ({humans} pessoas, {agents} agentes) · {computers} computadores",
+  "team.preview.title": "{working} trabalhando{held, plural, =0 {} other { · # parados}}",
+  "team.preview.viewAll": "Ver tudo",
+  "team.held.waitingTask": "Tarefa #{number} aguardando",
+  "team.held.waitingTasks": "{count, plural, one {# tarefa aguardando} other {# tarefas aguardando}}",
+  "team.rail.working": "Equipe · {count, plural, one {# agente trabalhando} other {# agentes trabalhando}}",
+  "team.state.working": "Trabalhando",
+  "team.state.idle": "On-line, ocioso",
+  "team.state.offline": "Offline",
+  "team.state.held": "Parado por um limite",
 };

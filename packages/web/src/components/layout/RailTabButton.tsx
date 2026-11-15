@@ -1,6 +1,8 @@
 import { forwardRef, useCallback } from "react";
 import { AppRailItem, AppRailItemAttention, AppRailItemBadge, AppRailItemIcon, AppRailItemLabel } from "@botiverse/raft-ui";
 
+import { WorkingRing } from "@botiverse/raft-ui-ext";
+
 import Tooltip from "../ui/Tooltip";
 
 /** A rail item's tooltip goes beside the rail, on the side away from it. */
@@ -21,8 +23,8 @@ type RailTabButtonProps = Omit<
   label: string;
   active: boolean;
   showDot?: boolean;
-  /** A small green dot (presence, not attention): e.g. Members while agents are online. */
-  presenceDot?: boolean;
+  /** Agents at work (the Team tab, PRD 团队页 §4): a turning dashed ring round the item and their number, no fill. */
+  working?: number;
   /** A count instead of the dot (the inbox's unread). */
   badgeCount?: number;
   dotInactiveOnly?: boolean;
@@ -42,7 +44,7 @@ export const RailTabButton = forwardRef<HTMLButtonElement, RailTabButtonProps>(f
   label,
   active,
   showDot,
-  presenceDot,
+  working = 0,
   badgeCount,
   dotInactiveOnly,
   dotTooltip,
@@ -77,7 +79,7 @@ export const RailTabButton = forwardRef<HTMLButtonElement, RailTabButtonProps>(f
       onPointerDown={onPointerDown}
       // Raft Design System › Rail: 40×40 items, 36×36 when the window is
       // under 600 tall (the heads shrink to 48 with them).
-      className={`size-(--rail-item) [@media(max-height:600px)]:h-9 [@media(max-height:600px)]:w-9 ${className}`}
+      className={`relative size-(--rail-item) [@media(max-height:600px)]:h-9 [@media(max-height:600px)]:w-9 ${className}`}
     >
       <AppRailItemIcon className="relative">
         {icon}
@@ -85,10 +87,9 @@ export const RailTabButton = forwardRef<HTMLButtonElement, RailTabButtonProps>(f
           <AppRailItemBadge data-testid={testId ? `${testId}-badge` : undefined}>{Math.min(badgeCount, 99)}</AppRailItemBadge>
         ) : dotVisible ? (
           <AppRailItemAttention title={dotTooltip ?? label} />
-        ) : presenceDot ? (
-          <span aria-hidden className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-success" data-testid={testId ? `${testId}-presence` : undefined} />
         ) : null}
       </AppRailItemIcon>
+      <WorkingRing count={working} data-testid={testId && working > 0 ? `${testId}-working` : undefined} />
       <AppRailItemLabel>{label}</AppRailItemLabel>
     </AppRailItem>
   );

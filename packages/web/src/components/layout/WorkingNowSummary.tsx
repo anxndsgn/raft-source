@@ -1,4 +1,3 @@
-import { ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { useIntl } from "react-intl";
@@ -7,75 +6,47 @@ import { nextLiveAgentActivityExpiry } from "../../utils/liveAgentActivity";
 import type { LiveAgentActivityItem } from "../../utils/liveAgentActivity";
 import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
 import { useAgentTypingStore } from "../../store/agentTypingStore";
-import { useAppearanceStore } from "../../store/appearanceStore";
 import { formatActivityTextDescriptor } from "../../utils/activity";
 import { useAppNavigate } from "../../hooks/useAppNavigate";
 import AvatarSlot from "../ui/AvatarSlot";
 import AgentActivitySubscription from "../agent/AgentActivitySubscription";
 import { FaceStack } from "./FaceStack";
-import { faceStackTriggerClass } from "./faceStackTrigger";
 
 const MAX_FACES = 3;
 
-/** Live activity (and who is typing) belongs to one workspace: start over when it changes. */
+/**
+ * Live activity (and who is typing) belongs to one workspace: start over when
+ * it changes. While the app runs, rows leave on their own (an idle agent after
+ * its grace, a silent one after the safety window): pruned at the earliest of
+ * those moments, from a store subscription, so the layout never re-renders
+ * for it (the Team tab replaced the summary that used to do this).
+ */
 export function useClearLiveAgentActivityOnServerChange(serverId: string | undefined) {
   useLayoutEffect(() => {
     useLiveAgentActivityStore.getState().clear();
     useAgentTypingStore.getState().clear();
   }, [serverId]);
-}
-
-/**
- * Who is working right now (Raft Design System › AgentActivity): a summary in
- * the header of the place you are looking at — a stack of up to three agent
- * faces and a count. It opens "Working now": one row per working agent, what
- * it is doing, and a way to its profile. Nothing blinks.
- *
- * An agent is listed while the live-activity store has it thinking or working;
- * the "Live agent activity" appearance setting hides the summary. With nobody
- * working it takes no space.
- */
-export function WorkingNowSummary({
-  variant = "count",
-  onFrame = false,
-  className = "",
-}: {
-  /** `count`: faces + a number (sidebar head, phone home bar). `full`: faces + "2 agents working" + chevron (under a large title). */
-  variant?: "count" | "full";
-  /** Sitting on the frame (the phone Home bar): on-frame ink and the frame's pressed wash. */
-  onFrame?: boolean;
-  className?: string;
-}) {
-  const items = useLiveAgentActivityStore((state) => state.items);
-  const visible = useAppearanceStore((state) => state.showLiveAgentActivityBar);
-  const { formatMessage } = useIntl();
-  usePruneExpiredLiveActivity(items);
-
-  if (!visible || items.length === 0) {
-    return null;
-  }
-
-  const summary = formatMessage({ id: "layout.workingNow.summary" }, { count: items.length });
-
-  return (
-    <WorkingNowPopover
-      items={items}
-      label={summary}
-      align="end"
-      testId="working-now-summary"
-      className={[
-        faceStackTriggerClass({ onFrame }),
-        "min-h-8",
-        "after:absolute after:inset-x-0 after:-inset-y-1.5",
-        variant === "full" ? "gap-2 pr-2 text-footnote font-semibold" : "font-mono text-mono-meta",
-        className,
-      ].join(" ")}
-    >
-      <WorkingFaces items={items} />
-      {variant === "full" ? summary : items.length}
-      {variant === "full" ? <ChevronRight size={14} aria-hidden="true" className="text-foreground-hint" /> : null}
-    </WorkingNowPopover>
-  );
+  useEffect(() => {
+    let timeout: number | undefined;
+    let scheduled: number | null = null;
+    const schedule = (items: readonly LiveAgentActivityItem[]) => {
+      const next = nextLiveAgentActivityExpiry(items);
+      if (next === scheduled) return;
+      window.clearTimeout(timeout);
+      scheduled = next;
+      if (next === null) return;
+      timeout = window.setTimeout(() => {
+        scheduled = null;
+        useLiveAgentActivityStore.getState().pruneExpired();
+      }, Math.max(0, next - Date.now()) + 50);
+    };
+    schedule(useLiveAgentActivityStore.getState().items);
+    const unsubscribe = useLiveAgentActivityStore.subscribe((state) => schedule(state.items));
+    return () => {
+      unsubscribe();
+      window.clearTimeout(timeout);
+    };
+  }, []);
 }
 
 /**
@@ -210,18 +181,3 @@ export function WorkingFaces({
   );
 }
 
-/**
- * Rows leave on their own: an idle agent after its grace, a silent one after
- * the safety window. Prune at the earliest of those moments.
- */
-function usePruneExpiredLiveActivity(items: readonly LiveAgentActivityItem[]) {
-  const prune = useCallback(() => useLiveAgentActivityStore.getState().pruneExpired(), []);
-  const nextExpiry = nextLiveAgentActivityExpiry(items);
-  useEffect(() => {
-    if (nextExpiry === null) return;
-    const timeout = window.setTimeout(prune, Math.max(0, nextExpiry - Date.now()) + 50);
-    return () => window.clearTimeout(timeout);
-  }, [nextExpiry, prune]);
-}
-
-export default WorkingNowSummary;

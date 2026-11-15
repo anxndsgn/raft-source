@@ -9754,4 +9754,13 @@ export const ja: Partial<Record<MessageId, string>> = {
   "team.page.title": "チーム",
   "team.page.overview": "概要",
   "team.page.counts": "メンバー {members} 人（人間 {humans}、Agent {agents}）· コンピューター {computers} 台",
+  "team.preview.title": "{working} 件作業中{held, plural, =0 {} other { · # 件停止中}}",
+  "team.preview.viewAll": "すべて表示",
+  "team.held.waitingTask": "タスク #{number} が待機中",
+  "team.held.waitingTasks": "{count} 件のタスクが待機中",
+  "team.rail.working": "チーム · {count} 件の Agent が作業中",
+  "team.state.working": "作業中",
+  "team.state.idle": "オンライン・待機中",
+  "team.state.offline": "オフライン",
+  "team.state.held": "制限で停止中",
 };

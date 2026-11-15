@@ -9864,4 +9864,13 @@ export const zhCn: Record<MessageId, string> = {
   "team.page.title": "团队",
   "team.page.overview": "概览",
   "team.page.counts": "{members} 位成员（{humans} 人、{agents} 个 agent）· {computers} 台计算机",
+  "team.preview.title": "{working} 个在工作{held, plural, =0 {} other { · # 个被卡住}}",
+  "team.preview.viewAll": "查看全部",
+  "team.held.waitingTask": "任务 #{number} 在等",
+  "team.held.waitingTasks": "{count} 个任务在等",
+  "team.rail.working": "团队 · {count} 个 agent 在工作",
+  "team.state.working": "在工作",
+  "team.state.idle": "在线空闲",
+  "team.state.offline": "离线",
+  "team.state.held": "被限制卡住",
 };

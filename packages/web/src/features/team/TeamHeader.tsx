@@ -50,7 +50,7 @@ export function TeamHeader({ view, onMobileBack, mobileBackProps }: {
         onMobileBack={onMobileBack}
         mobileBackProps={mobileBackProps}
       />
-      <div className="border-b border-line-hairline px-(--column-margin) py-2">
+      <div className="border-b border-line-seam px-(--column-margin) py-2">
         <Tabs<TeamView> value={view} onValueChange={pick} className="min-w-0" data-testid="team-tabs">
           <TabsList aria-label={formatMessage({ id: "team.page.title" })}>
             <TabsTab value="overview" data-testid="team-tab-overview">

@@ -9755,4 +9755,13 @@ export const ru: Partial<Record<MessageId, string>> = {
   "team.page.title": "Команда",
   "team.page.overview": "Обзор",
   "team.page.counts": "Участников: {members} (люди: {humans}, агенты: {agents}) · компьютеров: {computers}",
+  "team.preview.title": "Работают: {working}{held, plural, =0 {} one { · остановлен #} few { · остановлено #} many { · остановлено #} other { · остановлено #}}",
+  "team.preview.viewAll": "Показать все",
+  "team.held.waitingTask": "Задача #{number} ждёт",
+  "team.held.waitingTasks": "Ждут задач: {count}",
+  "team.rail.working": "Команда · работают агентов: {count}",
+  "team.state.working": "Работает",
+  "team.state.idle": "В сети, свободен",
+  "team.state.offline": "Не в сети",
+  "team.state.held": "Остановлен лимитом",
 };

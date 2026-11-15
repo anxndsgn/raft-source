@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isHostShell } from "../../embed";
 import { useIntl } from "react-intl";
-import { Blocks, CircleHelp, PanelLeftClose, PanelLeftOpen, Search, Settings, Users, ListTodo, Inbox } from "lucide-react";
+import { Blocks, CircleHelp, PanelLeftClose, PanelLeftOpen, Search, Settings, ListTodo, Inbox } from "lucide-react";
 import { useFeedbackUnread } from "../../feedback/useFeedbackUnread";
 import { useAuthStore } from "../../store/authStore";
 import { useServerStore } from "../../store/serverStore";
@@ -9,8 +9,7 @@ import type { Server } from "../../store/serverStore";
 import { useMessageStore } from "../../store/messageStore";
 import { useInboxStore } from "../../store/inboxStore";
 import { useChannelStore } from "../../store/channelStore";
-import { isMachineOffline, useMachineStore } from "../../store/machineStore";
-import { useAgentStore } from "../../store/agentStore";
+import { useMachineStore } from "../../store/machineStore";
 import { useInboxForMeCount } from "../../features/thread/inboxForMe";
 import { SERVER_NOTIFICATION_PREFS_UPDATED_EVENT } from "../../store/events/notificationPrefsEvents";
 import type { RailMode } from "../../hooks/useSidebarTab";
@@ -29,6 +28,7 @@ import { useAppsPageAttention } from "./serverPagesAttention";
 import { useArtifactsRailShown } from "./artifactsRailEntry";
 import { PublicServerSwitcherTrigger } from "./PublicServerSwitcherTrigger";
 import { RailTabButton } from "./RailTabButton";
+import { TeamRailTab } from "./TeamRailTab";
 import AvatarSlot from "../ui/AvatarSlot";
 import ServerSwitcherMenu from "../ui/ServerSwitcherMenu";
 import {
@@ -270,13 +270,7 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
   }, [currentMode, selectRailMode]);
   // The navigation tabs this person can see, in no particular order:
   // SortableRailTabs lays them out in the person's saved order.
-  // Layout redesign: no top bar, so agents online show as the Members tab's green dot.
-  const machines = useMachineStore((state) => state.machines);
-  const agents = useAgentStore((state) => state.agents);
-  const onlineAgentCount = useMemo(
-    () => agents.filter((agent) => agent.status === "active" && !agent.external && !!agent.machineId && !isMachineOffline(machines, agent.machineId)).length,
-    [agents, machines],
-  );
+  // Team page: who is working shows on the Team tab itself (TeamRailTab's ring and preview).
   // The inbox badge counts what is waiting on me (the inbox's For me), not all Activity.
   const forMeCount = useInboxForMeCount();
   const railTabs = useMemo<RailTab[]>(() => {
@@ -321,20 +315,13 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
     if (!isGuest) {
       // Team (PRD 团队页 §4): Members and Computers are one tab, in Members' place (its saved order keeps the
       // "members" id); its pages are the Team page's tabs, so the tab is lit on either, and carries Computers' dot.
-      const teamLabel = formatMessage({ id: "team.page.title" });
-      const teamTooltip = onlineAgentCount > 0 ? formatMessage({ id: "layout.leftRail.agentsOnline" }, { count: onlineAgentCount }) : teamLabel;
-      tabs.push(tab("members", teamLabel, ({ dragProps, guardClick }) => (
-        <RailTabButton
-          {...dragProps}
-          icon={<Users size={18} />}
-          label={teamTooltip}
-          active={railMode === "members" || railMode === "computers"}
+      tabs.push(tab("members", formatMessage({ id: "team.page.title" }), ({ dragProps, guardClick }) => (
+        <TeamRailTab
+          dragProps={dragProps}
           onClick={guardClick(railModeSelectors.members)}
-          presenceDot={onlineAgentCount > 0}
-          showDot={showComputerAttentionDot}
-          dotInactiveOnly
-          dotTooltip={computerAttentionTooltip}
-          testId="left-rail-tab-team"
+          active={railMode === "members" || railMode === "computers"}
+          attentionDot={showComputerAttentionDot}
+          attentionTooltip={computerAttentionTooltip}
         />
       )));
       // The server's Apps, after Team; guests have none (#proj-apps task #22).
@@ -360,7 +347,7 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
       )));
     }
     return tabs;
-  }, [appsAttention.lit, computerAttentionTooltip, formatMessage, handleClassicActivityClick, hasActivityUnread, hasChatUnread, isGuest, railMode, railModeSelectors, showArtifacts, showAssistant, showComputerAttentionDot, topBar, onlineAgentCount, forMeCount]);
+  }, [appsAttention.lit, computerAttentionTooltip, formatMessage, handleClassicActivityClick, hasActivityUnread, hasChatUnread, isGuest, railMode, railModeSelectors, showArtifacts, showAssistant, showComputerAttentionDot, topBar, forMeCount]);
   const selectPublicChatMode = useCallback(() => publicProjection?.onSelectMode("chat"), [publicProjection]);
   const selectPublicSettingsMode = useCallback(() => publicProjection?.onSelectMode("settings"), [publicProjection]);
   const openPublicFeedback = useCallback(() => publicProjection?.onSelectSettingsTab("feedback"), [publicProjection]);

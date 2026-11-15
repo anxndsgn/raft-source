@@ -9753,4 +9753,13 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "team.page.title": "團隊",
   "team.page.overview": "概覽",
   "team.page.counts": "{members} 位成員（{humans} 人、{agents} 個 Agent）· {computers} 台電腦",
+  "team.preview.title": "{working} 個在工作{held, plural, =0 {} other { · # 個被卡住}}",
+  "team.preview.viewAll": "查看全部",
+  "team.held.waitingTask": "任務 #{number} 在等",
+  "team.held.waitingTasks": "{count} 個任務在等",
+  "team.rail.working": "團隊 · {count} 個 Agent 在工作",
+  "team.state.working": "在工作",
+  "team.state.idle": "在線閒置",
+  "team.state.offline": "離線",
+  "team.state.held": "被限制卡住",
 };

@@ -626,6 +626,8 @@ export function useAppNavigate() {
       `${base}/migrations${filter?.agent ? `?agent=${encodeURIComponent(filter.agent)}` : filter?.computer ? `?computer=${encodeURIComponent(filter.computer)}` : ""}`,
     ),
     toMembers: () => guardedNavigate(`${base}/members`),
+    /** The Team page's Overview (PRD 团队页). */
+    toTeam: () => guardedNavigate(`${base}/team`),
     toComputers: (opts?: ComputersNavOptions) =>
       guardedNavigate(
         opts?.filter ? `${base}/computers?filter=${opts.filter}` : `${base}/computers`,
