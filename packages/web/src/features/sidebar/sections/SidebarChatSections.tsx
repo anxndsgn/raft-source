@@ -1,4 +1,4 @@
-import { SidebarSectionControl, SidebarSectionControls, SidebarSectionCount, SidebarSectionEndChevron, SidebarSectionTitle, SidebarSectionTrailing } from "@botiverse/raft-ui";
+import { SidebarSectionControl, SidebarSectionControls, SidebarSectionEndChevron, SidebarSectionTitle, SidebarSectionTrailing } from "@botiverse/raft-ui";
 import Tooltip from "../../../components/ui/Tooltip";
 import { Plus } from "lucide-react";
 import { DndContext, DragOverlay, MeasuringStrategy } from "@dnd-kit/core";
@@ -282,7 +282,7 @@ export function SidebarChatSections({ data, view, sync, rowHandlers, route, crea
         (SidebarDndProjectedCount: its visibility and count; SidebarDndProjectedItems:
         its rows), so a drag's move renders only the sections it changes. */}
     <SidebarDndProjectedCount store={sidebarDndProjectionStore} containerId={SIDEBAR_PINNED_CONTAINER_ID} baseItemIds={sidebarDndBaseProjection[SIDEBAR_PINNED_CONTAINER_ID]}>
-    {(pinnedCount) => !isEmptySectionHidden(pinnedCount, pinnedHeld, rememberedRows.pinned, SIDEBAR_PINNED_CONTAINER_ID, true) && (
+    {(pinnedCount) => !isEmptySectionHidden(pinnedCount, pinnedHeld, rememberedRows.pinned, SIDEBAR_PINNED_CONTAINER_ID, true, true) && (
     <SortableSidebarSection id="system:pinned" testId="sidebar-section-block-pinned" order={sectionOrder.indexOf("system:pinned")}>
         <SidebarSectionHeader section="pinned" onOpenContextMenu={openSectionCtxMenu} sectionKey={"pinned"} open={!collapsed.pinned} onToggleSection={toggleSection}>
           <SidebarSectionToggle
@@ -294,12 +294,6 @@ export function SidebarChatSections({ data, view, sync, rowHandlers, route, crea
           >
             <SidebarSectionChevronIcon open={!collapsed.pinned} />
             <SidebarSectionTitle>{formatMessage({ id: "layout.sidebar.pinned" })}</SidebarSectionTitle>
-            {/* No count while the pins are held: a "0" there would be read, not loading. */}
-            {pinnedHeld ? null : (
-              <SidebarSectionCount>
-                {pinnedCount}
-              </SidebarSectionCount>
-            )}
             {collapsed.pinned && unreadFlags.pinned && (
               <AttentionDot size="lg" className="ml-1" />
             )}
@@ -358,7 +352,7 @@ export function SidebarChatSections({ data, view, sync, rowHandlers, route, crea
         const collapsedCustom = collapsedCustomSections[section.id] === true;
         return (
           <SidebarDndProjectedCount key={section.id} store={sidebarDndProjectionStore} containerId={containerId} baseItemIds={baseItemIds}>
-          {(customCount) => (
+          {() => (
           <SortableSidebarSection id={section.id} testId={`sidebar-custom-section-${section.id}`} order={sectionOrder.indexOf(section.id)}>
             <SidebarSectionHeader section={`custom:${section.id}`} onOpenContextMenu={openSectionCtxMenu} sectionKey={section.id} open={!collapsedCustom} onToggleSection={toggleCustomSection}>
               <SidebarSectionToggle
@@ -369,7 +363,6 @@ export function SidebarChatSections({ data, view, sync, rowHandlers, route, crea
                 <SidebarSectionChevronIcon open={!collapsedCustom} />
                 {section.emoji && <span aria-hidden>{section.emoji}</span>}
                 <SidebarSectionTitle>{section.name}</SidebarSectionTitle>
-                <SidebarSectionCount>{customCount}</SidebarSectionCount>
                 {collapsedCustom && customUnreadSectionIdSet.has(section.id) && <AttentionDot size="lg" className="ml-1" />}
               </SidebarSectionToggle>
             {/* Only the end chevron, mouse only: no empty trailing room on touch, where it would cut the title short. */}
@@ -414,7 +407,7 @@ export function SidebarChatSections({ data, view, sync, rowHandlers, route, crea
         it is not revealed as a drop target either: a channel dragged in doesn't become external. */}
     {(jointCount) => (externalChannelsEnabled
       ? !isEmptySectionHidden(jointCount, channelSectionsHeld, rememberedRows.jointChannels, SIDEBAR_JOINT_CHANNELS_CONTAINER_ID, false, true)
-      : canCreateJointChannel || !isEmptySectionHidden(jointCount, channelSectionsHeld, rememberedRows.jointChannels, SIDEBAR_JOINT_CHANNELS_CONTAINER_ID, true)) && (
+      : !isEmptySectionHidden(jointCount, channelSectionsHeld, rememberedRows.jointChannels, SIDEBAR_JOINT_CHANNELS_CONTAINER_ID, true, true)) && (
     <SortableSidebarSection id="system:joint" testId="sidebar-section-block-joint" order={sectionOrder.indexOf("system:joint")}>
         <SidebarSectionHeader section="jointChannels" onOpenContextMenu={openSectionCtxMenu} sectionKey={"jointChannels"} open={!collapsed.jointChannels} onToggleSection={toggleSection}>
           <SidebarSectionToggle
@@ -426,9 +419,6 @@ export function SidebarChatSections({ data, view, sync, rowHandlers, route, crea
           >
             <SidebarSectionChevronIcon open={!collapsed.jointChannels} />
             <SidebarSectionTitle>{formatMessage({ id: jointSectionLabelId })}</SidebarSectionTitle>
-            <SidebarSectionCount>
-              {jointCount}
-            </SidebarSectionCount>
             {collapsed.jointChannels && unreadFlags.joint && (
               <AttentionDot size="lg" className="ml-1" />
             )}
@@ -480,7 +470,7 @@ export function SidebarChatSections({ data, view, sync, rowHandlers, route, crea
 
     {/* Channels */}
     <SidebarDndProjectedCount store={sidebarDndProjectionStore} containerId={SIDEBAR_CHANNELS_CONTAINER_ID} baseItemIds={sidebarDndBaseProjection[SIDEBAR_CHANNELS_CONTAINER_ID]}>
-    {(channelCount) => (
+    {() => (
     <SortableSidebarSection id="system:channels" testId="sidebar-section-block-channels" order={sectionOrder.indexOf("system:channels")}>
     <SidebarSectionHeader section="channels" onOpenContextMenu={openSectionCtxMenu} sectionKey={"channels"} open={!collapsed.channels} onToggleSection={toggleSection}>
       <SidebarSectionToggle
@@ -492,9 +482,6 @@ export function SidebarChatSections({ data, view, sync, rowHandlers, route, crea
       >
         <SidebarSectionChevronIcon open={!collapsed.channels} />
         <SidebarSectionTitle>{formatMessage({ id: "layout.sidebar.channels" })}</SidebarSectionTitle>
-        <SidebarSectionCount>
-          {channelCount}
-        </SidebarSectionCount>
         {collapsed.channels && unreadFlags.channels && (
           <AttentionDot size="lg" className="ml-1" data-testid="sidebar-section-unread-dot-channels" />
         )}
@@ -564,12 +551,6 @@ export function SidebarChatSections({ data, view, sync, rowHandlers, route, crea
           >
             <SidebarSectionChevronIcon open={!collapsed.agents} />
             <SidebarSectionTitle>{formatMessage({ id: "layout.sidebar.directMessages" })}</SidebarSectionTitle>
-            {/* No count while the DM list is held: a "0" there would be read, not loading. */}
-            {dmsHeld ? null : (
-              <SidebarSectionCount>
-                {dmCount}
-              </SidebarSectionCount>
-            )}
             {collapsed.agents && unreadFlags.dms && (
               <AttentionDot size="lg" className="ml-1" />
             )}

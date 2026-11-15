@@ -1,64 +1,32 @@
-import { SidebarItemMeta } from "@botiverse/raft-ui";
 import { useIntl } from "react-intl";
-import { useAgentCurrentActivityState, useAgentStore } from "../../../store/agentStore";
-import { formatActivityText } from "../../../utils/activity";
-import { getRuntimeDisplayName } from "@botiverse/raft-shared";
-
-const SIDEBAR_AGENT_LIVE_META_CLASS = "min-w-0 truncate font-sans text-footnote font-normal text-foreground-muted group-data-active/sidebar-item:text-sticker-ink";
+import { AgentStateMark } from "@botiverse/raft-ui-ext";
+import { useAgentDisplayState, useAgentStore } from "../../../store/agentStore";
+import { useMachineStore } from "../../../store/machineStore";
+import { agentMarkState, agentStoppedByComputer } from "../../team/teamWorking";
+import { formatAgentDisplayStateText } from "../../../utils/activity";
 
 /**
- * The right side of an agent row (Raft Design System › Sidebar `rf-srow__meta`):
- * its runtime in Space Mono, or — while it works — what it is doing, in
- * Grotesk 13/18 ink-2 (`rf-srow__meta--live`). A leaf beside the avatar's
- * status pixel with the same narrow O(1) subscription (this one agent's
- * current activity), so an activity push re-renders only this span and an
- * unread change never reaches it. External agents keep their runtime label:
- * their presence is time-derived and the raw activity can outlive it.
- * Visual only (`aria-hidden`): the row's accessible name stays the agent's
- * name, and a sentence that changes every few seconds is not announced; the
- * avatar's status pixel already carries the state for assistive tech.
+ * The end of an agent's DM row (task #10 item 8; Figmama, raft-design sidebar.md 11/16): the Team page's state mark
+ * while it works or is stuck, nothing while it is idle or off — no runtime, no live sentence. An unread count takes
+ * the place first (SidebarPeerRowBody). Its accessible name is the state.
  */
-export function SidebarAgentMeta({ agentId, runtime, external = false }: {
+export function SidebarAgentMeta({ agentId, external = false }: {
   agentId: string;
-  runtime: string | null | undefined;
+  /** Kept for callers; an external agent shows its mark the same way. */
+  runtime?: string | null;
   external?: boolean;
 }) {
-  const { formatMessage } = useIntl();
-  const activityState = useAgentCurrentActivityState(agentId);
-  const activity = activityState?.activity;
-  // A paused personal assistant (#10654) says so in place of its runtime.
-  // Not aria-hidden: the avatar light reads only "offline", this is the word.
-  const paused = useAgentStore((s) => Boolean(s.agents.find((a) => a.id === agentId)?.assistantPausedAt));
-  // A personal assistant has no runtime chip (DS Terminology): its hosted
-  // runtime is the "External agent" placeholder, which its messages never
-  // say. It reads as what it is, as its messages' "Personal assistant of …".
-  const isAssistant = useAgentStore((s) => Boolean(s.agents.find((a) => a.id === agentId)?.assistantOwnerUserId));
-  if (paused) {
-    return (
-      <SidebarItemMeta className="whitespace-nowrap" data-testid="sidebar-agent-paused">
-        {formatMessage({ id: "assistant.paused.chip" })}
-      </SidebarItemMeta>
-    );
-  }
-  if (!external && activityState && (activity === "working" || activity === "thinking")) {
-    const text = formatActivityText(formatMessage, activityState.activity, activityState.activityDetail, activityState.detailKind);
-    return (
-      <span className={SIDEBAR_AGENT_LIVE_META_CLASS} data-testid="sidebar-agent-live-meta" title={text} aria-hidden="true">
-        {text}
-      </span>
-    );
-  }
-  if (isAssistant) {
-    return (
-      <SidebarItemMeta className="whitespace-nowrap" data-testid="sidebar-agent-assistant" aria-hidden="true">
-        {formatMessage({ id: "layout.sidebar.assistantMeta" })}
-      </SidebarItemMeta>
-    );
-  }
-  if (!runtime) return null;
+  const intl = useIntl();
+  const display = useAgentDisplayState(agentId);
+  const stoppedByComputer = useMachineStore((s) => {
+    const agent = useAgentStore.getState().agents.find((a) => a.id === agentId);
+    return !!agent && !external && agentStoppedByComputer(agent, s.machines);
+  });
+  const mark = agentMarkState(display, false, stoppedByComputer);
+  if (mark !== "working" && mark !== "held") return null;
   return (
-    <SidebarItemMeta className="whitespace-nowrap" data-testid="sidebar-agent-runtime" aria-hidden="true">
-      {getRuntimeDisplayName(runtime)}
-    </SidebarItemMeta>
+    <span className="flex shrink-0 items-center" data-testid="sidebar-agent-state-mark">
+      <AgentStateMark state={mark} label={formatAgentDisplayStateText(intl, display, { withDetail: false })} />
+    </span>
   );
 }

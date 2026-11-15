@@ -1634,3 +1634,12 @@ html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [d
 .migration-chord[data-zooming] [filter] {
   filter: none;
 }
+
+/* Task #10 item 8 (Figmama, raft-design sidebar.md 11/16): with a mouse, a section's sort, add and chevron show while
+   the pointer is anywhere over the sidebar, their room always kept (the title doesn't move); one focused or with its
+   menu open shows too. Touch keeps them shown. */
+@media (pointer: fine) {
+  [data-testid="sidebar-root"]:not(:hover) [data-slot="sidebar-section-controls"]:not(:focus-within):not(:has([data-popup-open])) {
+    visibility: hidden;
+  }
+}

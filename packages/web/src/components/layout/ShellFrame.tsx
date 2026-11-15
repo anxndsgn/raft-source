@@ -22,8 +22,10 @@ const SAFE_AREA_TOP = "env(safe-area-inset-top, 0px)";
  * beside it (as ComputersRoute and ArtifactStandalonePage already do).
  */
 export function useIsDesktopShell(): boolean {
-  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia(DESKTOP_SHELL_QUERY).matches);
+  // No matchMedia (a test's DOM): a desktop.
+  const [isDesktop, setIsDesktop] = useState(() => typeof window.matchMedia !== "function" || window.matchMedia(DESKTOP_SHELL_QUERY).matches);
   useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
     const mq = window.matchMedia(DESKTOP_SHELL_QUERY);
     const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
     mq.addEventListener("change", handler);

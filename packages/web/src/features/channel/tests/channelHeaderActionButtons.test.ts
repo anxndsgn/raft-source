@@ -16,9 +16,10 @@ import { useTaskStore } from "../../../store/taskStore";
 
 const originalGet = api.get.bind(api);
 
-window.matchMedia = window.matchMedia ?? (() => ({
-  matches: false,
-  media: "",
+// A desktop window (min-width queries match): a phone's head folds every button into ⋯ (task #10 item 1).
+window.matchMedia = window.matchMedia ?? ((query: string) => ({
+  matches: /min-width/.test(query),
+  media: query,
   onchange: null,
   addListener: () => {},
   removeListener: () => {},

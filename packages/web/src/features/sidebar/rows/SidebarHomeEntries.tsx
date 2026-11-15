@@ -31,6 +31,8 @@ export function SidebarHomeEntries({ mobileInline, data, home }: {
   } = home;
   return (
     <SidebarCellList>
+    {/* Nothing saved: no Saved row (task #10 item 8: an empty group isn't drawn). */}
+    {savedTotal > 0 ? (
     <SidebarItem
       active={!mobileInline && location.pathname.endsWith("/saved")}
       onClick={openSaved}
@@ -45,6 +47,7 @@ export function SidebarHomeEntries({ mobileInline, data, home }: {
       {formatMessage({ id: "layout.sidebar.saved" })}
       <SavedNavCount total={savedTotal} />
     </SidebarItem>
+    ) : null}
 
     {/* Drafts — every message started and not sent, in any
         conversation (#triage:#127). Under Saved, the same kind of

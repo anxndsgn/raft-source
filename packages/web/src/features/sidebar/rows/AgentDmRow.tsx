@@ -40,7 +40,7 @@ export const AgentDmRow = memo(function AgentDmRow({
   const unread = useMessageStore((s) => (dmId ? s.unreadCounts[dmId] || 0 : 0));
   const markedUnread = useScopeMarkedUnread(dmId);
   const hasDraft = useMessageStore((s) => (dmId ? !!s.drafts[dmId] : false));
-  const { displayName, description, avatarUrl } = resolveAgentDmProfileSource(agent);
+  const { displayName, avatarUrl } = resolveAgentDmProfileSource(agent);
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => onSelect(agent, dmId, event.detail),
     [agent, dmId, onSelect],
@@ -78,7 +78,8 @@ export const AgentDmRow = memo(function AgentDmRow({
         nameBadge={agent.managedByAppInstallId
           ? <AppBadge className="shrink-0" appName={agent.managedByApp?.name} botName={displayName} compactInNarrowSidebar />
           : null}
-        description={description}
+        // Avatar and name alone (task #10 item 8): no description line.
+        description={null}
         unread={unread}
         markedUnread={markedUnread}
         hasDraft={hasDraft}

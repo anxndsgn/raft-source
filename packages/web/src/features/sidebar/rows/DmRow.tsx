@@ -20,7 +20,7 @@ export const DmRow = memo(function DmRow({
   isAgent,
   peerId,
   displayName,
-  description,
+  description: _description,
   selected,
   menuOpen,
   ctxType,
@@ -92,7 +92,8 @@ export const DmRow = memo(function DmRow({
         )}
         displayName={displayName}
         nameBadge={isAgent && appBot ? <AppBadge className="shrink-0" appName={appBotAppName} botName={displayName} compactInNarrowSidebar /> : null}
-        description={description}
+        // Avatar and name alone (task #10 item 8): no description line.
+        description={null}
         unread={unread}
         markedUnread={markedUnread}
         hasDraft={hasDraft}

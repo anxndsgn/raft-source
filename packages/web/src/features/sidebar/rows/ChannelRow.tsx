@@ -165,7 +165,7 @@ export const ChannelRow = memo(function ChannelRow({
           data-testid="sidebar-marked-unread-dot"
           aria-label={formatMessage({ id: "layout.sidebar.markedUnreadAria" })}
         />
-      ) : hasDraft && (
+      ) : hasDraft && !selected && (
         <SidebarItemMetaIcon className={showMutedIcon ? "ml-1" : "ml-auto"}><Pencil /></SidebarItemMetaIcon>
       )}
     </SidebarItem>
