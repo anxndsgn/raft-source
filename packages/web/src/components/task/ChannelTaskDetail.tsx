@@ -2,7 +2,7 @@ import { findStoredChannel } from "../../store/storedChannel";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useIntl } from "react-intl";
 import { ArrowLeft, ListFilter } from "lucide-react";
-import { DescriptionDetails, DescriptionItem, DescriptionTerm, PanelAction, ScrollArea } from "@botiverse/raft-ui";
+import { DescriptionDetails, DescriptionItem, DescriptionTerm, PanelAction, ScrollArea, TextLink } from "@botiverse/raft-ui";
 import Tooltip from "../ui/Tooltip";
 
 import api from "../../api/client";
@@ -11,18 +11,16 @@ import { useChannelStore } from "../../store/channelStore";
 import type { Task } from "../../store/taskStore";
 import { useTimelineViewStore } from "../../store/timelineViewStore";
 import { useProfileStore } from "../../store/profileStore";
-import { useChannelSideCardStore } from "../../store/channelSideCardStore";
 import TaskModalHead from "./TaskModalHead";
 
 /**
  * Layout redesign 4.5 (raft-ui panel): over a task's details the Tasks panel's head is Back — the arrow-left action,
- * first, "Back to tasks", only when opened from the list — then the task's number as its title.
+ * first, "Back to tasks", however it was opened — then the task's number as its title.
  */
-export function TaskDetailBack({ channelId, onBack }: { channelId: string; onBack: () => void }) {
+export function TaskDetailBack({ onBack }: { onBack: () => void }) {
   const { formatMessage } = useIntl();
-  const fromList = useChannelSideCardStore((s) => s.taskDetailFromList[channelId] === true);
-  if (!fromList) return null;
-  const label = formatMessage({ id: "panel.backTo.tasks" });
+  // Doc 4.5 (anxndsgn 11/15): a task's details always lead back to its channel's list, however they were opened.
+  const label = formatMessage({ id: "taskDetail.backToTasks" });
   return (
     <Tooltip content={label}>
       <PanelAction aria-label={label} onClick={onBack} data-testid="channel-task-detail-back"><ArrowLeft /></PanelAction>
@@ -55,18 +53,19 @@ export function ChannelTaskDetail({ task }: { task: Task }) {
     return () => { cancelled = true; };
   }, [replyMode, task.id, filtering]);
 
+  const openTaskView = useCallback(() => {
+    void useTimelineViewStore.getState().openView(task.channelId, { kind: "task", taskNumber: task.taskNumber, title: task.title });
+    nav.toChannel(task.channelId);
+  }, [nav, task.channelId, task.taskNumber, task.title]);
   const linkedRow = useMemo(() => (replyMode ? (
     <DescriptionItem data-testid="task-detail-linked-messages">
       <DescriptionTerm>{formatMessage({ id: "taskDetail.linkedMessages" })}</DescriptionTerm>
       <DescriptionDetails>
         {linked ? (
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 text-left font-medium text-foreground hover:underline"
-            onClick={() => {
-              void useTimelineViewStore.getState().openView(task.channelId, { kind: "task", taskNumber: task.taskNumber, title: task.title });
-              nav.toChannel(task.channelId);
-            }}
+          <TextLink
+            render={<button type="button" />}
+            className="inline-flex items-center gap-1.5 text-left"
+            onClick={openTaskView}
           >
             {formatMessage({ id: "task.linkedMessages.count" }, { count: linked })}
             {filtering ? (
@@ -75,13 +74,13 @@ export function ChannelTaskDetail({ task }: { task: Task }) {
                 {formatMessage({ id: "taskDetail.filtering" })}
               </span>
             ) : null}
-          </button>
+          </TextLink>
         ) : (
           <span className="text-foreground-hint">{linked === 0 ? formatMessage({ id: "taskDetail.noLinkedMessages" }) : "…"}</span>
         )}
       </DescriptionDetails>
     </DescriptionItem>
-  ) : null), [filtering, formatMessage, linked, nav, replyMode, task.channelId, task.taskNumber, task.title]);
+  ) : null), [filtering, formatMessage, linked, openTaskView, replyMode]);
 
   const propertyRows = useMemo(() => ({ trailingRows: linkedRow }), [linkedRow]);
   const handleOpenProfile = useCallback(

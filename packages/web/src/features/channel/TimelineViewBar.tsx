@@ -1,4 +1,8 @@
-import { ChevronLeft, ListFilter, X } from "lucide-react";
+import { ArrowLeft, ListFilter } from "lucide-react";
+import { Button, PanelAction, TextLink } from "@botiverse/raft-ui";
+import { FilterChip, FilterChipLabel, FilterChipRemove } from "@botiverse/raft-ui/wip";
+import Tooltip from "../../components/ui/Tooltip";
+import { useCallback } from "react";
 import { useIntl } from "react-intl";
 
 import { useAppNavigate } from "../../hooks/useAppNavigate";
@@ -34,75 +38,56 @@ export function TimelineViewBar({ channelId, view }: { channelId: string; view: 
     label = formatMessage({ id: "timelineView.mine" });
   }
 
-  const showAllAt = (messageId: string | null) => {
+  const hiddenFirstId = view.hiddenUnread?.firstId ?? null;
+  const close = useCallback(() => closeView(channelId), [channelId, closeView]);
+  const back = useCallback(() => backView(channelId), [backView, channelId]);
+  const showHiddenUnread = useCallback(() => {
     closeView(channelId);
-    if (messageId) nav.toMessage(channelId, messageId);
-  };
-
+    if (hiddenFirstId) nav.toMessage(channelId, hiddenFirstId);
+  }, [channelId, closeView, hiddenFirstId, nav]);
+  const closeLabel = formatMessage({ id: "timelineView.close" });
+  // Where ← goes, in its label (raft-ui panel): "Back to Task #3" (Figmama/Anna 11/15).
+  const prev = view.prev;
+  const prevLabel = !prev ? "" : prev.kind === "task"
+    ? formatMessage({ id: "timelineView.task" }, { number: prev.taskNumber })
+    : prev.kind === "chain"
+      ? formatMessage({ id: "timelineView.chain" }, { name: prev.senderName ?? "", excerpt: prev.excerpt ?? "" })
+      : formatMessage({ id: "timelineView.mine" });
+  const backLabel = formatMessage({ id: "timelineView.backTo" }, { view: prevLabel });
+  // raft-ui pieces: Back (PanelAction, the arrow), the view in effect as a FilterChip with its × (back to everything),
+  // what it leaves out as TextLinks.
   return (
     <div
-      className="flex min-h-9 items-center gap-2 border-b border-line-hairline bg-layer-canvas px-3 py-1.5 text-callout"
+      className="flex min-h-11 items-center gap-2 border-b border-line-hairline bg-layer-canvas px-3 py-1.5 text-callout"
       data-testid="timeline-view-bar"
       data-view-kind={spec.kind}
     >
       {view.prev ? (
-        <button
-          type="button"
-          className="inline-flex shrink-0 items-center gap-0.5 rounded-control px-1 text-foreground-muted hover:overlay-subtle"
-          onClick={() => backView(channelId)}
-          data-testid="timeline-view-back"
-        >
-          <ChevronLeft size={14} aria-hidden />
-          {formatMessage({ id: "timelineView.back" })}
-        </button>
-      ) : (
-        <ListFilter size={14} aria-hidden className="shrink-0 text-foreground-hint" />
-      )}
-      <span className="min-w-0 truncate font-medium text-foreground" title={label}>{label}</span>
-      <span className="shrink-0 text-foreground-hint">·</span>
+        <Tooltip content={backLabel}>
+          <PanelAction aria-label={backLabel} onClick={back} data-testid="timeline-view-back"><ArrowLeft /></PanelAction>
+        </Tooltip>
+      ) : null}
+      <FilterChip className="min-w-0 max-w-[60%]" data-testid="timeline-view-chip">
+        <ListFilter aria-hidden />
+        <FilterChipLabel className="min-w-0 truncate" title={label}>{label}</FilterChipLabel>
+        <FilterChipRemove aria-label={closeLabel} onClick={close} data-testid="timeline-view-close" />
+      </FilterChip>
       <span className="shrink-0 text-foreground-muted" data-testid="timeline-view-count">
         {formatMessage({ id: "timelineView.count" }, { count: view.total })}
       </span>
       {spec.kind === "task" ? (
-        <>
-          <span className="shrink-0 text-foreground-hint">·</span>
-          <span className="min-w-0 truncate text-foreground-muted">{formatMessage({ id: "timelineView.taskSendHint" }, { number: spec.taskNumber })}</span>
-        </>
+        <span className="min-w-0 truncate text-foreground-hint">{formatMessage({ id: "timelineView.taskSendHint" }, { number: spec.taskNumber })}</span>
       ) : null}
       <span className="flex-1" />
       {view.hiddenUnread ? (
-        <button
-          type="button"
-          className="shrink-0 rounded-control px-1.5 text-foreground-link hover:overlay-subtle"
-          onClick={() => showAllAt(view.hiddenUnread?.firstId ?? null)}
-          data-testid="timeline-view-hidden-unread"
-        >
-          {formatMessage({ id: "timelineView.hiddenUnread" }, { count: view.hiddenUnread.count })}
-          {" · "}
-          {formatMessage({ id: "timelineView.showAll" })}
-        </button>
+        <TextLink render={<button type="button" />} className="shrink-0" onClick={showHiddenUnread} data-testid="timeline-view-hidden-unread">
+          {formatMessage({ id: "timelineView.hiddenUnreadShowAll" }, { count: view.hiddenUnread.count })}
+        </TextLink>
       ) : view.newOutside > 0 ? (
-        <button
-          type="button"
-          className="shrink-0 rounded-control px-1.5 text-foreground-link hover:overlay-subtle"
-          onClick={() => showAllAt(null)}
-          data-testid="timeline-view-new-outside"
-        >
-          {formatMessage({ id: "timelineView.newOutside" }, { count: view.newOutside })}
-          {" · "}
-          {formatMessage({ id: "timelineView.showAll" })}
-        </button>
+        <TextLink render={<button type="button" />} className="shrink-0" onClick={close} data-testid="timeline-view-new-outside">
+          {formatMessage({ id: "timelineView.newOutsideShowAll" }, { count: view.newOutside })}
+        </TextLink>
       ) : null}
-      <button
-        type="button"
-        className="inline-flex size-6 shrink-0 items-center justify-center rounded-control text-foreground-hint hover:overlay-subtle hover:text-foreground"
-        onClick={() => closeView(channelId)}
-        aria-label={formatMessage({ id: "timelineView.close" })}
-        title={formatMessage({ id: "timelineView.close" })}
-        data-testid="timeline-view-close"
-      >
-        <X size={14} aria-hidden />
-      </button>
     </div>
   );
 }
@@ -111,18 +96,13 @@ export function TimelineViewBar({ channelId, view }: { channelId: string; view: 
 export function TimelineViewHiddenRow({ channelId, viewMessageId, count }: { channelId: string; viewMessageId: string; count: number }) {
   const { formatMessage } = useIntl();
   const expandHidden = useTimelineViewStore((s) => s.expandHidden);
+  const expand = useCallback(() => { void expandHidden(channelId, viewMessageId); }, [channelId, expandHidden, viewMessageId]);
   return (
     <div className="flex items-center gap-2 px-4 py-1" data-testid={`timeline-view-hidden-${viewMessageId}`}>
       <span className="h-px flex-1 bg-line-hairline" />
-      <button
-        type="button"
-        className="shrink-0 rounded-control px-2 py-0.5 text-footnote text-foreground-hint hover:overlay-subtle hover:text-foreground-muted"
-        onClick={() => { void expandHidden(channelId, viewMessageId); }}
-      >
-        {formatMessage({ id: "timelineView.hidden" }, { count })}
-        {" · "}
-        {formatMessage({ id: "timelineView.expand" })}
-      </button>
+      <Button type="button" size="sm" variant="ghost" className="shrink-0 text-foreground-hint" onClick={expand}>
+        {formatMessage({ id: "timelineView.hiddenExpand" }, { count })}
+      </Button>
       <span className="h-px flex-1 bg-line-hairline" />
     </div>
   );

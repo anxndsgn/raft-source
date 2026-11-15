@@ -1,7 +1,9 @@
 import { findStoredChannel } from "../../store/storedChannel";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useIntl } from "react-intl";
 import { ListTodo } from "lucide-react";
+import { IconTile, InboxItem, InboxItemBody, InboxItemContent, InboxItemHeading, InboxItemSender, InboxItemLeading, InboxItemTitle, InboxItemTrigger } from "@botiverse/raft-ui";
+import { InboxItemLine, InboxItemListGroup } from "@botiverse/raft-ui/wip";
 
 import { useAuthStore } from "../../store/authStore";
 import { useTaskStore } from "../../store/taskStore";
@@ -20,7 +22,6 @@ const OPEN = new Set(["todo", "in_progress", "in_review"]);
  * opens the task's details in its channel's Tasks panel.
  */
 export function InboxAssignedTasks() {
-  const { formatMessage } = useIntl();
   const viewerId = useAuthStore((s) => s.user?.id ?? null);
   const serverTasks = useTaskStore((s) => s.serverTasks);
   const loaded = useTaskStore((s) => s.serverTasksLoaded);
@@ -36,28 +37,31 @@ export function InboxAssignedTasks() {
   );
   if (mine.length === 0) return null;
   return (
-    <div className="flex flex-col pb-1" data-testid="inbox-assigned-tasks">
-      {mine.map((task) => (
-        <button
-          key={task.id}
-          type="button"
-          className="mx-2 flex items-start gap-3 rounded-container px-3 py-2.5 text-left hover:overlay-subtle"
-          onClick={() => openAssignedTaskInInbox(task)}
-          data-testid={`inbox-assigned-task-${task.taskNumber}`}
-        >
-          <ListTodo size={16} aria-hidden className="mt-0.5 shrink-0 text-foreground-hint" />
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="truncate text-footnote text-foreground-hint">
-              {task.channelName
-                ? formatMessage({ id: "inbox.assignedTask.kindIn" }, { channel: task.channelName })
-                : formatMessage({ id: "inbox.assignedTask.kind" })}
-            </span>
-            <span className="truncate font-semibold text-foreground">{formatMessage({ id: "inbox.assignedTask.title" }, { number: task.taskNumber })}</span>
-            <span className="truncate text-callout text-foreground-muted">{task.title}</span>
-          </span>
-        </button>
-      ))}
-    </div>
+    <InboxItemListGroup className="pb-1" data-testid="inbox-assigned-tasks">
+      {mine.map((task) => <AssignedTaskRow key={task.id} task={task} />)}
+    </InboxItemListGroup>
+  );
+}
+
+/** raft-ui InboxItem, as the inbox's other rows: where it is, "Task #N assigned to you", its title. */
+function AssignedTaskRow({ task }: { task: AssignedTask }) {
+  const { formatMessage } = useIntl();
+  const open = useCallback(() => openAssignedTaskInInbox(task), [task]);
+  const title = formatMessage({ id: "inbox.assignedTask.title" }, { number: task.taskNumber });
+  return (
+    <InboxItem density="compact" data-layout="list" data-testid={`inbox-assigned-task-${task.taskNumber}`}>
+      <InboxItemTrigger aria-label={title} onClick={open} />
+      <InboxItemLeading><IconTile><ListTodo aria-hidden /></IconTile></InboxItemLeading>
+      <InboxItemContent>
+        <InboxItemHeading><InboxItemTitle>{title}</InboxItemTitle></InboxItemHeading>
+        <InboxItemLine>
+          <InboxItemBody>
+            {task.channelName ? <InboxItemSender>{formatMessage({ id: "inbox.assignedTask.where" }, { channel: task.channelName })}</InboxItemSender> : null}
+            {task.title}
+          </InboxItemBody>
+        </InboxItemLine>
+      </InboxItemContent>
+    </InboxItem>
   );
 }
 

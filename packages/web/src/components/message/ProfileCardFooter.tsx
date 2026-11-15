@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useIntl } from "react-intl";
-import { ChevronRight, CircleDot } from "lucide-react";
-import { Button } from "@botiverse/raft-ui";
+import { CircleDot } from "lucide-react";
+import { Button, ListRow, ListRowBody, ListRowChevron, ListRowIcon, ListRowTitle } from "@botiverse/raft-ui";
 
 import { useAppNavigate } from "../../hooks/useAppNavigate";
 import { useTaskStore } from "../../store/taskStore";
@@ -51,18 +51,14 @@ export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: s
   return (
     <div className="flex shrink-0 flex-col gap-2 border-b border-line-hairline px-4 py-3" data-testid="profile-card-footer">
       {current ? (
-        <button
-          type="button"
-          className="flex items-center gap-1.5 rounded-control bg-fill-muted px-2 py-1.5 text-left text-callout text-foreground hover:overlay-subtle"
-          onClick={openCurrent}
-          data-testid="profile-card-current-task"
-        >
-          <CircleDot size={14} aria-hidden className="shrink-0 text-success-strong" />
-          <span className="min-w-0 flex-1 truncate">
-            {formatMessage({ id: "profileCard.workingOn" }, { channel: current.channelName ? `#${current.channelName}` : "", number: current.taskNumber })}
-          </span>
-          <ChevronRight size={14} aria-hidden className="shrink-0 text-foreground-hint" />
-        </button>
+        // raft-ui ListRow: what it is doing now, a row that opens the task.
+        <ListRow variant="plain" onClick={openCurrent} data-testid="profile-card-current-task">
+          <ListRowIcon><CircleDot className="text-success-strong" aria-hidden /></ListRowIcon>
+          <ListRowBody>
+            <ListRowTitle>{formatMessage({ id: "profileCard.workingOn" }, { channel: current.channelName ? `#${current.channelName}` : "", number: current.taskNumber })}</ListRowTitle>
+          </ListRowBody>
+          <ListRowChevron />
+        </ListRow>
       ) : null}
       {canMessage ? (
         <Button type="button" size="md" variant="outline" className="self-start" onClick={message} data-testid="profile-card-message">

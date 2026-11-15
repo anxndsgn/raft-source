@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useIntl } from "react-intl";
 import { ListTodo } from "lucide-react";
-import { SearchResultsList, SearchResultsSection, SearchResultsSectionHeading } from "@botiverse/raft-ui";
+import { SearchEntityResult, SearchEntityResultContent, SearchEntityResultDescription, SearchEntityResultHeader, SearchEntityResultIcon, SearchEntityResultLeading, SearchEntityResultTitle, SearchResultsList, SearchResultsSection, SearchResultsSectionHeading } from "@botiverse/raft-ui";
 
 import { useAppNavigate } from "../../hooks/useAppNavigate";
 import { useTaskStore } from "../../store/taskStore";
@@ -47,18 +47,18 @@ function SearchTaskRow({ task }: { task: Task }) {
   const open = useCallback(() => {
     if (!openTaskInSidePanel(task, nav.toChannel)) nav.toChannel(task.channelId);
   }, [nav, task]);
+  // raft-ui SearchEntityResult, as ⌘K's other rows: the task's mark, its title, where it is.
   return (
-    <button
-      type="button"
-      className="mx-2 flex items-center gap-3 rounded-container px-3 py-2 text-left hover:overlay-subtle"
-      onClick={open}
-      data-testid={`search-task-${task.taskNumber}`}
-    >
-      <ListTodo size={16} aria-hidden className="shrink-0 text-foreground-hint" />
-      <span className="min-w-0 flex-1 truncate text-foreground">{task.title}</span>
-      <span className="shrink-0 font-mono text-mono-meta text-foreground-hint">
-        {formatMessage({ id: "search.taskWhere" }, { channel: task.channelName ?? "", number: task.taskNumber })}
-      </span>
-    </button>
+    <SearchEntityResult type="button" onClick={open} data-testid={`search-task-${task.taskNumber}`}>
+      <SearchEntityResultLeading>
+        <SearchEntityResultIcon><ListTodo size={14} aria-hidden="true" /></SearchEntityResultIcon>
+      </SearchEntityResultLeading>
+      <SearchEntityResultContent>
+        <SearchEntityResultHeader><SearchEntityResultTitle>{task.title}</SearchEntityResultTitle></SearchEntityResultHeader>
+        <SearchEntityResultDescription>
+          {formatMessage({ id: "search.taskWhere" }, { channel: task.channelName ?? "", number: task.taskNumber })}
+        </SearchEntityResultDescription>
+      </SearchEntityResultContent>
+    </SearchEntityResult>
   );
 }

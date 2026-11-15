@@ -136,7 +136,7 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
     <ChannelSideCard
       title={formatMessage({ id: "task.panel.heading" })}
       // Over a task's details its one title row is the crumb (4.5), without "+".
-      lead={detailTaskId ? <TaskDetailBack channelId={channelId} onBack={backToList} /> : undefined}
+      lead={detailTaskId ? <TaskDetailBack onBack={backToList} /> : undefined}
       titleSlot={detailTaskId ? <PanelTitle className="font-mono" render={<h2>{detailTask ? formatMessage({ id: "taskDetail.number" }, { number: detailTask.taskNumber }) : formatMessage({ id: "task.panel.heading" })}</h2>} /> : undefined}
       closeLabelId="task.sidePanel.close"
       onClose={onClose}
