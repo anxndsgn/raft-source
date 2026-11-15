@@ -1,10 +1,11 @@
 import { useContext } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft } from "lucide-react";
 import { isHostShell } from "../../embed";
 import type { HTMLAttributes, ReactNode, Ref } from "react";
 import type { PanelActionProps } from "@botiverse/raft-ui";
 import { PanelAction, PanelActions, PanelHeader, PanelHeaderContent, PanelHeaderIcon, PanelHeading, PanelMeta, PanelStatus, PanelTitle } from "@botiverse/raft-ui";
 import { PanelHeadChromeContext } from "../layout/panelHeadChrome";
+import { PanelBackCrumbContext } from "./panelBackCrumb";
 
 // React's `HTMLAttributes` doesn't expose `data-*` keys in TS, so widen
 // passthrough prop types with a string-key index signature so callsites
@@ -171,6 +172,7 @@ export default function AppPanelHeader({
   // it (rule 7), and where its column holds the columns the row couldn't give 160, their tabs in place of its icon and
   // title (rule 4). Every other head is as it is.
   const chrome = useContext(PanelHeadChromeContext);
+  const backCrumb = useContext(PanelBackCrumbContext);
   const drag = chrome;
   const rowTabs = chrome?.tabs ?? null;
   // HOST-SHELL EMBED: the native WebView already draws a title bar, so web must not
@@ -221,7 +223,13 @@ export default function AppPanelHeader({
       {/* Back first, at the top left (DS Navigation), before a leading control. The two never show together: the
           thread's fold chevron renders only where it is stacked in the row, which hides its Back (index.css); covering
           the conversation, or on a phone, it stands in no column and has no chevron. */}
-      {onMobileBack && (
+      {onMobileBack && backCrumb ? (<>
+        <button type="button" className="inline-flex shrink-0 items-center gap-0.5 rounded-control px-1 py-0.5 text-headline text-foreground-muted hover:overlay-subtle" onClick={onMobileBack} data-testid="panel-back-crumb">
+          <ChevronLeft size={16} aria-hidden />
+          {backCrumb}
+        </button>
+        <span className="text-headline text-foreground-hint">/</span>
+      </>) : onMobileBack && (
         <PanelAction
           {...mobileBackProps}
           onClick={onMobileBack}

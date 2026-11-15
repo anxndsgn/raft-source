@@ -2,6 +2,7 @@ import type { Channel } from "../../store/channelStore";
 import { useChannelSideCardStore } from "../../store/channelSideCardStore";
 import { releaseJoinDeferred } from "../../store/joinDeferred";
 import { useThreadStore } from "../../store/threadStore";
+import { setProfileOpenInterceptor } from "../../store/profileStore";
 import { isSidebarExternalSectionChannel } from "../layout/sidebarChannelVisibility";
 
 /** Tagged External in the details (a guest, a guest server or an open invite; or joint): the tag and who-sees line. */
@@ -34,4 +35,15 @@ useThreadStore.subscribe((s, prev) => {
   const cards = useChannelSideCardStore.getState();
   if (cards.open.tasks) cards.setCardOpen("tasks", false);
   if (cards.open.files) cards.setCardOpen("files", false);
+});
+
+/**
+ * Layout redesign 7.1: a person clicked in a conversation (avatar, name, @mention, a task's assignee) opens in the
+ * channel's side panel — its members page, on their details (‹ Members), replacing what was there; a desktop only.
+ */
+setProfileOpenInterceptor((type, id, channelId) => {
+  if (typeof window === "undefined" || window.innerWidth < 768) return false;
+  prepareChannelDetailsOpen(channelId);
+  useChannelSideCardStore.setState({ memberDetail: { channelId, type, id, at: Date.now() } });
+  return true;
 });

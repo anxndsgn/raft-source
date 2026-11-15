@@ -61,6 +61,14 @@ interface ProfileState {
   closeProfile: () => void;
 }
 
+type ProfileOpenInterceptor = (type: "agent" | "human", id: string, channelId: string) => boolean;
+let profileOpenInterceptor: ProfileOpenInterceptor | null = null;
+
+/** Layout redesign 7.1: who takes a person opened from a conversation (channelDetails: the members' detail). */
+export function setProfileOpenInterceptor(interceptor: ProfileOpenInterceptor | null): void {
+  profileOpenInterceptor = interceptor;
+}
+
 export const useProfileStore = create<ProfileState>((set) => ({
   profileType: null,
   profileId: null,
@@ -76,6 +84,8 @@ export const useProfileStore = create<ProfileState>((set) => ({
   // channel beside the profile (isThreadMaximized), and closing the profile
   // returns to the focused thread.
   openProfile: (type, id, options) => {
+    // Layout redesign 7.1: a person clicked in a conversation opens in the channel's side panel instead.
+    if (type !== "computer" && options?.openSource && options.channelId && profileOpenInterceptor?.(type, id, options.channelId)) return;
     set((state) => ({
       profileType: type,
       profileId: id,

@@ -121,7 +121,7 @@ export function useConversationHeaderPortal(ownsUrl: boolean) {
  * and Settings replace each other, the same one again closes it; a thread open in this channel holds the place too,
  * and none of the four shows pressed meanwhile (Tasks and Files step aside under it and come back when it closes).
  */
-export function useThreadAwareCardToggles(channelId: string | null, cards: { tasksCardOpen: boolean; filesCardOpen: boolean; toggleTasksCard: () => void; toggleFilesCard: () => void; detailsOpen: boolean; closeDetails: (open: false) => void }) {
+export function useThreadAwareCardToggles(channelId: string | null, cards: { tasksCardOpen: boolean; filesCardOpen: boolean; toggleTasksCard: () => void; toggleFilesCard: () => void; detailsOpen: boolean; closeDetails: (open: boolean) => void }) {
   const { tasksCardOpen, filesCardOpen, toggleTasksCard: toggleTasks, toggleFilesCard: toggleFiles, detailsOpen, closeDetails } = cards;
   const threadHere = useThreadStore((s) => !!s.openParentMessageId && s.openParentChannelId === channelId && !s.taskModal);
   // Pressing Tasks or Files: shown alone (it closes when it was what showed).
@@ -148,6 +148,13 @@ export function useThreadAwareCardToggles(channelId: string | null, cards: { tas
   if (was.threadHere !== threadHere || was.cardShownAt !== cardShownAt || was.channelId !== channelId) {
     setWas({ threadHere, cardShownAt, channelId });
     if (detailsOpen && ((threadHere && !was.threadHere) || cardShownAt !== was.cardShownAt || channelId !== was.channelId)) closeDetails(false);
+  }
+  // A person clicked in this conversation (7.1): the details open, on the members page (ChannelOverflowMenu).
+  const memberAt = useChannelSideCardStore((s) => (s.memberDetail?.channelId === channelId ? s.memberDetail.at : 0));
+  const [memberWas, setMemberWas] = useState(memberAt);
+  if (memberWas !== memberAt) {
+    setMemberWas(memberAt);
+    if (memberAt && !detailsOpen) closeDetails(true);
   }
   const panelChannelId = useChannelSideCardStore((s) => s.panelChannelId);
   const stray = !!channelId && !!panelChannelId && panelChannelId !== channelId && (tasksCardOpen || filesCardOpen);

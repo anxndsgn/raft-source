@@ -162,6 +162,15 @@ export default function ChannelOverflowMenu({
   const open = controlledOpen ?? internalOpen;
   // Closed from outside (another side panel took its place): it opens on its root again.
   const rootAt = useChannelSideCardStore((s) => s.detailsRootAt);
+  // Layout redesign 7.1: a person clicked in the conversation — the members page, on their details.
+  const memberDetail = useChannelSideCardStore((s) => (s.memberDetail?.channelId === channelId ? s.memberDetail : null));
+  const [person, setPerson] = useState<{ at: number; target: { type: "agent" | "human"; id: string }; profileOnly: boolean } | null>(null);
+  if (memberDetail && memberDetail.at !== person?.at && memberDetail.at > rootAt) {
+    const inChannel = memberDetail.type === "agent" ? members?.agents.some((a) => a.id === memberDetail.id) : members?.humans.some((h) => h.id === memberDetail.id);
+    setPerson({ at: memberDetail.at, target: { type: memberDetail.type, id: memberDetail.id }, profileOnly: inChannel === false });
+    setView("members");
+    setMembersFromInfo(false);
+  }
   const [was, setWas] = useState({ open, rootAt });
   if (was.open !== open || was.rootAt !== rootAt) {
     setWas({ open, rootAt });
@@ -273,6 +282,7 @@ export default function ChannelOverflowMenu({
   }, []);
 
   const handleOpenMembers = useCallback(() => {
+    setPerson(null);
     setMembersInitialView(undefined);
     setMembersFromInfo(true);
     setView("members");
@@ -391,7 +401,7 @@ export default function ChannelOverflowMenu({
            channel's name) its info (Figmama 11/15). */
         <>
         <PanelToggleAction
-          pressed={open && view === "members"}
+          pressed={open && view === "members" && !person?.profileOnly}
           onPressedChange={toggleMembers}
           aria-label={formatMessage({ id: "channelHead.members" })}
           data-testid="channel-members-toggle"
@@ -444,6 +454,8 @@ export default function ChannelOverflowMenu({
               initialView={membersInitialView}
               prefetchedMembers={prefetchedMembers}
               // Layout redesign 4.3: on a desktop its own one head — Back only when the info opened it (Members' switch: ×).
+              key={person?.at ?? "members"}
+              initialProfile={person ?? undefined}
               ownHead={!phone}
               onBack={phone || membersFromInfo ? handleBackToRoot : undefined}
               onClose={guardedClose}

@@ -22,6 +22,7 @@ import { useChannelMemberRemoval } from "../../components/channel/useChannelMemb
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Tooltip from "../../components/ui/Tooltip";
 import { MembersPageHeader } from "./MembersPageHeader";
+import { PanelBackCrumbContext } from "../../components/ui/panelBackCrumb";
 import type { ProfilePanelProps, ProfilePanelTarget } from "../../components/profile/ProfilePanel";
 import { primeHumanProfileFromChannelMember, setCachedAgentProfile } from "../../components/profile/profileFallbackCache";
 import { isLocalProjectionMember, memberServerBadgeLabels } from "../../utils/channelLocalMembership";
@@ -61,6 +62,8 @@ type ChannelMembersProps = {
    *  only where it was opened from the channel's info (`onBack`), as a crumb, ‹ Channel info /. */
   ownHead?: boolean;
   initialView?: "add";
+  /** Layout redesign 7.1: open on this person's details; `profileOnly`: not a member, no list to go back to. */
+  initialProfile?: { target: ProfilePanelTarget; profileOnly: boolean };
   prefetchedMembers?: {
     channelAgents: ChannelAgent[];
     channelHumans: ChannelHuman[];
@@ -84,6 +87,7 @@ export function ChannelMembers({
   onClose,
   ownHead = false,
   initialView,
+  initialProfile,
   prefetchedMembers,
 }: ChannelMembersProps) {
   const { formatMessage } = useIntl();
@@ -141,7 +145,7 @@ export function ChannelMembers({
   // Members page (page mode) live roster filter — separate from the add
   // flow's candidate search (`memberSearch`).
   const [rosterQuery, setRosterQuery] = useState("");
-  const [profileStack, setProfileStack] = useState<ProfilePanelTarget[]>([]);
+  const [profileStack, setProfileStack] = useState<ProfilePanelTarget[]>(initialProfile ? [initialProfile.target] : []);
   const selectedProfile = profileStack.at(-1) ?? null;
   const backProfile = useCallback(() => {
     setProfileStack((stack) => stack.slice(0, -1));
@@ -1227,15 +1231,17 @@ export function ChannelMembers({
                 </div>
               )}
             >
+              <PanelBackCrumbContext.Provider value={ownHead && profileStack.length === 1 ? formatMessage({ id: "message.chatPanel.overflow.members" }) : null}>
               <ProfilePanel
                 key={`${selectedProfile.type}:${selectedProfile.id}`}
                 target={selectedProfile}
                 channelId={currentChannel?.id ?? null}
                 presentation="embedded"
-                onBack={backProfile}
+                onBack={initialProfile?.profileOnly ? undefined : backProfile}
                 onClose={closeProfilePage}
                 onOpenProfile={openNestedProfile}
               />
+              </PanelBackCrumbContext.Provider>
             </Suspense>
           )}
         </>

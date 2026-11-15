@@ -53,6 +53,8 @@ interface ChannelSideCardState {
   taskDetailFromList: Record<string, boolean>;
   /** Layout redesign 4.5: the channel the open Tasks / Files belong to; switching to another channel closes them. */
   panelChannelId: string | null;
+  /** Layout redesign 7.1: a person to show in the channel's members page (a click on them in the conversation). */
+  memberDetail: { channelId: string; type: "agent" | "human"; id: string; at: number } | null;
   /** Bumped to show the channel details' root page (the channel's name pressed over its member list). */
   detailsRootAt: number;
   showDetailsRoot: () => void;
@@ -76,6 +78,7 @@ export const useChannelSideCardStore = create<ChannelSideCardState>((set, get) =
   taskDetailFromList: {},
   panelChannelId: null,
   detailsRootAt: 0,
+  memberDetail: null,
   showDetailsRoot: () => set({ detailsRootAt: Date.now() }),
   claimPanel: (panelChannelId) => set({ panelChannelId }),
   openTaskDetail: (channelId, taskId, fromList = false) => {
