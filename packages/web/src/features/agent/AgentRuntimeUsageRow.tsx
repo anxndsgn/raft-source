@@ -1,4 +1,5 @@
 import { useIntl } from "react-intl";
+import { getRuntimeDisplayName } from "@botiverse/raft-shared";
 import { RuntimeUsageWindowList } from "../../components/machine/RuntimeUsageWindowList";
 import { agentUsageWindows, useRuntimeUsageWindows } from "../../hooks/useRuntimeUsageWindows";
 import { InfoRow } from "./InfoRow";
@@ -15,7 +16,7 @@ export function AgentRuntimeUsageRow({ model, ...props }: { enabled: boolean; se
   if (windows.length === 0) return null;
   return (
     <InfoRow label={formatMessage({ id: "agent.runtimeConfig.usage" })} testId="agent-runtime-usage">
-      <RuntimeUsageWindowList windows={windows} />
+      <RuntimeUsageWindowList windows={windows} runtimeName={getRuntimeDisplayName(props.runtimeId)} />
     </InfoRow>
   );
 }

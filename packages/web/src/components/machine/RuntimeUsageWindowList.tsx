@@ -1,7 +1,7 @@
-import { Meter, MeterIndicator, MeterTrack } from "@botiverse/raft-ui/wip";
+import { ComputerCardMeter } from "@botiverse/raft-ui-ext";
 import type { RuntimeAccountUsageWindow } from "@botiverse/raft-shared";
 import { useIntl } from "react-intl";
-import { formatRelativeTime } from "../../utils/relativeTime";
+import { useResumeMoment } from "../task/agentTimeText";
 import { runtimeUsagePercentUsed } from "./bulkChangeModelPlan";
 
 /** Used up by the provider's word or the ratio itself (as the usage card). */
@@ -9,9 +9,10 @@ function windowUsedUp(window: RuntimeAccountUsageWindow): boolean {
   return window.status === "limit_reached" || (window.usedRatio ?? 0) >= 1;
 }
 
-/** One window: its name on a line, then a thin bar and the share used ("40%"). */
-function UsageWindowLine({ window }: { window: RuntimeAccountUsageWindow }) {
-  const { formatMessage, locale } = useIntl();
+/** One window: the runtime (and the window's name) and its value on a line, then the bar. */
+function UsageWindowLine({ window, label }: { window: RuntimeAccountUsageWindow; label: string }) {
+  const { formatMessage } = useIntl();
+  const resumeMoment = useResumeMoment();
   if (window.status === "parse_unavailable") {
     return (
       <div className="flex flex-col gap-1" data-testid="runtime-usage-window">
@@ -22,37 +23,25 @@ function UsageWindowLine({ window }: { window: RuntimeAccountUsageWindow }) {
   }
   const usedUp = windowUsedUp(window);
   const percent = usedUp ? 100 : runtimeUsagePercentUsed(window.usedRatio ?? 0);
-  const reset = window.resetsAt
-    ? formatRelativeTime(window.resetsAt, locale) ?? formatMessage({ id: "machine.runtimeUsage.later" })
-    : null;
-  // The words a screen reader hears, as the usage card says them.
+  // The Team page's computer card's writing (computers.md › A runtime's usage cell; Figmama 11/16): the runtime
+  // (and the window, where it has several), then "60% used", or once used up when it is back ("23:00 恢复").
+  const moment = usedUp ? resumeMoment(window.resetsAt) : null;
   const valueText = usedUp
-    ? reset === null
-      ? formatMessage({ id: "machine.runtimeUsage.windowUsedUpResetUnavailable" })
-      : formatMessage({ id: "machine.runtimeUsage.windowUsedUp" }, { reset })
-    : reset === null
-      ? formatMessage({ id: "machine.runtimeUsage.windowUsedResetUnavailable" }, { percent })
-      : formatMessage({ id: "machine.runtimeUsage.windowUsed" }, { percent, reset });
+    ? moment ? formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when }) : formatMessage({ id: "machine.runtimeUsage.windowUsedUpResetUnavailable" })
+    : formatMessage({ id: "machine.rack.percentUsed" }, { percent });
   return (
-    <div className="flex flex-col gap-1" data-testid="runtime-usage-window" data-usage-full={usedUp ? "true" : undefined}>
-      <span className="truncate text-footnote text-foreground">{window.label}</span>
-      {/* raft-ui Meter: cyan, orange from 80% used, a full orange bar when used up. */}
-      <Meter used={usedUp ? 100 : (window.usedRatio ?? 0) * 100} valueText={valueText} size="sm" className="flex-row items-center gap-2">
-        <MeterTrack className="min-w-0 flex-1">
-          <MeterIndicator />
-        </MeterTrack>
-        <span className="shrink-0 font-mono text-mono-meta text-(--meter-value)" aria-hidden="true">
-          {formatMessage({ id: "machine.rack.modelPercent" }, { percent })}
-        </span>
-      </Meter>
+    <div data-testid="runtime-usage-window" data-usage-full={usedUp ? "true" : undefined}>
+      <ComputerCardMeter label={label} used={usedUp ? 100 : (window.usedRatio ?? 0) * 100} valueText={valueText} />
     </div>
   );
 }
 
-export function RuntimeUsageWindowList({ windows }: { windows: readonly RuntimeAccountUsageWindow[] }) {
+export function RuntimeUsageWindowList({ windows, runtimeName }: { windows: readonly RuntimeAccountUsageWindow[]; runtimeName: string }) {
   return (
-    <div className="flex min-w-0 flex-col gap-2" data-testid="runtime-usage-windows">
-      {windows.map((window, index) => <UsageWindowLine key={`${window.id}-${index}`} window={window} />)}
+    <div className="flex min-w-0 flex-col gap-3" data-testid="runtime-usage-windows">
+      {windows.map((window, index) => (
+        <UsageWindowLine key={`${window.id}-${index}`} window={window} label={windows.length > 1 ? `${runtimeName} · ${window.label}` : runtimeName} />
+      ))}
     </div>
   );
 }

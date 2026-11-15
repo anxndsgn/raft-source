@@ -12,3 +12,9 @@ export const PanelHeadBelowContext = createContext<ReactNode>(null);
 
 /** Layout redesign 7.1: a member's details opened from a channel they are not in (ChannelMembers' `profileOnly`). */
 export const MemberOutsideChannelContext = createContext(false);
+
+/**
+ * Team page PRD §5.4 (Figmama 11/16): a member's details in a workspace tab have no head row of their own — the
+ * tab names them, its × closes and the strip's ⤢ expands — only what stands under it (their "now" and Message).
+ */
+export const PanelHeadHiddenContext = createContext(false);
