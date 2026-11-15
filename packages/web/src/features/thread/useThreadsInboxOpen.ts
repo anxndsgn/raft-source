@@ -195,6 +195,17 @@ export function useThreadsInboxOpen({
       openTaskConversationRow(item);
       return;
     }
+    // A phone goes to the conversation itself, the message located (task #10 item 3): no page with "Go to channel"
+    // between. A reply-mode channel's row lands in the view its notification belongs to (replyModeEntry).
+    if (!masterDetail && !automatic) {
+      if (item.kind === "channel" || item.kind === "dm") {
+        const unread = item.unreadCount > 0 ? item.firstUnreadMessageId ?? item.lastMessageId : item.lastMessageId;
+        const target = replyModeEntry ?? item.firstMentionMessageId ?? unread;
+        if (item.kind === "dm") nav.toDmMessage(item.channelId, target);
+        else nav.toMessage(item.channelId, target);
+      } else navigateToChat(item);
+      return;
+    }
     if (item.kind === "thread") {
       const targetMessageId = item.unreadCount > 0
         ? item.firstUnreadMessageId ?? item.latestActivityMessageId
@@ -233,7 +244,7 @@ export function useThreadsInboxOpen({
       id: item.channelId,
       messageId: targetMessageId,
     });
-  }, [markRead, openContentSlot, openObjectRow, openTaskConversationRow, openThread]);
+  }, [markRead, nav, navigateToChat, openContentSlot, openObjectRow, openTaskConversationRow, openThread]);
 
   // Reopens `item` without reading it: auto-read is held for it until the
   // person acts in it. The hold ends, unread, as soon as the detail pane shows

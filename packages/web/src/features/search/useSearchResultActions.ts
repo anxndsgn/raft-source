@@ -5,6 +5,7 @@ import type { Dispatch, RefObject, MouseEvent as ReactMouseEvent, SetStateAction
 import type { Location, NavigateFunction } from "react-router-dom";
 import { placeContextMenu } from "../../components/ui/contextMenuPosition";
 import { useMobileBack } from "../../hooks/useAppNavigate";
+import { useIsDesktopShell } from "../../components/layout/ShellFrame";
 import { ARTIFACT_OPEN_PARAM } from "../../apps/artifacts";
 import type { useAppNavigate } from "../../hooks/useAppNavigate";
 import { useChannelStore } from "../../store/channelStore";
@@ -416,7 +417,9 @@ export function useSearchResultActions({
 
   // The ⌘K overlay and a conversation's own search have no col-3 preview: a
   // hit opens in the conversation.
-  const resultsOpenInChat = activateResultsInChat || !!scope;
+  // A phone opens a result in its channel at once, the message located (task #10 item 3): no page between.
+  const phone = !useIsDesktopShell();
+  const resultsOpenInChat = activateResultsInChat || !!scope || phone;
 
   // An app's hit opens in Search's detail area, beside the results, as any
   // result does (#proj-workspace:#104: an Artifact clicked in Raft opens in the
