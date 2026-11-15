@@ -3879,7 +3879,7 @@ export const en = {
   "message.composer.archivedBadge": "archived",
   "message.composer.dropToAttach": "Drop files to attach",
   "message.composer.messagePlaceholder": "Message {channel}",
-  "message.composer.messagePlaceholderAsTask": "Message {channel} as a task",
+  "message.composer.messagePlaceholderAsTask": "Write what needs doing; sending it makes a task",
   "message.composer.attachImage": "Attach media",
   "message.composer.attachFile": "Attach file",
   "message.composer.sendAsTaskTooltip": "Send as task",
@@ -10001,6 +10001,8 @@ export const en = {
   "layout.systemNotifications.machineOfflineMany": "{name} is offline · {count, plural, one {# agent} other {# agents}} stopped",
   "team.computer.runtimeWindow": "{runtime} · {window}",
   "team.preview.titleIdle": "No agent working{held, plural, =0 {} other { · # held up}}",
+  "message.composer.newTaskChip": "New task (sending makes it)",
+  "message.composer.newTaskCancel": "Cancel new task",
 } as const;
 
 export type MessageId = keyof typeof en;

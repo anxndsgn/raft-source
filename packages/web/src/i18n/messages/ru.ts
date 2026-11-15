@@ -3672,7 +3672,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "message.composer.archivedBadge": "в архиве",
   "message.composer.dropToAttach": "Отпустите файлы, чтобы прикрепить их",
   "message.composer.messagePlaceholder": "Отправить сообщение: {channel}",
-  "message.composer.messagePlaceholderAsTask": "Отправить как задачу: {channel}",
+  "message.composer.messagePlaceholderAsTask": "Напишите, что нужно сделать; отправленное станет задачей",
   "message.composer.attachImage": "Прикрепить медиафайл",
   "message.composer.attachFile": "Прикрепить файл",
   "message.composer.sendAsTaskTooltip": "Отправить как задачу",
@@ -9783,4 +9783,6 @@ export const ru: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineMany": "{name} не в сети · {count, plural, one {# агент остановлен} few {# агента остановлены} many {# агентов остановлены} other {# агента остановлены}}",
   "team.computer.runtimeWindow": "{runtime} · {window}",
   "team.preview.titleIdle": "Никто из агентов не работает{held, plural, =0 {} one { · остановлен #} few { · остановлено #} many { · остановлено #} other { · остановлено #}}",
+  "message.composer.newTaskChip": "Новая задача",
+  "message.composer.newTaskCancel": "Отменить новую задачу",
 };

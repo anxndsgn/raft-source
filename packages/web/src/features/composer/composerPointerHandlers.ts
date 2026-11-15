@@ -15,8 +15,3 @@ export const preventToolbarButtonPointerDownBlur = (e: React.PointerEvent<HTMLBu
   // button click opens the picker or toggles composer state.
   e.preventDefault();
 };
-export const preventTaskTogglePointerDownBlur = (e: React.PointerEvent<HTMLElement>) => {
-  // Keep the composer focused while toggling task mode; the following click
-  // still toggles the checkbox without sending.
-  e.preventDefault();
-};

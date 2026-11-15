@@ -3670,7 +3670,7 @@ export const ko: Partial<Record<MessageId, string>> = {
   "message.composer.archivedBadge": "보관됨",
   "message.composer.dropToAttach": "파일을 놓아 첨부하세요",
   "message.composer.messagePlaceholder": "{channel}에 메시지 보내기",
-  "message.composer.messagePlaceholderAsTask": "{channel}에 작업으로 보내기",
+  "message.composer.messagePlaceholderAsTask": "할 일을 적으세요. 보내면 작업이 됩니다",
   "message.composer.attachImage": "미디어 첨부",
   "message.composer.attachFile": "파일 첨부",
   "message.composer.sendAsTaskTooltip": "작업으로 보내기",
@@ -9781,4 +9781,6 @@ export const ko: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineMany": "{name} 오프라인 · Agent {count}개 멈춤",
   "team.computer.runtimeWindow": "{runtime} · {window}",
   "team.preview.titleIdle": "작업 중인 Agent 없음{held, plural, =0 {} other { · #개 멈춤}}",
+  "message.composer.newTaskChip": "새 작업",
+  "message.composer.newTaskCancel": "새 작업 취소",
 };

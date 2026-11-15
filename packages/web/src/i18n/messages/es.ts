@@ -3670,7 +3670,7 @@ export const es: Partial<Record<MessageId, string>> = {
   "message.composer.archivedBadge": "archivado",
   "message.composer.dropToAttach": "Suelta los archivos para adjuntarlos",
   "message.composer.messagePlaceholder": "Enviar mensaje a {channel}",
-  "message.composer.messagePlaceholderAsTask": "Enviar a {channel} como tarea",
+  "message.composer.messagePlaceholderAsTask": "Escribe lo que hay que hacer; al enviarlo se crea una tarea",
   "message.composer.attachImage": "Adjuntar multimedia",
   "message.composer.attachFile": "Adjuntar archivo",
   "message.composer.sendAsTaskTooltip": "Enviar como tarea",
@@ -9781,4 +9781,6 @@ export const es: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineMany": "{name} sin conexión · {count, plural, one {# agente detenido} many {# agentes detenidos} other {# agentes detenidos}}",
   "team.computer.runtimeWindow": "{runtime} · {window}",
   "team.preview.titleIdle": "Ningún agente trabajando{held, plural, =0 {} one { · # detenido} many { · # detenidos} other { · # detenidos}}",
+  "message.composer.newTaskChip": "Tarea nueva",
+  "message.composer.newTaskCancel": "Cancelar la tarea nueva",
 };

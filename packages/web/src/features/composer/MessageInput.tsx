@@ -4,7 +4,8 @@ import type { ChangeEvent } from "react";
 import { useIntl } from "react-intl";
 import { Send, Paperclip, ImagePlus, CornerUpLeft, X } from "lucide-react";
 import { ChannelIcon } from "../../components/channel/channelKindIcon";
-import { Badge, CheckboxIndicator, Composer, ComposerActions, ComposerAttachments, ComposerDropOverlay, ComposerDropOverlayLabel, ComposerIconButton, ComposerInput, ComposerRoot, ComposerSubmit, ComposerSuggestionAside, ComposerSuggestionContent, ComposerSuggestionGroup, ComposerSuggestionIcon, ComposerSuggestionList, ComposerSuggestionMeta, ComposerSuggestionTitle, ComposerToolbar, ComposerToolbarLabel, Separator, Spinner } from "@botiverse/raft-ui";
+import { FilterChip, FilterChipLabel, FilterChipRemove } from "@botiverse/raft-ui/wip";
+import { Badge, Composer, ComposerActions, ComposerAttachments, ComposerDropOverlay, ComposerDropOverlayLabel, ComposerIconButton, ComposerInput, ComposerRoot, ComposerSubmit, ComposerSuggestionAside, ComposerSuggestionContent, ComposerSuggestionGroup, ComposerSuggestionIcon, ComposerSuggestionList, ComposerSuggestionMeta, ComposerSuggestionTitle, ComposerToolbar, Separator, Spinner } from "@botiverse/raft-ui";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, horizontalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
@@ -39,7 +40,6 @@ import Tooltip from "../../components/ui/Tooltip";
 import { labelWithShortcut } from "../../components/ui/LabelWithShortcut";
 import { matchesShortcut } from "../shortcuts/dispatcher";
 import { isShortcutOverridden } from "../shortcuts/overrides";
-import { useShortcutBinding } from "../shortcuts/useShortcutBinding";
 import { MOD_ENTER_SEND_SHORTCUT, composerEnterAction, isImeComposing, useComposerSendKey } from "./composerSendKey";
 import { ComposerSendKeyHint } from "./ComposerSendKeyHint";
 import api from "../../api/client";
@@ -84,7 +84,7 @@ import { ComposerFilePickers } from "./ComposerFilePickers";
 import { RecoverableUploadCancelButton } from "./RecoverableUploadCancelButton";
 import { SortableAttachment } from "./SortableAttachment";
 import { UploadFailureBanner } from "./UploadFailureBanner";
-import { preventSendButtonPointerDownBlur, preventTaskTogglePointerDownBlur, preventToolbarButtonPointerDownBlur } from "./composerPointerHandlers";
+import { preventSendButtonPointerDownBlur, preventToolbarButtonPointerDownBlur } from "./composerPointerHandlers";
 import { mayTakeFocus } from "../../utils/focusGuard";
 import { useComposerTaskModeTarget } from "./composerTaskMode";
 
@@ -234,7 +234,6 @@ export function MessageInput({
   // to the whole store). See frontend render-cost contract.
   const currentUser = useAuthStore((s) => s.user);
   const sendKey = useComposerSendKey();
-  const sendAsTaskShortcut = useShortcutBinding("send-as-task");
   const messageBodyFontSize = useAppearanceStore((s) => s.messageBodyFontSize);
   const composerFontStyle = useMemo(() => getComposerFontStyle(messageBodyFontSize), [messageBodyFontSize]);
   // Uploads the monthly quota refused, so a send they were part of doesn't also say "retry or remove".
@@ -256,7 +255,10 @@ export function MessageInput({
   // Stryker disable next-line all: optimistic rollback is covered by send-failure tests outside this attachment-draft mutation slice.
   const removeOptimisticMessage = useMessageStore((s) => s.removeOptimisticMessage);
   // Stryker disable next-line all: task-toggle default state is covered by MessageInput submit-contract tests outside this attachment-draft mutation slice.
-  const [alsoCreateTask, setAlsoCreateTask] = useState(false);
+  // A new task (the Tasks "+") belongs to the channel it was asked in: another channel shows none (task #10 item 2).
+  const [taskModeFor, setTaskModeFor] = useState<string | null>(null);
+  const alsoCreateTask = taskModeFor === channelId;
+  const setAlsoCreateTask = useCallback((on: boolean) => setTaskModeFor(on ? channelId : null), [channelId]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const composerFrameRef = useRef<HTMLDivElement>(null);
   /** The value the composer box last held as far as this code knows (see the
@@ -2109,6 +2111,7 @@ export function MessageInput({
     }
 
     if (handleMentionKeyDown(e, doInsertMention)) return;
+    if (e.key === "Escape" && alsoCreateTask) { e.preventDefault(); setAlsoCreateTask(false); return; }
 
     if (handleChannelKeyDown(e, filteredChannels.length, () => {
       const item = filteredChannels[channel.index];
@@ -2133,20 +2136,18 @@ export function MessageInput({
       e.preventDefault();
       handleSubmit(e, action === "sendAsTask" ? { forceAsTask: true } : undefined);
     }
-  }, [handleMentionKeyDown, handleChannelKeyDown, filteredChannels, channel.index, doInsertMention, doInsertChannel, handleSubmit, asTaskShortcutDisabled, sendKey]);
+  }, [handleMentionKeyDown, handleChannelKeyDown, filteredChannels, channel.index, doInsertMention, doInsertChannel, handleSubmit, asTaskShortcutDisabled, sendKey, alsoCreateTask, setAlsoCreateTask]);
 
 
-  const toggleTaskModeWithoutBlur = useCallback((e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
-    setAlsoCreateTask((prev) => !prev);
-  }, []);
-  // A channel Tasks card's "+" (task v2): As task on, the cursor at the end of the input.
+  const cancelTaskMode = useCallback(() => { setAlsoCreateTask(false); textareaRef.current?.focus(); }, [setAlsoCreateTask]);
+  // A channel Tasks card's "+" (task v2): a new task — a new topic, so no reply — the cursor at the end of the input.
   const turnOnTaskMode = useCallback(() => {
+    clearReplyTarget(channelId);
     setAlsoCreateTask(true);
     const textarea = textareaRef.current;
     textarea?.focus();
     textarea?.setSelectionRange(textarea.value.length, textarea.value.length);
-  }, []);
+  }, [channelId, clearReplyTarget, setAlsoCreateTask]);
   useComposerTaskModeTarget(showTaskButton ? channelId : null, turnOnTaskMode);
 
   const hasValidatingAttachments = pendingFiles.some((pf) => pf.uploadStatus === "validating");
@@ -2414,6 +2415,10 @@ export function MessageInput({
             </button>
           </div>
         ) : null}
+        {/* Task v2 without the As task box (task #10 item 2): the Tasks "+" puts "New task ×" here; × or Esc cancels. */}
+        {alsoCreateTask ? (
+          <FilterChip className="self-start" data-testid="composer-new-task-chip"><FilterChipLabel>{formatMessage({ id: "message.composer.newTaskChip" })}</FilterChipLabel><FilterChipRemove aria-label={formatMessage({ id: "message.composer.newTaskCancel" })} onClick={cancelTaskMode} data-testid="composer-new-task-cancel" /></FilterChip>
+        ) : null}
 
         {/* @mention dropdown — placed before <Composer> (outside the card) per
             the RUI spec, so the card never clips it. */}
@@ -2525,27 +2530,6 @@ export function MessageInput({
             )}
             <div className="flex items-center gap-2">
               {sendKey === "mod_enter" && composing ? <ComposerSendKeyHint /> : null}
-              {showTaskButton && (
-                <Tooltip content={sendAsTaskShortcut.combos[0] ? labelWithShortcut(formatMessage({ id: "message.composer.sendAsTaskTooltip" }), sendAsTaskShortcut.combos[0], formatMessage) : formatMessage({ id: "message.composer.sendAsTaskTooltip" })}>
-                {/* raft-ui's composer toolbar label (DS `rf-check` in the
-                    composer bar), drawn as a button so a tap toggles without
-                    taking focus from the input. */}
-                <ComposerToolbarLabel
-                  render={<button type="button" />}
-                  role="checkbox"
-                  data-testid="composer-as-task-toggle"
-                  aria-checked={alsoCreateTask}
-                  className="rounded-control outline-none focus-visible:shadow-focus"
-                  onPointerDown={preventTaskTogglePointerDownBlur}
-                  onClick={toggleTaskModeWithoutBlur}
-                >
-                  <CheckboxIndicator
-                    checked={alsoCreateTask}
-                  />
-                  {formatMessage({ id: "message.composer.asTask" })}
-                </ComposerToolbarLabel>
-                </Tooltip>
-              )}
               <Tooltip content={submitTitle}>
               <ComposerSubmit
                 size="icon-md"

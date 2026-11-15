@@ -3787,7 +3787,7 @@ export const zhCn: Record<MessageId, string> = {
   "message.composer.archivedBadge": "已归档",
   "message.composer.dropToAttach": "拖放文件以添加附件",
   "message.composer.messagePlaceholder": "发送消息至 {channel}",
-  "message.composer.messagePlaceholderAsTask": "作为任务发送至 {channel}",
+  "message.composer.messagePlaceholderAsTask": "写下要做的事，发出去就是一个任务",
   "message.composer.attachImage": "添加媒体",
   "message.composer.attachFile": "添加文件",
   "message.composer.sendAsTaskTooltip": "作为任务发送",
@@ -9892,4 +9892,6 @@ export const zhCn: Record<MessageId, string> = {
   "layout.systemNotifications.machineOfflineMany": "{name} 离线 · {count} 个 agent 已停工",
   "team.computer.runtimeWindow": "{runtime} · {window}",
   "team.preview.titleIdle": "没有 agent 在工作{held, plural, =0 {} other { · # 个被卡住}}",
+  "message.composer.newTaskChip": "新任务",
+  "message.composer.newTaskCancel": "取消新任务",
 };

@@ -3670,7 +3670,7 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "message.composer.archivedBadge": "已封存",
   "message.composer.dropToAttach": "拖放檔案以附加",
   "message.composer.messagePlaceholder": "傳送訊息至 {channel}",
-  "message.composer.messagePlaceholderAsTask": "以任務形式傳送至 {channel}",
+  "message.composer.messagePlaceholderAsTask": "寫下要做的事，發出去就是一個任務",
   "message.composer.attachImage": "附加媒體",
   "message.composer.attachFile": "附加檔案",
   "message.composer.sendAsTaskTooltip": "以任務形式傳送",
@@ -9781,4 +9781,6 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineMany": "{name} 離線 · {count} 個 Agent 已停工",
   "team.computer.runtimeWindow": "{runtime} · {window}",
   "team.preview.titleIdle": "沒有 Agent 在工作{held, plural, =0 {} other { · # 個被卡住}}",
+  "message.composer.newTaskChip": "新任務",
+  "message.composer.newTaskCancel": "取消新任務",
 };

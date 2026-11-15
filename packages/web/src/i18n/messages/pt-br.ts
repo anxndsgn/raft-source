@@ -3670,7 +3670,7 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "message.composer.archivedBadge": "arquivado",
   "message.composer.dropToAttach": "Solte os arquivos para anexar",
   "message.composer.messagePlaceholder": "Mensagem para {channel}",
-  "message.composer.messagePlaceholderAsTask": "Mensagem para {channel} como tarefa",
+  "message.composer.messagePlaceholderAsTask": "Escreva o que precisa ser feito; ao enviar, vira uma tarefa",
   "message.composer.attachImage": "Anexar mídia",
   "message.composer.attachFile": "Anexar arquivo",
   "message.composer.sendAsTaskTooltip": "Enviar como tarefa",
@@ -9781,4 +9781,6 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineMany": "{name} offline · {count, plural, one {# agente parado} many {# agentes parados} other {# agentes parados}}",
   "team.computer.runtimeWindow": "{runtime} · {window}",
   "team.preview.titleIdle": "Nenhum agente trabalhando{held, plural, =0 {} one { · # parado} many { · # parados} other { · # parados}}",
+  "message.composer.newTaskChip": "Nova tarefa",
+  "message.composer.newTaskCancel": "Cancelar a nova tarefa",
 };

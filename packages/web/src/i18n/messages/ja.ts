@@ -3671,7 +3671,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "message.composer.archivedBadge": "アーカイブ済み",
   "message.composer.dropToAttach": "ファイルをドロップして添付",
   "message.composer.messagePlaceholder": "{channel} へのメッセージ",
-  "message.composer.messagePlaceholderAsTask": "{channel} にタスクとして送信",
+  "message.composer.messagePlaceholderAsTask": "やることを書いてください。送信するとタスクになります",
   "message.composer.attachImage": "メディアを添付",
   "message.composer.attachFile": "ファイルを添付",
   "message.composer.sendAsTaskTooltip": "タスクとして送信",
@@ -9782,4 +9782,6 @@ export const ja: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineMany": "{name} がオフライン · Agent {count} 件が停止",
   "team.computer.runtimeWindow": "{runtime} · {window}",
   "team.preview.titleIdle": "作業中の Agent はいません{held, plural, =0 {} other { · # 件停止中}}",
+  "message.composer.newTaskChip": "新しいタスク",
+  "message.composer.newTaskCancel": "新しいタスクをやめる",
 };

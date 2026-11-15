@@ -75,9 +75,14 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   const taskV2 = useServerFeatureFlag(TASK_V2_CONVERSATIONS_FLAG_KEY).enabled;
   const covering = useContext(SideCardContext)?.mode === "overlay";
   const openCreate = useCallback(() => {
-    if (taskV2 && !covering && requestComposerTaskMode(channelId)) return;
+    // Covering the conversation (a phone): the panel steps aside first, so the composer under it takes the task
+    // (task #10 item 2: "+" works the same on a phone).
+    if (taskV2 && requestComposerTaskMode(channelId)) {
+      if (covering) onClose();
+      return;
+    }
     setCreating(true);
-  }, [channelId, covering, taskV2]);
+  }, [channelId, covering, onClose, taskV2]);
   const closeCreate = useCallback(() => setCreating(false), []);
 
   const newTaskLabel = formatMessage({ id: "task.board.newTask" });
