@@ -1,5 +1,8 @@
 import { useContext, useMemo } from "react";
 import { WorkspaceSlotContext } from "../layout/rowColumnSlot";
+import { commitColumnWidth, getColumnWidth, previewColumnWidth, resetColumnWidth, useColumnWidth } from "../../store/columnWidthStore";
+import { COLUMN_BOUNDS } from "../../lib/panelBounds";
+import type { ColumnWidthSource } from "../ui/ColumnResizeHandle";
 import { useArtifactViewerStore } from "../../apps/artifacts/artifactViewerStore";
 import { visibleChannelSideColumns } from "@botiverse/raft-shared";
 import type { ChannelSideLayout, ChannelSideSection } from "@botiverse/raft-shared";
@@ -32,13 +35,13 @@ export function detailsTakeSidePanel(open: Set<string>): void {
 const SIDE_PANEL_SECTIONS = ["tasks", "files", "details", "profile", "context"];
 
 /**
- * Layout redesign (Figmama 11/15): where the timeline would go under 480 beside the side panel (320, a thread 400) and
+ * Layout redesign (Figmama 11/15): where the timeline would go under 480 beside the side panel (its width, a thread its own) and
  * the workspace at its 420, the workspace leaves the row and slides over the timeline from the right instead.
  * `rowWidth`: the main area's (the sidebar folded first, ConversationFrame).
  */
-export function workspaceAsDrawer(open: ReadonlySet<string>, rowWidth: number, desktop: boolean): boolean {
+export function workspaceAsDrawer(open: ReadonlySet<string>, rowWidth: number, desktop: boolean, widths = { panel: 360, thread: 400 }): boolean {
   if (!desktop || !open.has("artifact") || rowWidth <= 0) return false;
-  const side = open.has("thread") ? 400 : SIDE_PANEL_SECTIONS.some((s) => open.has(s)) ? 320 : 0;
+  const side = open.has("thread") ? threadPanelWidth(widths.thread) : SIDE_PANEL_SECTIONS.some((s) => open.has(s)) ? widths.panel : 0;
   return rowWidth < 480 + 420 + side;
 }
 
@@ -57,14 +60,38 @@ export const WORKSPACE_DRAWER_CLASS = "absolute inset-y-0 right-0 z-cover flex w
 /** Over the strip of timeline left beside the drawer: a light wash that says "behind"; pressing it closes the drawer. */
 export const WORKSPACE_DRAWER_SCRIM_CLASS = "absolute inset-0 z-cover overlay-medium";
 
+/** A thread (or an old discussion) beside the channel: its own remembered width, 400 by default, within 320–480 (4.4). */
+export function threadPanelWidth(saved: number): number {
+  return Math.min(480, Math.max(320, saved));
+}
+
+/** The side panel's columns (Tasks, Files, Members, the info): neither the workspace nor the thread's. */
+export function isSidePanelColumn(sections: readonly string[]): boolean {
+  return !sections.includes("artifact") && !sections.includes("thread");
+}
+
+/** Layout redesign 4.4: dragging the side panel sets the one width its four (Tasks, Files, Members, the info) share. */
+export function sidePanelWidthSource(width: number | undefined, contentMin: number | undefined): ColumnWidthSource {
+  return {
+    width: width ?? COLUMN_BOUNDS.sidePanel.defaultWidth,
+    min: COLUMN_BOUNDS.sidePanel.min,
+    contentMin,
+    get: () => getColumnWidth("sidePanel"),
+    preview: (w) => previewColumnWidth("sidePanel", w),
+    commit: (w) => commitColumnWidth("sidePanel", w),
+    reset: () => resetColumnWidth("sidePanel"),
+  };
+}
+
 /**
- * Layout redesign: a plan column's widths — the side panel is 320 wide whatever was saved for it (a thread its own,
- * 400 by default) and keeps it when the row has room to spare (`fixed`); the workspace keeps its saved width and flexes.
+ * Layout redesign 4.4: a plan column's widths — the side panel at its one shared width (`panel`, 320–480), a thread
+ * at its own; both keep it when the row has room to spare and are never pressed narrower (`fixed`); the workspace
+ * keeps its saved width and flexes.
  */
-export function sidePanelWidths(sections: readonly string[], saved: number, thread: number) {
+export function sidePanelWidths(sections: readonly string[], saved: number, thread: number, panel: number) {
   const workspace = sections.includes("artifact");
-  const own = workspace ? saved : Math.min(saved, 320);
-  return { saved: sections.includes("thread") ? thread : own, savedWithoutThread: own, fixed: !workspace };
+  const own = workspace ? saved : panel;
+  return { saved: sections.includes("thread") ? threadPanelWidth(thread) : own, savedWithoutThread: own, fixed: !workspace };
 }
 
 /** The drawer's one section. */
@@ -72,7 +99,9 @@ export const DRAWER_SECTIONS: "artifact"[] = ["artifact"];
 
 /** The workspace as a drawer or a column: the sections the row plans, and the drawer's column when it is one. */
 export function useWorkspaceDrawer(layout: ChannelSideLayout, open: Set<ChannelSideSection>, rowWidth: number, desktop: boolean) {
-  const drawer = workspaceAsDrawer(open, rowWidth, desktop);
+  const panel = useColumnWidth("sidePanel");
+  const thread = useColumnWidth("thread");
+  const drawer = workspaceAsDrawer(open, rowWidth, desktop, { panel, thread });
   const rowOpen = useMemo(() => rowSections(open, drawer), [drawer, open]);
   const collapsed = useArtifactViewerStore((st) => st.drawerCollapsed);
   const drawerColumn = drawer ? visibleChannelSideColumns(layout, open).find((c) => c.sections.includes("artifact")) : undefined;

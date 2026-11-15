@@ -83,6 +83,17 @@ export const COLUMN_BOUNDS = {
     storageKey: "slock:channelSideCardsWidth",
     legacyStorageKeys: [],
   },
+  /**
+   * Layout redesign 4.4 (11/15): the channel's side panel — Tasks, Files, Members, the channel's info — one width
+   * shared by all four, 360 by default, dragged within 320–480 (a thread keeps its own, `thread`).
+   */
+  sidePanel: {
+    defaultWidth: 360,
+    min: 320,
+    max: 480,
+    storageKey: "raft:channelSidePanelWidth",
+    legacyStorageKeys: [],
+  },
   /** File tree in an agent's Workspace tab. */
   workspaceTree: {
     defaultWidth: 256,

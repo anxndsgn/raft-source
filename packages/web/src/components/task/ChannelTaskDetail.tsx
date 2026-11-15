@@ -14,15 +14,34 @@ import { useChannelSideCardStore } from "../../store/channelSideCardStore";
 import TaskModalHead from "./TaskModalHead";
 
 /**
+ * Layout redesign 4.5: the Tasks panel's one title row over a task's details — "‹ Tasks / #N" opened from the list,
+ * "#N" alone opened directly (× after it, the panel's). `number` null: the task is gone.
+ */
+export function TaskDetailCrumb({ channelId, number, onBack }: { channelId: string; number: number | null; onBack: () => void }) {
+  const { formatMessage } = useIntl();
+  const fromList = useChannelSideCardStore((s) => s.taskDetailFromList[channelId] === true);
+  return (
+    <div className="flex min-w-0 items-center gap-1 text-headline" data-testid="channel-task-detail-crumb">
+      {fromList ? (<>
+        <button type="button" className="inline-flex shrink-0 items-center gap-0.5 rounded-control px-1 py-0.5 text-foreground-muted hover:overlay-subtle" onClick={onBack} data-testid="channel-task-detail-back">
+          <ChevronLeft size={16} aria-hidden />
+          {formatMessage({ id: "task.panel.heading" })}
+        </button>
+        <span className="text-foreground-hint">/</span>
+      </>) : null}
+      {number !== null ? <h2 className="truncate font-mono">{formatMessage({ id: "taskDetail.number" }, { number })}</h2> : null}
+    </div>
+  );
+}
+
+/**
  * Layout redesign (F2): a task's details in the channel's Tasks panel, in
  * place of the task dialog. "‹ Tasks / #N" goes back to the list. In a channel
  * that uses replies, "N messages" opens the timeline filtered to the task
  * (step 2) and says so while it is.
  */
-export function ChannelTaskDetail({ task, onBack }: { task: Task; onBack: () => void }) {
+export function ChannelTaskDetail({ task }: { task: Task }) {
   const { formatMessage } = useIntl();
-  // Layout redesign (Figmama 11/15): "‹ Tasks" only when it was opened from the list; opened directly, × alone.
-  const fromList = useChannelSideCardStore((s) => s.taskDetailFromList[task.channelId] === true);
   const replyMode = useChannelStore((s) => findStoredChannel(s, task.channelId)?.replyMode === true);
   const filtering = useTimelineViewStore((s) => {
     const spec = s.views[task.channelId]?.spec;
@@ -75,21 +94,6 @@ export function ChannelTaskDetail({ task, onBack }: { task: Task; onBack: () => 
   );
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-testid="channel-task-detail">
-      <div className="flex shrink-0 items-center gap-1 px-3 pt-2 text-footnote text-foreground-muted">
-        {fromList ? (<>
-        <button
-          type="button"
-          className="inline-flex items-center gap-0.5 rounded-control px-1 py-0.5 hover:overlay-subtle"
-          onClick={onBack}
-          data-testid="channel-task-detail-back"
-        >
-          <ChevronLeft size={14} aria-hidden />
-          {formatMessage({ id: "task.panel.heading" })}
-        </button>
-        <span className="text-foreground-hint">/</span>
-        </>) : null}
-        <span className="font-mono">{formatMessage({ id: "taskDetail.number" }, { number: task.taskNumber })}</span>
-      </div>
       <ScrollArea tabIndex={-1} className="min-h-0 flex-1" contentClassName="pb-4">
         <TaskModalHead
           task={task}

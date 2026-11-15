@@ -17,6 +17,9 @@ import {
 } from "@botiverse/raft-ui";
 import { ChannelPreferencesSection } from "./ChannelPreferencesSection";
 import { ChannelDetailsIdentity, ChannelDetailsSurface } from "./ChannelDetailsSurface";
+import { useMediaQuery } from "../../hooks/effectPrimitives";
+import { useChannelSideCardStore } from "../../store/channelSideCardStore";
+import { PHONE_MEDIA_QUERY } from "../ui/NarrowDialog";
 import { useIsDesktopShell } from "../layout/ShellFrame";
 import { prepareChannelDetailsOpen } from "./channelDetails";
 import { MemberAvatarPreloader, MembersStrip } from "./MembersStrip";
@@ -154,7 +157,16 @@ export default function ChannelOverflowMenu({
   // dashed 「+」 tile land DIRECTLY in the add flow (v2: one hop fewer).
   const [view, setView] = useState<"root" | "members">("root");
   const [membersInitialView, setMembersInitialView] = useState<"add" | undefined>(undefined);
+  const [membersFromInfo, setMembersFromInfo] = useState(false);
+  const phone = useMediaQuery(PHONE_MEDIA_QUERY);
   const open = controlledOpen ?? internalOpen;
+  // Closed from outside (another side panel took its place): it opens on its root again.
+  const rootAt = useChannelSideCardStore((s) => s.detailsRootAt);
+  const [was, setWas] = useState({ open, rootAt });
+  if (was.open !== open || was.rootAt !== rootAt) {
+    setWas({ open, rootAt });
+    if (!open || was.rootAt !== rootAt) setView("root");
+  }
   // v2 identity header: visibility badge reads the live channel. DMs live in
   // the store's dmChannels list, so look there too (task #703: this sheet IS
   // the DM settings surface as well — same component as channels).
@@ -262,11 +274,13 @@ export default function ChannelOverflowMenu({
 
   const handleOpenMembers = useCallback(() => {
     setMembersInitialView(undefined);
+    setMembersFromInfo(true);
     setView("members");
   }, []);
   const handleAddMembers = useCallback(() => {
     if (!canAddMembers) return;
     setMembersInitialView("add");
+    setMembersFromInfo(true);
     // The add picker opens straight away: fetch the agent roster it lists.
     void useAgentStore.getState().loadAgents();
     setView("members");
@@ -322,7 +336,7 @@ export default function ChannelOverflowMenu({
   }, [guardedClose, handleBackToRoot, handleOpen, open, view]);
   const toggleMembers = useCallback(() => {
     if (open && view === "members") guardedClose();
-    else { handleOpenMembers(); if (!open) handleOpen(); }
+    else { handleOpenMembers(); setMembersFromInfo(false); if (!open) handleOpen(); }
   }, [guardedClose, handleOpen, handleOpenMembers, open, view]);
   const handleToggle = useCallback(() => {
     if (open) guardedClose();
@@ -429,7 +443,9 @@ export default function ChannelOverflowMenu({
               channelId={channelId}
               initialView={membersInitialView}
               prefetchedMembers={prefetchedMembers}
-              onBack={handleBackToRoot}
+              // Layout redesign 4.3: on a desktop its own one head — Back only when the info opened it (Members' switch: ×).
+              ownHead={!phone}
+              onBack={phone || membersFromInfo ? handleBackToRoot : undefined}
               onClose={guardedClose}
               onRequestClose={close}
             />
@@ -457,8 +473,8 @@ export default function ChannelOverflowMenu({
               activityMute={activityMute}
               collapseLongMessages={collapseLongMessages}
               onStopAllAgents={onStopAllAgents}
-              // Layout redesign: members have their own switch in the head (成员), not a strip here.
-              membersSlot={null}
+              // Layout redesign 4.5 row 9: the members open from here too, pushed one level ("‹ Channel info /").
+              membersSlot={membersStrip}
             />
           ) : !isDmChannel && !channel?.loungeAgentId ? (
             /* Someone who hasn't joined: the channel read-only and its members. */

@@ -24,11 +24,12 @@ test("channelSideCardStore round-trips open state through localStorage", async (
     assert.deepEqual(useChannelSideCardStore.getState().open, { tasks: true, files: false });
     assert.equal(useChannelSideCardStore.getState().taskFilter, "all");
 
+    // Layout redesign 4.2: the side panel shows one at a time — Files opened closes Tasks.
     useChannelSideCardStore.getState().setCardOpen("files", true);
-    assert.deepEqual(JSON.parse(storage.get("slock:channelSideCards") ?? "null"), { tasks: true, files: true });
-
-    useChannelSideCardStore.getState().setCardOpen("tasks", false);
     assert.deepEqual(JSON.parse(storage.get("slock:channelSideCards") ?? "null"), { tasks: false, files: true });
+
+    useChannelSideCardStore.getState().setCardOpen("files", false);
+    assert.deepEqual(JSON.parse(storage.get("slock:channelSideCards") ?? "null"), { tasks: false, files: false });
 
     useChannelSideCardStore.getState().setTaskFilter("mine");
     assert.equal(storage.size, 1);

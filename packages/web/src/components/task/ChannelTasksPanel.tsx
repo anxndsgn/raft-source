@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
 import { ChevronDown, ChevronRight, ListTodo, Plus } from "lucide-react";
 import {
+  Button,
   TaskStatusIcon,
   SegmentedControl,
   SegmentedControlCount,
@@ -25,7 +26,9 @@ import { TaskAssigneeLabel } from "./TaskAssignee";
 import { CreateTaskDialog } from "./DeferredCreateTaskDialog";
 import TaskChipList from "./TaskChipList";
 import { TASK_STATUS_UI, toRuiTaskStatus } from "./taskStatusUi";
-import { ChannelTaskDetail } from "./ChannelTaskDetail";
+import { ChannelTaskDetail, TaskDetailCrumb } from "./ChannelTaskDetail";
+
+const NO_ACTIONS: never[] = [];
 import { SideCardContext } from "./sideCardsLayout";
 
 /** Work that is moving first (In Progress, In Review), then what waits (Todo,
@@ -71,6 +74,8 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   const openTask = useCallback((task: Task) => openTaskDetail(channelId, task.id, true), [channelId, openTaskDetail]);
   const backToList = useCallback(() => closeTaskDetail(channelId), [channelId, closeTaskDetail]);
   const detailTask = detailTaskId ? tasks.find((t) => t.id === detailTaskId) ?? null : null;
+  // Opened but not among the channel's tasks once they are loaded: deleted, or no longer visible (4.5).
+  const detailMissing = !!detailTaskId && !detailTask && loaded;
   const [creating, setCreating] = useState(false);
   const [collapsed, setCollapsed] = useState(INITIALLY_COLLAPSED);
   // No fetch here: the panel only sits beside its own channel, and ChatPanel
@@ -129,18 +134,27 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   return (
     <ChannelSideCard
       title={formatMessage({ id: "task.panel.heading" })}
+      // Over a task's details its one title row is the crumb (4.5), without "+".
+      titleSlot={detailTaskId ? <TaskDetailCrumb channelId={channelId} number={detailTask?.taskNumber ?? null} onBack={backToList} /> : undefined}
       closeLabelId="task.sidePanel.close"
       onClose={onClose}
       testId="channel-tasks-panel"
       // Its own action: a button where the head has room, else in its ⋯ (#189 rule 6).
-      ownActions={newTaskAction}
+      ownActions={detailTaskId ? NO_ACTIONS : newTaskAction}
       // Layout redesign (anxndsgn, 11/15): no seam under the head; All / Mine right under the title.
       seamless
     >
-      {detailTask ? null : <div className="shrink-0 px-(--column-margin) pb-2" data-testid="channel-tasks-toolbar">{tasksFilter}</div>}
+      {detailTaskId ? null : <div className="shrink-0 px-(--column-margin) pb-2" data-testid="channel-tasks-toolbar">{tasksFilter}</div>}
       {detailTask ? (
-        <ChannelTaskDetail task={detailTask} onBack={backToList} />
-      ) : (<>
+        <ChannelTaskDetail task={detailTask} />
+      ) : detailMissing ? (
+        <EmptyState
+          icon={<ListTodo />}
+          title={formatMessage({ id: "taskDetail.missingTitle" })}
+          description={formatMessage({ id: "taskDetail.missingBody" })}
+          action={<Button size="md" variant="outline" onClick={backToList} data-testid="channel-task-detail-missing-back">{formatMessage({ id: "taskDetail.backToTasks" })}</Button>}
+        />
+      ) : detailTaskId ? null : (<>
       {/* Each task row and group heading takes focus, so the list's raft-ui
           ScrollArea is no tab stop. */}
       <ScrollArea tabIndex={-1} className="min-h-0 flex-1" contentClassName="pb-4">

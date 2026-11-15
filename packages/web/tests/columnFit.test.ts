@@ -24,6 +24,8 @@ test("the agreed bounds table (design lead, 2026-10-21; right-hand maxima task #
     // Task v2 side sections: flat against the panel's edge, no gutter (task #165).
     // Layout redesign (Figmama/Anna 11/15): the side panel is 320 wide and keeps it.
     sideCards: [320, 160, toMainMin, "slock:channelSideCardsWidth", 320],
+    // Layout redesign 4.4 (11/15): Tasks, Files, Members and the info share one width, 360, dragged within 320–480.
+    sidePanel: [360, 320, 480, "raft:channelSidePanelWidth", null],
   });
   const growing = Object.entries(COLUMN_BOUNDS).filter(([, b]) => "growsToMainMin" in b && b.growsToMainMin).map(([id]) => id);
   assert.deepEqual(growing, ["thread", "detail", "sideCards"]);

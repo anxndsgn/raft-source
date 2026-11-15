@@ -93,6 +93,7 @@ export function ChannelDetailsSurface({
       closeOnEscape
       returnFocus={returnFocus}
       expandable={false}
+      headless={!!page}
       testId="channel-details"
     >
       {/* Both stay mounted: an unsaved draft in the root view survives the member list. */}

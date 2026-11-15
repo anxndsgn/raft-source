@@ -1,4 +1,4 @@
-import { detailsTakeSidePanel, DRAWER_SECTIONS, drawerHost, inWorkspace, sidePanelWidths, threadTakesSidePanel, useWorkspaceDrawer, WORKSPACE_DRAWER_CLASS } from "./sideAreaLayoutRedesign";
+import { detailsTakeSidePanel, DRAWER_SECTIONS, drawerHost, inWorkspace, isSidePanelColumn, sidePanelWidths, sidePanelWidthSource, threadTakesSidePanel, useWorkspaceDrawer, WORKSPACE_DRAWER_CLASS } from "./sideAreaLayoutRedesign";
 import { WorkspaceDrawerHandle, WorkspaceDrawerScrim } from "./WorkspaceDrawerScrim";
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
@@ -343,12 +343,12 @@ interface VisibleColumn {
  * thread's column is as wide as the thread's own saved width (`thread`), and its layout width once the thread has
  * folded out of it, for the sections stacked with it.
  */
-function planColumns(columns: readonly VisibleColumn[], thread: number): PlanColumn[] {
+function planColumns(columns: readonly VisibleColumn[], thread: number, panel: number): PlanColumn[] {
   return columns.map((column) => ({
     key: sideColumnKey(column.column),
     regions: column.sections,
     mins: column.sections.map((section) => SECTION_CONTENT_MIN[section]),
-    ...sidePanelWidths(column.sections, column.width, thread),
+    ...sidePanelWidths(column.sections, column.width, thread, panel),
   }));
 }
 
@@ -861,6 +861,7 @@ export default function ChannelSideArea() {
   // its saved width; the plan says whether the thread folds.
   const planned = room.room !== null && room.viewportWidth >= 768 && !room.legacyTask;
   const threadWidth = useColumnWidth("thread");
+  const panelWidth = useColumnWidth("sidePanel");
   // The keyboard shortcuts panel open beside the conversation: a column of the plan in the thread's place (rowPlan
   // `withShortcutHelpColumn`), so every column gives way for it as for any other. Over a folded thread it takes the
   // whole row instead, and the plan stays as it was (index.css).
@@ -873,10 +874,10 @@ export default function ChannelSideArea() {
   const { rowOpen, drawerColumn, workspaceSlot, drawerCollapsed } = useWorkspaceDrawer(layout, open, room.rowWidth, room.viewportWidth >= 768);
   const columnsForPlan = useMemo<PlanColumn[]>(() => {
     if (!planned) return NO_PLAN_COLUMNS;
-    let columns = planColumns(visibleChannelSideColumns(layout, rowOpen), threadWidth);
+    let columns = planColumns(visibleChannelSideColumns(layout, rowOpen), threadWidth, panelWidth);
     if (taskColumn) columns = withTasksPageTaskColumn(columns, { saved: helpWidth, contentMin: COLUMN_BOUNDS.detail.contentMin });
     return helpBeside ? withShortcutHelpColumn(columns, { saved: helpWidth, contentMin: COLUMN_BOUNDS.detail.contentMin }) : columns;
-  }, [helpBeside, helpWidth, layout, rowOpen, planned, taskColumn, threadWidth]);
+  }, [helpBeside, helpWidth, layout, rowOpen, panelWidth, planned, taskColumn, threadWidth]);
   const plan = useRowPlan({ active: planned, available: room.rowWidth, columns: columnsForPlan, thread: open.has("thread") && !helpBeside, forceFold: room.touchPortrait, threadExpanded: room.threadMaximized && !helpBeside, taskExpanded: taskColumn && taskExpanded });
   const fold = plan?.fold ?? false;
   const placement = useMemo(() => placeSections(layout, rowOpen, room, expandArtifact, fold), [expandArtifact, fold, layout, rowOpen, room]);
@@ -1126,9 +1127,9 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
   const measure = useCallback(() => stackRef.current?.getBoundingClientRect().height ?? 0, []);
   const stack = useStack(shown, measure);
   const beside = kind === "beside";
-  const resizable = beside && widthColumn !== undefined;
+  const resizable = beside && widthColumn !== undefined, panel = isSidePanelColumn(sections);
 
-  const source = useMemo<ColumnWidthSource | undefined>(() => (resizable ? {
+  const source = useMemo<ColumnWidthSource | undefined>(() => (resizable && panel ? sidePanelWidthSource(width, minWidth) : resizable ? {
     width: width ?? channelSideSectionWidth(sections[0] ?? "tasks"),
     min: COLUMN_BOUNDS.sideCards.min,
     // Its sections' content minimum (areaColumnMinWidth: the Artifact's 480 included): narrower, it clips (#189 rule 2).
@@ -1141,7 +1142,7 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
     },
     // The width of the section on top's own column (channelSideSectionWidth).
     reset: () => useChannelSideLayoutStore.getState().resizeColumn(widthColumn!, channelSideSectionWidth(sections[0] ?? "tasks"), true),
-  } : undefined), [widthColumn, minWidth, resizable, sections, width]);
+  } : undefined), [widthColumn, minWidth, panel, resizable, sections, width]);
 
   // The crossing of the column's left seam, or of its right one where a column stands right of it, with a seam
   // between sections: one drag moves both (StackCorner).
@@ -1180,7 +1181,7 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
     >
       {resizable ? (
         <ColumnResizeHandle
-          column="sideCards"
+          column={panel ? "sidePanel" : "sideCards"}
           edge="left"
           label={label}
           source={source}

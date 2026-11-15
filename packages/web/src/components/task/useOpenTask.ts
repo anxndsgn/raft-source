@@ -16,6 +16,9 @@ import { useAppNavigate } from "../../hooks/useAppNavigate";
  */
 export function openTaskInSidePanel(task: Task, toChannel?: (channelId: string) => void): boolean {
   if (typeof window === "undefined" || window.innerWidth < 768) return false;
+  // A task opened anywhere (a message's task tag too) takes the side panel's place, over a thread there as well.
+  const thread = useThreadStore.getState();
+  if (thread.openParentMessageId && thread.openParentChannelId === task.channelId && !thread.taskModal) thread.closeThread();
   useChannelSideCardStore.getState().openTaskDetail(task.channelId, task.id);
   toChannel?.(task.channelId);
   return true;

@@ -576,7 +576,7 @@ export function ChatPanel({
   // The archived banner opens the same settings drawer as the header.
   const [overflowOpen, setOverflowOpen] = useState(false);
   const openOverflow = useCallback(() => {
-    if (channel) prepareChannelDetailsOpen(channel.id);
+    if (channel) prepareChannelDetailsOpen(channel.id, "root");
     setOverflowOpen(true);
   }, [channel]);
   const openBillingSettings = useCallback(() => nav.toSettings("billing"), [nav]);

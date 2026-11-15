@@ -51,6 +51,12 @@ interface ChannelSideCardState {
   taskDetail: Record<string, string | null>;
   /** `fromList`: opened from the Tasks panel's list, which its "‹ Tasks" goes back to; else opened directly. */
   taskDetailFromList: Record<string, boolean>;
+  /** Layout redesign 4.5: the channel the open Tasks / Files belong to; switching to another channel closes them. */
+  panelChannelId: string | null;
+  /** Bumped to show the channel details' root page (the channel's name pressed over its member list). */
+  detailsRootAt: number;
+  showDetailsRoot: () => void;
+  claimPanel: (channelId: string) => void;
   openTaskDetail: (channelId: string, taskId: string, fromList?: boolean) => void;
   closeTaskDetail: (channelId: string) => void;
   /** Every channel's task details closed (the inbox moving to another row). */
@@ -68,14 +74,20 @@ export const useChannelSideCardStore = create<ChannelSideCardState>((set, get) =
   taskFilter: "all",
   taskDetail: {},
   taskDetailFromList: {},
+  panelChannelId: null,
+  detailsRootAt: 0,
+  showDetailsRoot: () => set({ detailsRootAt: Date.now() }),
+  claimPanel: (panelChannelId) => set({ panelChannelId }),
   openTaskDetail: (channelId, taskId, fromList = false) => {
     get().setCardOpen("tasks", true);
-    set({ taskDetail: { ...get().taskDetail, [channelId]: taskId }, taskDetailFromList: { ...get().taskDetailFromList, [channelId]: fromList } });
+    set({ panelChannelId: channelId, taskDetail: { ...get().taskDetail, [channelId]: taskId }, taskDetailFromList: { ...get().taskDetailFromList, [channelId]: fromList } });
   },
   closeTaskDetail: (channelId) => set({ taskDetail: { ...get().taskDetail, [channelId]: null } }),
   closeAllTaskDetails: () => set({ taskDetail: {} }),
   setCardOpen: (card, open) => {
-    const next = { ...get().open, [card]: open };
+    // Layout redesign 4.2: Tasks and Files take the side panel's one place in turn, never both.
+    const other = card === "tasks" ? "files" : "tasks";
+    const next = { ...get().open, [card]: open, ...(open ? { [other]: false } : {}) };
     writeFlags(OPEN_KEY, next);
     set(open ? { open: next, cardFocusAt: { ...get().cardFocusAt, [card]: Date.now() } } : { open: next });
   },
@@ -87,3 +99,4 @@ export const useChannelSideCardStore = create<ChannelSideCardState>((set, get) =
   focusCard: (card) => set({ cardFocusAt: { ...get().cardFocusAt, [card]: Date.now() } }),
   setTaskFilter: (taskFilter) => set({ taskFilter }),
 }));
+

@@ -65,6 +65,7 @@ export default function ChannelSideCard({
   returnFocus,
   // Layout redesign: the channel's side panel sections have no Expand (anxndsgn, 11/15).
   expandable = false,
+  headless = false,
   testId,
   children,
 }: {
@@ -97,6 +98,8 @@ export default function ChannelSideCard({
    * nothing from the row's whole width (raft-design panel.md, stdrc 2026-11-10, #proj-raft-ui:dae8db07).
    */
   expandable?: boolean;
+  /** No head: what it shows brings its own (the channel's member list, layout redesign 4.3). */
+  headless?: boolean;
   testId: string;
   children: ReactNode;
 }) {
@@ -149,6 +152,7 @@ export default function ChannelSideCard({
     >
       {/* One 56px head, folded or not: the panel head every column has. Its
           recipe puts the first and last icon on the 20px margin. */}
+      {headless ? null : (
       <PanelHeader data-testid={`${testId}-header`} {...head.props} className={[head.props.className, seamless ? "border-b-0 shadow-none" : ""].filter(Boolean).join(" ") || undefined} ref={measure}>
         {/* On a phone the channel header's Back closes the covering section
             (ChatPanel), so the section draws none: one Back on screen. A
@@ -202,6 +206,7 @@ export default function ChannelSideCard({
           )}
         </PanelActions>
       </PanelHeader>
+      )}
       {/* Folded, the body stays mounted (scroll, folded lanes) and only hides. */}
       <div className={collapsed ? "hidden" : "flex min-h-0 flex-1 flex-col"}>
         <SidePanelEscapeProvider value={escapeSteps}>{children}</SidePanelEscapeProvider>

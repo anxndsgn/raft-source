@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import type { IntlShape } from "react-intl";
 import type { ReactNode } from "react";
@@ -9,6 +9,7 @@ import type { Task } from "../../store/taskStore";
 import { timelineViewRows, useTimelineViewStore } from "../../store/timelineViewStore";
 import type { TimelineViewState } from "../../store/timelineViewStore";
 import { useThreadStore } from "../../store/threadStore";
+import { useChannelSideCardStore } from "../../store/channelSideCardStore";
 import { useLocation } from "react-router-dom";
 import { useIntl as useIntlHook } from "react-intl";
 import { ChevronRight } from "lucide-react";
@@ -116,33 +117,46 @@ export function useConversationHeaderPortal(ownsUrl: boolean) {
 }
 
 /**
- * Layout redesign (Figmama 11/15): a thread open in this channel holds the side panel's place. The Tasks and Files
- * switches don't show pressed meanwhile, and pressing one closes the thread and shows that panel.
+ * Layout redesign (doc 4.2; anxndsgn/Figmama 11/15): the side panel shows one thing at a time. Tasks, Files, Members
+ * and Settings replace each other, the same one again closes it; a thread open in this channel holds the place too,
+ * and none of the four shows pressed meanwhile (Tasks and Files step aside under it and come back when it closes).
  */
 export function useThreadAwareCardToggles(channelId: string | null, cards: { tasksCardOpen: boolean; filesCardOpen: boolean; toggleTasksCard: () => void; toggleFilesCard: () => void; detailsOpen: boolean; closeDetails: (open: false) => void }) {
   const { tasksCardOpen, filesCardOpen, toggleTasksCard: toggleTasks, toggleFilesCard: toggleFiles, detailsOpen, closeDetails } = cards;
-  // The channel's info holds the same place: pressing Tasks or Files over it closes it and shows that panel.
-  const toggleTasksCard = useCallback(() => {
-    if (!detailsOpen) return toggleTasks();
-    closeDetails(false);
-    if (!tasksCardOpen) toggleTasks();
-  }, [closeDetails, detailsOpen, tasksCardOpen, toggleTasks]);
-  const toggleFilesCard = useCallback(() => {
-    if (!detailsOpen) return toggleFiles();
-    closeDetails(false);
-    if (!filesCardOpen) toggleFiles();
-  }, [closeDetails, detailsOpen, filesCardOpen, toggleFiles]);
   const threadHere = useThreadStore((s) => !!s.openParentMessageId && s.openParentChannelId === channelId && !s.taskModal);
-  const showTasksCard = useCallback(() => {
-    if (!threadHere) return toggleTasksCard();
-    useThreadStore.getState().closeThread();
-    if (!tasksCardOpen) toggleTasksCard();
-  }, [threadHere, tasksCardOpen, toggleTasksCard]);
-  const showFilesCard = useCallback(() => {
-    if (!threadHere) return toggleFilesCard();
-    useThreadStore.getState().closeThread();
-    if (!filesCardOpen) toggleFilesCard();
-  }, [threadHere, filesCardOpen, toggleFilesCard]);
+  // Pressing Tasks or Files: shown alone (it closes when it was what showed).
+  const show = useCallback((card: "tasks" | "files") => {
+    const [own, other, toggleOwn, toggleOther] = card === "tasks"
+      ? [tasksCardOpen, filesCardOpen, toggleTasks, toggleFiles]
+      : [filesCardOpen, tasksCardOpen, toggleFiles, toggleTasks];
+    const shown = own && !detailsOpen && !threadHere;
+    const cards = useChannelSideCardStore.getState();
+    // A press starts the panel afresh (4.5): Tasks shows its list, not the details last open in it.
+    if (channelId) { cards.claimPanel(channelId); cards.closeTaskDetail(channelId); }
+    if (detailsOpen) closeDetails(false);
+    if (threadHere) useThreadStore.getState().closeThread();
+    if (other) toggleOther();
+    if (shown || !own) toggleOwn();
+  }, [channelId, closeDetails, detailsOpen, filesCardOpen, tasksCardOpen, threadHere, toggleFiles, toggleTasks]);
+  const showTasksCard = useCallback(() => show("tasks"), [show]);
+  const showFilesCard = useCallback(() => show("files"), [show]);
+  // A thread opened here replaces the details (the details opened replace the thread: prepareChannelDetailsOpen).
+  // Tasks or Files opened any other way (a message's task tag) replace the details as well.
+  const cardShownAt = useChannelSideCardStore((s) => Math.max(s.cardFocusAt.tasks, s.cardFocusAt.files));
+  // Another channel (4.5): the details close; Tasks and Files opened for another channel too (CloseStrayCards).
+  const [was, setWas] = useState({ threadHere, cardShownAt, channelId });
+  if (was.threadHere !== threadHere || was.cardShownAt !== cardShownAt || was.channelId !== channelId) {
+    setWas({ threadHere, cardShownAt, channelId });
+    if (detailsOpen && ((threadHere && !was.threadHere) || cardShownAt !== was.cardShownAt || channelId !== was.channelId)) closeDetails(false);
+  }
+  const panelChannelId = useChannelSideCardStore((s) => s.panelChannelId);
+  const stray = !!channelId && !!panelChannelId && panelChannelId !== channelId && (tasksCardOpen || filesCardOpen);
+  useEffect(() => {
+    if (!stray) return;
+    const cards = useChannelSideCardStore.getState();
+    cards.setCardOpen("tasks", false);
+    cards.setCardOpen("files", false);
+  }, [stray]);
   return { threadHere, showTasksCard, showFilesCard };
 }
 

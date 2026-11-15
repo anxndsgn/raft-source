@@ -60,6 +60,7 @@ const LABEL_ID = {
   detail: "layout.columnResize.detail",
   workspaceTree: "layout.columnResize.workspaceTree",
   sideCards: "layout.columnResize.sideCards",
+  sidePanel: "layout.columnResize.sideCards",
 } as const satisfies Record<ColumnId, string>;
 
 /**

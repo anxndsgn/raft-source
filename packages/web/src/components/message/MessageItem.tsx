@@ -3687,6 +3687,7 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
     openThread,
     openTaskConversation: openTaskConversationDialog,
     taskV2Enabled: taskV2,
+    openInSidePanel: (task) => openTaskInSidePanel(task, nav.toChannel),
   }, channelId ?? taskContextChannelId, taskNumber), [closeProfile, closeThread, nav, openLegacyTask, openThread, taskContextChannelId, taskV2]);
 
   const handleDownloadAttachment = useCallback(async (attachment: NonNullable<Message["attachments"]>[number]) => {

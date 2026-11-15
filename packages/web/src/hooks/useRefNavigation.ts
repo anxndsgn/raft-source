@@ -10,7 +10,7 @@ import { useLegacyTaskPanelStore } from "../store/legacyTaskPanelStore";
 import { useProfileStore } from "../store/profileStore";
 import { openTaskByChannelNumber } from "../utils/openTaskRef";
 import { TASK_V2_CONVERSATIONS_FLAG_KEY, useServerFeatureFlag } from "../store/serverFeatureFlags";
-import { openTaskConversationDialog } from "../components/task/useOpenTask";
+import { openTaskConversationDialog, openTaskInSidePanel } from "../components/task/useOpenTask";
 
 /**
  * Builds the RefNavContext consumed by the shared resolve/navigate layer
@@ -67,6 +67,7 @@ export function useRefNavigation(
         openThread,
         openTaskConversation: openTaskConversationDialog,
         taskV2Enabled: taskV2,
+        openInSidePanel: (task) => openTaskInSidePanel(task, nav.toChannel),
       }, channelId, taskNumber),
       onThreadUnavailable,
     };

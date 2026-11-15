@@ -22,6 +22,8 @@ export interface OpenTaskRefDeps {
    *  off, only a task made the v2 way does (decided per task), and a pre-v2
    *  task opens its host message's thread. */
   taskV2Enabled: boolean;
+  /** Layout redesign: a desktop opens the task's details in its channel's side panel (openTaskInSidePanel). */
+  openInSidePanel?: (task: Task) => boolean;
 }
 
 export async function openTaskByChannelNumber(
@@ -33,6 +35,7 @@ export async function openTaskByChannelNumber(
     const { data } = await api.get(`/tasks/channel/${channelId}/number/${taskNumber}`);
     const task = (data as { task: Task }).task;
     deps.closeProfile();
+    if (!task.isLegacy && !opensAsTaskConversation(task, deps.taskV2Enabled) && deps.openInSidePanel?.(task)) return;
     if (task.isLegacy) {
       deps.closeThread();
       deps.toChannelTasks(task.channelId);

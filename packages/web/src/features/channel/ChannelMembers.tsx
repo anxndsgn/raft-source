@@ -1,4 +1,4 @@
-import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, InputGroup, ScrollArea, InputGroupAddon, InputGroupInput, PanelAction, PanelHeader, Spinner } from "@botiverse/raft-ui";
+import { Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, InputGroup, ScrollArea, InputGroupAddon, InputGroupInput, Spinner } from "@botiverse/raft-ui";
 import { Suspense, useCallback, useMemo, useState } from "react";
 import { useIntl } from "react-intl";
 import { ArrowLeft, Bot, Users, Plus, Plug, Mail, UserPlus, X, Search, AlertTriangle } from "lucide-react";
@@ -21,6 +21,7 @@ import { ChannelMemberListShell, ChannelMemberRoleAndActions, ChannelMemberRow, 
 import { useChannelMemberRemoval } from "../../components/channel/useChannelMemberRemoval";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Tooltip from "../../components/ui/Tooltip";
+import { MembersPageHeader } from "./MembersPageHeader";
 import type { ProfilePanelProps, ProfilePanelTarget } from "../../components/profile/ProfilePanel";
 import { primeHumanProfileFromChannelMember, setCachedAgentProfile } from "../../components/profile/profileFallbackCache";
 import { isLocalProjectionMember, memberServerBadgeLabels } from "../../utils/channelLocalMembership";
@@ -56,6 +57,9 @@ type ChannelMembersProps = {
   onRequestClose?: () => void;
   onBack?: () => void;
   onClose?: () => void;
+  /** Layout redesign 4.3: the page is the side panel's one head, with its × (the details' own head hidden); Back
+   *  only where it was opened from the channel's info (`onBack`), as a crumb, ‹ Channel info /. */
+  ownHead?: boolean;
   initialView?: "add";
   prefetchedMembers?: {
     channelAgents: ChannelAgent[];
@@ -78,6 +82,7 @@ export function ChannelMembers({
   onRequestClose,
   onBack,
   onClose,
+  ownHead = false,
   initialView,
   prefetchedMembers,
 }: ChannelMembersProps) {
@@ -1011,42 +1016,7 @@ export function ChannelMembers({
   // raft-ui PanelHeader owns the edges: Back's icon box starts on the content
   // margin, as on every other head (headEdges.ts).
   const pageHeader = (
-    <PanelHeader>
-      {/* In the add view the back button is the add flow's own ‹ back
-          (resetAddFlow), keeping the add-member-back contract the
-          panel header uses; otherwise it returns to the drawer root. */}
-      <PanelAction
-        onClick={handleBackOrReset}
-        aria-label={formatMessage({
-          id: showAddSection ? "agent.channelMembers.backToMembers" : "channel.membersPage.back",
-        })}
-        data-testid={showAddSection ? "add-member-back" : "member-page-back"}
-      >
-        <ArrowLeft />
-      </PanelAction>
-      <h2 className="truncate text-headline">
-        {showAddSection
-          ? formatMessage({ id: "agent.channelMembers.addMember" })
-          : formatMessage({ id: "message.chatPanel.overflow.members" })}
-      </h2>
-      {!showAddSection && !membersLoading && (
-        <Badge
-          appearance="outline"
-          className="shrink-0"
-          data-testid="member-page-count"
-        >
-          {totalParticipants}
-        </Badge>
-      )}
-      {!showAddSection && membersLoading && (
-        <Spinner
-          size="sm"
-          aria-label={formatMessage({ id: "message.chatPanel.overflow.membersLoading" })}
-          data-testid="member-page-count-loading"
-        />
-      )}
-      <div className="flex-1" />
-    </PanelHeader>
+    <MembersPageHeader ownHead={ownHead} adding={showAddSection} loading={membersLoading} count={totalParticipants} onBackOrReset={handleBackOrReset} onBack={onBack} onClose={onClose} />
   );
 
   const pageListView = (
