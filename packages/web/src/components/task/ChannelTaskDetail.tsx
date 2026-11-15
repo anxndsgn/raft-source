@@ -1,8 +1,9 @@
 import { findStoredChannel } from "../../store/storedChannel";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useIntl } from "react-intl";
-import { ChevronLeft, ListFilter } from "lucide-react";
-import { DescriptionDetails, DescriptionItem, DescriptionTerm, ScrollArea } from "@botiverse/raft-ui";
+import { ArrowLeft, ListFilter } from "lucide-react";
+import { DescriptionDetails, DescriptionItem, DescriptionTerm, PanelAction, ScrollArea } from "@botiverse/raft-ui";
+import Tooltip from "../ui/Tooltip";
 
 import api from "../../api/client";
 import { useAppNavigate } from "../../hooks/useAppNavigate";
@@ -14,23 +15,18 @@ import { useChannelSideCardStore } from "../../store/channelSideCardStore";
 import TaskModalHead from "./TaskModalHead";
 
 /**
- * Layout redesign 4.5: the Tasks panel's one title row over a task's details — "‹ Tasks / #N" opened from the list,
- * "#N" alone opened directly (× after it, the panel's). `number` null: the task is gone.
+ * Layout redesign 4.5 (raft-ui panel): over a task's details the Tasks panel's head is Back — the arrow-left action,
+ * first, "Back to tasks", only when opened from the list — then the task's number as its title.
  */
-export function TaskDetailCrumb({ channelId, number, onBack }: { channelId: string; number: number | null; onBack: () => void }) {
+export function TaskDetailBack({ channelId, onBack }: { channelId: string; onBack: () => void }) {
   const { formatMessage } = useIntl();
   const fromList = useChannelSideCardStore((s) => s.taskDetailFromList[channelId] === true);
+  if (!fromList) return null;
+  const label = formatMessage({ id: "panel.backTo.tasks" });
   return (
-    <div className="flex min-w-0 items-center gap-1 text-headline" data-testid="channel-task-detail-crumb">
-      {fromList ? (<>
-        <button type="button" className="inline-flex shrink-0 items-center gap-0.5 rounded-control px-1 py-0.5 text-foreground-muted hover:overlay-subtle" onClick={onBack} data-testid="channel-task-detail-back">
-          <ChevronLeft size={16} aria-hidden />
-          {formatMessage({ id: "task.panel.heading" })}
-        </button>
-        <span className="text-foreground-hint">/</span>
-      </>) : null}
-      {number !== null ? <h2 className="truncate font-mono">{formatMessage({ id: "taskDetail.number" }, { number })}</h2> : null}
-    </div>
+    <Tooltip content={label}>
+      <PanelAction aria-label={label} onClick={onBack} data-testid="channel-task-detail-back"><ArrowLeft /></PanelAction>
+    </Tooltip>
   );
 }
 

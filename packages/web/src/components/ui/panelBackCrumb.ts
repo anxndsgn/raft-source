@@ -2,8 +2,8 @@ import { createContext } from "react";
 import type { ReactNode } from "react";
 
 /**
- * Layout redesign 4.5: a head's Back as a crumb, "‹ <where it goes> /", where a page is pushed into the side panel
- * (a member's details over the channel's members). Null: the usual arrow.
+ * Layout redesign 4.5: where a pushed page's Back goes ("Back to members"), its label — a member's details over the
+ * channel's members. Null: the usual Back, shown only where the head shows one.
  */
 export const PanelBackCrumbContext = createContext<string | null>(null);
 

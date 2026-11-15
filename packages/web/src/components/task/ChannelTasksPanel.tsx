@@ -4,6 +4,7 @@ import { useIntl } from "react-intl";
 import { ChevronDown, ChevronRight, ListTodo, Plus } from "lucide-react";
 import {
   Button,
+  PanelTitle,
   TaskStatusIcon,
   SegmentedControl,
   SegmentedControlCount,
@@ -26,7 +27,7 @@ import { TaskAssigneeLabel } from "./TaskAssignee";
 import { CreateTaskDialog } from "./DeferredCreateTaskDialog";
 import TaskChipList from "./TaskChipList";
 import { TASK_STATUS_UI, toRuiTaskStatus } from "./taskStatusUi";
-import { ChannelTaskDetail, TaskDetailCrumb } from "./ChannelTaskDetail";
+import { ChannelTaskDetail, TaskDetailBack } from "./ChannelTaskDetail";
 
 const NO_ACTIONS: never[] = [];
 import { SideCardContext } from "./sideCardsLayout";
@@ -135,7 +136,8 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
     <ChannelSideCard
       title={formatMessage({ id: "task.panel.heading" })}
       // Over a task's details its one title row is the crumb (4.5), without "+".
-      titleSlot={detailTaskId ? <TaskDetailCrumb channelId={channelId} number={detailTask?.taskNumber ?? null} onBack={backToList} /> : undefined}
+      lead={detailTaskId ? <TaskDetailBack channelId={channelId} onBack={backToList} /> : undefined}
+      titleSlot={detailTaskId ? <PanelTitle className="font-mono" render={<h2>{detailTask ? formatMessage({ id: "taskDetail.number" }, { number: detailTask.taskNumber }) : formatMessage({ id: "task.panel.heading" })}</h2>} /> : undefined}
       closeLabelId="task.sidePanel.close"
       onClose={onClose}
       testId="channel-tasks-panel"

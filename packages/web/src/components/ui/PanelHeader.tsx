@@ -1,5 +1,6 @@
 import { useContext } from "react";
-import { ArrowLeft, ChevronLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import Tooltip from "./Tooltip";
 import { isHostShell } from "../../embed";
 import type { HTMLAttributes, ReactNode, Ref } from "react";
 import type { PanelActionProps } from "@botiverse/raft-ui";
@@ -227,13 +228,12 @@ export default function AppPanelHeader({
       {/* Back first, at the top left (DS Navigation), before a leading control. The two never show together: the
           thread's fold chevron renders only where it is stacked in the row, which hides its Back (index.css); covering
           the conversation, or on a phone, it stands in no column and has no chevron. */}
-      {onMobileBack && backCrumb ? (<>
-        <button type="button" className="inline-flex shrink-0 items-center gap-0.5 rounded-control px-1 py-0.5 text-headline text-foreground-muted hover:overlay-subtle" onClick={onMobileBack} data-testid="panel-back-crumb">
-          <ChevronLeft size={16} aria-hidden />
-          {backCrumb}
-        </button>
-        <span className="text-headline text-foreground-hint">/</span>
-      </>) : onMobileBack && (
+      {onMobileBack && backCrumb ? (
+        // Layout redesign 4.5 (raft-ui panel): a pushed page's Back is the arrow-left action; where it goes is its label.
+        <Tooltip content={backCrumb}>
+          <PanelAction aria-label={backCrumb} onClick={onMobileBack} data-testid="panel-back-crumb"><ArrowLeft size={22} /></PanelAction>
+        </Tooltip>
+      ) : onMobileBack && (
         <PanelAction
           {...mobileBackProps}
           onClick={onMobileBack}

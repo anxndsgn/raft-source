@@ -1,5 +1,5 @@
 import { Badge, PanelAction, PanelHeader, Spinner } from "@botiverse/raft-ui";
-import { ArrowLeft, ChevronLeft, X } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import { useCallback } from "react";
 import { useIntl } from "react-intl";
 
@@ -57,13 +57,13 @@ export function MembersPageHeader({ ownHead, adding, loading, count, onBackOrRes
         <PanelAction onClick={onBackOrReset} aria-label={formatMessage({ id: "agent.channelMembers.backToMembers" })} data-testid="add-member-back">
           <ArrowLeft />
         </PanelAction>
-      ) : onBack ? (<>
-        <button type="button" className="inline-flex shrink-0 items-center gap-0.5 rounded-control px-1 py-0.5 text-foreground-muted hover:overlay-subtle" onClick={onBack} data-testid="member-page-back">
-          <ChevronLeft size={14} aria-hidden />
-          {formatMessage({ id: "channel.details.infoTitle" })}
-        </button>
-        <span className="text-foreground-hint">/</span>
-      </>) : null}
+      ) : onBack ? (
+        <Tooltip content={formatMessage({ id: "panel.backTo.channelInfo" })}>
+          <PanelAction onClick={onBack} aria-label={formatMessage({ id: "panel.backTo.channelInfo" })} data-testid="member-page-back">
+            <ArrowLeft />
+          </PanelAction>
+        </Tooltip>
+      ) : null}
       {pageTitle}
       {onClose ? (
         <Tooltip content={formatMessage({ id: "message.chatPanel.overflow.close" })}>
