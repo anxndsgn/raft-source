@@ -9785,4 +9785,13 @@ export const ru: Partial<Record<MessageId, string>> = {
   "team.preview.titleIdle": "Никто из агентов не работает{held, plural, =0 {} one { · остановлен #} few { · остановлено #} many { · остановлено #} other { · остановлено #}}",
   "message.composer.newTaskChip": "Новая задача",
   "message.composer.newTaskCancel": "Отменить новую задачу",
+  "message.reply.joinsTask": "Попадёт в задачу #{number}",
+  "message.reply.leaveTask": "Не добавлять этот ответ в задачу #{number}",
+  "message.taskLinks.title": "Изменить связи с задачами",
+  "message.taskLinks.description": "Отметьте задачи, к которым относится сообщение. Оно появится в их обсуждениях.",
+  "message.taskLinks.none": "В этом канале нет открытых задач.",
+  "message.taskLinks.loading": "Загрузка задач…",
+  "message.taskLinks.failed": "Не удалось изменить связи с задачами. Попробуйте ещё раз.",
+  "message.taskLinks.save": "Сохранить",
+  "message.taskLinks.saving": "Сохранение",
 };

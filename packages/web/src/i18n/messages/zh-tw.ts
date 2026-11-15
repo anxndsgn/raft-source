@@ -9783,4 +9783,13 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "team.preview.titleIdle": "沒有 Agent 在工作{held, plural, =0 {} other { · # 個被卡住}}",
   "message.composer.newTaskChip": "新任務",
   "message.composer.newTaskCancel": "取消新任務",
+  "message.reply.joinsTask": "會掛到 任務 #{number}",
+  "message.reply.leaveTask": "這則回覆不掛到任務 #{number}",
+  "message.taskLinks.title": "調整任務關聯",
+  "message.taskLinks.description": "勾選這則訊息屬於的任務，它會出現在這些任務的討論裡。",
+  "message.taskLinks.none": "這個頻道沒有進行中的任務。",
+  "message.taskLinks.loading": "正在載入任務…",
+  "message.taskLinks.failed": "沒能修改任務關聯，請重試。",
+  "message.taskLinks.save": "儲存",
+  "message.taskLinks.saving": "正在儲存",
 };

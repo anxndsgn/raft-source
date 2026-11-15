@@ -233,6 +233,7 @@ import { AttachmentCommentRefChip } from "./AttachmentCommentRefChip";
 import { shouldShowGroupedMessageHeader } from "./messageGrouping";
 import type { MessageGroupState } from "./messageGrouping";
 import { MessageHoverToolbar } from "./MessageHoverToolbar";
+import { MessageTaskLinksDialog } from "./MessageTaskLinksDialog";
 import { recordReactionUsage } from "./reactionFavorite";
 import { useToolbarQuickReaction } from "./useToolbarQuickReaction";
 import { MessageForwardContext } from "./messageForwardContext";
@@ -300,6 +301,8 @@ import { useOpenRaftPermalink } from "./useOpenRaftPermalink";
 import { taskNumberSigil } from "./messageMarkdownRefs";
 import type { MentionEntry } from "./messageMarkdownRefs";
 import { LinkCardBoundary } from "./LinkCardBoundary";
+
+const NO_TASK_NUMBERS: readonly number[] = [];
 
 export type { MentionEntry };
 
@@ -2617,10 +2620,17 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
       messageId: message.id,
       senderName: message.senderDisplayName || message.senderName || "",
       excerpt: replyExcerpt(message.content ?? ""),
+      taskNumbers: message.linkedTaskNumbers ?? [],
     });
     setCtxMenu(null);
     window.dispatchEvent(new CustomEvent(REPLY_TARGET_FOCUS_EVENT, { detail: { channelId: message.channelId } }));
-  }, [message.channelId, message.content, message.id, message.senderDisplayName, message.senderName, setReplyTarget]);
+  }, [message.channelId, message.content, message.id, message.linkedTaskNumbers, message.senderDisplayName, message.senderName, setReplyTarget]);
+  // Reply mode: "Adjust task links" (task #10 item 4.2), for the sender or a server owner/admin.
+  const canEditTaskLinks = replyModeHere && !isExternal
+    && ((message.senderType === "user" && message.senderId === viewerUserId) || currentUserServerRole === "owner" || currentUserServerRole === "admin");
+  const [taskLinksOpen, setTaskLinksOpen] = useState(false);
+  const openTaskLinks = useCallback(() => { setCtxMenu(null); setTaskLinksOpen(true); }, []);
+  const closeTaskLinks = useCallback(() => setTaskLinksOpen(false), []);
   const handleJumpToReplyOriginal = useCallback(() => {
     const originalId = message.replyTo?.messageId;
     if (!originalId) return;
@@ -4128,6 +4138,7 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
         isSystem={isSystem}
         canReact={canReact}
         onReplyInThread={handleToolbarReplyInThread}
+        onReply={replyModeHere && !hideThreadActions ? handleReplyToMessage : undefined}
         onReactionClick={handleReactionClick}
         onQuickReact={handleToolbarQuickReact}
         onReactionHoverOpen={handleToolbarReactionHoverOpen}
@@ -4616,6 +4627,9 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
         {/* Many tasks per message (task v2): the list replaces the single footer chip,
             and sits above the replies, which stay the message's own discussion. */}
         {linkedTaskList ? <TaskChipList tasks={linkedTaskList} onOpenTask={openTaskFromList} /> : null}
+        {taskLinksOpen ? (
+          <MessageTaskLinksDialog messageId={message.id} channelId={message.channelId} linkedTaskNumbers={message.linkedTaskNumbers ?? NO_TASK_NUMBERS} onClose={closeTaskLinks} />
+        ) : null}
         {createFromMessageOpen ? (
           <CreateTaskDialog
             channelId={message.channelId}
@@ -4904,6 +4918,11 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
                   data-testid="message-context-view-in-full"
                 >
                   {formatMessage({ id: "timelineView.viewInFull" })}
+                </MenuItem>
+              )}
+              {canEditTaskLinks && (
+                <MenuItem icon={<ListChecks size={14} aria-hidden="true" />} onClick={openTaskLinks} data-testid="message-context-task-links">
+                  {formatMessage({ id: "message.taskLinks.title" })}
                 </MenuItem>
               )}
               {!hideThreadActions && !replyModeHere && (

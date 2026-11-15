@@ -1,4 +1,5 @@
 import { REPLY_TARGET_FOCUS_EVENT, useReplyTargetStore } from "../../store/replyTargetStore";
+import { ReplyTaskChips } from "./ReplyTaskChips";
 import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import type { ChangeEvent } from "react";
 import { useIntl } from "react-intl";
@@ -2415,6 +2416,7 @@ export function MessageInput({
             </button>
           </div>
         ) : null}
+        {replyTarget ? <ReplyTaskChips channelId={channelId} target={replyTarget} /> : null}
         {/* Task v2 without the As task box (task #10 item 2): the Tasks "+" puts "New task ×" here; × or Esc cancels. */}
         {alsoCreateTask ? (
           <FilterChip className="self-start" data-testid="composer-new-task-chip"><FilterChipLabel>{formatMessage({ id: "message.composer.newTaskChip" })}</FilterChipLabel><FilterChipRemove aria-label={formatMessage({ id: "message.composer.newTaskCancel" })} onClick={cancelTaskMode} data-testid="composer-new-task-cancel" /></FilterChip>

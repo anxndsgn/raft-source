@@ -9784,4 +9784,13 @@ export const ja: Partial<Record<MessageId, string>> = {
   "team.preview.titleIdle": "作業中の Agent はいません{held, plural, =0 {} other { · # 件停止中}}",
   "message.composer.newTaskChip": "新しいタスク",
   "message.composer.newTaskCancel": "新しいタスクをやめる",
+  "message.reply.joinsTask": "タスク #{number} に付く",
+  "message.reply.leaveTask": "この返信をタスク #{number} に付けない",
+  "message.taskLinks.title": "タスクの紐付けを調整",
+  "message.taskLinks.description": "このメッセージが属するタスクにチェックを入れます。そのタスクの議論に表示されます。",
+  "message.taskLinks.none": "このチャンネルに進行中のタスクはありません。",
+  "message.taskLinks.loading": "タスクを読み込み中…",
+  "message.taskLinks.failed": "タスクの紐付けを変更できませんでした。もう一度お試しください。",
+  "message.taskLinks.save": "保存",
+  "message.taskLinks.saving": "保存中",
 };

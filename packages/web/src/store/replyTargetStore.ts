@@ -10,12 +10,18 @@ export interface ReplyTarget {
   messageId: string;
   senderName: string;
   excerpt: string;
+  /** The tasks the original is linked to: the reply joins them unless one is taken off here. */
+  taskNumbers?: number[];
+  /** Those taken off this reply (the bar's ×). */
+  excludedTaskNumbers?: number[];
 }
 
 interface ReplyTargetState {
   targets: Record<string, ReplyTarget>;
   setReplyTarget: (channelId: string, target: ReplyTarget) => void;
   clearReplyTarget: (channelId: string) => void;
+  /** Take one inherited task off the reply being written. */
+  excludeTask: (channelId: string, taskNumber: number) => void;
 }
 
 export const useReplyTargetStore = create<ReplyTargetState>((set) => ({
@@ -25,6 +31,12 @@ export const useReplyTargetStore = create<ReplyTargetState>((set) => ({
     if (!(channelId in state.targets)) return state;
     const { [channelId]: _removed, ...rest } = state.targets;
     return { targets: rest };
+  }),
+  excludeTask: (channelId, taskNumber) => set((state) => {
+    const target = state.targets[channelId];
+    if (!target || target.excludedTaskNumbers?.includes(taskNumber)) return state;
+    const excludedTaskNumbers = [...(target.excludedTaskNumbers ?? []), taskNumber];
+    return { targets: { ...state.targets, [channelId]: { ...target, excludedTaskNumbers } } };
   }),
 }));
 

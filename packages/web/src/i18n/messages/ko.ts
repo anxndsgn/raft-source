@@ -9783,4 +9783,13 @@ export const ko: Partial<Record<MessageId, string>> = {
   "team.preview.titleIdle": "작업 중인 Agent 없음{held, plural, =0 {} other { · #개 멈춤}}",
   "message.composer.newTaskChip": "새 작업",
   "message.composer.newTaskCancel": "새 작업 취소",
+  "message.reply.joinsTask": "작업 #{number}에 연결됨",
+  "message.reply.leaveTask": "이 답장을 작업 #{number}에 연결하지 않기",
+  "message.taskLinks.title": "작업 연결 조정",
+  "message.taskLinks.description": "이 메시지가 속한 작업을 선택하세요. 해당 작업의 토론에 표시됩니다.",
+  "message.taskLinks.none": "이 채널에 진행 중인 작업이 없습니다.",
+  "message.taskLinks.loading": "작업 불러오는 중…",
+  "message.taskLinks.failed": "작업 연결을 변경하지 못했습니다. 다시 시도하세요.",
+  "message.taskLinks.save": "저장",
+  "message.taskLinks.saving": "저장 중",
 };

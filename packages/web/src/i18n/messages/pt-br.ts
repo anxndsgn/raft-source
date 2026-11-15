@@ -9783,4 +9783,13 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "team.preview.titleIdle": "Nenhum agente trabalhando{held, plural, =0 {} one { · # parado} many { · # parados} other { · # parados}}",
   "message.composer.newTaskChip": "Nova tarefa",
   "message.composer.newTaskCancel": "Cancelar a nova tarefa",
+  "message.reply.joinsTask": "Entra na tarefa #{number}",
+  "message.reply.leaveTask": "Não incluir esta resposta na tarefa #{number}",
+  "message.taskLinks.title": "Ajustar tarefas vinculadas",
+  "message.taskLinks.description": "Marque as tarefas a que esta mensagem pertence. Ela aparece nas conversas delas.",
+  "message.taskLinks.none": "Este canal não tem tarefas abertas.",
+  "message.taskLinks.loading": "Carregando tarefas…",
+  "message.taskLinks.failed": "Não foi possível alterar as tarefas vinculadas. Tente de novo.",
+  "message.taskLinks.save": "Salvar",
+  "message.taskLinks.saving": "Salvando",
 };

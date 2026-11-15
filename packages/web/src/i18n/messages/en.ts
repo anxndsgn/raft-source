@@ -10003,6 +10003,15 @@ export const en = {
   "team.preview.titleIdle": "No agent working{held, plural, =0 {} other { · # held up}}",
   "message.composer.newTaskChip": "New task (sending makes it)",
   "message.composer.newTaskCancel": "Cancel new task",
+  "message.reply.joinsTask": "Joins task #{number}",
+  "message.reply.leaveTask": "Keep this reply off task #{number}",
+  "message.taskLinks.title": "Adjust task links",
+  "message.taskLinks.description": "Tick the tasks this message belongs to. It shows in their discussions.",
+  "message.taskLinks.none": "This channel has no open tasks.",
+  "message.taskLinks.loading": "Loading tasks…",
+  "message.taskLinks.failed": "Couldn't change the task links. Try again.",
+  "message.taskLinks.save": "Save",
+  "message.taskLinks.saving": "Saving",
 } as const;
 
 export type MessageId = keyof typeof en;

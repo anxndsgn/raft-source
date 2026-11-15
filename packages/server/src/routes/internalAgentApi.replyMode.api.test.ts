@@ -11,12 +11,12 @@ import { and, eq } from "drizzle-orm";
 import { getDb } from "../db/index";
 import { channels, messageMentions, messages, messageTasks, taskEvents, tasks, userChannelReadCursors, users } from "../db/schema";
 import { createApiTest } from "../test/integration/apiTest";
-import { fixturePasswordHash } from "../test/integration/credentials";
+import { fixturePasswordHash, tokenForHuman } from "../test/integration/credentials";
 import { mintAgentCredential } from "../services/agentCredentialService";
 import { createAgent } from "../services/agentService";
 import { addAgent, addHuman, createChannel, getOrCreateThread, updateChannel } from "../services/channelService";
 import { broadcastAndDeliver, createMessage } from "../services/messageService";
-import { createServer } from "../services/serverService";
+import { addMember, createServer } from "../services/serverService";
 import { taskLinkedMessageSummary } from "../services/replyModeService";
 import { listTaskHistory } from "../services/taskService";
 import type { AgentOrchestrator } from "../services/agentOrchestrator";
@@ -376,4 +376,57 @@ test("reply mode views: task, reply chain and mine, with hidden gaps and counts"
   assert.deepEqual(await viewForActivityMessage(channel.id, ids.m2, owner.id), { kind: "chain", messageId: ids.m2 });
   assert.deepEqual(await viewForActivityMessage(channel.id, ids.t1, owner.id), { kind: "task", taskNumber: 1, title: "Fix deploy" });
   assert.equal(await viewForActivityMessage(channel.id, ids.noise1, owner.id), null);
+});
+
+test("reply mode, people: a reply can leave an inherited task; the sender or an admin adjusts a message's tasks", async ({ app }) => {
+  installRecordingOrchestrator(app.app);
+  const { owner, server, channel } = await setup("rm-human");
+  await updateChannel(channel.id, { replyMode: true });
+  const [member] = await getDb().insert(users).values({
+    email: `rm-member-${randomUUID()}@slock.test`, name: `rm-member-${randomUUID().slice(0, 8)}`, displayName: "member",
+    passwordHash: await fixturePasswordHash("password123"), emailVerified: true, profileSetupCompletedAt: new Date("2026-01-01T00:00:00.000Z"),
+  }).returning();
+  await addMember(server.id, member!.id, "member");
+  await addHuman(channel.id, member!.id);
+  for (const [taskNumber, title] of [[1, "One"], [2, "Two"]] as const) {
+    await getDb().insert(tasks).values({ channelId: channel.id, taskNumber, title, status: "todo", createdByType: "user", createdById: owner.id });
+  }
+  const call = async (email: string, path: string, body: unknown) => {
+    const res = await fetch(`${app.baseUrl}/api${path}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${await tokenForHuman(email)}`, "X-Server-Id": server.id, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return { status: res.status, body: await res.json() as Body };
+  };
+  const taskNumbersOf = async (messageId: string) => {
+    const rows = await getDb().select({ n: tasks.taskNumber }).from(messageTasks).innerJoin(tasks, eq(tasks.id, messageTasks.taskId)).where(eq(messageTasks.messageId, messageId));
+    return rows.map((r) => r.n).sort();
+  };
+
+  const original = await call(member!.email!, "/v2/messages", { channelId: channel.id, content: "about both", taskNumbers: [1, 2] });
+  assert.equal(original.status, 200, JSON.stringify(original.body));
+  const originalId = sentId(original.body);
+  assert.deepEqual(await taskNumbersOf(originalId), [1, 2]);
+
+  // The reply bar's ×: the reply joins task 1 only.
+  const reply = await call(owner.email!, "/v2/messages", { channelId: channel.id, content: "just one", replyToMessageId: originalId, excludeTaskNumbers: [2] });
+  assert.equal(reply.status, 200, JSON.stringify(reply.body));
+  assert.deepEqual(await taskNumbersOf(sentId(reply.body)), [1]);
+
+  // ⋯ Adjust task links: its sender can.
+  const bySender = await call(member!.email!, `/messages/${originalId}/tasks`, { remove: [1] });
+  assert.equal(bySender.status, 200, JSON.stringify(bySender.body));
+  assert.deepEqual(bySender.body.taskNumbers, [2]);
+  // Another member can't change someone else's message.
+  const replyId = sentId(reply.body);
+  await getDb().update(messages).set({ senderId: owner.id }).where(eq(messages.id, replyId));
+  const byOther = await call(member!.email!, `/messages/${replyId}/tasks`, { add: [2] });
+  assert.equal(byOther.status, 403, JSON.stringify(byOther.body));
+  // The server owner can change anyone's.
+  const byOwner = await call(owner.email!, `/messages/${originalId}/tasks`, { add: [1] });
+  assert.equal(byOwner.status, 200, JSON.stringify(byOwner.body));
+  assert.deepEqual(byOwner.body.taskNumbers, [1, 2]);
+  const empty = await call(owner.email!, `/messages/${originalId}/tasks`, {});
+  assert.equal(empty.status, 400);
 });

@@ -3,7 +3,7 @@ import { ThreadIcon } from "@botiverse/ricons";
 import { useCallback, useEffect, useRef } from "react";
 import type { MouseEvent, PointerEvent } from "react";
 import { useIntl } from "react-intl";
-import { Bookmark, Ellipsis, BookmarkMinus } from "lucide-react";
+import { Bookmark, Ellipsis, BookmarkMinus, CornerUpLeft } from "lucide-react";
 import { ForwardIcon } from "./messageForwardIcon";
 import ReactionGlyph from "./ReactionGlyph";
 import { DEFAULT_FAVORITE_REACTION } from "./reactionFavorite";
@@ -39,6 +39,8 @@ export interface MessageHoverToolbarProps {
   /** Read access does not imply reaction mutation authority. */
   canReact?: boolean;
   onReplyInThread: (e: MouseEvent) => void;
+  /** A channel that uses replies: a quote reply in the composer, where Reply in Thread would be. */
+  onReply?: (e: MouseEvent) => void;
   /** A tap on a touch screen: open the reaction picker, as before. */
   onReactionClick: (e: MouseEvent<HTMLButtonElement>) => void;
   /** A mouse click, Enter or Space: toggle `quickReaction` on the message. */
@@ -54,7 +56,7 @@ export interface MessageHoverToolbarProps {
   moreActive?: boolean;
 }
 
-export type MessageHoverToolbarAction = "reaction" | "thread" | "forward" | "bookmark" | "more";
+export type MessageHoverToolbarAction = "reaction" | "reply" | "thread" | "forward" | "bookmark" | "more";
 
 /**
  * The toolbar's buttons, in order. The order follows the message context menu
@@ -69,7 +71,9 @@ export function messageHoverToolbarActions({
   canReact = true,
   canForward,
   canMore = false,
+  canReply = false,
 }: {
+  canReply?: boolean;
   hideThreadActions?: boolean;
   isSystem?: boolean;
   canReact?: boolean;
@@ -78,7 +82,8 @@ export function messageHoverToolbarActions({
 }): MessageHoverToolbarAction[] {
   const actions: MessageHoverToolbarAction[] = [];
   if (!isSystem && canReact) actions.push("reaction");
-  if (!hideThreadActions) actions.push("thread");
+  if (canReply) actions.push("reply");
+  else if (!hideThreadActions) actions.push("thread");
   if (canForward) actions.push("forward");
   actions.push("bookmark");
   if (canMore) actions.push("more");
@@ -94,6 +99,7 @@ export function MessageHoverToolbar({
   isSystem,
   canReact = true,
   onReplyInThread,
+  onReply,
   onReactionClick,
   onQuickReact,
   onReactionHoverOpen,
@@ -104,7 +110,7 @@ export function MessageHoverToolbar({
 }: MessageHoverToolbarProps) {
   const coarsePointer = useMediaQuery("(pointer: coarse)");
   const { formatMessage } = useIntl();
-  const actions = messageHoverToolbarActions({ hideThreadActions, isSystem, canReact, canForward: !!onForward, canMore: !!onMore });
+  const actions = messageHoverToolbarActions({ hideThreadActions, isSystem, canReact, canForward: !!onForward, canMore: !!onMore, canReply: !!onReply });
   const hoverOpenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cancelHoverOpen = useCallback(() => {
     if (hoverOpenTimerRef.current) clearTimeout(hoverOpenTimerRef.current);
@@ -196,6 +202,17 @@ export function MessageHoverToolbar({
                   <ReactionGlyph emoji={quickReaction} size={16} className="block" />
                 </MessageItemToolbarButton>
               </Tooltip>
+            );
+          case "reply":
+            return (
+              <MessageItemToolbarButton
+                key={action}
+                onClick={onReply}
+                aria-label={formatMessage({ id: "message.messageItem.reply" })}
+                data-message-affordance="reply"
+              >
+                <CornerUpLeft size={16} aria-hidden="true" />
+              </MessageItemToolbarButton>
             );
           case "thread":
             return (

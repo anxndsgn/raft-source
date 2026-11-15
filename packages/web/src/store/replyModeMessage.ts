@@ -21,12 +21,13 @@ export interface ReplyModeMessageFields {
  * a task view, the view's task. `fields` go on the POST; `done()` clears the
  * reply target once sent (unless another was picked meanwhile).
  */
-export function replyModeSendFields(channelId: string): { fields: { replyToMessageId?: string; taskNumbers?: number[] }; done: () => void } {
+export function replyModeSendFields(channelId: string): { fields: { replyToMessageId?: string; taskNumbers?: number[]; excludeTaskNumbers?: number[] }; done: () => void } {
   const replyTarget = useReplyTargetStore.getState().targets[channelId];
   const viewTaskNumber = timelineViewComposerTaskNumber(channelId);
   return {
     fields: {
       ...(replyTarget ? { replyToMessageId: replyTarget.messageId } : {}),
+      ...(replyTarget?.excludedTaskNumbers?.length ? { excludeTaskNumbers: replyTarget.excludedTaskNumbers } : {}),
       ...(viewTaskNumber ? { taskNumbers: [viewTaskNumber] } : {}),
     },
     done: () => {

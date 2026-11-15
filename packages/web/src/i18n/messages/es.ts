@@ -9783,4 +9783,13 @@ export const es: Partial<Record<MessageId, string>> = {
   "team.preview.titleIdle": "Ningún agente trabajando{held, plural, =0 {} one { · # detenido} many { · # detenidos} other { · # detenidos}}",
   "message.composer.newTaskChip": "Tarea nueva",
   "message.composer.newTaskCancel": "Cancelar la tarea nueva",
+  "message.reply.joinsTask": "Se une a la tarea #{number}",
+  "message.reply.leaveTask": "No unir esta respuesta a la tarea #{number}",
+  "message.taskLinks.title": "Ajustar tareas vinculadas",
+  "message.taskLinks.description": "Marca las tareas a las que pertenece este mensaje. Aparecerá en sus conversaciones.",
+  "message.taskLinks.none": "Este canal no tiene tareas abiertas.",
+  "message.taskLinks.loading": "Cargando tareas…",
+  "message.taskLinks.failed": "No se pudieron cambiar las tareas vinculadas. Inténtalo de nuevo.",
+  "message.taskLinks.save": "Guardar",
+  "message.taskLinks.saving": "Guardando",
 };

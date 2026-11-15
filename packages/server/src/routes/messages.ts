@@ -184,6 +184,8 @@ type HumanMessageCreateBody = {
   replyToMessageId?: string;
   /** Reply mode: task numbers in the channel to link the message to. */
   taskNumbers?: number[];
+  /** Reply mode: tasks of the original the reply should not inherit (the composer's "Will link to Task #N ×"). */
+  excludeTaskNumbers?: number[];
 };
 
 function parseHumanMessageCreateBody(value: unknown): HumanMessageCreateBody | "invalid" {
@@ -217,6 +219,13 @@ function parseHumanMessageCreateBody(value: unknown): HumanMessageCreateBody | "
     taskNumbers = raw.taskNumbers as number[];
   }
 
+  let excludeTaskNumbers: number[] | undefined;
+  if (raw.excludeTaskNumbers !== undefined) {
+    if (!Array.isArray(raw.excludeTaskNumbers) || raw.excludeTaskNumbers.length > 20) return "invalid";
+    if (raw.excludeTaskNumbers.some((n) => !Number.isInteger(n) || (n as number) <= 0)) return "invalid";
+    excludeTaskNumbers = raw.excludeTaskNumbers as number[];
+  }
+
   return {
     channelId: raw.channelId,
     content: raw.content,
@@ -224,6 +233,7 @@ function parseHumanMessageCreateBody(value: unknown): HumanMessageCreateBody | "
     asTask,
     ...(replyToMessageId ? { replyToMessageId } : {}),
     ...(taskNumbers && taskNumbers.length > 0 ? { taskNumbers } : {}),
+    ...(excludeTaskNumbers && excludeTaskNumbers.length > 0 ? { excludeTaskNumbers } : {}),
   };
 }
 
@@ -1873,7 +1883,7 @@ async function createHumanMessage(
       res.status(400).json({ error: "Invalid message request body" });
       return;
     }
-    const { channelId, content, attachmentIds, asTask, replyToMessageId, taskNumbers } = parsedBody;
+    const { channelId, content, attachmentIds, asTask, replyToMessageId, taskNumbers, excludeTaskNumbers } = parsedBody;
     const randomId = parseRandomId(req.body.randomId);
     if (randomId === INVALID_RANDOM_ID) {
       res.status(400).json({ error: `randomId must be a non-empty string with at most ${MAX_RANDOM_ID_LENGTH} characters` });
@@ -1930,7 +1940,9 @@ async function createHumanMessage(
       try {
         const original = replyToMessageId ? await replyModeService.resolveReplyTarget(channelId, replyToMessageId) : null;
         const explicitTaskIds = taskNumbers && channel.type !== "dm" ? await replyModeService.resolveTaskNumbers(channelId, taskNumbers) : [];
-        const inheritedTaskIds = original ? await replyModeService.getLinkedTaskIds(original.id) : [];
+        // Inherited from the original, less any the person took off before sending (task #10 item 4.2).
+        const excludedTaskIds = new Set(excludeTaskNumbers && channel.type !== "dm" ? await replyModeService.resolveTaskNumbers(channelId, excludeTaskNumbers).catch(() => []) : []);
+        const inheritedTaskIds = (original ? await replyModeService.getLinkedTaskIds(original.id) : []).filter((id) => !excludedTaskIds.has(id));
         replyFacts = { replyToMessageId: original?.id ?? null, taskIds: [...new Set([...explicitTaskIds, ...inheritedTaskIds])] };
       } catch (err) {
         if (err instanceof replyModeService.ReplyModeRefusal) {
@@ -2309,6 +2321,58 @@ messageRouter.post("/:messageId/reactions", async (req, res) => {
       return;
     }
     sendJsonServerError(req, res, { error: "Failed to add reaction", logPrefix: "Add reaction error:", err });
+  }
+});
+
+/**
+ * Reply mode (task #10 item 4.2): change which tasks a message on a reply-mode channel's timeline is linked to —
+ * the message's ⋯ "Adjust task links". Its sender or a server owner or admin; each change is recorded on the task
+ * (message_linked / message_unlinked), as an agent's `raft message retag`. Open clients get the message again.
+ */
+messageRouter.post("/:messageId/tasks", async (req, res) => {
+  try {
+    const body = (req.body ?? {}) as { add?: unknown; remove?: unknown };
+    const numbers = (value: unknown): number[] | null => {
+      if (value === undefined) return [];
+      if (!Array.isArray(value) || value.length > 20 || value.some((n) => !Number.isInteger(n) || (n as number) <= 0)) return null;
+      return value as number[];
+    };
+    const add = numbers(body.add);
+    const remove = numbers(body.remove);
+    if (!add || !remove || add.length + remove.length === 0) {
+      res.status(400).json({ error: "Name the tasks to add or remove", code: "retag_empty" });
+      return;
+    }
+    const visibleMessage = await loadVisibleMessageForUser(req.params.messageId, req.userId!, req.serverId!, res);
+    if (!visibleMessage) return;
+    const { message, localChannelId } = visibleMessage;
+    if (!await replyModeService.isReplyModeChannel(message.channelId)) {
+      res.status(400).json({ error: "Only messages on the timeline of a channel that uses replies can be linked to tasks.", code: "reply_mode_off" });
+      return;
+    }
+    const role = await serverService.getMemberRole(req.serverId!, req.userId!);
+    const isSender = message.senderType === "user" && message.senderId === req.userId;
+    if (!isSender && role !== "owner" && role !== "admin") {
+      res.status(403).json({ error: "Only the message's sender or a server admin can change its task links.", code: "target_forbidden" });
+      return;
+    }
+    await channelService.assertChannelNotArchived(localChannelId);
+    const actor = { type: "user" as const, id: req.userId! };
+    await getDb().transaction(async (tx) => {
+      const addIds = add.length > 0 ? await replyModeService.resolveTaskNumbers(message.channelId, add, tx) : [];
+      const removeIds = remove.length > 0 ? await replyModeService.resolveTaskNumbers(message.channelId, remove, tx) : [];
+      if (removeIds.length > 0) await replyModeService.unlinkMessageFromTasks(tx, message.id, removeIds, actor);
+      if (addIds.length > 0) await replyModeService.linkMessageToTasks(tx, message.id, addIds, actor);
+    });
+    await emitAttachmentPreviewMessageUpdate(req.app.get("io"), message.id);
+    const facts = await replyModeService.loadReplyModeMessageFacts([{ id: message.id, channelId: message.channelId }]);
+    res.json({ messageId: message.id, taskNumbers: facts.taskNumbers.get(message.id) ?? [] });
+  } catch (err) {
+    if (err instanceof replyModeService.ReplyModeRefusal) {
+      res.status(err.status).json({ error: err.message, code: err.code });
+      return;
+    }
+    sendJsonServerError(req, res, { error: "Failed to change the message's tasks", logPrefix: "messages.tasks error:", err });
   }
 });
 

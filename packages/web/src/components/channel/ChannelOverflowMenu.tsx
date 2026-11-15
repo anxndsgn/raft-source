@@ -361,9 +361,9 @@ export default function ChannelOverflowMenu({
   const middle = Children.toArray(middleActions);
   const foldable = middleItems && middleItems.length === middle.length;
   const total = 2 + middle.length;
-  // A phone's head keeps one ⋯ for them all (task #10 item 1): Search, the toggles, Members, Info and settings.
+  // A phone's head keeps Search and one ⋯ for the rest (task #10 item 1; anxndsgn 11/16): the toggles, Members, Info and settings.
   const allFold = !desktopShell;
-  const folds = allFold ? total + (lead ? 1 : 0) : fold;
+  const folds = allFold ? total - 1 + (lead ? 1 : 0) : fold;
   const leadItem = lead && folds > 0 ? lead.item : null; // the lead folds first, then the rest, the last first
   const shown = total - Math.min(foldable || allFold ? folds - (lead && folds > 0 ? 1 : 0) : 0, total);
   const searchLabel = formatMessage({ id: "message.chatPanel.searchChannel" });

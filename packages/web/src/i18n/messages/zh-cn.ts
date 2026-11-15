@@ -9894,4 +9894,13 @@ export const zhCn: Record<MessageId, string> = {
   "team.preview.titleIdle": "没有 agent 在工作{held, plural, =0 {} other { · # 个被卡住}}",
   "message.composer.newTaskChip": "新任务",
   "message.composer.newTaskCancel": "取消新任务",
+  "message.reply.joinsTask": "会挂到 任务 #{number}",
+  "message.reply.leaveTask": "这条回复不挂到任务 #{number}",
+  "message.taskLinks.title": "调整任务关联",
+  "message.taskLinks.description": "勾选这条消息属于的任务，它会出现在这些任务的讨论里。",
+  "message.taskLinks.none": "这个频道没有进行中的任务。",
+  "message.taskLinks.loading": "正在加载任务…",
+  "message.taskLinks.failed": "没能修改任务关联，请重试。",
+  "message.taskLinks.save": "保存",
+  "message.taskLinks.saving": "正在保存",
 };
