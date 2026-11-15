@@ -1,11 +1,10 @@
 import { useIntl } from "react-intl";
-import { useShallow } from "zustand/react/shallow";
+import { useTeamAttentionMachines } from "../../utils/teamComputerAttention";
 import { useFeedbackUnread } from "../../feedback/useFeedbackUnread";
 import { useComputerAttentionDot } from "../../hooks/useComputerAttentionDot";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
 import { useAuthStore } from "../../store/authStore";
 import { useServerStore } from "../../store/serverStore";
-import { useMachineStore } from "../../store/machineStore";
 import { countMachinesNeedingAttention } from "../../utils/computerUpgradeIndicator";
 import { useAppPermissionUpdatesSummary } from "./useAppPermissionUpdates";
 
@@ -35,10 +34,9 @@ export interface ServerPageAttention {
 export function useComputersPageAttention(): ServerPageAttention {
   const { formatMessage } = useIntl();
   const lit = useComputerAttentionDot();
-  const [count, total] = useMachineStore(useShallow((s) => [
-    countMachinesNeedingAttention(s.machines),
-    s.machines.length,
-  ] as const));
+  const machines = useTeamAttentionMachines();
+  const count = countMachinesNeedingAttention(machines);
+  const total = machines.length;
   return {
     lit,
     label: formatMessage(

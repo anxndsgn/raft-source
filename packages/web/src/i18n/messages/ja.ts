@@ -9781,4 +9781,5 @@ export const ja: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineOne": "{name} がオフライン · {agent} が停止",
   "layout.systemNotifications.machineOfflineMany": "{name} がオフライン · Agent {count} 件が停止",
   "team.computer.runtimeWindow": "{runtime} · {window}",
+  "team.preview.titleIdle": "作業中の Agent はいません{held, plural, =0 {} other { · # 件停止中}}",
 };

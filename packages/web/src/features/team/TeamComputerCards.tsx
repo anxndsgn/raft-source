@@ -50,7 +50,10 @@ export function TeamComputerCards({ machines, workingByMachine }: {
     <div className="grid items-start gap-3 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]" data-testid="team-computer-cards">
       {ordered.map((machine) => {
         const online = machine.status === "online";
-        const agents = (agentsByMachine.get(machine.id) ?? []).filter(isAgentInMemberLists).length;
+        const listed = (agentsByMachine.get(machine.id) ?? []).filter(isAgentInMemberLists);
+        const agents = listed.length;
+        // Paused by its computer: the agents no one stopped (a person's stopped agent isn't waiting on it, Anna 11/16).
+        const paused = listed.filter((agent) => agent.status !== "stopped").length;
         const version = machine.computerVersion ?? machine.daemonVersion;
         // Online: what it runs and its version. Offline (computers.md › The compact card): when it was last
         // seen, and how many agents on it are paused, in warning-strong.
@@ -60,7 +63,7 @@ export function TeamComputerCards({ machines, workingByMachine }: {
           : (
             <>
               {lastSeen ? formatMessage({ id: "machine.rack.lastSeen" }, { time: lastSeen }) : formatMessage({ id: "machine.rack.filter.status.offline" })}
-              {agents > 0 ? <span className="text-warning-strong before:px-1 before:text-foreground-muted before:content-['·']">{formatMessage({ id: "team.computer.agentsPaused" }, { count: agents })}</span> : null}
+              {paused > 0 ? <span className="text-warning-strong before:px-1 before:text-foreground-muted before:content-['·']">{formatMessage({ id: "team.computer.agentsPaused" }, { count: paused })}</span> : null}
             </>
           );
         const results = usage.get(machine.id) ?? null;

@@ -9780,4 +9780,5 @@ export const ko: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineOne": "{name} 오프라인 · {agent} 멈춤",
   "layout.systemNotifications.machineOfflineMany": "{name} 오프라인 · Agent {count}개 멈춤",
   "team.computer.runtimeWindow": "{runtime} · {window}",
+  "team.preview.titleIdle": "작업 중인 Agent 없음{held, plural, =0 {} other { · #개 멈춤}}",
 };

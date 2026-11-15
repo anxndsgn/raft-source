@@ -5,6 +5,7 @@ import { useIntl } from "react-intl";
 import { currentTimeMs } from "@botiverse/raft-shared";
 import { useComputersRackFilters } from "../../store/computersRackFilterPreference";
 import { useMachineStore } from "../../store/machineStore";
+import { useTeamAttentionMachines } from "../../utils/teamComputerAttention";
 import type { Machine } from "../../store/machineStore";
 import { useProfileStore } from "../../store/profileStore";
 import { formatAttentionItem, formatWaitBackIn, readinessDoLabel } from "../../utils/readinessCopy";
@@ -30,7 +31,8 @@ const LINE_CLASS = "flex min-w-0 flex-wrap items-center gap-x-1.5";
  */
 export function ComputersAttentionSummary() {
   const { formatMessage } = useIntl();
-  const machines = useMachineStore((s) => s.machines);
+  // The Team page's attention rule: an offline computer no agent waits on isn't counted (useTeamAttentionMachines).
+  const machines = useTeamAttentionMachines();
   const machinesLoading = useMachineStore((s) => s.loading);
   const machinesLoaded = useMachineStore((s) => s.loadStatus === "loaded" && !s.loading);
   const setFilters = useComputersRackFilters((s) => s.set);

@@ -9891,4 +9891,5 @@ export const zhCn: Record<MessageId, string> = {
   "layout.systemNotifications.machineOfflineOne": "{name} 离线 · {agent} 已停工",
   "layout.systemNotifications.machineOfflineMany": "{name} 离线 · {count} 个 agent 已停工",
   "team.computer.runtimeWindow": "{runtime} · {window}",
+  "team.preview.titleIdle": "没有 agent 在工作{held, plural, =0 {} other { · # 个被卡住}}",
 };

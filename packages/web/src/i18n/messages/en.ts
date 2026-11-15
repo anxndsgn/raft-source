@@ -10000,6 +10000,7 @@ export const en = {
   "layout.systemNotifications.machineOfflineOne": "{name} is offline · {agent} stopped",
   "layout.systemNotifications.machineOfflineMany": "{name} is offline · {count, plural, one {# agent} other {# agents}} stopped",
   "team.computer.runtimeWindow": "{runtime} · {window}",
+  "team.preview.titleIdle": "No agent working{held, plural, =0 {} other { · # held up}}",
 } as const;
 
 export type MessageId = keyof typeof en;

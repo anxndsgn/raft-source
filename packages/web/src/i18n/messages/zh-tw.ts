@@ -9780,4 +9780,5 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineOne": "{name} 離線 · {agent} 已停工",
   "layout.systemNotifications.machineOfflineMany": "{name} 離線 · {count} 個 Agent 已停工",
   "team.computer.runtimeWindow": "{runtime} · {window}",
+  "team.preview.titleIdle": "沒有 Agent 在工作{held, plural, =0 {} other { · # 個被卡住}}",
 };

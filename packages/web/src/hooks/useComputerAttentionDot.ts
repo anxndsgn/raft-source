@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import { useTeamAttentionMachines } from "../utils/teamComputerAttention";
 import { create } from "zustand";
 import { useAuthStore } from "../store/authStore";
 import { useMachineStore } from "../store/machineStore";
@@ -48,7 +49,8 @@ function useSeenStorageKey(): string | null {
 
 /** Current attention pairs as a primitive, and whether the list is loaded. */
 function useAttentionKey(): { key: string; loaded: boolean } {
-  const key = useMachineStore((s) => computerAttentionKey(s.machines));
+  // The Team page's rule: an offline computer with no agent waiting on it needs no one (useTeamAttentionMachines).
+  const key = computerAttentionKey(useTeamAttentionMachines());
   const loaded = useMachineStore((s) => s.loadStatus === "loaded");
   return { key, loaded };
 }

@@ -6,7 +6,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@botiverse/raft-ui";
 import type { PopoverProps } from "@botiverse/raft-ui";
 import { useWorkingAgentCount } from "../../features/team/teamWorking";
 import { TeamWorkingPreview } from "../../features/team/TeamWorkingPreview";
-import { useUsageLimitAttention } from "./useUsageLimitAttention";
 import { RailTabButton } from "./RailTabButton";
 import type { RailTabDrag } from "./SortableRailTabs";
 
@@ -25,8 +24,6 @@ export function TeamRailTab({ dragProps, onClick, active, attentionDot, attentio
 }) {
   const { formatMessage } = useIntl();
   const working = useWorkingAgentCount();
-  // Held agents are the inbox's usage-limit notices: the preview opens for them too.
-  const held = new Set(useUsageLimitAttention().notifications.flatMap((notice) => notice.affectedAgentIds)).size;
   const [open, setOpen] = useState(false);
   const label = working > 0
     ? formatMessage({ id: "team.rail.working" }, { count: working })
@@ -51,11 +48,11 @@ export function TeamRailTab({ dragProps, onClick, active, attentionDot, attentio
       showDot={attentionDot}
       dotInactiveOnly
       dotTooltip={attentionTooltip}
-      showTooltip={working + held === 0}
+      // Hovering always shows the preview (Anna 11/16), nobody working included: it is the tooltip.
+      showTooltip={false}
       testId="left-rail-tab-team"
     />
   );
-  if (working + held === 0) return button;
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger openOnHover delay={250} closeDelay={150} render={button} />

@@ -9,7 +9,6 @@ import type { Server } from "../../store/serverStore";
 import { useMessageStore } from "../../store/messageStore";
 import { useInboxStore } from "../../store/inboxStore";
 import { useChannelStore } from "../../store/channelStore";
-import { useMachineStore } from "../../store/machineStore";
 import { useInboxForMeCount } from "../../features/thread/inboxForMe";
 import { SERVER_NOTIFICATION_PREFS_UPDATED_EVENT } from "../../store/events/notificationPrefsEvents";
 import type { RailMode } from "../../hooks/useSidebarTab";
@@ -29,6 +28,7 @@ import { useArtifactsRailShown } from "./artifactsRailEntry";
 import { PublicServerSwitcherTrigger } from "./PublicServerSwitcherTrigger";
 import { RailTabButton } from "./RailTabButton";
 import { TeamRailTab } from "./TeamRailTab";
+import { useTeamAttentionMachines } from "../../utils/teamComputerAttention";
 import AvatarSlot from "../ui/AvatarSlot";
 import ServerSwitcherMenu from "../ui/ServerSwitcherMenu";
 import {
@@ -141,10 +141,10 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
     s.totalUnreadCount + s.objectUnreadCount > 0,
     s.activeUnreadCount > 0,
   ] as const));
-  const [computerAttentionCount, machineCount] = useMachineStore(useShallow((s) => [
-    countMachinesNeedingAttention(s.machines),
-    s.machines.length,
-  ] as const));
+  // The Team page's attention rule (useTeamAttentionMachines): the same count as Needs you and the inbox.
+  const teamAttentionMachines = useTeamAttentionMachines();
+  const computerAttentionCount = countMachinesNeedingAttention(teamAttentionMachines);
+  const machineCount = teamAttentionMachines.length;
   // Raft DS › Attention dots (raft-design #620): the dot marks an unseen
   // change; opening Computers sees it. The tooltip still counts the state.
   const showComputerAttentionDot = useComputerAttentionDot();
