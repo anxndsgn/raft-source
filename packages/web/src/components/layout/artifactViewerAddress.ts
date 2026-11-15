@@ -200,10 +200,15 @@ export function useArtifactViewerAddress(): void {
   // Store → address.
   useEffect(() => useArtifactViewerStore.subscribe((state, prev) => {
     if (state.open === prev.open && state.picked === prev.picked) return;
-    if (state.open?.thread) return; // a thread's workspace tab: not an address (§5)
     const entry = liveArtifactAddressEntry();
     const places = addressedPlacesOf(entry.pathname, entry.search);
     if (!places) return;
+    // A thread's workspace tab (§5) has no address: the Artifact's leaves it, or the address would bring that back.
+    if (state.open?.thread) {
+      const shown = readArtifactAddress(new URLSearchParams(entry.search));
+      if (shown && !shown.legacy) writeArtifactAddress(navigate, artifactAddressClosing(entry, {}), { record: true });
+      return;
+    }
     const asked = readArtifactAddress(new URLSearchParams(entry.search));
     const inAddress = asked && !asked.legacy ? asked : null;
     const place = placeOf(state.open, places);
