@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { useIntl } from "react-intl";
-import { ChevronDown, ChevronRight, TriangleAlert } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { Button, TaskStatusIcon } from "@botiverse/raft-ui";
-import { TaskSectionRow } from "@botiverse/raft-ui-ext";
+import { AgentStateMark, TaskSectionRow } from "@botiverse/raft-ui-ext";
 
 import { useAgentDisplayState } from "../../store/agentStore";
 import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
@@ -99,7 +99,7 @@ function SectionTaskRow({ task, viewerId, selected, onOpen, resetsAtByAgent }: {
     task.claimedById ? <TaskAssigneeLabel key="a" task={task} identity={identity} viewerId={viewerId} /> : (
       <span key="u">{formatMessage({ id: "taskSection.unclaimed" }, { name: task.createdByName ?? "" })}</span>
     ),
-    live.text ? <span key="s" title={live.title} className={live.warning ? "inline-flex items-center gap-1 text-warning-strong" : "inline-flex items-center gap-1"}>{live.warning ? <TriangleAlert className="size-3" aria-hidden /> : <span aria-hidden className="size-2.5 rounded-full border border-dashed border-information-strong" />}{live.text}</span> : null,
+    live.text ? <span key="s" title={live.title} className={live.warning ? "inline-flex items-center gap-1 text-warning-strong" : "inline-flex items-center gap-1"}><AgentStateMark state={live.warning ? "held" : "working"} />{live.text}</span> : null,
   ], [formatMessage, identity, live.text, live.title, live.warning, task, viewerId]);
   return (
     <TaskSectionRow
