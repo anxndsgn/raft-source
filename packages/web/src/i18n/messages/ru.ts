@@ -9779,4 +9779,5 @@ export const ru: Partial<Record<MessageId, string>> = {
   "team.computer.open": "Открыть {name}",
   "layout.systemNotifications.machineOfflineAgentsBody": "{count, plural, one {На нём # агент, он остановлен до переподключения.} few {На нём # агента, они остановлены до переподключения.} many {На нём # агентов, они остановлены до переподключения.} other {На нём # агента, они остановлены до переподключения.}}",
   "team.computer.agentsPaused": "{count, plural, one {# агент приостановлен} few {# агента приостановлены} many {# агентов приостановлены} other {# агента приостановлены}}",
+  "members.page.group.byType": "По типу",
 };

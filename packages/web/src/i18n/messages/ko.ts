@@ -9777,4 +9777,5 @@ export const ko: Partial<Record<MessageId, string>> = {
   "team.computer.open": "{name} 열기",
   "layout.systemNotifications.machineOfflineAgentsBody": "Agent {count}개가 이 컴퓨터에 있으며 다시 연결될 때까지 멈춥니다.",
   "team.computer.agentsPaused": "Agent {count}개 일시 중지됨",
+  "members.page.group.byType": "유형별",
 };

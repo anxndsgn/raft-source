@@ -9778,4 +9778,5 @@ export const ja: Partial<Record<MessageId, string>> = {
   "team.computer.open": "{name} を開く",
   "layout.systemNotifications.machineOfflineAgentsBody": "Agent {count} 件がここで動いており、再接続まで停止します。",
   "team.computer.agentsPaused": "Agent {count} 件が一時停止中",
+  "members.page.group.byType": "種類別",
 };

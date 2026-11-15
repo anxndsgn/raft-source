@@ -7,6 +7,8 @@
  */
 export type AgentState = "working" | "idle" | "offline" | "held";
 
+const MARK_BOX = { width: 12, height: 12 } as const;
+
 export function AgentStateMark({ state, label, className, ...props }: {
   state: AgentState;
   /** Its accessible name, the state ("Working"). Without it, the mark is decoration beside the words. */
@@ -16,7 +18,8 @@ export function AgentStateMark({ state, label, className, ...props }: {
 }) {
   const a11y = label ? { role: "img", "aria-label": label } : { "aria-hidden": true as const };
   return (
-    <svg {...props} {...a11y} data-agent-state={state} width="12" height="12" viewBox="0 0 12 12" className={`shrink-0 ${className ?? ""}`}>
+    // Its size inline: an icon slot (a list row's, a rail item's) sizes the svgs in it as icons; this mark is 12px.
+    <svg {...props} {...a11y} data-agent-state={state} width="12" height="12" style={MARK_BOX} viewBox="0 0 12 12" className={`shrink-0 ${className ?? ""}`}>
       {state === "working" ? (
         <circle cx="6" cy="6" r="4.75" fill="none" strokeWidth="1.5" strokeDasharray="2.5 1.5" className="stroke-info" />
       ) : state === "idle" ? (

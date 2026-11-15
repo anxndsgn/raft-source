@@ -1,13 +1,13 @@
 import { useEffect, useMemo } from "react";
-import { isExternalAgentRuntime } from "@botiverse/raft-shared";
 import type { AgentState as AgentMarkState } from "@botiverse/raft-ui-ext";
 import { useUsageLimitAttention } from "../../components/layout/useUsageLimitAttention";
-import { isAgentInMemberLists, resolveAgentDisplayState, useAgentStore } from "../../store/agentStore";
+import { isAgentInMemberLists, useAgentStore } from "../../store/agentStore";
 import type { Agent } from "../../store/agentStore";
 import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
-import { isMachineOffline, useMachineStore } from "../../store/machineStore";
+import { useMachineStore } from "../../store/machineStore";
 import { useTaskStore } from "../../store/taskStore";
 import type { Task } from "../../store/taskStore";
+import { agentMarkState, teamDisplayState } from "./teamWorking";
 
 /** One agent on the Team page and in the Team tab's preview (PRD 团队页 §4, §5.1). */
 export interface TeamAgentRow {
@@ -83,14 +83,17 @@ export function useTeamAgents(): TeamAgents {
         held.push({ ...row, state: "held", resetsAt: resetsAt.get(agent.id) ?? null, task: waiting[0] ?? null, waitingTasks: waiting.length, provider: provider.get(agent.id) ?? null });
         continue;
       }
-      const external = agent.external === true || isExternalAgentRuntime(agent.runtime);
-      const display = resolveAgentDisplayState(agent, activities[agent.id], external, undefined, isMachineOffline(machines, agent.machineId));
-      if (display.activity === "working" || display.activity === "thinking") {
+      const display = teamDisplayState(agent, activities, machines);
+      const state = agentMarkState(display);
+      if (state === "working") {
         working.push({ ...row, state: "working", startedAt: startedAt.get(agent.id) ?? null, task: inProgress });
-      } else if (display.isOnline) {
+      } else if (state === "idle") {
         idle.push(row);
+      } else if (state === "held") {
+        // Its own usage_limit error, before the server's notice says when it resumes.
+        held.push({ ...row, state, task: theirs.find((task) => task.status !== "in_review") ?? null, waitingTasks: theirs.filter((task) => task.status !== "in_review").length });
       } else {
-        offline.push({ ...row, state: "offline" });
+        offline.push({ ...row, state });
       }
     }
     // Who started first, first: the order the live store keeps.

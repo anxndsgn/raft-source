@@ -3,6 +3,8 @@ import { useIntl } from "react-intl";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Button, TaskStatusIcon } from "@botiverse/raft-ui";
 import { AgentStateMark, TaskSectionRow } from "@botiverse/raft-ui-ext";
+import type { AgentState } from "@botiverse/raft-ui-ext";
+import { agentMarkState } from "../../features/team/teamWorking";
 
 import { useAgentDisplayState } from "../../store/agentStore";
 import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
@@ -99,8 +101,8 @@ function SectionTaskRow({ task, viewerId, selected, onOpen, resetsAtByAgent }: {
     task.claimedById ? <TaskAssigneeLabel key="a" task={task} identity={identity} viewerId={viewerId} /> : (
       <span key="u">{formatMessage({ id: "taskSection.unclaimed" }, { name: task.createdByName ?? "" })}</span>
     ),
-    live.text ? <span key="s" title={live.title} className={live.warning ? "inline-flex items-center gap-1 text-warning-strong" : "inline-flex items-center gap-1"}><AgentStateMark state={live.warning ? "held" : "working"} />{live.text}</span> : null,
-  ], [formatMessage, identity, live.text, live.title, live.warning, task, viewerId]);
+    live.text ? <span key="s" title={live.title} className={live.warning ? "inline-flex items-center gap-1 text-warning-strong" : "inline-flex items-center gap-1"}><AgentStateMark state={live.mark} />{live.text}</span> : null,
+  ], [formatMessage, identity, live.mark, live.text, live.title, live.warning, task, viewerId]);
   return (
     <TaskSectionRow
       status={<TaskStatusIcon status={toRuiTaskStatus(task.status)} className="size-2.5" />}
@@ -118,29 +120,31 @@ function SectionTaskRow({ task, viewerId, selected, onOpen, resetsAtByAgent }: {
 }
 
 /** An agent's task: working (for how long, its step) or held (a usage limit, its computer offline). */
-function useLiveState(task: Task, resetsAtByAgent: Map<string, string | null>): { text: string | null; warning: boolean; step: string | null; title?: string } {
+function useLiveState(task: Task, resetsAtByAgent: Map<string, string | null>): { text: string | null; warning: boolean; mark: AgentState; step: string | null; title?: string } {
   const { formatMessage } = useIntl();
   const resumeMoment = useResumeMoment();
   const agentId = task.claimedByType === "agent" ? task.claimedById ?? "" : "";
   const display = useAgentDisplayState(agentId);
   const startedAt = useLiveAgentActivityStore((s) => (agentId ? s.items.find((i) => i.agentId === agentId && i.idleSince === null)?.startedAt ?? null : null));
-  if (!agentId || task.status !== "in_progress") return { text: null, warning: false, step: null };
+  if (!agentId || task.status !== "in_progress") return { text: null, warning: false, mark: "idle", step: null };
   if (resetsAtByAgent.has(agentId)) {
     const moment = resumeMoment(resetsAtByAgent.get(agentId));
-    return { text: moment ? formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when }) : formatMessage({ id: "taskSection.held" }), warning: true, step: null, title: moment?.title };
+    return { text: moment ? formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when }) : formatMessage({ id: "taskSection.held" }), warning: true, mark: "held", step: null, title: moment?.title };
   }
   if (display.blocked || display.activityErrorCode === "usage_limit" || display.activity === "error") {
-    return { text: display.activityText || formatMessage({ id: "taskSection.held" }), warning: true, step: null };
+    // The mark by the one rule (agentMarkState): a usage limit is held, a stopped computer offline.
+    return { text: display.activityText || formatMessage({ id: "taskSection.held" }), warning: true, mark: agentMarkState(display) === "held" ? "held" : "offline", step: null };
   }
   if (display.activity === "working" || display.activity === "thinking") {
     const minutes = startedAt ? Math.max(1, Math.round((currentTimeMs() - startedAt) / 60000)) : null;
     return {
       text: minutes ? formatMessage({ id: "taskSection.workingFor" }, { minutes }) : formatMessage({ id: "taskSection.working" }),
       warning: false,
+      mark: "working",
       step: display.activityText || null,
     };
   }
-  return { text: null, warning: false, step: null };
+  return { text: null, warning: false, mark: "idle", step: null };
 }
 
 /** The one thing the task asks of the person, done in place: Review (a task in review they created), Claim (nobody's). */

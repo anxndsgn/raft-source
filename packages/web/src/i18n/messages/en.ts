@@ -9997,6 +9997,7 @@ export const en = {
   "team.computer.open": "Open {name}",
   "layout.systemNotifications.machineOfflineAgentsBody": "{count, plural, one {# agent is on it and stopped until it reconnects.} other {# agents are on it and stopped until it reconnects.}}",
   "team.computer.agentsPaused": "{count, plural, one {# agent paused} other {# agents paused}}",
+  "members.page.group.byType": "By type",
 } as const;
 
 export type MessageId = keyof typeof en;

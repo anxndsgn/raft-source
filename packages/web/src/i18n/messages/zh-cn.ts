@@ -9888,4 +9888,5 @@ export const zhCn: Record<MessageId, string> = {
   "team.computer.open": "打开 {name}",
   "layout.systemNotifications.machineOfflineAgentsBody": "上面有 {count} 个 agent，重连前都会停工。",
   "team.computer.agentsPaused": "{count} 个 agent 已暂停",
+  "members.page.group.byType": "按类型",
 };

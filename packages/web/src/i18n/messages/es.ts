@@ -9777,4 +9777,5 @@ export const es: Partial<Record<MessageId, string>> = {
   "team.computer.open": "Abrir {name}",
   "layout.systemNotifications.machineOfflineAgentsBody": "{count, plural, one {# agente está en ella y se detiene hasta que se reconecte.} many {# agentes están en ella y se detienen hasta que se reconecte.} other {# agentes están en ella y se detienen hasta que se reconecte.}}",
   "team.computer.agentsPaused": "{count, plural, one {# agente en pausa} many {# agentes en pausa} other {# agentes en pausa}}",
+  "members.page.group.byType": "Por tipo",
 };

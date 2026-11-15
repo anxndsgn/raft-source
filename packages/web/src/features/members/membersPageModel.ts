@@ -10,12 +10,19 @@ import type { ServerMember } from "../../store/serverStore";
  * design/products/raft-chat/members.md; cindyz, #triage:36bfa2f8): pure, so
  * the page and its tests read the same rules.
  */
-export type MembersTab = "all" | "humans" | "agents";
+export type MembersTab = "all" | "humans" | "agents" | "working" | "offline";
 
-/** How the Agents tab groups its list. The other tabs have no choice. */
-export type AgentsGrouping = "creator" | "computer" | "none";
-export const AGENTS_GROUPINGS: readonly AgentsGrouping[] = ["none", "creator", "computer"];
-export const DEFAULT_AGENTS_GROUPING: AgentsGrouping = "none";
+/**
+ * How the list groups (Team page PRD §5.2: one table for people and agents):
+ * by type (people, then agents), by who made an agent or the computer it is
+ * on (people in a group of their own, last), or not at all.
+ */
+export type AgentsGrouping = "type" | "creator" | "computer" | "none";
+export const AGENTS_GROUPINGS: readonly AgentsGrouping[] = ["type", "none", "creator", "computer"];
+export const DEFAULT_AGENTS_GROUPING: AgentsGrouping = "type";
+
+/** What the Working and Offline filters read of an entry (agents only: people report no presence). */
+export type EntryActivity = "working" | "offline" | "other";
 
 export type MemberEntry =
   | { kind: "human"; id: string; name: string; handle: string; member: ServerMember }
@@ -102,13 +109,20 @@ export interface MembersPopulation {
  *  the server's "hide humans" setting for a member. Guests have no tab of
  *  their own: they are Humans (cindyz, three tabs). */
 export function visibleTabs({ showHumans }: { showHumans: boolean }): MembersTab[] {
-  return showHumans ? ["all", "humans", "agents"] : ["all", "agents"];
+  return showHumans ? ["all", "humans", "agents", "working", "offline"] : ["all", "agents", "working", "offline"];
 }
 
-export function tabCount(tab: MembersTab, population: MembersPopulation): number {
-  if (tab === "humans") return population.humans.length;
-  if (tab === "agents") return population.agents.length;
-  return population.humans.length + population.agents.length;
+/** The entries a tab (a filter) holds: Working and Offline are agents (people report no presence). */
+export function tabEntries(tab: MembersTab, population: MembersPopulation, activityOf: (entry: MemberEntry) => EntryActivity = () => "other"): MembersPopulation {
+  if (tab === "humans") return { humans: population.humans, agents: [] };
+  if (tab === "agents") return { humans: [], agents: population.agents };
+  if (tab === "working" || tab === "offline") return { humans: [], agents: population.agents.filter((entry) => activityOf(entry) === tab) };
+  return population;
+}
+
+export function tabCount(tab: MembersTab, population: MembersPopulation, activityOf?: (entry: MemberEntry) => EntryActivity): number {
+  const entries = tabEntries(tab, population, activityOf);
+  return entries.humans.length + entries.agents.length;
 }
 
 function sortedMatching(entries: MemberEntry[], query: string, collator: Intl.Collator): MemberEntry[] {
@@ -189,10 +203,10 @@ function groupAgents(
 }
 
 /**
- * What a tab shows: All by type (Humans, then Agents), guests among the
- * Humans by name; Humans as one list; Agents by the chosen grouping. Empty
- * groups are left out, so a search that matches no agent shows no Agents
- * heading.
+ * What a tab shows: its entries (tabEntries), searched, by name, grouped:
+ * by type, people then agents; by creator or by computer, the agents so and
+ * the people in one group after them; or one list. Empty groups are left
+ * out, so a search that matches no agent shows no Agents heading.
  */
 export function groupsForTab({
   tab,
@@ -202,6 +216,7 @@ export function groupsForTab({
   machines,
   selfId,
   creatorName = () => null,
+  activityOf,
   locale,
 }: {
   /** The active locale: names sort in the reader's language. */
@@ -214,18 +229,27 @@ export function groupsForTab({
   machines: ReadonlyMap<string, GroupingMachine>;
   selfId?: string;
   creatorName?: CreatorNameLookup;
+  /** For the Working and Offline filters. */
+  activityOf?: (entry: MemberEntry) => EntryActivity;
 }): MemberGroup[] {
   const collator = collatorFor(locale);
-  if (tab === "all") {
-    const typed: MemberGroup[] = [
-      { key: "type:humans", label: { id: "layout.sidebar.humans" }, entries: sortedMatching(population.humans, query, collator) },
-      { key: "type:agents", label: { id: "layout.sidebar.agents" }, entries: sortedMatching(population.agents, query, collator) },
-    ];
-    return typed.filter((group) => group.entries.length > 0);
+  const shown = tabEntries(tab, population, activityOf);
+  const humans = sortedMatching(shown.humans, query, collator);
+  const agents = sortedMatching(shown.agents, query, collator);
+  const humansGroup: MemberGroup = { key: "type:humans", label: { id: "layout.sidebar.humans" }, entries: humans };
+  let groups: MemberGroup[];
+  if (agentsGrouping === "none") {
+    const all = [...humans, ...agents].sort((a, b) => byName(collator, a, b));
+    groups = all.length ? [{ key: tab, label: null, entries: all }] : [];
+  } else if (agentsGrouping === "type") {
+    groups = [humansGroup, { key: "type:agents", label: { id: "layout.sidebar.agents" }, entries: agents }];
+  } else {
+    groups = [...groupAgents(agents, agentsGrouping, machines, selfId, creatorName, collator), humansGroup];
   }
-  if (tab === "agents") {
-    return groupAgents(sortedMatching(population.agents, query, collator), agentsGrouping, machines, selfId, creatorName, collator);
+  // One kind only (the Humans filter, or agents alone): no heading saying so.
+  const nonEmpty = groups.filter((group) => group.entries.length > 0);
+  if (nonEmpty.length === 1 && nonEmpty[0]!.key.startsWith("type:") && (tab === "humans" || agentsGrouping === "type")) {
+    return [{ ...nonEmpty[0]!, label: null }];
   }
-  const entries = sortedMatching(population.humans, query, collator);
-  return entries.length ? [{ key: tab, label: null, entries }] : [];
+  return nonEmpty;
 }

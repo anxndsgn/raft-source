@@ -47,13 +47,11 @@ import type { MembersLocateState } from "./useMembersProfileRedirect";
 import type { AddAgentStep } from "./useAddAgentActions";
 import { MemberPhoneRow } from "./MemberPhoneRow";
 import { AgentRowSkeleton, MembersAgentGroup } from "./MembersAgentList";
-import { MemberTile } from "./MemberTile";
 import { MembersAgentUsageBody } from "./MembersAgentUsage";
 import { MembersAgentUsageFilter } from "./MembersAgentUsageFilter";
 import { useMembersAgentUsage, useMembersUsageAccess } from "./useMembersAgentUsage";
 import { AgentUsagePeriodSelect } from "../agent/AgentUsageParts";
-import { AfterSkeletonDelay, MemberTileSkeletons } from "./MemberTileSkeletons";
-import { membersGroupPlaceholders, useRememberedMembersGroupCounts } from "./membersGroupCounts";
+import { AfterSkeletonDelay } from "./MemberTileSkeletons";
 import {
   agentsGroupingOptions,
   DEFAULT_AGENTS_GROUPING,
@@ -62,10 +60,10 @@ import {
   tabCount,
   visibleTabs,
 } from "./membersPageModel";
-import type { AgentsGrouping, MemberEntry, MemberGroup, MembersTab } from "./membersPageModel";
+import type { AgentsGrouping, EntryActivity, MemberEntry, MemberGroup, MembersTab } from "./membersPageModel";
+import { agentMarkState, teamDisplayState } from "../team/teamWorking";
+import { useUsageLimitAttention } from "../../components/layout/useUsageLimitAttention";
 
-/** The tiles' grid under a group heading, and its skeleton's. */
-const MEMBERS_TILE_GRID_CLASS = "grid gap-3 px-5 pt-2 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]";
 
 /** How long after arriving the page keeps the located member centred through resizes. */
 const LOCATE_FOLLOW_MS = 1500;
@@ -74,12 +72,15 @@ const TAB_LABEL: Record<MembersTab, MessageId> = {
   all: "members.page.tab.all",
   humans: "layout.sidebar.humans",
   agents: "layout.sidebar.agents",
+  working: "taskSection.working",
+  offline: "machine.rack.filter.status.offline",
 };
 
 /** The Agents tab's views: the agents' facts, or their token usage (agent_usage_v0). */
 type AgentsListView = "details" | "usage";
 
 const GROUPING_LABEL: Record<AgentsGrouping, MessageId> = {
+  type: "members.page.group.byType",
   creator: "members.page.group.byCreator",
   computer: "members.page.group.byComputer",
   none: "members.page.group.none",
@@ -92,9 +93,9 @@ const GROUPING_LABEL: Record<AgentsGrouping, MessageId> = {
  * rail like Computers. The header adds people and agents; the tabs filter;
  * the Agents tab can group. Everyone opens their profile in the side panel.
  *
- * Desktop: people (and agents under All) as tiles, the Agents tab as a list
- * with columns. A phone: the sidebar's 44px rows under the same tabs and
- * groups.
+ * Desktop: one table of people and agents with columns (Team page PRD §5.2),
+ * filtered All, Humans, Agents, Working, Offline, grouped by type, creator or
+ * computer. A phone: the sidebar's 44px rows under the same filters and groups.
  */
 export function MembersPage() {
   const { formatMessage, locale } = useIntl();
@@ -135,9 +136,23 @@ export function MembersPage() {
   const usage = useMembersAgentUsage(usageOffered && agentsView === "usage", memberListAgents);
   const showViewSwitch = usageOffered && !usage.none;
   const showUsage = showViewSwitch && agentsView === "usage";
+  // The Working and Offline filters, by the Team page's rule (an agent on an offline computer is offline).
+  const agentActivities = useAgentStore((s) => s.agentActivities);
+  // Held by a usage limit: the inbox's notices (useUsageLimitAttention), with when each agent resumes.
+  const { notifications: usageNotices } = useUsageLimitAttention();
+  const resetsAtByAgent = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const notice of usageNotices) for (const id of notice.affectedAgentIds) map.set(id, notice.resetsAt);
+    return map;
+  }, [usageNotices]);
+  const activityOf = useCallback((entry: MemberEntry): EntryActivity => {
+    if (entry.kind !== "agent") return "other";
+    const state = agentMarkState(teamDisplayState(entry.agent, agentActivities, machines), resetsAtByAgent.has(entry.id));
+    return state === "working" || state === "offline" ? state : "other";
+  }, [agentActivities, machines, resetsAtByAgent]);
   const groups = useMemo(
-    () => groupsForTab({ tab, population, query, agentsGrouping, machines: machinesById, selfId: userId, creatorName, locale }),
-    [agentsGrouping, creatorName, locale, machinesById, population, query, tab, userId],
+    () => groupsForTab({ tab, population, query, agentsGrouping, machines: machinesById, selfId: userId, creatorName, activityOf, locale }),
+    [activityOf, agentsGrouping, creatorName, locale, machinesById, population, query, tab, userId],
   );
   // Arriving from /agent/<id> or /human/<id> (useMembersProfileRedirect): the
   // member is scrolled into view once its tile or row renders (artin, #702),
@@ -188,14 +203,6 @@ export function MembersPage() {
       scroller.removeEventListener("touchstart", release);
     };
   }, []);
-  // How many humans and agents were listed last time here, for the tiles'
-  // skeleton (membersGroupCounts); remembered once both lists are read.
-  const serverId = useServerStore((s) => s.current?.id);
-  const rememberedGroups = useRememberedMembersGroupCounts({
-    userId,
-    serverId,
-    loaded: loading || membersLoadError ? null : { humans: population.humans.length, agents: population.agents.length },
-  });
 
   const [showInvite, setShowInvite] = useState(false);
   const openInvite = useCallback(() => setShowInvite(true), []);
@@ -204,9 +211,11 @@ export function MembersPage() {
   const scopeOptions = useMemo(() => visibleTabs({ showHumans }).map((value) => ({
     value,
     label: formatMessage({ id: TAB_LABEL[value] }),
-    count: loading ? null : tabCount(value, population),
+    count: loading ? null : tabCount(value, population, activityOf),
     testId: `members-tab-${value}`,
-  })), [formatMessage, loading, population, showHumans]);
+  })), [activityOf, formatMessage, loading, population, showHumans]);
+  // One kind of member (people) has nothing to group by.
+  const groupable = tab !== "humans";
   const groupingOptions = useMemo(
     () => agentsGroupingOptions(creatorsHidden).map((value) => ({ value, label: formatMessage({ id: GROUPING_LABEL[value] }) })),
     [creatorsHidden, formatMessage],
@@ -235,7 +244,6 @@ export function MembersPage() {
   }, [setUsageView, usageToday]);
   // The member open in the side panel is the selected tile or row (Raft DS › States, "Selected: content").
   const openKey = useProfileStore((s) => (s.profileType === "agent" || s.profileType === "human" ? `${s.profileType}:${s.profileId}` : null));
-  const isOpen = (entry: MemberEntry) => openKey === `${entry.kind}:${entry.id}`;
   const onMobileBack = useMobileBack(serverSlug ? `/s/${serverSlug}` : "/");
   const mobileBackProps = useMemo(
     () => ({ "data-testid": "members-mobile-back", title: formatMessage({ id: "common.announcement.back" }) }),
@@ -283,32 +291,6 @@ export function MembersPage() {
             </section>
           );
         }
-        if (tab !== "agents") {
-          // As many tiles in each group as last time here, each group under
-          // its heading as the loaded page draws them (All: Humans, then
-          // Agents, an empty one left out; Humans: no heading); never loaded
-          // here, eight, under one heading on All.
-          const tileGroups = !rememberedGroups
-            ? [{ key: "all", heading: tab === "all", count: 8 }]
-            : tab === "all"
-              ? [
-                { key: "humans", heading: true, count: rememberedGroups.humans },
-                { key: "agents", heading: true, count: rememberedGroups.agents },
-              ].filter((group) => group.count > 0)
-              : [{ key: "humans", heading: false, count: rememberedGroups.humans }];
-          return (
-            <div aria-busy="true" data-testid="members-loading" data-skeleton="tiles">
-              {tileGroups.map((group) => (
-                <section key={group.key} className="flex flex-col" data-testid={`members-loading-group-${group.key}`}>
-                  {group.heading ? <div className="px-5 pt-4">{headingLine}</div> : null}
-                  <div className={MEMBERS_TILE_GRID_CLASS}>
-                    <AfterSkeletonDelay><MemberTileSkeletons count={membersGroupPlaceholders(group.count)} /></AfterSkeletonDelay>
-                  </div>
-                </section>
-              ))}
-            </div>
-          );
-        }
         return (
           <section aria-busy="true" data-testid="members-loading" data-skeleton="rows">
             <div className="mx-5 border-x border-transparent pt-4">{headingLine}</div>
@@ -352,32 +334,20 @@ export function MembersPage() {
     if (tab === "agents" && showUsage) {
       return <MembersAgentUsageBody usage={usage} groups={groups} heading={heading} openKey={openKey} onOpen={onOpenUsage} />;
     }
-    if (tab === "agents") {
-      return groups.map((group, index) => (
-        <MembersAgentGroup
-          key={group.key}
-          heading={heading(group)}
-          entries={group.entries}
-          machinesById={machinesById}
-          showComputer={agentsGrouping !== "computer"}
-          showColumnHeadings={index === 0}
-          openKey={openKey}
-          onOpen={onOpen}
-        />
-      ));
-    }
-    return groups.map((group) => (
-      <section key={group.key} className="flex flex-col" data-testid={`members-group-${group.key}`}>
-        {group.label ? <div className="px-5 pt-4">{heading(group)}</div> : null}
-        <div
-          className={MEMBERS_TILE_GRID_CLASS}
-          data-testid="members-tile-grid"
-        >
-          {group.entries.map((entry) => (
-            <MemberTile key={entry.id} entry={entry} isSelf={entry.id === userId} selected={isOpen(entry)} onOpen={onOpen} />
-          ))}
-        </div>
-      </section>
+    // One table for people and agents (Team page PRD §5.2): the Agents tab's columns, people's agent-only cells empty.
+    return groups.map((group, index) => (
+      <MembersAgentGroup
+        key={group.key}
+        heading={heading(group)}
+        entries={group.entries}
+        machinesById={machinesById}
+        showComputer={agentsGrouping !== "computer"}
+        showColumnHeadings={index === 0}
+        openKey={openKey}
+        selfId={userId}
+        resetsAtByAgent={resetsAtByAgent}
+        onOpen={onOpen}
+      />
     ));
   };
 
@@ -415,7 +385,7 @@ export function MembersPage() {
             {/* Step 6 folds the Group menu and Invite human into ⋯ together (one group), so the search keeps its
                 field on a phone, on the Agents tab too (raft-ui 0.90: its least width is at most 120, the
                 placeholder ellipsised); Invite human shows its icon alone first (step 35). */}
-            {tab === "agents" || canInvite ? (
+            {groupable || canInvite ? (
               <FitToolbarGroup
                 firstLine
                 className="gap-2"
@@ -446,7 +416,7 @@ export function MembersPage() {
                         <DropdownMenuSeparator />
                       </>
                     ) : null}
-                    {tab === "agents" ? (
+                    {groupable ? (
                       <MoreMenuChoices
                         heading={formatMessage({ id: "ui.listToolbar.group" })}
                         value={agentsGrouping}
@@ -455,7 +425,7 @@ export function MembersPage() {
                         testId="members-more-group"
                       />
                     ) : null}
-                    {tab === "agents" && canInvite ? <DropdownMenuSeparator /> : null}
+                    {groupable && canInvite ? <DropdownMenuSeparator /> : null}
                     {canInvite ? (
                       <DropdownMenuItem onClick={openInvite} data-testid="members-more-invite-human">
                         <UserPlus />
@@ -476,7 +446,7 @@ export function MembersPage() {
                   />
                 ) : null}
                 {showUsage ? <AgentUsagePeriodSelect view={usage.view} today={usage.today} onChange={usage.setView} testId="members-usage-period" /> : null}
-                {tab === "agents" ? (
+                {groupable ? (
                   <GroupSelect
                     value={agentsGrouping}
                     options={agentsGroupingOptions(creatorsHidden)}

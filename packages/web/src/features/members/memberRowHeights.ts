@@ -9,5 +9,3 @@
  */
 export const MEMBER_ROW_MIN_H = "min-h-[calc(--spacing(6)+var(--text-body--line-height)+--spacing(0.5)+var(--text-footnote--line-height))] pointer-coarse:min-h-[calc(--spacing(4)+var(--text-body--line-height)+--spacing(0.5)+var(--text-footnote--line-height))]";
 
-/** A tile: the same row, plus its card's hairline above and below (68 / 60). */
-export const MEMBER_TILE_MIN_H = "min-h-[calc(--spacing(6)+var(--text-body--line-height)+--spacing(0.5)+var(--text-footnote--line-height)+2px)] pointer-coarse:min-h-[calc(--spacing(4)+var(--text-body--line-height)+--spacing(0.5)+var(--text-footnote--line-height)+2px)]";

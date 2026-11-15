@@ -1,4 +1,9 @@
-import { ListRow, ListRowBody, ListRowGroup, ListRowMeta, ListRowSubtitle, ListRowTitle, Skeleton } from "@botiverse/raft-ui";
+import { ListRow, ListRowBody, ListRowGroup, ListRowIcon, ListRowMeta, ListRowSubtitle, ListRowTitle, Skeleton } from "@botiverse/raft-ui";
+import { AgentStateMark } from "@botiverse/raft-ui-ext";
+import { agentMarkState } from "../team/teamWorking";
+import { currentTimeMs } from "@botiverse/raft-shared";
+import { useResumeMoment } from "../../components/task/agentTimeText";
+import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
 import { memo, useCallback, useId } from "react";
 import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
@@ -8,7 +13,7 @@ import { useAgentDisplayState } from "../../store/agentStore";
 import type { MessageId } from "../../i18n/messages/en";
 import type { Machine } from "../../store/machineStore";
 import { formatActivityText, formatAgentDisplayStateText } from "../../utils/activity";
-import { MemberEntryAppTag, MemberEntryAvatar, MemberEntryRoleWord } from "./MemberEntryParts";
+import { MemberEntryAppTag, MemberEntryRoleWord, YouSuffix } from "./MemberEntryParts";
 import { agentRuntimeFacts } from "./memberEntryFacts";
 import { useRuntimeDeprecatedHere } from "../../hooks/useServerRuntimeCatalog";
 import { MemberMenuTrigger } from "./MemberMenuTrigger";
@@ -87,7 +92,7 @@ export interface AgentRowUsage {
   note: ReactNode;
 }
 
-const AgentRow = memo(function AgentRow({ entry, machine, showComputer, selected, usage, onOpen }: {
+const AgentRow = memo(function AgentRow({ entry, machine, showComputer, selected, usage, held, resetsAt, onOpen }: {
   entry: Extract<MemberEntry, { kind: "agent" }>;
   /** Open in the side panel: ListRow's own selected state (info-soft, no hover). */
   selected: boolean;
@@ -96,9 +101,14 @@ const AgentRow = memo(function AgentRow({ entry, machine, showComputer, selected
   showComputer: boolean;
   /** The usage view's cells in place of Runtime, Model and Computer. */
   usage?: AgentRowUsage;
+  /** Held by a usage limit (the inbox's notice), and when it resumes. */
+  held: boolean;
+  resetsAt: string | null;
   onOpen: (entry: MemberEntry) => void;
 }) {
   const intl = useIntl();
+  const resumeMoment = useResumeMoment();
+  const startedAt = useLiveAgentActivityStore((s) => s.items.find((item) => item.agentId === entry.id && item.idleSince === null)?.startedAt ?? null);
   const { formatMessage } = intl;
   const deprecatedHere = useRuntimeDeprecatedHere();
   const { agent } = entry;
@@ -109,10 +119,16 @@ const AgentRow = memo(function AgentRow({ entry, machine, showComputer, selected
   // The column says the short presence word; the full state (an external
   // agent's "Last active this minute", a block, a pause) is its title.
   const statusText = formatAgentDisplayStateText(intl, state, { withDetail: false });
-  const statusWord = state.blocked || state.paused || state.likelyOnline
-    ? statusText
-    : formatActivityText(formatMessage, state.activity, "");
-  const external = Boolean(state.isExternal && !state.isOnline);
+  const mark = agentMarkState(state, held);
+  // What it is doing now (Team page PRD §5.2): held, when it resumes; working, for how long; else the presence word.
+  const moment = mark === "held" ? resumeMoment(resetsAt) : null;
+  const statusWord = mark === "held"
+    ? (moment ? formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when }) : formatMessage({ id: "taskSection.held" }))
+    : mark === "working" && startedAt
+      ? formatMessage({ id: "taskSection.workingFor" }, { minutes: Math.max(1, Math.round((currentTimeMs() - startedAt) / 60000)) })
+      : state.blocked || state.paused || state.likelyOnline
+        ? statusText
+        : formatActivityText(formatMessage, state.activity, "");
   const { runtime, model } = agentRuntimeFacts(agent, formatMessage, deprecatedHere);
   const folded = usage
     ? [model, runtime].filter(Boolean).join(" · ")
@@ -141,11 +157,10 @@ const AgentRow = memo(function AgentRow({ entry, machine, showComputer, selected
       // the name centred on its cells when there is none, as every cell is.
       className={MEMBER_ROW_MIN_H}
     >
-      <MemberEntryAvatar
-        entry={entry}
-        context="list-row"
-        badge={<StatusDot activity={state.activity} external={external} size="sm" />}
-      />
+      {/* The row leads with the agent's state mark (Team page PRD §5.2, T3; working-agents.md › The state mark). */}
+      <ListRowIcon className="w-3 justify-center" data-testid="members-agent-mark">
+        <AgentStateMark state={mark} label={statusText} />
+      </ListRowIcon>
       <ListRowBody>
         <span className={NAME_LINE}>
           <ListRowTitle className="min-w-[3ch] flex-none" data-testid="member-entry-name">{entry.name}</ListRowTitle>
@@ -169,7 +184,6 @@ const AgentRow = memo(function AgentRow({ entry, machine, showComputer, selected
       {/* The presence word with its light (Identity and presence), as the agent's profile says it. */}
       <StatusColumn id={`${id}-status`} testId={`members-agent-status-${agent.id}`}>
         <span className={`flex ${CELL} text-caption text-foreground-muted`}>
-          <StatusDot activity={state.activity} external={external} className="shrink-0" />
           <span className="truncate" title={statusText} data-testid="members-agent-status-word">{statusWord}</span>
         </span>
       </StatusColumn>
@@ -192,6 +206,51 @@ const AgentRow = memo(function AgentRow({ entry, machine, showComputer, selected
           ) : <ListRowMeta>—</ListRowMeta>}
         </span>
       ) : null}
+    </MemberMenuTrigger>
+  );
+});
+
+/**
+ * A person's row in the same table (Team page PRD §5.2): no state mark (people
+ * report no presence), the name and role word, the description, and the
+ * agent-only cells (status, runtime, model, computer) left empty.
+ */
+const HumanRow = memo(function HumanRow({ entry, isSelf, showComputer, selected, onOpen }: {
+  entry: Extract<MemberEntry, { kind: "human" }>;
+  isSelf: boolean;
+  showComputer: boolean;
+  selected: boolean;
+  onOpen: (entry: MemberEntry) => void;
+}) {
+  const { formatMessage } = useIntl();
+  const handleClick = useCallback(() => onOpen(entry), [entry, onOpen]);
+  const { member } = entry;
+  return (
+    <MemberMenuTrigger
+      entry={entry}
+      render={<ListRow selected={selected} />}
+      aria-current={selected ? "true" : undefined}
+      onClick={handleClick}
+      aria-label={formatMessage({ id: "members.page.openProfile" }, { name: entry.name })}
+      data-testid={`members-human-row-${member.userId}`}
+      data-member-entry-id={member.userId}
+      className={MEMBER_ROW_MIN_H}
+    >
+      <ListRowIcon className="w-3" aria-hidden />
+      <ListRowBody>
+        <span className={NAME_LINE}>
+          <ListRowTitle className="min-w-[3ch] flex-none" data-testid="member-entry-name">{entry.name}</ListRowTitle>
+          {isSelf ? <YouSuffix /> : null}
+          <MemberEntryRoleWord entry={entry} className="shrink-0 text-caption font-medium text-foreground-hint" />
+        </span>
+        {member.description ? (
+          <ListRowSubtitle title={member.description} data-testid="member-entry-description">{member.description}</ListRowSubtitle>
+        ) : null}
+      </ListRowBody>
+      <StatusColumn><span /></StatusColumn>
+      <span className={`${COL_RUNTIME} ${CELL}`} />
+      <span className={`${COL_MODEL} ${CELL}`} />
+      {showComputer ? <span className={`${COL_COMPUTER} ${CELL}`} /> : null}
     </MemberMenuTrigger>
   );
 });
@@ -224,7 +283,7 @@ export function AgentRowSkeleton() {
  * part for ListRow yet (an upstream raft-ui candidate), and the Computers list
  * draws its own the same way (mono meta in hint).
  */
-export function MembersAgentGroup({ heading, entries, machinesById, showComputer, showColumnHeadings, openKey, usage, onOpen }: {
+export function MembersAgentGroup({ heading, entries, machinesById, showComputer, showColumnHeadings, openKey, selfId, resetsAtByAgent, usage, onOpen }: {
   heading: ReactNode;
   /** `agent:<id>` of the profile open in the side panel. */
   openKey: string | null;
@@ -232,6 +291,10 @@ export function MembersAgentGroup({ heading, entries, machinesById, showComputer
   machinesById: ReadonlyMap<string, Machine>;
   showComputer: boolean;
   showColumnHeadings: boolean;
+  /** The viewer, marked "(you)" among the people. */
+  selfId?: string;
+  /** Agents held by a usage limit, and when each resumes. */
+  resetsAtByAgent?: ReadonlyMap<string, string | null>;
   /** The usage view: each agent's cells (its headings are MembersAgentUsageHeadings, above the groups). */
   usage?: { row: (agentId: string) => AgentRowUsage };
   onOpen: (entry: MemberEntry) => void;
@@ -263,9 +326,20 @@ export function MembersAgentGroup({ heading, entries, machinesById, showComputer
             showComputer={showComputer}
             selected={openKey === `agent:${entry.id}`}
             usage={usage?.row(entry.id)}
+            held={resetsAtByAgent?.has(entry.id) ?? false}
+            resetsAt={resetsAtByAgent?.get(entry.id) ?? null}
             onOpen={onOpen}
           />
-        ) : null)}
+        ) : usage ? null : (
+          <HumanRow
+            key={entry.id}
+            entry={entry}
+            isSelf={entry.id === selfId}
+            showComputer={showComputer}
+            selected={openKey === `human:${entry.id}`}
+            onOpen={onOpen}
+          />
+        ))}
       </ListRowGroup>
     </section>
   );

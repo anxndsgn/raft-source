@@ -9777,4 +9777,5 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "team.computer.open": "打開 {name}",
   "layout.systemNotifications.machineOfflineAgentsBody": "上面有 {count} 個 Agent，重新連線前都會停工。",
   "team.computer.agentsPaused": "{count} 個 Agent 已暫停",
+  "members.page.group.byType": "按類型",
 };
