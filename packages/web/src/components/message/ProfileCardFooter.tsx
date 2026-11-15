@@ -12,7 +12,8 @@ import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
 import { findStoredChannel } from "../../store/storedChannel";
 import { agentMarkState, agentStoppedByComputer } from "../../features/team/teamWorking";
 import { useMachineStore } from "../../store/machineStore";
-import { formatAgentDisplayStateText } from "../../utils/activity";
+import { formatActivityText, formatAgentDisplayStateText } from "../../utils/activity";
+import { formatRelativeTime } from "../../utils/relativeTime";
 import { useUsageLimitAttention } from "../layout/useUsageLimitAttention";
 import { useResumeMoment, useShortSpan } from "../task/agentTimeText";
 import { openTaskInSidePanel } from "../task/useOpenTask";
@@ -40,6 +41,15 @@ export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: s
       : null),
     [id, serverTasks, type],
   );
+  const lastFinished = useMemo(
+    () => (type === "agent"
+      ? serverTasks
+        .filter((t) => t.claimedByType === "agent" && t.claimedById === id && (t.status === "in_review" || t.status === "done"))
+        .sort((a, b) => (b.lastActivityAt ?? b.updatedAt).localeCompare(a.lastActivityAt ?? a.updatedAt))[0] ?? null
+      : null),
+    [id, serverTasks, type],
+  );
+  const stopped = useAgentStore((s) => type === "agent" && s.agents.find((a) => a.id === id)?.status === "stopped");
   const channelName = useChannelStore((s) => (current ? current.channelName || findStoredChannel(s, current.channelId)?.name || null : null));
   const display = useAgentDisplayState(type === "agent" ? id : "");
   const resetsAt = useUsageLimitAttention().notifications.find((notice) => type === "agent" && notice.affectedAgentIds.includes(id));
@@ -78,6 +88,15 @@ export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: s
   } else if (current) {
     title = formatMessage({ id: "profileCard.workingOn" }, { channel: channelName ? `#${channelName}` : "", number: current.taskNumber });
     step = mark === "working" ? display.activityText || null : null;
+  } else if (mark) {
+    // Not on a task: its state, never an empty line (Figmama 11/16) — stopped, idle and what it last finished, offline.
+    const finished = lastFinished;
+    const when = finished ? formatRelativeTime(finished.lastActivityAt ?? finished.updatedAt, intl.locale) : null;
+    title = stopped
+      ? formatMessage({ id: "activity.log.status.stopped" })
+      : mark === "idle"
+        ? [formatMessage({ id: "team.state.idle" }), finished && when ? formatMessage({ id: "team.rest.finished" }, { number: finished.taskNumber, when }) : null].filter(Boolean).join(" · ")
+        : formatActivityText(formatMessage, display.activity, "");
   }
   // Gone from the server (removed or left): the card below says so, and Message hides (index.css).
   const canMessage = !archived && !self;

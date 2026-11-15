@@ -1509,6 +1509,12 @@ html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [d
 [data-team-cover-panel] [data-testid="agent-profile-message"] {
   display: none !important;
 }
+/* A member pushed on a phone from the Team page: Back alone takes you back; no × beside ⋯ (Figmama 11/16). */
+@media (width < 48rem) {
+  [data-team-cover-panel] [data-slot="panel-actions"] > :last-child:not([data-testid="agent-profile-responsive-actions"]) {
+    display: none !important;
+  }
+}
 /* The Team page's column keeps its ⤢ beside × (PRD 团队页 v2.0 §5.4): it shows the whole page. */
 [data-team-column] [data-plain-head] [data-slot="panel-actions"] > [data-testid^="row-expand-"],
 [data-team-column] [data-plain-head] [data-slot="panel-actions"] > [data-testid="agent-profile-responsive-actions"] {
