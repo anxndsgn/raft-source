@@ -42,7 +42,17 @@ export type OpenArtifact = ArtifactLinkTarget & ArtifactPlace & {
   comments?: ArtifactCommentsOpening;
   /** Layout redesign §5: not an Artifact but a thread opened in the workspace (its tab's id `thread:<parent>`). */
   thread?: WorkspaceThread;
+  /** Team page PRD §5.2: a person's or an agent's details opened in the workspace (its tab's id `member:<type>:<id>`). */
+  member?: WorkspaceMember;
 };
+
+export interface WorkspaceMember {
+  type: "agent" | "human";
+  id: string;
+}
+
+/** A member's workspace tab id. */
+export const workspaceMemberTabId = (member: WorkspaceMember) => `member:${member.type}:${member.id}`;
 
 export interface WorkspaceThread {
   parentChannelId: string;
@@ -80,6 +90,8 @@ interface ArtifactViewerState {
   closeTab: (id: ArtifactId) => void;
   /** Layout redesign §5: a thread moved from the side panel into the workspace, as a tab (`title`: its tab's name). */
   openThreadTab: (thread: WorkspaceThread, conversationId: string, title: string) => void;
+  /** Team page PRD §5.2: a member's details as a tab, in the shell's place (the Team page has no channel). */
+  openMemberTab: (member: WorkspaceMember, title: string) => void;
   /** The tabs in this order (raft-ui SortableTabsList's drop). */
   reorderTabs: (ids: readonly string[]) => void;
   setTabTitle: (id: ArtifactId, title: string) => void;
@@ -145,6 +157,12 @@ export const useArtifactViewerStore = create<ArtifactViewerState>((set) => ({
   openThreadTab: (thread, conversationId, title) => set((state) => {
     const id = workspaceThreadTabId(thread.parentMessageId) as ArtifactId;
     const open = { id, version: null, source: "link", conversationId, thread } as unknown as OpenArtifact;
+    const tabs = state.tabs.some((t) => t.id === id) ? state.tabs : [...state.tabs, open].slice(-8);
+    return { open: tabs.find((t) => t.id === id) ?? open, tabs, tabTitles: { ...state.tabTitles, [id]: title }, openedAt: Date.now(), expanded: false, picked: null, drawerCollapsed: false };
+  }),
+  openMemberTab: (member, title) => set((state) => {
+    const id = workspaceMemberTabId(member) as ArtifactId;
+    const open = { id, version: null, source: "link", conversationId: null, cover: null, member } as unknown as OpenArtifact;
     const tabs = state.tabs.some((t) => t.id === id) ? state.tabs : [...state.tabs, open].slice(-8);
     return { open: tabs.find((t) => t.id === id) ?? open, tabs, tabTitles: { ...state.tabTitles, [id]: title }, openedAt: Date.now(), expanded: false, picked: null, drawerCollapsed: false };
   }),

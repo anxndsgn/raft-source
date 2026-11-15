@@ -63,6 +63,8 @@ import {
 import type { AgentsGrouping, EntryActivity, MemberEntry, MemberGroup, MembersTab } from "./membersPageModel";
 import { agentMarkState, teamDisplayState } from "../team/teamWorking";
 import { useUsageLimitAttention } from "../../components/layout/useUsageLimitAttention";
+import { useArtifactViewerStore } from "../../apps/artifacts/artifactViewerStore";
+import { useOpenMemberTab } from "../team/useOpenMemberTab";
 
 
 /** How long after arriving the page keeps the located member centred through resizes. */
@@ -224,7 +226,12 @@ export function MembersPage() {
   const addAgentActions = useAddAgentActions(setAddAgent);
   // A tile's or row's menu and double-click (MemberMenuTrigger), and the dialogs they open.
   const { actions: memberActions, dialogs: memberDialogs } = useMemberActions();
-  const onOpen = useCallback((entry: MemberEntry) => openProfile(entry.kind, entry.id), [openProfile]);
+  // A desktop opens the member as a workspace tab (Team page PRD §5.2); a phone pushes their profile.
+  const openMemberTab = useOpenMemberTab();
+  const onOpen = useCallback((entry: MemberEntry) => {
+    if (isDesktop) openMemberTab({ type: entry.kind, id: entry.id });
+    else openProfile(entry.kind, entry.id);
+  }, [isDesktop, openMemberTab, openProfile]);
   // In the usage view a row opens the agent at its Usage tab.
   const onOpenUsage = useCallback((entry: MemberEntry) => openProfile(entry.kind, entry.id, { defaultAgentTabIntent: "usage" }), [openProfile]);
   const viewOptions = useMemo<ListViewOption<AgentsListView>[]>(() => [
@@ -243,7 +250,9 @@ export function MembersPage() {
     else setUsageView({ range: Number(next) as 7 | 14 | 30, day: null });
   }, [setUsageView, usageToday]);
   // The member open in the side panel is the selected tile or row (Raft DS › States, "Selected: content").
-  const openKey = useProfileStore((s) => (s.profileType === "agent" || s.profileType === "human" ? `${s.profileType}:${s.profileId}` : null));
+  const profileKey = useProfileStore((s) => (s.profileType === "agent" || s.profileType === "human" ? `${s.profileType}:${s.profileId}` : null));
+  const tabKey = useArtifactViewerStore((s) => (s.open?.member ? `${s.open.member.type}:${s.open.member.id}` : null));
+  const openKey = isDesktop ? tabKey : profileKey;
   const onMobileBack = useMobileBack(serverSlug ? `/s/${serverSlug}` : "/");
   const mobileBackProps = useMemo(
     () => ({ "data-testid": "members-mobile-back", title: formatMessage({ id: "common.announcement.back" }) }),

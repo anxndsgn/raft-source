@@ -8,12 +8,14 @@ import AgentActivitySubscription from "../../components/agent/AgentActivitySubsc
 import { useVisibleNotifications } from "../../components/layout/useSystemNotifications";
 import type { NotificationEntry } from "../../components/layout/useSystemNotifications";
 import { useAppNavigate, useMobileBack } from "../../hooks/useAppNavigate";
+import { useIsDesktopShell } from "../../components/layout/ShellFrame";
 import { useMachineStore } from "../../store/machineStore";
 import { useServerStore } from "../../store/serverStore";
 import { TeamAgentLine } from "./TeamAgentLine";
 import { TeamComputerCards } from "./TeamComputerCards";
 import { TeamHeader } from "./TeamHeader";
 import { useOpenAgentWork } from "./useOpenAgentWork";
+import { useOpenMemberTab } from "./useOpenMemberTab";
 import { useTeamAgents } from "./useTeamAgents";
 import type { TeamAgentRow } from "./useTeamAgents";
 
@@ -79,8 +81,14 @@ export function TeamOverviewPage() {
   const machines = useMachineStore((s) => s.machines);
   const notices = useVisibleNotifications("desktop").filter((entry) => NEEDS_YOU_NOTICES.has(entry.id));
   const openWork = useOpenAgentWork();
-  // A row opens the agent; its channel and task links open the work.
-  const openAgent = useCallback((row: TeamAgentRow) => nav.toAgent(row.agent.id), [nav]);
+  // A row opens the agent as a workspace tab (PRD §5.2); its channel and task links open the work.
+  const openMemberTab = useOpenMemberTab();
+  const isDesktop = useIsDesktopShell();
+  const openAgent = useCallback((row: TeamAgentRow) => {
+    // A phone pushes the agent's page, full screen (PRD §8).
+    if (isDesktop) openMemberTab({ type: "agent", id: row.agent.id });
+    else nav.toAgent(row.agent.id);
+  }, [isDesktop, nav, openMemberTab]);
   const openChannel = useCallback((channelId: string) => nav.toChannel(channelId), [nav]);
   const workingByMachine = useMemo(() => {
     const counts = new Map<string, number>();

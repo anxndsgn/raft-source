@@ -175,8 +175,8 @@ export function useArtifactViewerAddress(): void {
     if (open?.cover && !places.dialog && asked?.id === open.id) return;
     const here = placeOf(open, places);
     if (!asked) {
-      // A thread's workspace tab (§5) has no address of its own: an address without an Artifact leaves it.
-      if (open?.thread) return;
+      // A thread's or a member's workspace tab (§5, Team page) has no address of its own: an address without an Artifact leaves it.
+      if (open?.thread || open?.member) return;
       // The tab shown before a reload (doc §5) isn't closed by the first address, which never had it: the address
       // takes it instead.
       if (here && restoring.current && open) writeArtifactAddress(navigate, artifactAddressOpening(entry, { id: open.id, version: shownVersion(store) }, open.source, { push: false, place: here }));
@@ -187,7 +187,7 @@ export function useArtifactViewerAddress(): void {
     restoring.current = false;
     // A thread just moved into the workspace (§5): its side panel closing takes the address back to the one from
     // before it opened, an Artifact already among the tabs. That isn't a choice to show it: the thread's tab stays.
-    if (open?.thread && store.tabs.some((t) => t.id === asked.id) && currentTimeMs() - store.openedAt < 2000) {
+    if ((open?.thread || open?.member) && store.tabs.some((t) => t.id === asked.id) && currentTimeMs() - store.openedAt < 2000) {
       writeArtifactAddress(navigate, artifactAddressClosing(entry, {}), { record: true });
       return;
     }
@@ -210,8 +210,8 @@ export function useArtifactViewerAddress(): void {
     const entry = liveArtifactAddressEntry();
     const places = addressedPlacesOf(entry.pathname, entry.search);
     if (!places) return;
-    // A thread's workspace tab (§5) has no address: the Artifact's leaves it, or the address would bring that back.
-    if (state.open?.thread) {
+    // A thread's or a member's workspace tab (§5, Team page) has no address: the Artifact's leaves it, or the address would bring that back.
+    if (state.open?.thread || state.open?.member) {
       const shown = readArtifactAddress(new URLSearchParams(entry.search));
       if (shown && !shown.legacy) writeArtifactAddress(navigate, artifactAddressClosing(entry, {}), { record: true });
       return;
@@ -249,5 +249,7 @@ export function shellPageOf(pathname: string, search: string): string {
   const params = withArtifactAddress(new URLSearchParams(search), null);
   params.delete("msg");
   const rest = params.toString();
-  return rest ? `${pathname}?${rest}` : pathname;
+  // The Team page's tabs (Overview, Members, Computers) are one page: a member's tab stays open across them.
+  const page = pathname.replace(/^(\/s\/[^/]+)\/(team|members|computers)\/?$/, "$1/team");
+  return rest ? `${page}?${rest}` : page;
 }
