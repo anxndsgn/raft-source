@@ -11,6 +11,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 # Copy package manifests
 COPY packages/sync-core/package.json packages/sync-core/
 COPY packages/runtime-form/package.json packages/runtime-form/
+COPY packages/raft-ui-ext/package.json packages/raft-ui-ext/
 COPY packages/shared/package.json packages/shared/
 COPY packages/web/package.json packages/web/
 
@@ -22,6 +23,7 @@ RUN pnpm install --frozen-lockfile
 # Copy source
 COPY packages/sync-core/ packages/sync-core/
 COPY packages/runtime-form/ packages/runtime-form/
+COPY packages/raft-ui-ext/ packages/raft-ui-ext/
 COPY packages/shared/ packages/shared/
 COPY packages/visual-testing/shared/ packages/visual-testing/shared/
 COPY packages/web/ packages/web/
