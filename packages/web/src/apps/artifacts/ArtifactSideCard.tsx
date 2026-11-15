@@ -20,6 +20,7 @@ import { useWorkspaceArtifactsEnabled } from "./useWorkspaceArtifactsEnabled";
 // The viewer loads off the first screen (artifactViewerChunk.ts).
 const ArtifactViewer = lazyDeferred(() => importHandledLocally(() => import("./ArtifactViewer")));
 const viewerSlot: LazyChunkSlot<ArtifactViewerProps> = { current: ArtifactViewer };
+const WorkspaceThreadPanel = lazyDeferred(() => importHandledLocally(() => import("../../features/thread/WorkspaceThreadPanel").then((m) => ({ default: m.WorkspaceThreadPanel }))));
 
 type ArtifactViewerProps = ComponentProps<typeof ArtifactViewer>;
 
@@ -158,6 +159,7 @@ function useArtifactCard(showing: boolean, ownBack: boolean, addressed = false):
   const version = showing && open ? open.version : null;
   const source = showing && open ? open.source : null;
   const comments = showing && open ? open.comments ?? null : null;
+  const thread = showing && open ? open.thread ?? null : null;
 
   usePhoneHistoryEntry(showing && phone && !addressed, close);
 
@@ -182,7 +184,10 @@ function useArtifactCard(showing: boolean, ownBack: boolean, addressed = false):
       minWidth: ARTIFACT_CARD_MIN_WIDTH,
       splitLabel,
       expanded,
-      render: (place: ArtifactCardPlace) => (
+      render: (place: ArtifactCardPlace) => (thread ? (
+        // Layout redesign §5: a thread's tab in the workspace.
+        <Suspense fallback={null}><WorkspaceThreadPanel key={id} thread={thread} onClose={close} /></Suspense>
+      ) : (
         <DeferredArtifactViewer
           key={`${id}@${version ?? "latest"}`}
           target={target}
@@ -199,9 +204,9 @@ function useArtifactCard(showing: boolean, ownBack: boolean, addressed = false):
           // Covering its channel (a phone, a narrow panel, expanded), it would hide the message it opened.
           onOpenedMessage={place.mode === "overlay" || place.mode === "expanded" ? close : undefined}
         />
-      ),
+      )),
     };
-  }, [close, comments, expanded, label, openedAt, ownBack, rememberTitle, showVersion, source, splitLabel, target, toggleExpanded]);
+  }, [close, comments, thread, expanded, label, openedAt, ownBack, rememberTitle, showVersion, source, splitLabel, target, toggleExpanded]);
 }
 
 /**

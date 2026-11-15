@@ -40,7 +40,18 @@ export type OpenArtifact = ArtifactLinkTarget & ArtifactPlace & {
   source: ArtifactOpenSource;
   /** Opened on its comments: the list opens (ArtifactCommentsProvider's `listOn`). */
   comments?: ArtifactCommentsOpening;
+  /** Layout redesign §5: not an Artifact but a thread opened in the workspace (its tab's id `thread:<parent>`). */
+  thread?: WorkspaceThread;
 };
+
+export interface WorkspaceThread {
+  parentChannelId: string;
+  parentMessageId: string;
+  threadChannelId: string | null;
+}
+
+/** A thread's workspace tab id. */
+export const workspaceThreadTabId = (parentMessageId: string) => `thread:${parentMessageId}`;
 
 /**
  * An Artifact opened on its comments (xxchan, #proj-workspace:72934211): a
@@ -67,8 +78,10 @@ interface ArtifactViewerState {
   setDrawerCollapsed: (collapsed: boolean) => void;
   activateTab: (id: ArtifactId) => void;
   closeTab: (id: ArtifactId) => void;
-  /** Drag to reorder (doc §5): `id` moves to just before `before` (null: to the end). */
-  moveTab: (id: ArtifactId, before: ArtifactId | null) => void;
+  /** Layout redesign §5: a thread moved from the side panel into the workspace, as a tab (`title`: its tab's name). */
+  openThreadTab: (thread: WorkspaceThread, conversationId: string, title: string) => void;
+  /** The tabs in this order (raft-ui SortableTabsList's drop). */
+  reorderTabs: (ids: readonly string[]) => void;
   setTabTitle: (id: ArtifactId, title: string) => void;
   openedAt: number;
   expanded: boolean;
@@ -129,12 +142,16 @@ export const useArtifactViewerStore = create<ArtifactViewerState>((set) => ({
   open: savedTabs.open,
   tabs: savedTabs.tabs,
   tabTitles: savedTabs.titles,
-  moveTab: (id, before) => set((state) => {
-    const tab = state.tabs.find((t) => t.id === id);
-    if (!tab || id === before) return state;
-    const rest = state.tabs.filter((t) => t.id !== id);
-    const at = before === null ? rest.length : rest.findIndex((t) => t.id === before);
-    return { tabs: [...rest.slice(0, at < 0 ? rest.length : at), tab, ...rest.slice(at < 0 ? rest.length : at)] };
+  openThreadTab: (thread, conversationId, title) => set((state) => {
+    const id = workspaceThreadTabId(thread.parentMessageId) as ArtifactId;
+    const open = { id, version: null, source: "link", conversationId, thread } as unknown as OpenArtifact;
+    const tabs = state.tabs.some((t) => t.id === id) ? state.tabs : [...state.tabs, open].slice(-8);
+    return { open: tabs.find((t) => t.id === id) ?? open, tabs, tabTitles: { ...state.tabTitles, [id]: title }, openedAt: Date.now(), expanded: false, picked: null, drawerCollapsed: false };
+  }),
+  reorderTabs: (ids) => set((state) => {
+    const byId = new Map(state.tabs.map((t) => [t.id as string, t]));
+    const tabs = ids.map((id) => byId.get(id)).filter((t): t is OpenArtifact => !!t);
+    return tabs.length === state.tabs.length ? { tabs } : state;
   }),
   drawerCollapsed: false,
   setDrawerCollapsed: (drawerCollapsed) => set({ drawerCollapsed }),

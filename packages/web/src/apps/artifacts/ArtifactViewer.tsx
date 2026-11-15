@@ -519,7 +519,9 @@ function ViewerFrame({
           line up with theirs. Covering, the Back comes first (on a phone the
           channel header's Back stands for it). */}
       {covering ? null : <WorkspaceTabStrip />}
-      <PanelHeader data-testid="artifact-viewer-header" {...(covering ? null : chrome?.props)} ref={measureHead}>
+      {/* Layout redesign §5: in the workspace this is its second row — the source on the left, the actions on the
+          right; the title, Expand and Close are on the tab bar above (index.css data-workspace-row). */}
+      <PanelHeader data-testid="artifact-viewer-header" data-workspace-row={covering ? undefined : ""} {...(covering ? null : chrome?.props)} ref={measureHead}>
         {covering ? (
           // A narrow desktop panel has no header Back, so the card keeps its
           // own, labelled as the close it stands for (Task v2's ChannelSideCard).

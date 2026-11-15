@@ -174,6 +174,8 @@ export function useArtifactViewerAddress(): void {
     if (open?.cover && !places.dialog && asked?.id === open.id) return;
     const here = placeOf(open, places);
     if (!asked) {
+      // A thread's workspace tab (§5) has no address of its own: an address without an Artifact leaves it.
+      if (open?.thread) return;
       // The tab shown before a reload (doc §5) isn't closed by the first address, which never had it: the address
       // takes it instead.
       if (here && restoring.current && open) writeArtifactAddress(navigate, artifactAddressOpening(entry, { id: open.id, version: shownVersion(store) }, open.source, { push: false, place: here }));
@@ -198,6 +200,7 @@ export function useArtifactViewerAddress(): void {
   // Store → address.
   useEffect(() => useArtifactViewerStore.subscribe((state, prev) => {
     if (state.open === prev.open && state.picked === prev.picked) return;
+    if (state.open?.thread) return; // a thread's workspace tab: not an address (§5)
     const entry = liveArtifactAddressEntry();
     const places = addressedPlacesOf(entry.pathname, entry.search);
     if (!places) return;

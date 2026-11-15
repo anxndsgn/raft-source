@@ -2,6 +2,7 @@ import type { Channel } from "../../store/channelStore";
 import { useChannelSideCardStore } from "../../store/channelSideCardStore";
 import { releaseJoinDeferred } from "../../store/joinDeferred";
 import { useThreadStore } from "../../store/threadStore";
+import { useArtifactViewerStore, workspaceThreadTabId } from "../../apps/artifacts/artifactViewerStore";
 import { setProfileOpenInterceptor } from "../../store/profileStore";
 import { isSidebarExternalSectionChannel } from "../layout/sidebarChannelVisibility";
 
@@ -32,6 +33,14 @@ export function prepareChannelDetailsOpen(channelId: string, page?: "root") {
 // so closing the thread closes the panel (it was opened directly: ×, no Back).
 useThreadStore.subscribe((s, prev) => {
   if (!s.openParentMessageId || s.taskModal || s.openParentMessageId === prev.openParentMessageId) return;
+  // Already a workspace tab (§5): that tab shows, not a second copy in the side panel.
+  const viewer = useArtifactViewerStore.getState();
+  const tabId = workspaceThreadTabId(s.openParentMessageId);
+  if (viewer.tabs.some((t) => t.id === tabId)) {
+    viewer.activateTab(tabId as never);
+    queueMicrotask(() => useThreadStore.getState().closeThread());
+    return;
+  }
   const cards = useChannelSideCardStore.getState();
   if (cards.open.tasks) cards.setCardOpen("tasks", false);
   if (cards.open.files) cards.setCardOpen("files", false);

@@ -1493,6 +1493,14 @@
   display: none;
 }
 
+/* Layout redesign §5 (A): an Artifact in the workspace — its head is the second row under the tab bar: the source
+   on the left, the actions on the right; the title, Expand and Close are the tab bar's. */
+[data-workspace-row] [data-slot="panel-heading"],
+[data-workspace-row] [data-testid="artifact-viewer-expand"],
+[data-workspace-row] [data-testid="artifact-viewer-close"] {
+  display: none;
+}
+
 /* Layout redesign §5: the workspace expanded fills the conversation area; the conversation (header, timeline, side
    panel) hides as it was, and comes back on restore (ConversationFrame). */
 [data-testid="workspace-frame"][data-workspace-expanded="true"] > [data-testid="conversation-frame"] {

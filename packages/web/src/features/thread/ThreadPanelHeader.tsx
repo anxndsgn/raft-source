@@ -16,6 +16,7 @@ import { FOLLOWERS_HEAD_WIDTH, shownOwnActions, useHeadWidth } from "../../compo
 import { useThreadAgentFollowerStore } from "../../store/threadAgentFollowerStore";
 import type { Channel } from "../../store/channelStore";
 import { LoungeAvatar } from "../../components/agent/LoungeAvatar";
+import { OpenThreadInWorkspaceAction } from "./workspaceThreadOpen";
 import type { HiddenHistory } from "../../store/hiddenHistoryStore";
 import type { Message } from "../../store/messageStore";
 import type { ThreadSummary } from "../../store/threadStore";
@@ -244,6 +245,9 @@ export function ThreadPanelHeader({
             />
           )}
           {threadContextActions}
+          {presentation === "side" && parentMessageId && parentChannelId ? (
+            <OpenThreadInWorkspaceAction parentChannelId={parentChannelId} parentMessageId={parentMessageId} threadChannelId={threadChannelId} channelName={parentChannel?.name ?? null} messages={messages} />
+          ) : null}
           {/*
             X close button.
             - modal (centered card): X is the standard dialog close.
