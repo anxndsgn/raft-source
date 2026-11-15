@@ -13,7 +13,7 @@ import { useAgentDisplayState } from "../../store/agentStore";
 import type { MessageId } from "../../i18n/messages/en";
 import type { Machine } from "../../store/machineStore";
 import { formatActivityText, formatAgentDisplayStateText } from "../../utils/activity";
-import { MemberEntryAppTag, MemberEntryRoleWord, YouSuffix } from "./MemberEntryParts";
+import { MemberEntryAppTag, MemberEntryAvatar, MemberEntryRoleWord, YouSuffix } from "./MemberEntryParts";
 import { agentRuntimeFacts } from "./memberEntryFacts";
 import { useRuntimeDeprecatedHere } from "../../hooks/useServerRuntimeCatalog";
 import { MemberMenuTrigger } from "./MemberMenuTrigger";
@@ -63,14 +63,23 @@ const STATUS_WORD_IDS: readonly MessageId[] = [
  */
 function StatusColumn({ children, id, testId, role }: { children: ReactNode; id?: string; testId?: string; role?: "columnheader" }) {
   const { formatMessage } = useIntl();
+  // The Team page's longer states (PRD §5.2): how long one has worked, a held one's reason and when it resumes.
+  const longest = [
+    formatMessage({ id: "taskSection.workingFor" }, { minutes: 88 }),
+    `${formatMessage({ id: "taskSection.held" })} · ${formatMessage({ id: "taskSection.heldUntil" }, { when: "00:00" })}`,
+  ];
   return (
-    <span id={id} role={role} className="grid shrink-0" data-testid={testId}>
-      <span className="col-start-1 row-start-1 flex min-w-0 items-center">{children}</span>
+    // Every row's column the sizer's width, its content from the start, a longer one cut (whole in its title).
+    <span id={id} role={role} className="grid shrink-0 grid-cols-[minmax(0,1fr)]" data-testid={testId}>
+      <span className="col-start-1 row-start-1 flex min-w-0 items-center justify-start overflow-hidden">{children}</span>
       <span aria-hidden className="invisible col-start-1 row-start-1 flex gap-2 text-caption" data-status-sizer="">
         <span className="w-2.5 shrink-0" />
         <span className="grid">
           {STATUS_WORD_IDS.map((wordId) => (
             <span key={wordId} className="col-start-1 row-start-1 whitespace-nowrap">{formatMessage({ id: wordId })}</span>
+          ))}
+          {longest.map((text) => (
+            <span key={text} className="col-start-1 row-start-1 whitespace-nowrap">{text}</span>
           ))}
         </span>
       </span>
@@ -121,9 +130,13 @@ const AgentRow = memo(function AgentRow({ entry, machine, showComputer, selected
   const statusText = formatAgentDisplayStateText(intl, state, { withDetail: false });
   const mark = agentMarkState(state, held);
   // What it is doing now (Team page PRD §5.2): held, when it resumes; working, for how long; else the presence word.
-  const moment = mark === "held" ? resumeMoment(resetsAt) : null;
-  const statusWord = mark === "held"
-    ? (moment ? formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when }) : formatMessage({ id: "taskSection.held" }))
+  // Held by a limit says when it resumes; held by its computer says why in its state's words ("Computer offline").
+  const limited = mark === "held" && !state.blocked;
+  const moment = limited ? resumeMoment(resetsAt) : null;
+  const statusWord = limited
+    ? (moment
+      ? `${formatMessage({ id: "taskSection.held" })} · ${formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when })}`
+      : formatMessage({ id: "taskSection.held" }))
     : mark === "working" && startedAt
       ? formatMessage({ id: "taskSection.workingFor" }, { minutes: Math.max(1, Math.round((currentTimeMs() - startedAt) / 60000)) })
       : state.blocked || state.paused || state.likelyOnline
@@ -236,7 +249,10 @@ const HumanRow = memo(function HumanRow({ entry, isSelf, showComputer, selected,
       data-member-entry-id={member.userId}
       className={MEMBER_ROW_MIN_H}
     >
-      <ListRowIcon className="w-3" aria-hidden />
+      {/* No presence for people: their small avatar where an agent's state mark is (Anna 11/16). */}
+      <ListRowIcon className="w-3 justify-center" aria-hidden>
+        <MemberEntryAvatar entry={entry} context="preview-mini" />
+      </ListRowIcon>
       <ListRowBody>
         <span className={NAME_LINE}>
           <ListRowTitle className="min-w-[3ch] flex-none" data-testid="member-entry-name">{entry.name}</ListRowTitle>
@@ -247,7 +263,7 @@ const HumanRow = memo(function HumanRow({ entry, isSelf, showComputer, selected,
           <ListRowSubtitle title={member.description} data-testid="member-entry-description">{member.description}</ListRowSubtitle>
         ) : null}
       </ListRowBody>
-      <StatusColumn><span /></StatusColumn>
+      <StatusColumn><span className={`${CELL} text-caption text-foreground-muted`}>—</span></StatusColumn>
       <span className={`${COL_RUNTIME} ${CELL}`} />
       <span className={`${COL_MODEL} ${CELL}`} />
       {showComputer ? <span className={`${COL_COMPUTER} ${CELL}`} /> : null}

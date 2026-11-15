@@ -9759,7 +9759,7 @@ export const es: Partial<Record<MessageId, string>> = {
   "team.state.working": "Trabajando",
   "team.state.idle": "En línea, inactivo",
   "team.state.offline": "Sin conexión",
-  "team.state.held": "Detenido por un límite",
+  "team.state.held": "Detenido",
   "team.overview.needsYou": "Requiere tu atención",
   "team.overview.working": "Trabajando ahora",
   "team.overview.resting": "Inactivos y sin conexión",
@@ -9778,4 +9778,5 @@ export const es: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineAgentsBody": "{count, plural, one {# agente está en ella y se detiene hasta que se reconecte.} many {# agentes están en ella y se detienen hasta que se reconecte.} other {# agentes están en ella y se detienen hasta que se reconecte.}}",
   "team.computer.agentsPaused": "{count, plural, one {# agente en pausa} many {# agentes en pausa} other {# agentes en pausa}}",
   "members.page.group.byType": "Por tipo",
+  "team.blocked.title": "{name} detenido por su computadora",
 };

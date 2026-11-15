@@ -9760,7 +9760,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "team.state.working": "作業中",
   "team.state.idle": "オンライン・待機中",
   "team.state.offline": "オフライン",
-  "team.state.held": "制限で停止中",
+  "team.state.held": "停止中",
   "team.overview.needsYou": "対応が必要",
   "team.overview.working": "作業中",
   "team.overview.resting": "待機中とオフライン",
@@ -9779,4 +9779,5 @@ export const ja: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineAgentsBody": "Agent {count} 件がここで動いており、再接続まで停止します。",
   "team.computer.agentsPaused": "Agent {count} 件が一時停止中",
   "members.page.group.byType": "種類別",
+  "team.blocked.title": "{name} はコンピューターの問題で停止中",
 };

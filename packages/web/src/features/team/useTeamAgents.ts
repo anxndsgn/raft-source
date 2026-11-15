@@ -22,6 +22,8 @@ export interface TeamAgentRow {
   waitingTasks: number;
   /** Held: the runtime whose usage ran out (the notice's provider). */
   provider: string | null;
+  /** Held by its computer (offline, too old, access revoked), not a usage limit: its state says which. */
+  heldByComputer: boolean;
   /** Idle or offline: the last task it finished (in review or done), for "Finished task #3 5 min ago". */
   finished: Task | null;
 }
@@ -77,7 +79,7 @@ export function useTeamAgents(): TeamAgents {
       const theirs = claimed.filter((task) => OPEN_TASK.has(task.status));
       const inProgress = theirs.find((task) => task.status === "in_progress") ?? null;
       const finished = claimed.find((task) => task.status === "in_review" || task.status === "done") ?? null;
-      const row: TeamAgentRow = { agent, state: "idle", startedAt: null, task: null, resetsAt: null, waitingTasks: 0, provider: null, finished };
+      const row: TeamAgentRow = { agent, state: "idle", startedAt: null, task: null, resetsAt: null, waitingTasks: 0, provider: null, heldByComputer: false, finished };
       if (resetsAt.has(agent.id)) {
         const waiting = theirs.filter((task) => task.status !== "in_review");
         held.push({ ...row, state: "held", resetsAt: resetsAt.get(agent.id) ?? null, task: waiting[0] ?? null, waitingTasks: waiting.length, provider: provider.get(agent.id) ?? null });
@@ -90,8 +92,8 @@ export function useTeamAgents(): TeamAgents {
       } else if (state === "idle") {
         idle.push(row);
       } else if (state === "held") {
-        // Its own usage_limit error, before the server's notice says when it resumes.
-        held.push({ ...row, state, task: theirs.find((task) => task.status !== "in_review") ?? null, waitingTasks: theirs.filter((task) => task.status !== "in_review").length });
+        // Its computer stopped it, or its own usage_limit error came before the server's notice.
+        held.push({ ...row, state, heldByComputer: !!display.blocked, task: theirs.find((task) => task.status !== "in_review") ?? null, waitingTasks: theirs.filter((task) => task.status !== "in_review").length });
       } else {
         offline.push({ ...row, state });
       }

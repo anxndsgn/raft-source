@@ -19,14 +19,13 @@ export function useWorkingAgentCount(): number {
 
 /**
  * The state mark an agent shows (working-agents.md › The state mark), one rule
- * for every place: held only by a usage limit (the inbox's notice, `heldByLimit`,
- * or the agent's own usage_limit error), as the legend says 被限制卡住; working;
- * online and idle; or offline — a computer that stopped it (offline, too old,
- * access revoked) reads offline, its computer is what needs you.
+ * for every place (Figmama 11/16): held — it should be working but is stuck: a
+ * usage limit (the inbox's notice, `heldByLimit`, or its own usage_limit
+ * error) or its computer (offline, too old, access revoked); working; online
+ * and idle; offline only when the agent itself is off with nothing waiting.
  */
 export function agentMarkState(display: Pick<AgentDisplayState, "activity" | "isOnline" | "blocked" | "activityErrorCode">, heldByLimit = false): AgentMarkState {
-  if (heldByLimit || display.activityErrorCode === "usage_limit") return "held";
-  if (display.blocked) return "offline";
+  if (heldByLimit || display.activityErrorCode === "usage_limit" || display.blocked) return "held";
   if (display.activity === "working" || display.activity === "thinking") return "working";
   return display.isOnline ? "idle" : "offline";
 }

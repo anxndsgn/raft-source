@@ -9979,7 +9979,7 @@ export const en = {
   "team.state.working": "Agent at work",
   "team.state.idle": "Online, idle",
   "team.state.offline": "Offline",
-  "team.state.held": "Held by a limit",
+  "team.state.held": "Held up",
   "team.overview.needsYou": "Needs you",
   "team.overview.working": "Working right now",
   "team.overview.resting": "Idle and offline",
@@ -9998,6 +9998,7 @@ export const en = {
   "layout.systemNotifications.machineOfflineAgentsBody": "{count, plural, one {# agent is on it and stopped until it reconnects.} other {# agents are on it and stopped until it reconnects.}}",
   "team.computer.agentsPaused": "{count, plural, one {# agent paused} other {# agents paused}}",
   "members.page.group.byType": "By type",
+  "team.blocked.title": "{name} stopped by its computer",
 } as const;
 
 export type MessageId = keyof typeof en;

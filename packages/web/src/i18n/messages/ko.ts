@@ -9759,7 +9759,7 @@ export const ko: Partial<Record<MessageId, string>> = {
   "team.state.working": "작업 중",
   "team.state.idle": "온라인, 대기",
   "team.state.offline": "오프라인",
-  "team.state.held": "한도로 멈춤",
+  "team.state.held": "멈춤",
   "team.overview.needsYou": "처리 필요",
   "team.overview.working": "작업 중",
   "team.overview.resting": "대기 및 오프라인",
@@ -9778,4 +9778,5 @@ export const ko: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineAgentsBody": "Agent {count}개가 이 컴퓨터에 있으며 다시 연결될 때까지 멈춥니다.",
   "team.computer.agentsPaused": "Agent {count}개 일시 중지됨",
   "members.page.group.byType": "유형별",
+  "team.blocked.title": "{name} 컴퓨터 문제로 멈춤",
 };

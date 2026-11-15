@@ -9759,7 +9759,7 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "team.state.working": "在工作",
   "team.state.idle": "在線閒置",
   "team.state.offline": "離線",
-  "team.state.held": "被限制卡住",
+  "team.state.held": "被卡住",
   "team.overview.needsYou": "需要你處理",
   "team.overview.working": "正在工作",
   "team.overview.resting": "閒置和離線",
@@ -9778,4 +9778,5 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineAgentsBody": "上面有 {count} 個 Agent，重新連線前都會停工。",
   "team.computer.agentsPaused": "{count} 個 Agent 已暫停",
   "members.page.group.byType": "按類型",
+  "team.blocked.title": "{name} 因電腦停工",
 };

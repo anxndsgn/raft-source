@@ -9,6 +9,7 @@ import { useResumeMoment, useShortSpan } from "../../components/task/agentTimeTe
 import { useAgentDisplayState } from "../../store/agentStore";
 import { useChannelStore } from "../../store/channelStore";
 import { findStoredChannel } from "../../store/storedChannel";
+import { formatAgentDisplayStateText } from "../../utils/activity";
 import { formatRelativeTime } from "../../utils/relativeTime";
 import type { TeamAgentRow } from "./useTeamAgents";
 
@@ -61,7 +62,8 @@ export function TeamAgentLine({ row, variant, onOpen, onOpenWork, onOpenChannel,
   onOpenChannel?: (channelId: string) => void;
   testId?: string;
 }) {
-  const { formatMessage, locale } = useIntl();
+  const intl = useIntl();
+  const { formatMessage, locale } = intl;
   const display = useAgentDisplayState(row.agent.id);
   const resumeMoment = useResumeMoment();
   const shortSpan = useShortSpan();
@@ -78,7 +80,12 @@ export function TeamAgentLine({ row, variant, onOpen, onOpenWork, onOpenChannel,
   let meta: ReactNode = null;
   let description: ReactNode[] = [];
   let descriptionTitle: string | undefined;
-  if (row.state === "held") {
+  if (row.state === "held" && row.heldByComputer) {
+    // Stopped by its computer: why, in its state's own words ("Computer offline").
+    const why = formatAgentDisplayStateText(intl, display, { withDetail: false });
+    title = page ? formatMessage({ id: "team.blocked.title" }, { name }) : joinParts([name, why]);
+    description = [page ? why : null, row.task ? formatMessage({ id: "team.held.waitingTask" }, { number: row.task.taskNumber }) : null];
+  } else if (row.state === "held") {
     const moment = resumeMoment(row.resetsAt);
     title = page ? formatMessage({ id: "team.held.title" }, { name }) : joinParts([name, formatMessage({ id: "taskSection.held" })]);
     descriptionTitle = moment?.title;

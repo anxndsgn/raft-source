@@ -9761,7 +9761,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "team.state.working": "Работает",
   "team.state.idle": "В сети, свободен",
   "team.state.offline": "Не в сети",
-  "team.state.held": "Остановлен лимитом",
+  "team.state.held": "Остановлен",
   "team.overview.needsYou": "Нужно ваше внимание",
   "team.overview.working": "Сейчас работают",
   "team.overview.resting": "Свободны и не в сети",
@@ -9780,4 +9780,5 @@ export const ru: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineOfflineAgentsBody": "{count, plural, one {На нём # агент, он остановлен до переподключения.} few {На нём # агента, они остановлены до переподключения.} many {На нём # агентов, они остановлены до переподключения.} other {На нём # агента, они остановлены до переподключения.}}",
   "team.computer.agentsPaused": "{count, plural, one {# агент приостановлен} few {# агента приостановлены} many {# агентов приостановлены} other {# агента приостановлены}}",
   "members.page.group.byType": "По типу",
+  "team.blocked.title": "{name} остановлен из-за компьютера",
 };

@@ -9870,7 +9870,7 @@ export const zhCn: Record<MessageId, string> = {
   "team.state.working": "在工作",
   "team.state.idle": "在线空闲",
   "team.state.offline": "离线",
-  "team.state.held": "被限制卡住",
+  "team.state.held": "被卡住",
   "team.overview.needsYou": "需要你处理",
   "team.overview.working": "正在工作",
   "team.overview.resting": "空闲和离线",
@@ -9889,4 +9889,5 @@ export const zhCn: Record<MessageId, string> = {
   "layout.systemNotifications.machineOfflineAgentsBody": "上面有 {count} 个 agent，重连前都会停工。",
   "team.computer.agentsPaused": "{count} 个 agent 已暂停",
   "members.page.group.byType": "按类型",
+  "team.blocked.title": "{name} 因计算机停工",
 };
