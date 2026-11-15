@@ -57,7 +57,8 @@ function NoticeRow({ entry }: { entry: NotificationEntry }) {
       {/* Every row's icon in the state mark's 12px box, so the rows' text starts on one line (Figmama 11/16). */}
       <ListRowIcon className="w-3 justify-center self-start pt-1 [&_svg]:size-3">{entry.icon}</ListRowIcon>
       <ListRowBody>
-        <ListRowTitle>{entry.title}</ListRowTitle>
+        {/* Who stopped is the point: the line wraps rather than cut (Anna 11/16). */}
+        <ListRowTitle className="whitespace-normal">{entry.title}</ListRowTitle>
         <ListRowDescription>{entry.body}</ListRowDescription>
       </ListRowBody>
       {entry.action ? <span className="shrink-0 text-footnote font-bold text-foreground-muted">{entry.action.label}</span> : null}

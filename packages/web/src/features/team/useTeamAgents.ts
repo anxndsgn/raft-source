@@ -7,7 +7,7 @@ import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
 import { useMachineStore } from "../../store/machineStore";
 import { useTaskStore } from "../../store/taskStore";
 import type { Task } from "../../store/taskStore";
-import { agentMarkState, teamDisplayState } from "./teamWorking";
+import { agentMarkState, agentStoppedByComputer, teamDisplayState } from "./teamWorking";
 
 /** One agent on the Team page and in the Team tab's preview (PRD 团队页 §4, §5.1). */
 export interface TeamAgentRow {
@@ -86,14 +86,15 @@ export function useTeamAgents(): TeamAgents {
         continue;
       }
       const display = teamDisplayState(agent, activities, machines);
-      const state = agentMarkState(display);
+      const byComputer = agentStoppedByComputer(agent, machines);
+      const state = agentMarkState(display, false, byComputer);
       if (state === "working") {
         working.push({ ...row, state: "working", startedAt: startedAt.get(agent.id) ?? null, task: inProgress });
       } else if (state === "idle") {
         idle.push(row);
       } else if (state === "held") {
         // Its computer stopped it, or its own usage_limit error came before the server's notice.
-        held.push({ ...row, state, heldByComputer: !!display.blocked, task: theirs.find((task) => task.status !== "in_review") ?? null, waitingTasks: theirs.filter((task) => task.status !== "in_review").length });
+        held.push({ ...row, state, heldByComputer: !!display.blocked || byComputer, task: theirs.find((task) => task.status !== "in_review") ?? null, waitingTasks: theirs.filter((task) => task.status !== "in_review").length });
       } else {
         offline.push({ ...row, state });
       }

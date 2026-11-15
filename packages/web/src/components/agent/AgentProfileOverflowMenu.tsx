@@ -1,4 +1,5 @@
 import { EllipsisVertical, Pause, Play, RotateCcw, Square } from "lucide-react";
+import { ProfileTeamHeadContext } from "../profile/profileCompact";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -94,8 +95,10 @@ export default function AgentProfileOverflowMenu({
   // In the row's column: Move Left / Move Right in ⋯, and Direct Message there where the head is narrow (#189).
   const region = useContext(RowRegionContext);
   const moves = useColumnMoveItems(region);
-  const foldMessage = messageInMenu && canMessageAgent;
-  const menuAlways = foldMessage || moves.length > 0;
+  // The Team page's head: always ⋯, its commands in it with their words; Message is the strip's (profileCompact).
+  const teamHead = useContext(ProfileTeamHeadContext);
+  const foldMessage = messageInMenu && canMessageAgent && !teamHead;
+  const menuAlways = foldMessage || moves.length > 0 || (teamHead && hasFoldingCommands);
   if (!canMessageAgent && !hasFoldingCommands && moves.length === 0) return null;
 
   // Header icon buttons are raft-ui PanelAction (44 on a phone, the DS small
@@ -242,8 +245,8 @@ export default function AgentProfileOverflowMenu({
       className="agent-profile-responsive-actions gap-0.5 md:pointer-fine:gap-1"
       data-testid="agent-profile-responsive-actions"
     >
-      {messageAction}
-      {hasFoldingCommands && inlineActions}
+      {teamHead ? null : messageAction}
+      {hasFoldingCommands && !teamHead && inlineActions}
       {hasFoldingCommands || menuAlways ? overflowMenu : null}
     </div>
   );

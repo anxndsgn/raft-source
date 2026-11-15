@@ -507,7 +507,8 @@ export function useSystemNotifications(surface: SystemNotificationSurface = "des
       // agents the Members list shows, as the Team page's computer cards count
       // them) stops those agents, so it is the person's to act on; one with no
       // agent says nothing (no noise).
-      const listedAgents = allAgents.filter(isAgentInMemberLists);
+      // A person's stopped agent isn't stopped by its computer: it is no one's to act on (agentStoppedByComputer).
+      const listedAgents = allAgents.filter((a) => isAgentInMemberLists(a) && a.status !== "stopped");
       const offlineMachines = machines.filter((m) => m.status === "offline" && listedAgents.some((a) => a.machineId === m.id));
 
       if (surface === "mobile" && computerAttention.status !== "none") {

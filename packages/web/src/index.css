@@ -1510,7 +1510,8 @@ html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [d
   display: none !important;
 }
 /* The Team page's column keeps its ⤢ beside × (PRD 团队页 v2.0 §5.4): it shows the whole page. */
-[data-team-column] [data-plain-head] [data-slot="panel-actions"] > [data-testid^="row-expand-"] {
+[data-team-column] [data-plain-head] [data-slot="panel-actions"] > [data-testid^="row-expand-"],
+[data-team-column] [data-plain-head] [data-slot="panel-actions"] > [data-testid="agent-profile-responsive-actions"] {
   display: flex;
 }
 /* Someone gone from the server (the card's departure badge): no DM to send. */

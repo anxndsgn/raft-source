@@ -55,7 +55,7 @@ import { useShortcutLayer } from "../../features/shortcuts/useShortcutLayer";
 import { ProfileCardFooter } from "../message/ProfileCardFooter";
 import { PanelHeadBelowContext } from "../ui/panelBackCrumb";
 import { useRowExpand } from "../layout/rowPlanStore";
-import { ProfileCompactContext } from "./profileCompact";
+import { ProfileCompactContext, ProfileTeamHeadContext } from "./profileCompact";
 import { useIsDesktopShell } from "../layout/ShellFrame";
 
 recordProfileOpenE2eEvent({ kind: "module-evaluated", module: "profile-panel" });
@@ -142,9 +142,9 @@ export type ProfilePanelProps = NonNullable<Parameters<typeof ProfilePanelConten
  * are doing now, Message), and the profile alone; ⤢ shows the whole page, every tab.
  */
 export default function ConnectedProfilePanel(props: ProfilePanelOwnProps = {}) {
-  // A desktop's column only: a phone pushes the whole profile, full screen, with Back (PRD §8).
+  // A phone pushes the whole profile, full screen, with Back (PRD §8), its head as the expanded one's.
   const desktop = useIsDesktopShell();
-  const team = useProfileStore((s) => s.teamColumn) && !props.target && desktop;
+  const team = useProfileStore((s) => s.teamColumn) && !props.target;
   const { pressed: expanded } = useRowExpand("profile");
   const profileType = useProfileStore((s) => s.profileType);
   const profileId = useProfileStore((s) => s.profileId);
@@ -154,20 +154,21 @@ export default function ConnectedProfilePanel(props: ProfilePanelOwnProps = {}) 
   );
   // Expanded, it covers the Team page whole, its tabs and list too (Figmama 11/16), not rule 5's 160px strip beside
   // it: one row of tabs on screen, the profile's own (index.css `data-team-cover`).
-  const cover = team && expanded;
+  const cover = team && expanded && desktop;
   useEffect(() => {
     if (!cover) return;
     document.documentElement.dataset.teamCover = "";
     return () => { delete document.documentElement.dataset.teamCover; };
   }, [cover]);
   if (!team || !strip) return <ProfilePanelContent {...props} />;
-  if (expanded) {
-    // Expanded, the whole page under its full head, the same strip under it (its Message, not the head's icon).
+  if (expanded || !desktop) {
+    // Expanded (or on a phone), the whole page under its full head, the same strip under it (its Message, not the
+    // head's icon), Stop and Restart in ⋯.
     return (
       <div className="contents" data-team-cover-panel="">
-        <PanelHeadBelowContext.Provider value={strip}>
+        <PanelHeadBelowContext.Provider value={strip}><ProfileTeamHeadContext.Provider value>
           <ProfilePanelContent {...props} />
-        </PanelHeadBelowContext.Provider>
+        </ProfileTeamHeadContext.Provider></PanelHeadBelowContext.Provider>
       </div>
     );
   }
@@ -175,9 +176,9 @@ export default function ConnectedProfilePanel(props: ProfilePanelOwnProps = {}) 
     // `contents`: the panel stays its column's own flex child; the mark lets the plain head keep its ⤢ (index.css).
     <div className="contents" data-team-column="">
       <PanelHeadBelowContext.Provider value={strip}>
-        <ProfileCompactContext.Provider value>
+        <ProfileCompactContext.Provider value><ProfileTeamHeadContext.Provider value>
           <ProfilePanelContent {...props} />
-        </ProfileCompactContext.Provider>
+        </ProfileTeamHeadContext.Provider></ProfileCompactContext.Provider>
       </PanelHeadBelowContext.Provider>
     </div>
   );

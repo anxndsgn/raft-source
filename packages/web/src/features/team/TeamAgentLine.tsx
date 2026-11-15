@@ -131,7 +131,8 @@ export function TeamAgentLine({ row, variant, onOpen, onOpenWork, onOpenChannel,
       </ListRowIcon>
       <ListRowBody>
         <ListRowTop>
-          <ListRowTitle>{title}</ListRowTitle>
+          {/* The Overview's lines wrap rather than cut what matters (Anna 11/16); the preview's stay one line. */}
+          <ListRowTitle className={page ? "whitespace-normal" : undefined}>{title}</ListRowTitle>
           {meta ? <ListRowMeta className="font-mono text-mono-meta">{meta}</ListRowMeta> : null}
         </ListRowTop>
         {description.some(Boolean) ? (

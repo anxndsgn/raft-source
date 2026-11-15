@@ -1,18 +1,13 @@
 import { ListRow, ListRowBody, ListRowGroup, ListRowIcon, ListRowMeta, ListRowSubtitle, ListRowTitle, Skeleton } from "@botiverse/raft-ui";
 import { AgentStateMark } from "@botiverse/raft-ui-ext";
-import { agentMarkState } from "../team/teamWorking";
-import { currentTimeMs } from "@botiverse/raft-shared";
-import { useResumeMoment } from "../../components/task/agentTimeText";
-import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
+import { useAgentNow } from "../team/useAgentNow";
 import { memo, useCallback, useId } from "react";
 import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
 import StatusDot from "../../components/ui/StatusDot";
 import { SkeletonTextBar } from "../../components/ui/Skeleton";
-import { useAgentDisplayState } from "../../store/agentStore";
 import type { MessageId } from "../../i18n/messages/en";
 import type { Machine } from "../../store/machineStore";
-import { formatActivityText, formatAgentDisplayStateText } from "../../utils/activity";
 import { MemberEntryAppTag, MemberEntryAvatar, MemberEntryRoleWord, YouSuffix } from "./MemberEntryParts";
 import { agentRuntimeFacts } from "./memberEntryFacts";
 import { useRuntimeDeprecatedHere } from "../../hooks/useServerRuntimeCatalog";
@@ -116,32 +111,13 @@ const AgentRow = memo(function AgentRow({ entry, machine, showComputer, selected
   onOpen: (entry: MemberEntry) => void;
 }) {
   const intl = useIntl();
-  const resumeMoment = useResumeMoment();
-  const startedAt = useLiveAgentActivityStore((s) => s.items.find((item) => item.agentId === entry.id && item.idleSince === null)?.startedAt ?? null);
   const { formatMessage } = intl;
   const deprecatedHere = useRuntimeDeprecatedHere();
   const { agent } = entry;
   const handleClick = useCallback(() => onOpen(entry), [entry, onOpen]);
   const id = useId();
-  // One read of the agent's state for both its avatar light and its Status column.
-  const state = useAgentDisplayState(agent.id, agent);
-  // The column says the short presence word; the full state (an external
-  // agent's "Last active this minute", a block, a pause) is its title.
-  const statusText = formatAgentDisplayStateText(intl, state, { withDetail: false });
-  const mark = agentMarkState(state, held);
-  // What it is doing now (Team page PRD §5.2): held, when it resumes; working, for how long; else the presence word.
-  // Held by a limit says when it resumes; held by its computer says why in its state's words ("Computer offline").
-  const limited = mark === "held" && !state.blocked;
-  const moment = limited ? resumeMoment(resetsAt) : null;
-  const statusWord = limited
-    ? (moment
-      ? `${formatMessage({ id: "taskSection.held" })} · ${formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when })}`
-      : formatMessage({ id: "taskSection.held" }))
-    : mark === "working" && startedAt
-      ? formatMessage({ id: "taskSection.workingFor" }, { minutes: Math.max(1, Math.round((currentTimeMs() - startedAt) / 60000)) })
-      : state.blocked || state.paused || state.likelyOnline
-        ? statusText
-        : formatActivityText(formatMessage, state.activity, "");
+  // What it is doing now, in the Team surfaces' one writing (useAgentNow): the mark and the short words.
+  const { mark, word: statusWord, title: statusText } = useAgentNow(agent, held ? resetsAt : undefined);
   const { runtime, model } = agentRuntimeFacts(agent, formatMessage, deprecatedHere);
   const folded = usage
     ? [model, runtime].filter(Boolean).join(" · ")

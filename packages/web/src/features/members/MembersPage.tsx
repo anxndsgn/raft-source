@@ -60,7 +60,7 @@ import {
   visibleTabs,
 } from "./membersPageModel";
 import type { AgentsGrouping, EntryActivity, MemberEntry, MemberGroup, MembersTab } from "./membersPageModel";
-import { agentMarkState, teamDisplayState } from "../team/teamWorking";
+import { agentMarkState, agentStoppedByComputer, teamDisplayState } from "../team/teamWorking";
 import { useUsageLimitAttention } from "../../components/layout/useUsageLimitAttention";
 
 
@@ -145,7 +145,7 @@ export function MembersPage() {
   }, [usageNotices]);
   const activityOf = useCallback((entry: MemberEntry): EntryActivity => {
     if (entry.kind !== "agent") return "other";
-    const state = agentMarkState(teamDisplayState(entry.agent, agentActivities, machines), resetsAtByAgent.has(entry.id));
+    const state = agentMarkState(teamDisplayState(entry.agent, agentActivities, machines), resetsAtByAgent.has(entry.id), agentStoppedByComputer(entry.agent, machines));
     return state === "working" || state === "offline" ? state : "other";
   }, [agentActivities, machines, resetsAtByAgent]);
   const groups = useMemo(
@@ -314,10 +314,8 @@ export function MembersPage() {
                 key={entry.id}
                 entry={entry}
                 isSelf={entry.id === userId}
-                runtimeLine={tab === "agents"}
-                machineName={entry.kind === "agent" && entry.agent.machineId && agentsGrouping !== "computer"
-                  ? machinesById.get(entry.agent.machineId)?.name ?? null
-                  : null}
+                held={resetsAtByAgent.has(entry.id)}
+                resetsAt={resetsAtByAgent.get(entry.id) ?? null}
                 onOpen={onOpen}
               />
             ))}

@@ -10,7 +10,8 @@ import { useAuthStore } from "../../store/authStore";
 import { useChannelStore } from "../../store/channelStore";
 import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
 import { findStoredChannel } from "../../store/storedChannel";
-import { agentMarkState } from "../../features/team/teamWorking";
+import { agentMarkState, agentStoppedByComputer } from "../../features/team/teamWorking";
+import { useMachineStore } from "../../store/machineStore";
 import { formatAgentDisplayStateText } from "../../utils/activity";
 import { useUsageLimitAttention } from "../layout/useUsageLimitAttention";
 import { useResumeMoment, useShortSpan } from "../task/agentTimeText";
@@ -42,7 +43,11 @@ export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: s
   const channelName = useChannelStore((s) => (current ? current.channelName || findStoredChannel(s, current.channelId)?.name || null : null));
   const display = useAgentDisplayState(type === "agent" ? id : "");
   const resetsAt = useUsageLimitAttention().notifications.find((notice) => type === "agent" && notice.affectedAgentIds.includes(id));
-  const mark = type === "agent" ? agentMarkState(display, !!resetsAt) : null;
+  const computerStopped = useMachineStore((s) => {
+    const agent = type === "agent" ? useAgentStore.getState().agents.find((a) => a.id === id) : undefined;
+    return !!agent && agentStoppedByComputer(agent, s.machines);
+  });
+  const mark = type === "agent" ? agentMarkState(display, !!resetsAt, computerStopped) : null;
   const startedAt = useLiveAgentActivityStore((s) => (type === "agent" ? s.items.find((item) => item.agentId === id && item.idleSince === null)?.startedAt ?? null : null));
   const resumeMoment = useResumeMoment();
   const shortSpan = useShortSpan();
@@ -63,9 +68,10 @@ export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: s
   let title: string | null = null;
   let step: string | null = null;
   if (mark === "held") {
-    const moment = !display.blocked ? resumeMoment(resetsAt?.resetsAt) : null;
-    title = display.blocked
-      ? formatAgentDisplayStateText(intl, display, { withDetail: false })
+    const byComputer = !!display.blocked || computerStopped;
+    const moment = !byComputer ? resumeMoment(resetsAt?.resetsAt) : null;
+    title = byComputer
+      ? (display.blocked ? formatAgentDisplayStateText(intl, display, { withDetail: false }) : formatMessage({ id: "agent.status.computerOffline" }))
       : moment
         ? `${formatMessage({ id: "taskSection.held" })} · ${formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when })}`
         : formatMessage({ id: "taskSection.held" });

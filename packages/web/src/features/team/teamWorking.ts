@@ -24,10 +24,18 @@ export function useWorkingAgentCount(): number {
  * error) or its computer (offline, too old, access revoked); working; online
  * and idle; offline only when the agent itself is off with nothing waiting.
  */
-export function agentMarkState(display: Pick<AgentDisplayState, "activity" | "isOnline" | "blocked" | "activityErrorCode">, heldByLimit = false): AgentMarkState {
-  if (heldByLimit || display.activityErrorCode === "usage_limit" || display.blocked) return "held";
+export function agentMarkState(display: Pick<AgentDisplayState, "activity" | "isOnline" | "blocked" | "activityErrorCode">, heldByLimit = false, stoppedByComputer = false): AgentMarkState {
+  if (heldByLimit || display.activityErrorCode === "usage_limit" || display.blocked || stoppedByComputer) return "held";
   if (display.activity === "working" || display.activity === "thinking") return "working";
   return display.isOnline ? "idle" : "offline";
+}
+
+/**
+ * Its computer is offline and the agent wasn't stopped by a person (Anna 11/16): it can't work until the computer is
+ * back, whatever it last said — held (a triangle, "Computer offline"), listed in that computer's Needs you row.
+ */
+export function agentStoppedByComputer(agent: Pick<Agent, "machineId" | "status">, machines: readonly Machine[]): boolean {
+  return agent.status !== "stopped" && isMachineOffline(machines, agent.machineId);
 }
 
 /** An agent's display state as the Team page reads it: an agent on an offline computer is offline. */
