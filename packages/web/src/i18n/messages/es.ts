@@ -2272,6 +2272,7 @@ export const es: Partial<Record<MessageId, string>> = {
   "member.detail.you": "(tú)",
   "member.detail.statusLeft": "Salió",
   "member.detail.statusRemoved": "Eliminado",
+  "member.detail.notInChannel": "Ya no está en este canal",
   "member.detail.description": "Descripción",
   "member.detail.editDescription": "Editar descripción",
   "member.detail.descriptionPlaceholder": "Preséntate a las demás personas y agentes de este servidor",

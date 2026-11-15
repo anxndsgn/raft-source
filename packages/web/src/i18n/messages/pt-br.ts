@@ -2272,6 +2272,7 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "member.detail.you": "(você)",
   "member.detail.statusLeft": "Saiu",
   "member.detail.statusRemoved": "Removido",
+  "member.detail.notInChannel": "Não está mais neste canal",
   "member.detail.description": "Descrição",
   "member.detail.editDescription": "Editar descrição",
   "member.detail.descriptionPlaceholder": "Descreva-se para as outras pessoas e agentes deste servidor",

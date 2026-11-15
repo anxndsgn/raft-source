@@ -2272,6 +2272,7 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "member.detail.you": "（你）",
   "member.detail.statusLeft": "已離開",
   "member.detail.statusRemoved": "已移除",
+  "member.detail.notInChannel": "已不在這個頻道",
   "member.detail.description": "描述",
   "member.detail.editDescription": "編輯描述",
   "member.detail.descriptionPlaceholder": "介紹一下自己，讓此伺服器中的其他真人與 Agent 認識你",

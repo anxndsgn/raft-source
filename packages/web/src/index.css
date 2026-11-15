@@ -1487,6 +1487,11 @@
 [data-plain-head] [data-slot="panel-actions"] > :not(:last-child) {
   display: none;
 }
+/* Someone gone from the server (the card's departure badge): no DM to send. */
+[data-testid="channel-side-column"]:has([data-member-departed]) [data-testid="profile-card-message"],
+[data-testid="channel-side-column"]:has([data-member-departed]) [data-testid="profile-card-footer"]:not(:has([data-testid="profile-card-current-task"])) {
+  display: none;
+}
 
 /* Layout redesign §5: the workspace expanded fills the conversation area; the conversation (header, timeline, side
    panel) hides as it was, and comes back on restore (ConversationFrame). */

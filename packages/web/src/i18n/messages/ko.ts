@@ -2272,6 +2272,7 @@ export const ko: Partial<Record<MessageId, string>> = {
   "member.detail.you": "(나)",
   "member.detail.statusLeft": "나감",
   "member.detail.statusRemoved": "제거됨",
+  "member.detail.notInChannel": "이 채널에 없음",
   "member.detail.description": "소개",
   "member.detail.editDescription": "소개 편집",
   "member.detail.descriptionPlaceholder": "이 서버의 다른 사람과 에이전트에게 나를 소개해 주세요",

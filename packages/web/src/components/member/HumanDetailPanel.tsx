@@ -1,7 +1,8 @@
+import { MemberOutsideChannelContext } from "../ui/panelBackCrumb";
 import { Badge, ProfilePanelBody, Button, ScrollArea, PanelAction, PanelTitle, Separator, Textarea, ListRowGroup } from "@botiverse/raft-ui";
 import { DirectMessageIcon } from "@botiverse/ricons";
 import type { BadgeProps } from "@botiverse/raft-ui";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import {
   HelpCircle,
@@ -264,6 +265,7 @@ export default function HumanDetailPanel({
   // Design D2: an owner/admin promotes a Guest from its profile (HumanProfileActions).
   const canPromoteGuest = canEditRole && !isSelf && human.role === "guest" && editableRoleOptions.some((option) => option.id === "member");
   const departureLabel = getHumanDepartureLabel(human.membershipStatus);
+  const outsideChannel = useContext(MemberOutsideChannelContext);
   const departureLabelText =
     departureLabel === "Left"
       ? formatMessage({ id: "member.detail.statusLeft" })
@@ -690,7 +692,7 @@ export default function HumanDetailPanel({
                 @{human.name}
               </span>
               {departureLabel && (
-                <Badge appearance="soft" variant="muted" className="shrink-0">
+                <Badge appearance="soft" variant="muted" className="shrink-0" data-member-departed="">
                   {departureLabelText}
                 </Badge>
               )}
@@ -700,6 +702,10 @@ export default function HumanDetailPanel({
                 </Badge>
               )}
             </div>
+            {/* Layout redesign 7.1: opened from a channel they are not in (the server's departure is the badge above). */}
+            {outsideChannel && !departureLabel ? (
+              <p className="mt-0.5 text-footnote text-foreground-hint" data-testid="member-detail-outside-channel">{formatMessage({ id: "member.detail.notInChannel" })}</p>
+            ) : null}
           </div>
         </div>
         {isSelf && human.membershipStatus === "active" && avatarError && (

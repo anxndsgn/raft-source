@@ -45,6 +45,7 @@ export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: s
     const dm = dmId ?? (await openUserDM(id))?.id;
     if (dm) nav.toDm(dm);
   }, [dmId, id, nav, openUserDM, type]);
+  // Gone from the server (removed or left): the card below says so, and Message hides (index.css).
   const canMessage = !archived && !self;
   if (!current && !canMessage) return null;
   return (

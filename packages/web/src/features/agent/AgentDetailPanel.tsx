@@ -813,6 +813,7 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
                 ) : (
                   <Badge appearance="outline">{formatMessage({ id: "sidebar.findConversationAgentTag" })}</Badge>
                 )}
+                {agent.deletedAt ? <Badge appearance="soft" variant="muted" data-testid="agent-profile-archived">{formatMessage({ id: "agent.detail.deleted" })}</Badge> : null}
                 {!isBoundedPublicProjection && agent.runtime && !agent.managedByAppInstallId && (
                   <Badge appearance="soft" variant="information" className={RUNTIME_CHIP_CLASS} data-testid="agent-profile-runtime-chip">
                     <SquareTerminal size={14} aria-hidden="true" />

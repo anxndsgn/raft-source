@@ -9,3 +9,6 @@ export const PanelBackCrumbContext = createContext<string | null>(null);
 
 /** Layout redesign 7.1: what stands right under a head (a member's "now": their task, Message), its page's own. */
 export const PanelHeadBelowContext = createContext<ReactNode>(null);
+
+/** Layout redesign 7.1: a member's details opened from a channel they are not in (ChannelMembers' `profileOnly`). */
+export const MemberOutsideChannelContext = createContext(false);

@@ -23,7 +23,7 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import Tooltip from "../../components/ui/Tooltip";
 import { MembersPageHeader } from "./MembersPageHeader";
 import { ProfileCardFooter } from "../../components/message/ProfileCardFooter";
-import { PanelBackCrumbContext, PanelHeadBelowContext } from "../../components/ui/panelBackCrumb";
+import { MemberOutsideChannelContext, PanelBackCrumbContext, PanelHeadBelowContext } from "../../components/ui/panelBackCrumb";
 import type { ProfilePanelProps, ProfilePanelTarget } from "../../components/profile/ProfilePanel";
 import { primeHumanProfileFromChannelMember, setCachedAgentProfile } from "../../components/profile/profileFallbackCache";
 import { isLocalProjectionMember, memberServerBadgeLabels } from "../../utils/channelLocalMembership";
@@ -1234,7 +1234,7 @@ export function ChannelMembers({
               )}
             >
               <PanelBackCrumbContext.Provider value={ownHead && profileStack.length === 1 && !initialProfile?.profileOnly ? formatMessage({ id: "message.chatPanel.overflow.members" }) : null}>
-              <PanelHeadBelowContext.Provider value={headBelow}>
+              <PanelHeadBelowContext.Provider value={headBelow}><MemberOutsideChannelContext.Provider value={!!initialProfile?.profileOnly && profileStack.length === 1}>
               <ProfilePanel
                 key={`${selectedProfile.type}:${selectedProfile.id}`}
                 target={selectedProfile}
@@ -1244,7 +1244,7 @@ export function ChannelMembers({
                 onClose={closeProfilePage}
                 onOpenProfile={openNestedProfile}
               />
-              </PanelHeadBelowContext.Provider></PanelBackCrumbContext.Provider>
+              </MemberOutsideChannelContext.Provider></PanelHeadBelowContext.Provider></PanelBackCrumbContext.Provider>
             </Suspense>
           )}
         </>

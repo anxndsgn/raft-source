@@ -2273,6 +2273,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "member.detail.you": "（あなた）",
   "member.detail.statusLeft": "退出済み",
   "member.detail.statusRemoved": "削除済み",
+  "member.detail.notInChannel": "このチャンネルにはいません",
   "member.detail.description": "説明",
   "member.detail.editDescription": "説明を編集",
   "member.detail.descriptionPlaceholder": "このサーバーの他の人間やエージェントに向けて自己紹介を書きましょう",

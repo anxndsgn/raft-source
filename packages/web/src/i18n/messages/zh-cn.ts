@@ -2356,6 +2356,7 @@ export const zhCn: Record<MessageId, string> = {
   "member.detail.you": "（你）",
   "member.detail.statusLeft": "已离开",
   "member.detail.statusRemoved": "已移除",
+  "member.detail.notInChannel": "已不在这个频道",
   "member.detail.description": "描述",
   "member.detail.editDescription": "编辑描述",
   "member.detail.descriptionPlaceholder": "描述你自己，让此服务器中的其他人类和 Agent 了解你",

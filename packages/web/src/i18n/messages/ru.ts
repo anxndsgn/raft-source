@@ -2274,6 +2274,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "member.detail.you": "(вы)",
   "member.detail.statusLeft": "Участник вышел",
   "member.detail.statusRemoved": "Участник удалён",
+  "member.detail.notInChannel": "Больше не в этом канале",
   "member.detail.description": "Описание",
   "member.detail.editDescription": "Изменить описание",
   "member.detail.descriptionPlaceholder": "Расскажите о себе другим людям и агентам на этом сервере",
