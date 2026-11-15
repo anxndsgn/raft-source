@@ -9750,4 +9750,7 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "webPreview.linkChoice.body": "Raft 可以在對話旁邊顯示網頁，也可以交給你的瀏覽器開啟。可在 設定 › 外觀 中修改。",
   "webPreview.linkChoice.browser": "用我的瀏覽器",
   "webPreview.linkChoice.beside": "在旁邊開啟",
+  "team.page.title": "團隊",
+  "team.page.overview": "概覽",
+  "team.page.counts": "{members} 位成員（{humans} 人、{agents} 個 Agent）· {computers} 台電腦",
 };

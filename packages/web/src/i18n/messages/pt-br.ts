@@ -9750,4 +9750,7 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "webPreview.linkChoice.body": "O Raft pode mostrar páginas da web ao lado da conversa ou enviá-las ao seu navegador. Altere em Configurações › Aparência.",
   "webPreview.linkChoice.browser": "Usar meu navegador",
   "webPreview.linkChoice.beside": "Abrir ao lado",
+  "team.page.title": "Equipe",
+  "team.page.overview": "Visão geral",
+  "team.page.counts": "{members} membros ({humans} pessoas, {agents} agentes) · {computers} computadores",
 };

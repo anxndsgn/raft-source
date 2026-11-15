@@ -9750,4 +9750,7 @@ export const ko: Partial<Record<MessageId, string>> = {
   "webPreview.linkChoice.body": "Raft는 웹 페이지를 대화 옆에 보여 주거나 브라우저로 넘길 수 있어요. 설정 › 모양에서 바꿀 수 있어요.",
   "webPreview.linkChoice.browser": "내 브라우저 사용",
   "webPreview.linkChoice.beside": "옆에 열기",
+  "team.page.title": "팀",
+  "team.page.overview": "개요",
+  "team.page.counts": "멤버 {members}명(사람 {humans}, Agent {agents}) · 컴퓨터 {computers}대",
 };

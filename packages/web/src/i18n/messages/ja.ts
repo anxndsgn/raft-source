@@ -9751,4 +9751,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "webPreview.linkChoice.body": "Raft はウェブページを会話の横に表示することも、お使いのブラウザーに渡すこともできます。設定 › 外観 で変更できます。",
   "webPreview.linkChoice.browser": "ブラウザーを使う",
   "webPreview.linkChoice.beside": "横に開く",
+  "team.page.title": "チーム",
+  "team.page.overview": "概要",
+  "team.page.counts": "メンバー {members} 人（人間 {humans}、Agent {agents}）· コンピューター {computers} 台",
 };

@@ -120,7 +120,7 @@ import { useShortcut } from "../../features/shortcuts/useShortcut";
 import { focusMountedSearch, routeGlobalSearchShortcut } from "../../utils/searchFocusRequest";
 import { retapTabRoot } from "../../hooks/useTabRootScroll";
 import { ArrowLeft, ListTodo, MonitorX, Search, UserX, X, MessageSquare, Inbox } from "lucide-react";
-import { MembersEmptyRoute } from "../../features/members/MembersEmptyRoute";
+import { MembersEmptyRoute, TeamOverviewRoute } from "../../features/members/MembersEmptyRoute";
 import { useMembersProfileRedirect } from "../../features/members/useMembersProfileRedirect";
 import api from "../../api/client";
 import type { HumanProfile } from "../member/HumanDetailPanel";
@@ -262,7 +262,8 @@ function useMobileTabBarVisible(): boolean {
   const isAgentDetail = path.startsWith(`${pathBase}/agent/`);
   const isHumanDetail = path.startsWith(`${pathBase}/human/`);
   // Members was a tab root until 2026-10-20; now the server tab pushes it.
-  const isMembersPage = path === `${pathBase}/members` || path.startsWith(`${pathBase}/members/`);
+  const isMembersPage = path === `${pathBase}/members` || path.startsWith(`${pathBase}/members/`)
+    || path === `${pathBase}/team` || path.startsWith(`${pathBase}/team/`);
   const isComputerDetail = path.startsWith(`${pathBase}/computer/`) || path.startsWith(`${pathBase}/machine/`);
   const isComputersList = path === `${pathBase}/computers` || path.startsWith(`${pathBase}/computers/`);
   // Apps is pushed from the server tab's popover too.
@@ -2593,6 +2594,7 @@ export default function MainLayout() {
               <Route path="members/graph" element={<LegacyMemberGraphRedirect />} />
               <Route path="migrations" element={<MigrationLogRoute />} />
               <Route path="members" element={<MembersEmptyRoute />} />
+              <Route path="team" element={<TeamOverviewRoute />} />
               <Route path="computers" element={<ComputersRoute />} />
               <Route path="computers/this-device" element={<Suspense fallback={<PanelFallback />}><ThisDevicePanel /></Suspense>} />
               <Route path="apps" element={<AppsRoute />} />

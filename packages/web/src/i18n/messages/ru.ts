@@ -9752,4 +9752,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "webPreview.linkChoice.body": "Raft может показывать веб-страницы рядом с беседой или передавать их вашему браузеру. Изменить это можно в разделе «Настройки › Оформление».",
   "webPreview.linkChoice.browser": "Использовать мой браузер",
   "webPreview.linkChoice.beside": "Открыть рядом",
+  "team.page.title": "Команда",
+  "team.page.overview": "Обзор",
+  "team.page.counts": "Участников: {members} (люди: {humans}, агенты: {agents}) · компьютеров: {computers}",
 };

@@ -79,7 +79,8 @@ export function shellRouteLayout(path: string, pathBase: string, { isDesktop, se
   // section too: on desktop it redirects to the page's side panel
   // (useMembersProfileRedirect), so no Members sidebar flashes before it, nor
   // stays beside one it doesn't redirect.
-  const isMembersRoute = under("/members") || (isDesktop && (under("/agent") || under("/human")));
+  // The Team page's Overview (PRD 团队页) is the Members section too: one page, no sidebar.
+  const isMembersRoute = under("/members") || under("/team") || (isDesktop && (under("/agent") || under("/human")));
   const isSearchRoute = under("/search");
   // Inbox (Activity) is the second content master/detail route. It reuses the
   // exact same slot store, URL sync, column assembly, widths, and resize
@@ -137,7 +138,7 @@ export function shellRouteLayout(path: string, pathBase: string, { isDesktop, se
   // Main pages with no composer that still get the assistant's otter, on
   // the main column's bottom edge (AssistantPageOtter; #proj-assistant:#17
   // item 3).
-  const assistantPageOtter = isInboxRoute || isTasksRoute || under("/members") || isSearchRoute;
+  const assistantPageOtter = isInboxRoute || isTasksRoute || under("/members") || under("/team") || isSearchRoute;
 
   return {
     assistantPageOtter,

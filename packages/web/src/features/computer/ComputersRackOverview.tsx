@@ -6,9 +6,8 @@ import { useServerPermissions } from "../../hooks/useServerPermissions";
 import { useComputersRackView } from "../../store/computersRackViewPreference";
 import { useMachineStore } from "../../store/machineStore";
 import EmptyState from "../../components/ui/EmptyState";
-import PanelHeader from "../../components/ui/PanelHeader";
+import { TeamHeader } from "../team/TeamHeader";
 import { ComputersRackList } from "./ComputersRackList";
-import { ComputersRackCounts } from "./ComputersRackCounts";
 import { ComputersRackToolbar } from "./ComputersRackToolbar";
 import { ComputersAttentionSummary } from "./ComputersAttentionSummary";
 import { useThisDeviceListEntry } from "../../components/machine/localComputer/useThisDeviceListEntry";
@@ -38,11 +37,11 @@ export function ComputersRackOverview() {
     void loadMachines();
   }, [loadMachines]);
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col font-sans" data-testid="computers-rack-overview">
-      <PanelHeader
-        title={formatMessage({ id: "machine.mobile.title" })}
-        titleSuffix={machineCount > 0 ? <ComputersRackCounts className="ml-2" /> : undefined}
-      />
+    // One 20px edge for the Team head, the toolbar, the summary and the rows, as on the Members tab (its
+    // listColumnMargin), so the head stays put when the Team page's tabs switch.
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:20px] [--surface-inset:20px]" data-testid="computers-rack-overview">
+      {/* The Team page's Computers tab (PRD 团队页 §5.3): the Team head over the rack, unchanged below it. */}
+      <TeamHeader view="computers" />
       {/* Search, filters, grouping, sort, the view and Add computer (ComputersRackToolbar), above the
           scroller so they stay put while the list scrolls; the head holds only the title and the
           count (Raft DS › Page structure › A page of a list). The toolbar shows with the page, empty or

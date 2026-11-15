@@ -38,7 +38,7 @@ test("first click on sidebar Chat tab from machine detail switches to chat", asy
 
   // Confirm the Members tab is the currently-active sidebar tab.
   // (The sidebar tab toggles live in the desktop LeftRail since #79.)
-  const membersTab = page.getByTestId("left-rail-tab-members");
+  const membersTab = page.getByTestId("left-rail-tab-team");
   const chatTab = page.getByTestId("left-rail-tab-chat");
   await expect(membersTab).toBeVisible();
   await expect(chatTab).toBeVisible();

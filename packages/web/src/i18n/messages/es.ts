@@ -9750,4 +9750,7 @@ export const es: Partial<Record<MessageId, string>> = {
   "webPreview.linkChoice.body": "Raft puede mostrar las páginas web junto a la conversación o pasarlas a tu navegador. Puedes cambiarlo en Configuración › Apariencia.",
   "webPreview.linkChoice.browser": "Usar mi navegador",
   "webPreview.linkChoice.beside": "Abrir al lado",
+  "team.page.title": "Equipo",
+  "team.page.overview": "Resumen",
+  "team.page.counts": "{members} miembros ({humans} personas, {agents} agentes) · {computers} computadoras",
 };

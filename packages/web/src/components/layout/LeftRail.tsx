@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isHostShell } from "../../embed";
 import { useIntl } from "react-intl";
-import { Blocks, CircleHelp, Monitor, PanelLeftClose, PanelLeftOpen, Search, Settings, Users, ListTodo, Inbox } from "lucide-react";
+import { Blocks, CircleHelp, PanelLeftClose, PanelLeftOpen, Search, Settings, Users, ListTodo, Inbox } from "lucide-react";
 import { useFeedbackUnread } from "../../feedback/useFeedbackUnread";
 import { useAuthStore } from "../../store/authStore";
 import { useServerStore } from "../../store/serverStore";
@@ -256,7 +256,6 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
       chat: select("chat"),
       tasks: select("tasks"),
       members: select("members"),
-      computers: select("computers"),
       apps: select("apps"),
       settings: select("settings"),
       assistant: select("assistant"),
@@ -320,26 +319,25 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
       )));
     }
     if (!isGuest) {
-      const membersLabel = formatMessage({ id: "layout.leftRail.tabMembers" });
-      const membersTooltip = onlineAgentCount > 0 ? formatMessage({ id: "layout.leftRail.agentsOnline" }, { count: onlineAgentCount }) : membersLabel;
-      tabs.push(tab("members", membersLabel, ({ dragProps, guardClick }) => (
-        <RailTabButton {...dragProps} icon={<Users size={18} />} label={membersTooltip} active={railMode === "members"} onClick={guardClick(railModeSelectors.members)} presenceDot={onlineAgentCount > 0} testId="left-rail-tab-members" />
-      )));
-      const computersLabel = formatMessage({ id: "layout.leftRail.tabComputers" });
-      tabs.push(tab("computers", computersLabel, ({ dragProps, guardClick }) => (
+      // Team (PRD 团队页 §4): Members and Computers are one tab, in Members' place (its saved order keeps the
+      // "members" id); its pages are the Team page's tabs, so the tab is lit on either, and carries Computers' dot.
+      const teamLabel = formatMessage({ id: "team.page.title" });
+      const teamTooltip = onlineAgentCount > 0 ? formatMessage({ id: "layout.leftRail.agentsOnline" }, { count: onlineAgentCount }) : teamLabel;
+      tabs.push(tab("members", teamLabel, ({ dragProps, guardClick }) => (
         <RailTabButton
           {...dragProps}
-          icon={<Monitor size={18} />}
-          label={computersLabel}
-          active={railMode === "computers"}
+          icon={<Users size={18} />}
+          label={teamTooltip}
+          active={railMode === "members" || railMode === "computers"}
+          onClick={guardClick(railModeSelectors.members)}
+          presenceDot={onlineAgentCount > 0}
           showDot={showComputerAttentionDot}
           dotInactiveOnly
           dotTooltip={computerAttentionTooltip}
-          onClick={guardClick(railModeSelectors.computers)}
-          testId="left-rail-tab-computers"
+          testId="left-rail-tab-team"
         />
       )));
-      // The server's Apps, after Computers; guests have none (#proj-apps task #22).
+      // The server's Apps, after Team; guests have none (#proj-apps task #22).
       const appsLabel = formatMessage({ id: "apps.page.title" });
       tabs.push(tab("apps", appsLabel, ({ dragProps, guardClick }) => (
         <RailTabButton

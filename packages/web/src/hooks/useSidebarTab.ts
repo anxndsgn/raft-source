@@ -47,6 +47,8 @@ function deriveRailModeFromPath(pathname: string, pathBase: string): RailMode {
   if (pathname.startsWith(`${pathBase}/agent/`)) return "members";
   if (pathname.startsWith(`${pathBase}/human/`)) return "members";
   if (pathname === `${pathBase}/members` || pathname.startsWith(`${pathBase}/members/`)) return "members";
+  // The Team page's Overview (PRD 团队页 §4); its Members and Computers tabs are the pages above.
+  if (pathname === `${pathBase}/team` || pathname.startsWith(`${pathBase}/team/`)) return "members";
   return "chat";
 }
 
@@ -110,11 +112,10 @@ export function useRailMode() {
       navigate(`${base}/artifacts`);
       return;
     }
-    // Members is one page (raft-design members.md): a profile opens in the
-    // side panel over it, and the graph is a page under it, so the rail
-    // always lands on the page itself, never a remembered profile or graph.
+    // The rail's Team tab (PRD 团队页 §4, "members" mode) lands on the Team page's
+    // Overview, never a remembered profile; its tabs lead to Members and Computers.
     if (mode === "members") {
-      navigate(`${base}/members`);
+      navigate(`${base}/team`);
       return;
     }
     // A Guest's Chat is its one channel, which the server's root opens: a

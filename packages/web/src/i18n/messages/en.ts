@@ -9970,6 +9970,9 @@ export const en = {
   "webPreview.linkChoice.body": "Raft can show web pages beside the conversation, or hand them to your browser. You can change this in Settings › Appearance.",
   "webPreview.linkChoice.browser": "Use my browser",
   "webPreview.linkChoice.beside": "Open beside",
+  "team.page.title": "Team",
+  "team.page.overview": "Overview",
+  "team.page.counts": "{members, plural, one {# member} other {# members}} ({humans, plural, one {# person} other {# people}}, {agents, plural, one {# agent} other {# agents}}) · {computers, plural, one {# computer} other {# computers}}",
 } as const;
 
 export type MessageId = keyof typeof en;

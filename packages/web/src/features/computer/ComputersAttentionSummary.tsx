@@ -11,7 +11,7 @@ import { formatAttentionItem, formatWaitBackIn, readinessDoLabel } from "../../u
 import { SkeletonTextBar } from "../../components/ui/Skeleton";
 import { useComputersRackRemembered, useRememberComputersRack } from "./computersRackRemembered";
 
-const SUMMARY_CLASS = "flex flex-col gap-0.5 border-b border-line-hairline px-4 py-2 text-callout text-foreground-muted";
+const SUMMARY_CLASS = "flex flex-col gap-0.5 border-b border-line-hairline px-(--surface-inset) py-2 text-callout text-foreground-muted";
 const LINE_CLASS = "flex min-w-0 flex-wrap items-center gap-x-1.5";
 
 /**

@@ -21,17 +21,16 @@ import { FitToolbar, FitToolbarButton, FitToolbarGroup, FitToolbarPicker, FitToo
 import { LIST_TOOLBAR_AIR_CLASS, LIST_TOOLBAR_STEP, LIST_TOOLBAR_MORE_GROUP_CLASS } from "../../components/ui/listToolbar";
 import { ListScope, ListToolbarMore, ListViewSwitch, MoreMenuChoices } from "../../components/ui/ListToolbarParts";
 import type { ListViewOption } from "../../components/ui/ListToolbarParts";
-import { isExternalAgentRuntime } from "@botiverse/raft-shared";
 import { useIsDesktopShell } from "../../components/layout/ShellFrame";
 import { MemberActionsContext } from "./memberActionsContext";
 import { useMemberActions } from "./useMemberActions";
 import { usePinnedHeadRailInset } from "../../hooks/usePinnedHeadRailInset";
 import { InviteHumanDialog } from "../../components/member/DeferredInviteHumanDialog";
-import PanelHeader from "../../components/ui/PanelHeader";
+import { TeamHeader } from "../team/TeamHeader";
 import { useMobileBack } from "../../hooks/useAppNavigate";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
 import type { MessageId } from "../../i18n/messages/en";
-import { isAgentInMemberLists, resolveAgentDisplayState, useAgentStore } from "../../store/agentStore";
+import { useAgentStore } from "../../store/agentStore";
 import { useAuthStore } from "../../store/authStore";
 import { useMachineStore } from "../../store/machineStore";
 import type { Machine } from "../../store/machineStore";
@@ -40,6 +39,7 @@ import { useServerStore } from "../../store/serverStore";
 import { SidebarCellList } from "../sidebar/rows/SidebarCellList";
 import { SidebarRowsSkeleton } from "../sidebar/rows/SidebarRowsSkeleton";
 import { useAgentsGrouping, writeAgentsGrouping } from "./agentsGroupingPreference";
+import { useMembersPopulation } from "./useMembersPopulation";
 import { MembersAddAgentDialogs } from "./MembersAddAgentDialogs";
 import { MembersCreateAgentButton } from "./MembersCreateAgentButton";
 import { useAddAgentActions } from "./useAddAgentActions";
@@ -55,16 +55,14 @@ import { AgentUsagePeriodSelect } from "../agent/AgentUsageParts";
 import { AfterSkeletonDelay, MemberTileSkeletons } from "./MemberTileSkeletons";
 import { membersGroupPlaceholders, useRememberedMembersGroupCounts } from "./membersGroupCounts";
 import {
-  agentEntry,
   agentsGroupingOptions,
   DEFAULT_AGENTS_GROUPING,
   effectiveAgentsGrouping,
   groupsForTab,
-  humanEntry,
   tabCount,
   visibleTabs,
 } from "./membersPageModel";
-import type { AgentsGrouping, MemberEntry, MemberGroup, MembersPopulation, MembersTab } from "./membersPageModel";
+import type { AgentsGrouping, MemberEntry, MemberGroup, MembersTab } from "./membersPageModel";
 
 /** The tiles' grid under a group heading, and its skeleton's. */
 const MEMBERS_TILE_GRID_CLASS = "grid gap-3 px-5 pt-2 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]";
@@ -87,28 +85,6 @@ const GROUPING_LABEL: Record<AgentsGrouping, MessageId> = {
   none: "members.page.group.none",
 };
 
-/** How many of the listed agents are working or thinking: a number, so a store update that leaves it alone renders nothing. */
-function selectWorkingAgentCount(state: ReturnType<typeof useAgentStore.getState>): number {
-  let working = 0;
-  for (const agent of state.agents) {
-    if (!isAgentInMemberLists(agent)) continue;
-    const external = agent.external === true || isExternalAgentRuntime(agent.runtime);
-    const { activity } = resolveAgentDisplayState(agent, state.agentActivities[agent.id], external);
-    if (activity === "working" || activity === "thinking") working += 1;
-  }
-  return working;
-}
-
-/** "2 agents working · 17 members", in the header's machine type. */
-function MembersCounts({ members }: { members: number }) {
-  const { formatMessage } = useIntl();
-  const working = useAgentStore(selectWorkingAgentCount);
-  return (
-    <span className="ml-2 hidden truncate font-mono text-mono-meta text-foreground-hint md:inline" data-testid="members-counts">
-      {formatMessage({ id: "members.page.counts" }, { working, members })}
-    </span>
-  );
-}
 
 /**
  * The Members page (raft-design design/products/raft-chat/members.md): the
@@ -124,33 +100,18 @@ export function MembersPage() {
   const { formatMessage, locale } = useIntl();
   const isDesktop = useIsDesktopShell();
   const serverSlug = useServerStore((s) => s.current?.slug);
-  const hideHumansSetting = useServerStore((s) => s.current?.hideHumansFromMembers === true);
   const members = useServerStore((s) => s.members);
-  const membersLoadError = useServerStore((s) => s.membersLoadError);
   const allAgents = useAgentStore((s) => s.agents);
-  const agentsLoading = useAgentStore((s) => s.loading);
   const machines = useMachineStore((s) => s.machines);
   const userId = useAuthStore((s) => s.user?.id);
   const openProfile = useProfileStore((s) => s.openProfile);
-  const { role, capabilities } = useServerPermissions();
+  const { capabilities } = useServerPermissions();
   const storedGrouping = useAgentsGrouping();
 
-  // Who the viewer may see, as the sidebar's Members list decided it: a member
-  // of a server that hides its people sees no Humans (nor who made an agent:
-  // no By creator); only owners and admins see the guests, among the Humans.
-  const showHumans = !(role === "member" && hideHumansSetting);
-  const showGuests = role === "owner" || role === "admin";
+  // Who the viewer may see (useMembersPopulation, shared with the Team head's counts).
+  const { population, memberListAgents, showHumans, loading, membersLoadError } = useMembersPopulation();
   const creatorsHidden = !showHumans;
   const agentsGrouping = effectiveAgentsGrouping(storedGrouping, creatorsHidden);
-
-  const memberListAgents = useMemo(() => allAgents.filter(isAgentInMemberLists), [allAgents]);
-  const population = useMemo<MembersPopulation>(() => {
-    const humans: MemberEntry[] = [];
-    for (const member of members) {
-      if (member.role === "guest" ? showGuests : showHumans) humans.push(humanEntry(member));
-    }
-    return { humans, agents: memberListAgents.map(agentEntry) };
-  }, [memberListAgents, members, showGuests, showHumans]);
   const machinesById = useMemo(() => new Map<string, Machine>(machines.map((m) => [m.id, m])), [machines]);
   // A creator the agent list sent no summary for, named from what the page has.
   const creatorName = useCallback((type: "human" | "agent", id: string): string | null => {
@@ -227,8 +188,6 @@ export function MembersPage() {
       scroller.removeEventListener("touchstart", release);
     };
   }, []);
-  // Members always holds the viewer once it has loaded; agents say so themselves.
-  const loading = (members.length === 0 && !membersLoadError) || (agentsLoading && allAgents.length === 0);
   // How many humans and agents were listed last time here, for the tiles'
   // skeleton (membersGroupCounts); remembered once both lists are read.
   const serverId = useServerStore((s) => s.current?.id);
@@ -426,13 +385,7 @@ export function MembersPage() {
     // One 20px edge for the head, the toolbar and the rows at every width (raft-ui listColumnMargin).
     <MemberActionsContext.Provider value={memberActions}>
     <div ref={pageRef} className="flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:20px]" data-testid="members-page" data-layout={isDesktop ? "desktop" : "phone"}>
-      <PanelHeader
-        title={formatMessage({ id: "members.page.title" })}
-        // No "0 members" while they load: the counts come with the members.
-        titleSuffix={loading ? undefined : <MembersCounts members={tabCount("all", population)} />}
-        onMobileBack={onMobileBack}
-        mobileBackProps={mobileBackProps}
-      />
+      <TeamHeader view="members" onMobileBack={onMobileBack} mobileBackProps={mobileBackProps} />
       <ScrollArea ref={scrollerRef} railInset={toolbarRailInset} className="min-h-0 flex-1 bg-layer-canvas pb-5 safe-bottom" data-testid="members-scroller">
         {/* The toolbar over the list (Raft DS › The toolbar over a list), pinned under the header while the
             members scroll: the tabs, the search filling the line, the Agents tab's Group menu and Invite human,

@@ -65,9 +65,10 @@ test("desktop Computers rail attention stays separate from each row's single ful
     ));
   });
 
-  const computers = container.querySelector<HTMLButtonElement>('[data-testid="left-rail-tab-computers"]');
+  // Computers is the Team tab's (PRD 团队页 §4): it carries Computers' attention dot.
+  const computers = container.querySelector<HTMLButtonElement>('[data-testid="left-rail-tab-team"]');
   assert.ok(computers);
-  assert.equal(computers.getAttribute("aria-label"), "Computers");
+  assert.equal(computers.getAttribute("aria-label"), "Team");
   assert.equal(
     computers.querySelectorAll('[data-slot="app-rail-item-indicator"]').length,
     1,

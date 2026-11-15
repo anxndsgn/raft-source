@@ -9861,4 +9861,7 @@ export const zhCn: Record<MessageId, string> = {
   "webPreview.linkChoice.body": "Raft 可以在对话旁边显示网页，也可以交给你的浏览器打开。可在 设置 › 外观 中修改。",
   "webPreview.linkChoice.browser": "用我的浏览器",
   "webPreview.linkChoice.beside": "在旁边打开",
+  "team.page.title": "团队",
+  "team.page.overview": "概览",
+  "team.page.counts": "{members} 位成员（{humans} 人、{agents} 个 agent）· {computers} 台计算机",
 };

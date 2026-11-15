@@ -30,3 +30,20 @@ export function MembersEmptyRoute() {
     </Suspense>
   );
 }
+
+// The Team page's Overview, off the default route like Members.
+const TeamOverviewPage = deferredPanel(() => import("../team/TeamOverviewPage").then((module) => ({ default: module.TeamOverviewPage })));
+
+/** The /team route: the Team page's Overview (PRD 团队页 §5.1). A Guest has no Team page. */
+export function TeamOverviewRoute() {
+  const { formatMessage } = useIntl();
+  const server = useServerStore((s) => s.current);
+  if (server?.role === "guest") {
+    return <Navigate to={server.slug ? `/s/${server.slug}` : "/"} replace />;
+  }
+  return (
+    <Suspense fallback={<PanelLoading label={formatMessage({ id: "layout.main.loading" })} />}>
+      <TeamOverviewPage />
+    </Suspense>
+  );
+}

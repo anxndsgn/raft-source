@@ -110,7 +110,7 @@ try {
 
   stage = "wait_for_surface";
   await Promise.any([
-    page.getByTestId("left-rail-tab-computers").waitFor({ state: "visible", timeout: 60_000 }),
+    page.getByTestId("left-rail-tab-team").waitFor({ state: "visible", timeout: 60_000 }),
     page.getByRole("heading", { name: "Meet Cindy", exact: true }).waitFor({ state: "visible", timeout: 60_000 }),
     page.getByRole("heading", { name: "Connect a computer", exact: true }).waitFor({ state: "visible", timeout: 60_000 }),
   ]);
@@ -130,7 +130,7 @@ try {
   receipt.setupResumeBarVisible = await page.getByTestId("server-setup-resume-bar")
     .isVisible()
     .catch(() => false);
-  receipt.normalComputersSurface = await page.getByTestId("left-rail-tab-computers")
+  receipt.normalComputersSurface = await page.getByTestId("left-rail-tab-team")
     .isVisible()
     .catch(() => false);
   await page.screenshot({ path: resolve(outDir, "computers-preflight.png"), fullPage: true });
