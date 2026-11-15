@@ -86,7 +86,7 @@ import { ChannelAccessLost } from "../../features/channel/ChannelAccessLost";
 import { GuestNoChannel, NoConversation } from "../../features/channel/NoConversation";
 import { useChannelAccessLost, useChannelUnavailable } from "../../store/channelAccessLoss";
 import MobileComputersPanel from "../machine/MobileComputersPanel";
-import { MobileServerTab } from "./MobileServerTab";
+import { MobileServerTab, TeamTabAttentionDot } from "./MobileServerTab";
 import { useMarkComputerAttentionSeen } from "../../hooks/useComputerAttentionDot";
 import { ThreadPanel } from "../../features/thread/DeferredThreadPanel";
 import { useProfileStore } from "../../store/profileStore";
@@ -119,7 +119,7 @@ import { useShortcutHelpStore } from "../../features/keyboard-shortcuts/shortcut
 import { useShortcut } from "../../features/shortcuts/useShortcut";
 import { focusMountedSearch, routeGlobalSearchShortcut } from "../../utils/searchFocusRequest";
 import { retapTabRoot } from "../../hooks/useTabRootScroll";
-import { ArrowLeft, ListTodo, MonitorX, Search, UserX, X, MessageSquare, Inbox } from "lucide-react";
+import { ArrowLeft, ListTodo, MonitorX, UserX, Users, X, MessageSquare, Inbox } from "lucide-react";
 import { MembersEmptyRoute, TeamOverviewRoute } from "../../features/members/MembersEmptyRoute";
 import { useMembersProfileRedirect } from "../../features/members/useMembersProfileRedirect";
 import api from "../../api/client";
@@ -254,17 +254,17 @@ function useMobileTabBarVisible(): boolean {
   // Settings, each settings section and everything under them).
   // Per @stdrc 2026-04-30 #proj-uiux:c8711d2a ("tabbar is level-1; any view
   // you push into covers the navbar and shows a back button top-left").
-  // /search itself is the Search tab's root (design lead 2026-10-21): no
-  // Back, the bar shows with Search selected.
+  // /search is a page Chat's search field pushes (Team took the Search tab's
+  // place, PRD 团队页 §8): a Back, no bar. The Team tab's roots keep the bar.
   const isChannelDetail = path.startsWith(`${pathBase}/channel/`) && !(guest && isGuestHomePath(path, pathBase)); // a Guest's Home
   const isDMDetail = path.startsWith(`${pathBase}/dm/`);
-  const isSearchDetail = path.startsWith(`${pathBase}/search/`);
+  const isSearchDetail = path.startsWith(`${pathBase}/search`); // the page itself too: a push now
   const isAgentDetail = path.startsWith(`${pathBase}/agent/`);
   const isHumanDetail = path.startsWith(`${pathBase}/human/`);
   // Members (and the Team page's Overview, /team) was a tab root until 2026-10-20; now the server tab pushes it.
-  const isMembersPage = /^\/(members|team)(\/|$)/.test(path.startsWith(pathBase) ? path.slice(pathBase.length) : "");
+  const isMembersPage = /^\/(members|team)\/./.test(path.startsWith(pathBase) ? path.slice(pathBase.length) : ""); // its roots: the Team tab's
   const isComputerDetail = path.startsWith(`${pathBase}/computer/`) || path.startsWith(`${pathBase}/machine/`);
-  const isComputersList = path === `${pathBase}/computers` || path.startsWith(`${pathBase}/computers/`);
+  const isComputersList = path.startsWith(`${pathBase}/computers/`); // /computers itself is a Team tab root (PRD 团队页 §8)
   // Apps is pushed from the server tab's popover too.
   const isAppsPage = path === `${pathBase}/apps` || path.startsWith(`${pathBase}/apps/`);
   // /settings (the list) was More's root until 2026-10-22; now it is pushed
@@ -348,8 +348,8 @@ export function MobileTabBar() {
   if (isHostShell()) return null;
   if (!visible || !serverSlug) return null;
 
-  // Phone bar (stdrc 2026-10-21, 2026-10-22): Home / Activity / Tasks /
-  // Search, then the current server, in raft-ui's edge bar. The server tab
+  // Phone bar (stdrc 2026-10-21, 2026-10-22; PRD 团队页 §8): Home / Activity /
+  // Tasks / Team, then the current server, in raft-ui's edge bar. The server tab
   // (MobileServerTab) took More's slot: it opens a popover, not a page, and
   // is never selected; the server's own pages open from it.
   // Search is a tab like the others (design lead 2026-10-21, "like Slack"):
@@ -368,7 +368,7 @@ export function MobileTabBar() {
   // Activity also sends activity_open (stdrc's Activity question; the Home row
   // that sent it on the phone is gone).
   const tapTab = (tab: MobileTabId, active: boolean) => () => {
-    trackNavEntrySelected(tab === "chat" ? "home" : tab, "mobile_tab_bar", active);
+    trackNavEntrySelected(tab === "chat" ? "home" : tab === "team" ? "members" : tab, "mobile_tab_bar", active);
     if (tab === "activity") trackActivityOpen("mobile_tab_bar");
     if (active) {
       retapTabRoot(tab);
@@ -380,8 +380,8 @@ export function MobileTabBar() {
     { id: "chat", label: formatMessage({ id: "layout.leftRail.tabChat" }), icon: MessageSquare },
     { id: "activity", label: formatMessage({ id: "layout.leftRail.tabInbox" }), icon: Inbox },
     { id: "tasks", label: formatMessage({ id: "layout.mobileTabBar.tasks" }), icon: ListTodo },
-    { id: "search", label: formatMessage({ id: "layout.mobileTabBar.search" }), icon: Search },
-  ] as const satisfies readonly { id: MobileTabId; label: string; icon: typeof Search }[];
+    { id: "team", label: formatMessage({ id: "team.page.title" }), icon: Users }, // Team took Search's place (PRD 团队页 §8)
+  ] as const satisfies readonly { id: MobileTabId; label: string; icon: typeof Users }[];
 
   // In-flow (not fixed): the bar is the last child of the MainLayout flex
   // column, which is itself pinned to the visual viewport via #root. This
@@ -407,7 +407,7 @@ export function MobileTabBar() {
             selected={active}
             onClick={tapTab(tab.id, active)}
             aria-label={tab.label}
-            data-testid={tab.id === "search" ? "mobile-tab-search" : undefined}
+            data-testid={`mobile-tab-${tab.id}`}
           >
             {/* The icon stays in short windows too: Raft DS › TabBar marks the
                 selected tab by the yellow sticker around its icon, so hiding
@@ -417,7 +417,7 @@ export function MobileTabBar() {
               <tab.icon />
               {/* Raft DS › MobileNav: an attention dot, never a number, and
                   never on the selected tab. Search never has one. */}
-              {tab.id === "activity" && !active && <ActivityTabUnreadDot className={MOBILE_TAB_DOT_CLASS} />}
+              {active ? null : tab.id === "activity" ? <ActivityTabUnreadDot className={MOBILE_TAB_DOT_CLASS} /> : tab.id === "team" ? <TeamTabAttentionDot className={MOBILE_TAB_DOT_CLASS} /> : null}
             </span>
             <MobileNavLabel>{tab.label}</MobileNavLabel>
           </MobileNavItem>

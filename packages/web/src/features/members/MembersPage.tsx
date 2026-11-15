@@ -27,7 +27,6 @@ import { useMemberActions } from "./useMemberActions";
 import { usePinnedHeadRailInset } from "../../hooks/usePinnedHeadRailInset";
 import { InviteHumanDialog } from "../../components/member/DeferredInviteHumanDialog";
 import { TeamHeader } from "../team/TeamHeader";
-import { useMobileBack } from "../../hooks/useAppNavigate";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
 import type { MessageId } from "../../i18n/messages/en";
 import { useAgentStore } from "../../store/agentStore";
@@ -100,7 +99,6 @@ const GROUPING_LABEL: Record<AgentsGrouping, MessageId> = {
 export function MembersPage() {
   const { formatMessage, locale } = useIntl();
   const isDesktop = useIsDesktopShell();
-  const serverSlug = useServerStore((s) => s.current?.slug);
   const members = useServerStore((s) => s.members);
   const allAgents = useAgentStore((s) => s.agents);
   const machines = useMachineStore((s) => s.machines);
@@ -245,11 +243,6 @@ export function MembersPage() {
   }, [setUsageView, usageToday]);
   // The member open in the side panel is the selected tile or row (Raft DS › States, "Selected: content").
   const openKey = useProfileStore((s) => (s.profileType === "agent" || s.profileType === "human" ? `${s.profileType}:${s.profileId}` : null));
-  const onMobileBack = useMobileBack(serverSlug ? `/s/${serverSlug}` : "/");
-  const mobileBackProps = useMemo(
-    () => ({ "data-testid": "members-mobile-back", title: formatMessage({ id: "common.announcement.back" }) }),
-    [formatMessage],
-  );
 
   // The add actions end the toolbar (Raft DS › A page of a list; members.md): Invite human
   // (`default`), then Create agent (`primary`), the primary last.
@@ -356,7 +349,8 @@ export function MembersPage() {
     // One 20px edge for the head, the toolbar and the rows at every width (raft-ui listColumnMargin).
     <MemberActionsContext.Provider value={memberActions}>
     <div ref={pageRef} className="flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:20px]" data-testid="members-page" data-layout={isDesktop ? "desktop" : "phone"}>
-      <TeamHeader view="members" onMobileBack={onMobileBack} mobileBackProps={mobileBackProps} />
+      {/* A root of the Team tab on a phone (PRD 团队页 §8): no Back. */}
+      <TeamHeader view="members" />
       <ScrollArea ref={scrollerRef} railInset={toolbarRailInset} className="min-h-0 flex-1 bg-layer-canvas pb-5 safe-bottom" data-testid="members-scroller">
         {/* The toolbar over the list (Raft DS › The toolbar over a list), pinned under the header while the
             members scroll: the tabs, the search filling the line, the Agents tab's Group menu and Invite human,

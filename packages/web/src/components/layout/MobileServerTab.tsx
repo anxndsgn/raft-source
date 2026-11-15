@@ -5,7 +5,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { CSS } from "@dnd-kit/utilities";
 import { useIntl } from "react-intl";
 import { useLocation } from "react-router-dom";
-import { Blocks, Monitor, Plus, Settings, UserPlus, Users, UserRound } from "lucide-react";
+import { Blocks, Plus, Settings, UserPlus, UserRound } from "lucide-react";
 import { MobileNavLabel, PopoverSeparator, Status } from "@botiverse/raft-ui";
 import { ArtifactIcon } from "@botiverse/ricons";
 import {
@@ -22,7 +22,6 @@ import {
   useHoldThenMoveTouchSensor,
 } from "@botiverse/raft-ui/wip";
 import { trackNavEntrySelected } from "../../analytics/navigation";
-import { markComputerAttentionSeenNow } from "../../hooks/useComputerAttentionDot";
 import { useAppNavigate } from "../../hooks/useAppNavigate";
 import { NonTouchPointerSensor, SORTABLE_KEYBOARD_SENSOR_OPTIONS } from "../../lib/dndSensors";
 import { tabHomeFor, useMobileNavStore } from "../../store/mobileNavStore";
@@ -32,6 +31,7 @@ import type { Server } from "../../store/serverStore";
 import { hasOtherServerActivityUnread } from "../../utils/serverUnreadSummary";
 import type { ServerUnreadSummary } from "../../utils/serverUnreadSummary";
 import { touchDragRegion } from "../../utils/touchDragRegion";
+import AttentionDot from "../ui/AttentionDot";
 import Banner from "../ui/Banner";
 import { ServerTabRowContent } from "./ServerTabRowContent";
 import { dismissLayerProps } from "../ui/dismissLayer";
@@ -152,7 +152,6 @@ export function MobileServerTab({ mobileTab }: { mobileTab: MobileTabId | null }
     useHoldThenMoveTouchSensor(),
     useSensor(KeyboardSensor, SORTABLE_KEYBOARD_SENSOR_OPTIONS),
   );
-  const computers = useComputersPageAttention();
   const apps = useAppsPageAttention();
   const settings = useSettingsPageAttention();
   const showArtifacts = useArtifactsRailShown(useShellPending());
@@ -180,22 +179,15 @@ export function MobileServerTab({ mobileTab }: { mobileTab: MobileTabId | null }
     selectServer(selected, tabHomeFor(tab, `/s/${selected.slug}`));
   }, [selectServer, tab]);
 
-  const openServerPage = useCallback((page: "artifacts" | "members" | "computers" | "apps" | "settings") => {
+  const openServerPage = useCallback((page: "artifacts" | "apps" | "settings") => {
     trackNavEntrySelected(page, "mobile_more", false);
     useMobileNavStore.getState().requestServerTabFocus(locationKey);
     setOpen(false);
     if (page === "artifacts") nav.toArtifacts();
-    else if (page === "members") nav.toMembers();
-    else if (page === "computers") {
-      // Opening Computers sees every computer's current attention state.
-      markComputerAttentionSeenNow();
-      nav.toComputers();
-    } else if (page === "apps") nav.toApps();
+    else if (page === "apps") nav.toApps();
     else nav.toSettings();
   }, [locationKey, nav]);
   const openArtifacts = useCallback(() => openServerPage("artifacts"), [openServerPage]);
-  const openMembers = useCallback(() => openServerPage("members"), [openServerPage]);
-  const openComputers = useCallback(() => openServerPage("computers"), [openServerPage]);
   const openApps = useCallback(() => openServerPage("apps"), [openServerPage]);
   const openSettings = useCallback(() => openServerPage("settings"), [openServerPage]);
   const handleJoinCommunity = useCallback((event: MouseEvent<HTMLButtonElement>) => {
@@ -292,19 +284,7 @@ export function MobileServerTab({ mobileTab }: { mobileTab: MobileTabId | null }
             ) : null}
             {isGuest ? null : (
               <>
-                <MobileNavServerPopoverDestination data-testid="mobile-server-tab-members" onClick={openMembers}>
-                  <Users />
-                  <span>{formatMessage({ id: "layout.sidebar.headerMembers" })}</span>
-                </MobileNavServerPopoverDestination>
-                <MobileNavServerPopoverDestination
-                  data-testid="mobile-server-tab-computers"
-                  aria-label={computers.lit ? computers.label : undefined}
-                  onClick={openComputers}
-                >
-                  <Monitor />
-                  <span>{formatMessage({ id: "layout.sidebar.headerComputers" })}</span>
-                  {computers.lit ? <Status aria-hidden variant="accent" size="sm" data-testid="computers-attention-dot" /> : null}
-                </MobileNavServerPopoverDestination>
+                {/* Members and Computers are the Team tab's now (PRD 团队页 §8), Computers' dot with it. */}
                 {/* Apps (#proj-apps task #22): its dot is for owners and admins
                     while an App waits for them; never on the server avatar. */}
                 <MobileNavServerPopoverDestination
@@ -333,4 +313,14 @@ export function MobileServerTab({ mobileTab }: { mobileTab: MobileTabId | null }
       {dialogs}
     </>
   );
+}
+
+/**
+ * The phone's Team tab's dot (PRD 团队页 §8): a computer needs you, as the desktop rail's Team tab says it (the
+ * attention dot, never a number, never on the selected tab; Raft DS › MobileNav).
+ */
+export function TeamTabAttentionDot({ className }: { className?: string }) {
+  const computers = useComputersPageAttention();
+  if (!computers.lit) return null;
+  return <AttentionDot className={className} role="img" aria-label={computers.label} data-testid="mobile-tab-team-attention-dot" />;
 }

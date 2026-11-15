@@ -6,6 +6,7 @@ import AvatarSlot from "../../components/ui/AvatarSlot";
 import ServerSwitcherMenu from "../../components/ui/ServerSwitcherMenu";
 import { SHOW_STALE_COUNTS_NOTICE_IN_DESKTOP_SIDEBAR, StaleCountsNotice, UNREAD_COUNT_SURFACES } from "../../components/layout/StaleCountsNotice";
 import { TabRootBar } from "../../components/layout/TabRootBar";
+import { ChatSearchField } from "./ChatSearchField";
 import type { SidebarData } from "./hooks/useSidebarData";
 import type { SidebarViewState } from "./hooks/useSidebarViewState";
 import type { SidebarSync } from "./hooks/useSidebarSync";
@@ -95,6 +96,8 @@ export function SidebarTopBar({ mobileInline, hideTitle, data, view, sync, home 
           ) : undefined}
         />
       )}
+      {/* Search on a phone, at the top of Chat (PRD 团队页 §8): the Search tab became Team. */}
+      {mobileInline && !isServerPushedPage && railMode === "chat" ? <ChatSearchField /> : null}
 
       {/* Desktop sidebar head (`.rf-side__head`, raft-ui SidebarHeader): 56
           tall like the rail head and every panel head, so the seams line up;

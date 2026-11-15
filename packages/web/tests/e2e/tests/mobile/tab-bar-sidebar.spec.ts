@@ -53,12 +53,13 @@ async function expectSelectedTabSticker(page: Page, tab: Locator) {
 // the sidebar stuck on the Members surface. Root cause was Sidebar's URL→state
 // effect ignoring the default-tab case. Fix lives in Sidebar.tsx.
 //
-// Since 2026-10-22 (stdrc) the bar is Home / Activity / Tasks / Search and the
-// current server. The server tab took More's slot: it opens a popover whose
-// bottom row pushes Members, Computers and Settings, each a page with Back.
-// The old /more link lands on Home.
-test.describe("mobile tab bar — home ↔ server tab ↔ members switching", () => {
-  test("home → server tab → members → back → home restores chat sidebar", async ({ page, request }) => {
+// Since 2026-10-22 (stdrc) the bar ends with the current server, whose popover
+// pushes the server's own pages. Since 2026-11-16 (PRD 团队页 §8) the bar is
+// Home / Activity / Tasks / Team: Team took Search's place (Members and
+// Computers are its tabs, its roots keep the bar), and search is the field at
+// the top of Home, which pushes the search page.
+test.describe("mobile tab bar — home ↔ team switching", () => {
+  test("home → Team tab → members → home restores chat sidebar", async ({ page, request }) => {
     const seedState = await waitForSeedState();
     const login = await loginViaApi(request, seedState);
     await dismissOwnerOnboarding(request, seedState, login.accessToken);
@@ -68,41 +69,32 @@ test.describe("mobile tab bar — home ↔ server tab ↔ members switching", ()
     // Home tab is the default surface — Channels header is visible.
     await expect(page.getByTestId("sidebar-section-toggle-channels")).toBeVisible();
 
-    // Tap the server tab: a popover, not a page, and the tab is never selected.
-    const serverTab = page.getByTestId("mobile-tab-server");
-    await serverTab.click();
-    const popover = page.getByRole("dialog", { name: "Servers" });
-    await expect(popover).toBeVisible();
-    await expect(page).toHaveURL(new RegExp(`/s/${seedState.server.slug}/?$`));
-    await expectSelectedTabSticker(page, page.getByRole("button", { name: "Home" }));
-
-    // Members is a page pushed from the popover: it covers the bar and has Back.
-    await popover.getByTestId("mobile-server-tab-members").click();
+    // Team is a tab: its root keeps the bar, Team selected, no Back.
+    await page.getByTestId("mobile-tab-team").click();
+    await expect(page).toHaveURL(new RegExp(`/s/${seedState.server.slug}/team$`));
+    await expect(page.getByTestId("team-overview-page")).toBeVisible();
+    await expectSelectedTabSticker(page, page.getByTestId("mobile-tab-team"));
+    await page.getByTestId("team-tab-members").click();
     await expect(page).toHaveURL(new RegExp(`/s/${seedState.server.slug}/members$`));
     await expect(page.getByTestId("members-page")).toBeVisible();
-    await expect(page.getByRole("button", { name: "Home" })).not.toBeVisible();
-    await page.getByTestId("members-mobile-back").click();
-    await expect(page).toHaveURL(new RegExp(`/s/${seedState.server.slug}/?$`));
-    // Back gives focus to the tab that opened the page.
-    await expect(serverTab).toBeFocused();
+    await expectSelectedTabSticker(page, page.getByTestId("mobile-tab-team"));
 
     // The sidebar is the chat surface again, not stuck on members.
+    await page.getByTestId("mobile-tab-chat").click();
+    await expect(page).toHaveURL(new RegExp(`/s/${seedState.server.slug}/?$`));
     await expect(page.getByTestId("sidebar-section-toggle-channels")).toBeVisible();
     await expect(page.getByTestId("members-page")).not.toBeVisible();
   });
 
-  test("cold-start on the old Members tab root → Back lands on Home", async ({ page, request }) => {
+  test("cold-start on /members is the Team tab's root: the bar, no Back", async ({ page, request }) => {
     const seedState = await waitForSeedState();
     const login = await loginViaApi(request, seedState);
     await dismissOwnerOnboarding(request, seedState, login.accessToken);
 
     await page.goto(`/s/${seedState.server.slug}/members`);
     await expect(page.getByTestId("members-page")).toBeVisible();
-    await page.getByTestId("members-mobile-back").click();
-    await expect(page).toHaveURL(new RegExp(`/s/${seedState.server.slug}/?$`));
-    await expectSelectedTabSticker(page, page.getByRole("button", { name: "Home" }));
-    await expect(page.getByTestId("sidebar-section-toggle-channels")).toBeVisible();
-    await expect(page.getByTestId("members-page")).not.toBeVisible();
+    await expectSelectedTabSticker(page, page.getByTestId("mobile-tab-team"));
+    await expect(page.getByTestId("members-mobile-back")).toHaveCount(0);
   });
 
   test("the old /more link lands on Home", async ({ page, request }) => {
@@ -115,25 +107,18 @@ test.describe("mobile tab bar — home ↔ server tab ↔ members switching", ()
     await expectSelectedTabSticker(page, page.getByRole("button", { name: "Home" }));
   });
 
-  test("Search is a tab: no Back, Search selected; leaving and coming back keeps the query", async ({ page, request }) => {
+  test("search is the field at the top of Home: it pushes the search page, with Back", async ({ page, request }) => {
     const seedState = await waitForSeedState();
     const login = await loginViaApi(request, seedState);
     await dismissOwnerOnboarding(request, seedState, login.accessToken);
 
-    await page.goto(`/s/${seedState.server.slug}/tasks`);
-    await page.getByTestId("mobile-tab-search").click();
+    await page.goto(`/s/${seedState.server.slug}`);
+    await page.getByTestId("chat-search-trigger").click();
     await expect(page).toHaveURL(new RegExp(`/s/${seedState.server.slug}/search$`));
-    // Design lead 2026-10-21: Search is a tab root — the bar, no Back.
-    await expectSelectedTabSticker(page, page.getByTestId("mobile-tab-search"));
-    await expect(page.getByTestId("search-mobile-back")).toHaveCount(0);
-
-    await page.getByTestId("message-search-input").fill("hello");
-    await expect(page).toHaveURL(/[?&]q=hello/);
-    await page.getByRole("button", { name: "Tasks" }).click();
-    await expect(page).toHaveURL(new RegExp(`/s/${seedState.server.slug}/tasks$`));
-    await page.getByTestId("mobile-tab-search").click();
-    await expect(page.getByTestId("message-search-input")).toHaveValue("hello");
-    await expectSelectedTabSticker(page, page.getByTestId("mobile-tab-search"));
+    // A pushed page: no bar, a Back.
+    await expect(page.getByTestId("mobile-tab-bar")).toHaveCount(0);
+    await page.getByTestId("search-mobile-back").click();
+    await expect(page).toHaveURL(new RegExp(`/s/${seedState.server.slug}/?$`));
   });
 
   test("server switcher keeps long server lists scrollable on mobile", async ({ page, request }) => {

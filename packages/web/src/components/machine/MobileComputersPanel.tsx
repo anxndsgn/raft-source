@@ -11,10 +11,10 @@ import { orderSidebarMachineIds } from "../layout/sidebarMachineOrder";
 import { readSidebarComputerRowCount } from "../layout/sidebarSectionRowCounts";
 import { useServerStore } from "../../store/serverStore";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
-import { useAppNavigate, useMobileBack } from "../../hooks/useAppNavigate";
+import { useAppNavigate } from "../../hooks/useAppNavigate";
 import Banner from "../ui/Banner";
 import EmptyState from "../ui/EmptyState";
-import PanelHeader from "../ui/PanelHeader";
+import { TeamHeader } from "../../features/team/TeamHeader";
 import { SkeletonTextBar } from "../ui/Skeleton";
 import { ComputerDeviceIcon } from "./ComputerDeviceIcon";
 import { MachineRunLabel } from "./MachineRunLabel";
@@ -212,7 +212,6 @@ export default function MobileComputersPanel() {
   const machineLoadError = useMachineStore((s) => s.loadError);
   const loadMachines = useMachineStore((s) => s.loadMachines);
   const setShowAddMachine = useMachineStore((s) => s.setShowAddMachine);
-  const serverSlug = useServerStore((s) => s.current?.slug);
   const { capabilities } = useServerPermissions();
   const canRegisterMachines = capabilities.registerMachines;
   const nav = useAppNavigate();
@@ -238,14 +237,6 @@ export default function MobileComputersPanel() {
   const visibleMachines = attentionOnly
     ? machines.filter((machine) => getComputerAttentionStatus(machine) !== "none")
     : machines;
-  // Computers is a page pushed from the server tab's popover on mobile; back
-  // pops to where it was opened (Home when opened cold, or the app root if
-  // serverSlug is missing).
-  const onMobileBack = useMobileBack(serverSlug ? `/s/${serverSlug}` : "/");
-  const mobileBackProps = useMemo(
-    () => ({ "data-testid": "computers-mobile-back", title: formatMessage({ id: "common.announcement.back" }) }),
-    [formatMessage],
-  );
   const retryLoadMachines = useCallback(() => {
     void loadMachines();
   }, [loadMachines]);
@@ -257,17 +248,8 @@ export default function MobileComputersPanel() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-testid="mobile-computers-panel">
-      {/* Header — uses canonical PanelHeader so padding (`gap-3 px-5`),
-          back-chevron sizing, and action-slot wrapping match every other
-          Settings sub-page (Account / Browser / Server). Was hand-rolled
-          with `gap-3 px-5` before; converted to PanelHeader after stdrc
-          confirmed (2026-05-14 #wg-theme:16123203) that the wider BEFORE
-          padding is the canonical look on every breakpoint. */}
-      <PanelHeader
-        title={formatMessage({ id: "machine.mobile.title" })}
-        onMobileBack={onMobileBack}
-        mobileBackProps={mobileBackProps}
-      />
+      {/* The Team tab's root on a phone (PRD 团队页 §8): the Team head and its tabs, no Back. */}
+      <TeamHeader view="computers" />
       {/* The view switch and Add computer are at the toolbar's end (Raft DS › A page of a list). */}
       {showToolbar ? (
         <Suspense fallback={null}>

@@ -115,25 +115,25 @@ export function shellRouteLayout(path: string, pathBase: string, { isDesktop, se
   // /activity itself is the Activity tab root (pushes under it are details)
   // until an opened conversation covers it, as on /search.
   const isActivityRoot = at("/activity") && !searchSlotOpen;
-  // /search is the Search tab's root (design lead 2026-10-21) until a picked
-  // result covers it.
-  const isSearchRoot = at("/search") && !searchSlotOpen;
   // A Guest's channel is its Home (it has no channel list to go back to): a
   // Back there would only land in the same channel again.
   const isGuestHome = guest && isGuestHomePath(path, pathBase);
   // A task opened from the Tasks page covers its root on a phone, as a picked result covers Search's.
   const isTasksRoot = isTasksRoute && !searchSlotOpen;
-  const isMobileTabRoot = !isDesktop && (isDefaultRoute || isGuestHome || isActivityRoot || isTasksRoot || isSearchRoot);
+  // The Team tab's roots (PRD 团队页 §8): its Overview, Members and Computers; Search is a page Chat's field pushes.
+  const isTeamRoot = at("/team") || at("/members") || at("/computers");
+  const isMobileTabRoot = !isDesktop && (isDefaultRoute || isGuestHome || isActivityRoot || isTasksRoot || isTeamRoot);
   // Standalone chrome buckets (Raft Design System › NavBar): a tab root's top
   // bar is the frame (yellow in light, #0d0d0b in dark), a pushed detail's
   // header is paper, and at >=768px ShellTopBar is the frame. The shell paints
   // that surface above the safe-area inset and the system bar follows it
   // (systemBarColor.ts writes `meta[theme-color]`, in either mode).
   // A Guest's Home is the channel page, whose header is paper like any channel's.
-  const topEdgeSurface: SystemBarSurface = !isDesktop && (!isMobileTabRoot || isGuestHome) ? "paper" : "frame";
+  // The Team tab's root has a page head on paper (M6), as a Guest's Home.
+  const topEdgeSurface: SystemBarSurface = !isDesktop && (!isMobileTabRoot || isGuestHome || isTeamRoot) ? "paper" : "frame";
   // The phone tab root the URL is, for the bottom tab bar (MainLayout's useMobileTabBarVisible draws it there).
   const mobileTabRoot: MobileTabId | null = !isMobileTabRoot ? null
-    : isDefaultRoute || isGuestHome ? "chat" : isActivityRoot ? "activity" : isTasksRoot ? "tasks" : "search";
+    : isDefaultRoute || isGuestHome ? "chat" : isActivityRoot ? "activity" : isTasksRoot ? "tasks" : "team";
 
   // Main pages with no composer that still get the assistant's otter, on
   // the main column's bottom edge (AssistantPageOtter; #proj-assistant:#17

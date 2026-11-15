@@ -270,7 +270,8 @@ export function MessageSearchPage({ activateResultsInChat = false, overlayChrome
     if (input.ownerDocument.activeElement === input) queueMicrotask(() => input.focus({ preventScroll: true }));
     else input.focus({ preventScroll: true });
   }, []);
-  useTabRootScroll(isTouchSearchHome && !scope && !overlayChrome ? "search" : null, viewportRef, {
+  // No tab of its own on a phone any more (Team took its place, PRD 团队页 §8): a page pushed from Chat's field.
+  useTabRootScroll(null, viewportRef, {
     rememberScroll: false,
     onRetapAtTop: focusSearchField,
   });

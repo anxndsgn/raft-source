@@ -57,7 +57,7 @@ export function useMobileNav() {
   // one. Search keeps its own state (raft:search-state), so its tab lands on
   // bare /search and the page restores the rest.
   useEffect(() => {
-    if (!serverSlug || !isMobileViewport() || mobileTab === null || mobileTab === "search") return;
+    if (!serverSlug || !isMobileViewport() || mobileTab === null) return;
     const pathname = location.pathname.replace(/\/+$/, "") || "/";
     if (pathname !== tabHomeFor(mobileTab, pathBase)) return;
     rememberRoot(mobileTab, `${pathname}${location.search}`);

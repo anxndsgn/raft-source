@@ -56,6 +56,7 @@ import { ProfileCardFooter } from "../message/ProfileCardFooter";
 import { PanelHeadBelowContext } from "../ui/panelBackCrumb";
 import { useRowExpand } from "../layout/rowPlanStore";
 import { ProfileCompactContext } from "./profileCompact";
+import { useIsDesktopShell } from "../layout/ShellFrame";
 
 recordProfileOpenE2eEvent({ kind: "module-evaluated", module: "profile-panel" });
 
@@ -141,7 +142,9 @@ export type ProfilePanelProps = NonNullable<Parameters<typeof ProfilePanelConten
  * are doing now, Message), and the profile alone; ⤢ shows the whole page, every tab.
  */
 export default function ConnectedProfilePanel(props: ProfilePanelOwnProps = {}) {
-  const team = useProfileStore((s) => s.teamColumn) && !props.target;
+  // A desktop's column only: a phone pushes the whole profile, full screen, with Back (PRD §8).
+  const desktop = useIsDesktopShell();
+  const team = useProfileStore((s) => s.teamColumn) && !props.target && desktop;
   const { pressed: expanded } = useRowExpand("profile");
   const profileType = useProfileStore((s) => s.profileType);
   const profileId = useProfileStore((s) => s.profileId);

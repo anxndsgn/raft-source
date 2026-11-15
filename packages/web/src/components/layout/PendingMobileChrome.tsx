@@ -1,6 +1,6 @@
 import { useIntl } from "react-intl";
 import { useLocation } from "react-router-dom";
-import { Activity, Home, ListTodo, Search } from "lucide-react";
+import { Activity, Home, ListTodo, Users } from "lucide-react";
 import { MobileNavItem, MobileNavLabel, MobileNavRoot, PanelActions, Skeleton, WorkspaceButton, WorkspaceButtonName } from "@botiverse/raft-ui";
 import { MobileNavServerItem, MobileNavServerPopover } from "@botiverse/raft-ui/wip";
 import type { MobileTabId } from "../../store/mobileNavStore";
@@ -38,14 +38,14 @@ export const MOBILE_TAB_BAR_CLASS = "mobile-tab-bar-return md:hidden in-data-[so
  *  stdrc 2026-10-21; Activity is the tab that almost always has a dot). */
 export const MOBILE_TAB_ICON_BOX_CLASS = "relative flex";
 
-const TAB_ICONS = { chat: Home, activity: Activity, tasks: ListTodo, search: Search } as const;
+const TAB_ICONS = { chat: Home, activity: Activity, tasks: ListTodo, team: Users } as const;
 const MOBILE_TAB_LABEL_IDS = {
   chat: "layout.mobileTabBar.home",
   activity: "layout.mobileTabBar.activity",
   tasks: "layout.mobileTabBar.tasks",
-  search: "layout.mobileTabBar.search",
+  team: "team.page.title",
 } as const;
-const MOBILE_TABS = ["chat", "activity", "tasks", "search"] as const satisfies readonly MobileTabId[];
+const MOBILE_TABS = ["chat", "activity", "tasks", "team"] as const satisfies readonly MobileTabId[];
 
 /** The current server, once it is the one the URL opens (opened from the device's list); offline, the one shown from the device. */
 function useShownServer() {

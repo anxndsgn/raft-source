@@ -25,9 +25,10 @@ import type { RailMode } from "../hooks/useSidebarTab";
 // URL paths are shared with desktop — only navigation BEHAVIOR is
 // phone-specific. Nothing here survives a reload.
 
-export type MobileTabId = "chat" | "activity" | "tasks" | "search";
+// Team page PRD §8 (11/16): Team took Search's place; search is the field at the top of Chat, its page a push.
+export type MobileTabId = "chat" | "activity" | "tasks" | "team";
 
-export const MOBILE_TAB_IDS: readonly MobileTabId[] = ["chat", "activity", "tasks", "search"];
+export const MOBILE_TAB_IDS: readonly MobileTabId[] = ["chat", "activity", "tasks", "team"];
 
 /** Which mobile tab does this desktop rail mode belong to?
  *  - artifacts / members / computers / apps / settings → none: the server's own
@@ -38,7 +39,8 @@ export const MOBILE_TAB_IDS: readonly MobileTabId[] = ["chat", "activity", "task
 export function railModeToMobileTab(mode: RailMode): MobileTabId | null {
   // The assistant is a Home row on a phone, not a tab.
   if (mode === "assistant") return "chat";
-  if (mode === "artifacts" || mode === "members" || mode === "computers" || mode === "apps" || mode === "settings") return null;
+  if (mode === "members" || mode === "computers") return "team";
+  if (mode === "search" || mode === "artifacts" || mode === "apps" || mode === "settings") return null;
   return mode;
 }
 
@@ -50,7 +52,9 @@ function isUnder(pathname: string, base: string): boolean {
  *  which the server tab's popover opens and no tab holds. */
 export function mobileTabForPath(pathname: string, pathBase: string): MobileTabId | null {
   const path = pathname.replace(/\/+$/, "");
-  if (isUnder(path, `${pathBase}/search`)) return "search";
+  // The Team tab's roots: Overview, Members, Computers (its tabs); a member or a computer opened is a push.
+  if (path === `${pathBase}/team` || path === `${pathBase}/members` || path === `${pathBase}/computers`) return "team";
+  if (isUnder(path, `${pathBase}/search`)) return null;
   if (isUnder(path, `${pathBase}/activity`) || isUnder(path, `${pathBase}/inbox`)) return "activity";
   if (isUnder(path, `${pathBase}/tasks`)) return "tasks";
   if (
@@ -75,10 +79,7 @@ const TAB_HOME_BY_MOBILE_TAB: Record<MobileTabId, (pathBase: string) => string> 
   chat: (base) => base,
   activity: (base) => `${base}/activity`,
   tasks: (base) => `${base}/tasks`,
-  // Bare /search: MessageSearchPage restores the last query and filters
-  // (raft:search-state) and the cached results, so coming back to the tab
-  // resumes the search the user left.
-  search: (base) => `${base}/search`,
+  team: (base) => `${base}/team`,
 };
 
 export function tabHomeFor(mode: MobileTabId, pathBase: string): string {
