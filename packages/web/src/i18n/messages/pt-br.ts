@@ -7086,7 +7086,6 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.computerAttentionOfflineCount": "{count} offline",
   "layout.systemNotifications.machineDiskLowTitle": "{count, plural, one {Um computador que você adicionou está com pouco espaço em disco} other {# computadores que você adicionou estão com pouco espaço em disco}}",
   "layout.systemNotifications.machineDiskLowBody": "{free} livres de {total}. Até que haja espaço livre, os agentes podem não conseguir salvar o trabalho nem iniciar.",
-  "layout.systemNotifications.machineOfflineTitle": "{names} {count, plural, one {está offline} other {estão offline}}",
   "layout.systemNotifications.installRaftTitle": "Instalar o Raft",
   "layout.systemNotifications.installRaftBody": "Abra o Raft mais rápido neste dispositivo.",
   "layout.systemNotifications.opening": "Abrindo…",
@@ -9775,8 +9774,9 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "team.computer.usedOfTotal": "{used} / {total}",
   "team.computer.runtimeUsage": "Uso de {runtime}",
   "team.computer.open": "Abrir {name}",
-  "layout.systemNotifications.machineOfflineAgentsBody": "{count, plural, one {# agente está nele e para até ele reconectar.} many {# agentes estão nele e param até ele reconectar.} other {# agentes estão nele e param até ele reconectar.}}",
   "team.computer.agentsPaused": "{count, plural, one {# agente pausado} many {# agentes pausados} other {# agentes pausados}}",
   "members.page.group.byType": "Por tipo",
   "team.blocked.title": "{name} parado pelo computador",
+  "layout.systemNotifications.machineOfflineOne": "{name} offline · {agent} parado",
+  "layout.systemNotifications.machineOfflineMany": "{name} offline · {count, plural, one {# agente parado} many {# agentes parados} other {# agentes parados}}",
 };

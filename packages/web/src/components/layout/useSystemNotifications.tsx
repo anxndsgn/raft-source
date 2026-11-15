@@ -6,6 +6,7 @@ import { FeedbackIcon, JoinJointChannelIcon } from "@botiverse/ricons";
 import { PLAN_CONFIG, currentTimeMs } from "@botiverse/raft-shared";
 import type { RuntimeAccountUsageProvider } from "@botiverse/raft-shared";
 import { resetWhen } from "../machine/rack/rackResetText";
+import { formatRelativeTime } from "../../utils/relativeTime";
 import { machineDiskLowPresentation } from "../../utils/machineDiskPresentation";
 import { showsPlanDowngradeNotice } from "../../utils/planDowngrade";
 import { useFeedbackUnread } from "../../feedback/useFeedbackUnread";
@@ -553,32 +554,25 @@ export function useSystemNotifications(surface: SystemNotificationSurface = "des
         toComputer: nav.toComputer,
       }));
 
-      if (offlineMachines.length > 0) {
-        const offlineIds = new Set(offlineMachines.map((m) => m.id));
-        const agentsOnOffline = listedAgents.filter((a) => a.machineId && offlineIds.has(a.machineId));
-        const names = offlineMachines.map((m) => m.name).join(", ");
-        const sortedIds = [...offlineIds].sort().join(",");
+      // One entry per computer, its stopped agents in it (Anna 11/16: one cause, one row — the Team page's
+      // Needs you shows these same entries, and an agent stopped by its computer has no row of its own).
+      for (const machine of offlineMachines) {
+        const stopped = listedAgents.filter((a) => a.machineId === machine.id);
+        const lastSeen = formatRelativeTime(machine.lastHeartbeat, locale);
         out.push({
-          id: "machine-offline",
+          id: `machine-offline:${machine.id}`,
           // Its agents can't run until it reconnects: an error, always (it is only raised with agents on it).
           kind: "error",
           icon: <WifiOff size={16} className="text-foreground" />,
-          // Fingerprint = which machines are offline. If a different set goes
-          // offline (different machine id, or the count changes), the
-          // dismissal no longer matches and the notification shows again.
-          dismissalKey: `machine-offline:${sortedIds}`,
-          title: formatMessage(
-            { id: "layout.systemNotifications.machineOfflineTitle" },
-            { names, count: offlineMachines.length },
-          ),
-          body: (
-            <span className="text-foreground-muted">
-              {formatMessage({ id: "layout.systemNotifications.machineOfflineAgentsBody" }, { count: agentsOnOffline.length })}
-            </span>
-          ),
+          // Fingerprint = the computer and who is on it: another agent stopped there shows it again.
+          dismissalKey: `machine-offline:${machine.id}:${stopped.map((a) => a.id).sort().join(",")}`,
+          title: stopped.length === 1
+            ? formatMessage({ id: "layout.systemNotifications.machineOfflineOne" }, { name: machine.name, agent: stopped[0]!.displayName || stopped[0]!.name })
+            : formatMessage({ id: "layout.systemNotifications.machineOfflineMany" }, { name: machine.name, count: stopped.length }),
+          body: lastSeen ? <span className="text-foreground-muted">{formatMessage({ id: "machine.rack.lastSeen" }, { time: lastSeen })}</span> : null,
           action: {
             label: formatMessage({ id: "layout.systemNotifications.view" }),
-            onClick: () => nav.toComputer(offlineMachines[0].id),
+            onClick: () => nav.toComputer(machine.id),
             variant: "primary",
           },
         });

@@ -7086,7 +7086,6 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.computerAttentionOfflineCount": "{count} 台離線",
   "layout.systemNotifications.machineDiskLowTitle": "你新增的 {count} 台電腦磁碟空間不足",
   "layout.systemNotifications.machineDiskLowBody": "剩餘 {free}，共 {total}。釋出空間前，Agent 可能無法儲存工作或啟動。",
-  "layout.systemNotifications.machineOfflineTitle": "{count} 台電腦已離線：{names}",
   "layout.systemNotifications.installRaftTitle": "安裝 Raft",
   "layout.systemNotifications.installRaftBody": "在此裝置上更快開啟 Raft。",
   "layout.systemNotifications.opening": "開啟中…",
@@ -9775,8 +9774,9 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "team.computer.usedOfTotal": "{used} / {total}",
   "team.computer.runtimeUsage": "{runtime} 用量",
   "team.computer.open": "打開 {name}",
-  "layout.systemNotifications.machineOfflineAgentsBody": "上面有 {count} 個 Agent，重新連線前都會停工。",
   "team.computer.agentsPaused": "{count} 個 Agent 已暫停",
   "members.page.group.byType": "按類型",
   "team.blocked.title": "{name} 因電腦停工",
+  "layout.systemNotifications.machineOfflineOne": "{name} 離線 · {agent} 已停工",
+  "layout.systemNotifications.machineOfflineMany": "{name} 離線 · {count} 個 Agent 已停工",
 };

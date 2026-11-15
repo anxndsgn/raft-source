@@ -122,7 +122,7 @@ export function TeamAgentLine({ row, variant, onOpen, onOpenWork, onOpenChannel,
       data-agent-id={row.agent.id}
       data-state={row.state}
     >
-      <ListRowIcon className="self-start pt-1">
+      <ListRowIcon className="w-3 justify-center self-start pt-1">
         <AgentStateMark state={row.state} label={formatMessage({ id: MARK_LABEL[row.state] })} />
       </ListRowIcon>
       <ListRowBody>

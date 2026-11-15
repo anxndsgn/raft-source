@@ -7169,7 +7169,6 @@ export const zhCn: Record<MessageId, string> = {
   "layout.systemNotifications.computerAttentionOfflineCount": "{count} 台离线",
   "layout.systemNotifications.machineDiskLowTitle": "你添加的 {count} 台计算机磁盘空间不足",
   "layout.systemNotifications.machineDiskLowBody": "剩余 {free}，共 {total}。腾出空间之前，Agent 可能无法保存工作或启动。",
-  "layout.systemNotifications.machineOfflineTitle": "共 {count} 台计算机离线：{names}",
   "layout.systemNotifications.installRaftTitle": "安装 Raft",
   "layout.systemNotifications.installRaftBody": "从此设备更快打开 Raft。",
   "layout.systemNotifications.opening": "打开中…",
@@ -9886,8 +9885,9 @@ export const zhCn: Record<MessageId, string> = {
   "team.computer.usedOfTotal": "{used} / {total}",
   "team.computer.runtimeUsage": "{runtime} 用量",
   "team.computer.open": "打开 {name}",
-  "layout.systemNotifications.machineOfflineAgentsBody": "上面有 {count} 个 agent，重连前都会停工。",
   "team.computer.agentsPaused": "{count} 个 agent 已暂停",
   "members.page.group.byType": "按类型",
   "team.blocked.title": "{name} 因计算机停工",
+  "layout.systemNotifications.machineOfflineOne": "{name} 离线 · {agent} 已停工",
+  "layout.systemNotifications.machineOfflineMany": "{name} 离线 · {count} 个 agent 已停工",
 };

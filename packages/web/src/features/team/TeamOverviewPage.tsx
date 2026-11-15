@@ -19,8 +19,11 @@ import { useOpenMemberTab } from "./useOpenMemberTab";
 import { useTeamAgents } from "./useTeamAgents";
 import type { TeamAgentRow } from "./useTeamAgents";
 
-/** The inbox's For me notices the Overview repeats (PRD 团队页 §5.1 ①): a machine offline; usage limits are the held agents' rows. */
-const NEEDS_YOU_NOTICES = new Set(["machine-offline"]);
+/**
+ * The inbox's For me notices the Overview repeats (PRD 团队页 §5.1 ①): a computer offline, one row each with
+ * the agents it stopped (an agent stopped by its computer has no row of its own); usage limits are the held agents' rows.
+ */
+const isNeedsYouNotice = (entry: NotificationEntry) => entry.id.startsWith("machine-offline:");
 
 const LEGEND: { state: AgentState; label: "team.state.working" | "team.state.idle" | "team.state.offline" | "team.state.held" }[] = [
   { state: "working", label: "team.state.working" },
@@ -53,7 +56,8 @@ function NoticeRow({ entry }: { entry: NotificationEntry }) {
       className="min-h-0 cursor-pointer px-4 py-2 [--list-row-rule-start:16px] before:right-4 pointer-coarse:min-h-0"
       data-testid="team-notice-row"
     >
-      <ListRowIcon className="self-start pt-0.5">{entry.icon}</ListRowIcon>
+      {/* Every row's icon in the state mark's 12px box, so the rows' text starts on one line (Figmama 11/16). */}
+      <ListRowIcon className="w-3 justify-center self-start pt-1 [&_svg]:size-3">{entry.icon}</ListRowIcon>
       <ListRowBody>
         <ListRowTitle>{entry.title}</ListRowTitle>
         <ListRowDescription>{entry.body}</ListRowDescription>
@@ -77,9 +81,11 @@ export function TeamOverviewPage() {
     () => ({ "data-testid": "team-mobile-back", title: formatMessage({ id: "common.announcement.back" }) }),
     [formatMessage],
   );
-  const { held, working, resting } = useTeamAgents();
+  const { held: allHeld, working, resting } = useTeamAgents();
+  // One cause, one row: an agent its computer stopped is in that computer's row.
+  const held = useMemo(() => allHeld.filter((row) => !row.heldByComputer), [allHeld]);
   const machines = useMachineStore((s) => s.machines);
-  const notices = useVisibleNotifications("desktop").filter((entry) => NEEDS_YOU_NOTICES.has(entry.id));
+  const notices = useVisibleNotifications("desktop").filter(isNeedsYouNotice);
   const openWork = useOpenAgentWork();
   // A row opens the agent as a workspace tab (PRD §5.2); its channel and task links open the work.
   const openMemberTab = useOpenMemberTab();

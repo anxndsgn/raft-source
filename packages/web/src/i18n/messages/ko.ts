@@ -7086,7 +7086,6 @@ export const ko: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.computerAttentionOfflineCount": "{count}대 오프라인",
   "layout.systemNotifications.machineDiskLowTitle": "{count, plural, other {내가 추가한 컴퓨터 #대의 디스크 공간이 부족해요}}",
   "layout.systemNotifications.machineDiskLowBody": "{total} 중 {free} 남음. 공간을 확보할 때까지 에이전트가 작업을 저장하거나 시작하지 못할 수 있어요.",
-  "layout.systemNotifications.machineOfflineTitle": "오프라인 컴퓨터 {count, plural, other {#대}}: {names}",
   "layout.systemNotifications.installRaftTitle": "Raft 설치",
   "layout.systemNotifications.installRaftBody": "이 기기에서 Raft를 더 빠르게 열어 보세요.",
   "layout.systemNotifications.opening": "여는 중…",
@@ -9775,8 +9774,9 @@ export const ko: Partial<Record<MessageId, string>> = {
   "team.computer.usedOfTotal": "{used} / {total}",
   "team.computer.runtimeUsage": "{runtime} 사용량",
   "team.computer.open": "{name} 열기",
-  "layout.systemNotifications.machineOfflineAgentsBody": "Agent {count}개가 이 컴퓨터에 있으며 다시 연결될 때까지 멈춥니다.",
   "team.computer.agentsPaused": "Agent {count}개 일시 중지됨",
   "members.page.group.byType": "유형별",
   "team.blocked.title": "{name} 컴퓨터 문제로 멈춤",
+  "layout.systemNotifications.machineOfflineOne": "{name} 오프라인 · {agent} 멈춤",
+  "layout.systemNotifications.machineOfflineMany": "{name} 오프라인 · Agent {count}개 멈춤",
 };
