@@ -361,17 +361,26 @@ export default function ChannelOverflowMenu({
   const middle = Children.toArray(middleActions);
   const foldable = middleItems && middleItems.length === middle.length;
   const total = 2 + middle.length;
-  const leadItem = lead && fold > 0 ? lead.item : null; // the lead folds first, then the rest, the last first
-  const shown = total - Math.min(foldable ? fold - (lead && fold > 0 ? 1 : 0) : 0, total);
+  // A phone's head keeps one ⋯ for them all (task #10 item 1): Search, the toggles, Members, Info and settings.
+  const allFold = !desktopShell;
+  const folds = allFold ? total + (lead ? 1 : 0) : fold;
+  const leadItem = lead && folds > 0 ? lead.item : null; // the lead folds first, then the rest, the last first
+  const shown = total - Math.min(foldable || allFold ? folds - (lead && folds > 0 ? 1 : 0) : 0, total);
   const searchLabel = formatMessage({ id: "message.chatPanel.searchChannel" });
+  const membersLabel = formatMessage({ id: "channelHead.members" });
+  const infoLabel = formatMessage({ id: "channelHead.infoAndSettings" });
   // The toggle keeps one name and says its state with aria-pressed; the folded ⋯ item, which has no state, says it.
   const settingsLabel = formatMessage({ id: "message.chatPanel.overflow.open" });
   const settingsItemLabel = formatMessage({ id: open ? "message.chatPanel.overflow.close" : "message.chatPanel.overflow.open" });
   const folded = useMemo(() => [...(leadItem ? [leadItem] : []), ...[
     { id: "search", label: searchLabel, icon: <Search />, onSelect: handleSearch, testId: "channel-header-overflow-search" },
     ...(middleItems ?? []),
-    { id: "settings", label: settingsItemLabel, icon: <Settings />, onSelect: handleToggle, testId: "channel-header-overflow-settings" },
-  ].slice(shown)], [handleSearch, handleToggle, leadItem, middleItems, searchLabel, settingsItemLabel, shown]);
+    // Members, then Info and settings, where the head had both (a channel's): on a phone, in ⋯ too.
+    ...(showMembers ? [
+      { id: "members", label: membersLabel, icon: <Users />, onSelect: toggleMembers, testId: "channel-header-overflow-members" },
+      { id: "settings", label: infoLabel, icon: <Settings />, onSelect: toggleInfo, testId: "channel-header-overflow-settings" },
+    ] : [{ id: "settings", label: settingsItemLabel, icon: <Settings />, onSelect: handleToggle, testId: "channel-header-overflow-settings" }]),
+  ].slice(showMembers && shown === total ? total + 1 : shown)], [handleSearch, handleToggle, infoLabel, leadItem, membersLabel, middleItems, searchLabel, settingsItemLabel, showMembers, shown, toggleInfo, toggleMembers, total]);
 
   const membersStrip = showMembers ? (
     <MembersStrip
