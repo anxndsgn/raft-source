@@ -22,7 +22,8 @@ import { useChannelMemberRemoval } from "../../components/channel/useChannelMemb
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Tooltip from "../../components/ui/Tooltip";
 import { MembersPageHeader } from "./MembersPageHeader";
-import { PanelBackCrumbContext } from "../../components/ui/panelBackCrumb";
+import { ProfileCardFooter } from "../../components/message/ProfileCardFooter";
+import { PanelBackCrumbContext, PanelHeadBelowContext } from "../../components/ui/panelBackCrumb";
 import type { ProfilePanelProps, ProfilePanelTarget } from "../../components/profile/ProfilePanel";
 import { primeHumanProfileFromChannelMember, setCachedAgentProfile } from "../../components/profile/profileFallbackCache";
 import { isLocalProjectionMember, memberServerBadgeLabels } from "../../utils/channelLocalMembership";
@@ -147,6 +148,7 @@ export function ChannelMembers({
   const [rosterQuery, setRosterQuery] = useState("");
   const [profileStack, setProfileStack] = useState<ProfilePanelTarget[]>(initialProfile ? [initialProfile.target] : []);
   const selectedProfile = profileStack.at(-1) ?? null;
+  const headBelow = useMemo(() => (ownHead && selectedProfile ? <ProfileCardFooter type={selectedProfile.type === "agent" ? "agent" : "human"} id={selectedProfile.id} /> : null), [ownHead, selectedProfile]);
   const backProfile = useCallback(() => {
     setProfileStack((stack) => stack.slice(0, -1));
   }, []);
@@ -1231,7 +1233,8 @@ export function ChannelMembers({
                 </div>
               )}
             >
-              <PanelBackCrumbContext.Provider value={ownHead && profileStack.length === 1 ? formatMessage({ id: "message.chatPanel.overflow.members" }) : null}>
+              <PanelBackCrumbContext.Provider value={ownHead && profileStack.length === 1 && !initialProfile?.profileOnly ? formatMessage({ id: "message.chatPanel.overflow.members" }) : null}>
+              <PanelHeadBelowContext.Provider value={headBelow}>
               <ProfilePanel
                 key={`${selectedProfile.type}:${selectedProfile.id}`}
                 target={selectedProfile}
@@ -1241,7 +1244,7 @@ export function ChannelMembers({
                 onClose={closeProfilePage}
                 onOpenProfile={openNestedProfile}
               />
-              </PanelBackCrumbContext.Provider>
+              </PanelHeadBelowContext.Provider></PanelBackCrumbContext.Provider>
             </Suspense>
           )}
         </>

@@ -5,7 +5,7 @@ import type { HTMLAttributes, ReactNode, Ref } from "react";
 import type { PanelActionProps } from "@botiverse/raft-ui";
 import { PanelAction, PanelActions, PanelHeader, PanelHeaderContent, PanelHeaderIcon, PanelHeading, PanelMeta, PanelStatus, PanelTitle } from "@botiverse/raft-ui";
 import { PanelHeadChromeContext } from "../layout/panelHeadChrome";
-import { PanelBackCrumbContext } from "./panelBackCrumb";
+import { PanelBackCrumbContext, PanelHeadBelowContext } from "./panelBackCrumb";
 
 // React's `HTMLAttributes` doesn't expose `data-*` keys in TS, so widen
 // passthrough prop types with a string-key index signature so callsites
@@ -173,6 +173,7 @@ export default function AppPanelHeader({
   // title (rule 4). Every other head is as it is.
   const chrome = useContext(PanelHeadChromeContext);
   const backCrumb = useContext(PanelBackCrumbContext);
+  const below = useContext(PanelHeadBelowContext);
   const drag = chrome;
   const rowTabs = chrome?.tabs ?? null;
   // HOST-SHELL EMBED: the native WebView already draws a title bar, so web must not
@@ -210,6 +211,7 @@ export default function AppPanelHeader({
     : "hidden md:flex";
   const { className: containerExtraClass, ...containerRest } = containerProps ?? NO_CONTAINER_PROPS;
   return (
+    <>
     <PanelHeader
       {...containerRest}
       data-side-head={drag?.props["data-side-head"] ?? containerRest["data-side-head"]}
@@ -287,5 +289,7 @@ export default function AppPanelHeader({
         <PanelActions className={actionsClassName}>{actions}</PanelActions>
       )}
     </PanelHeader>
+    {below}
+    </>
   );
 }

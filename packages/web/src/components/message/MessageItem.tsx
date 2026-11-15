@@ -2231,8 +2231,9 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
     }
     openConversationAgentProfile(useProfileStore.getState().openProfile, agentId, {
       openSource: parentMessageId ? "thread" : "channel",
+      channelId: parentChannelId || message.channelId,
     });
-  }, [mentionMap, onOpenProfile, parentMessageId, senderAgent, serverId]);
+  }, [mentionMap, message.channelId, onOpenProfile, parentChannelId, parentMessageId, senderAgent, serverId]);
 
   // Opens the SAME profile panel as clicking the mention, just landing on the
   // activity tab. Deliberately not a route change to /agent/:id — every other
@@ -2244,8 +2245,8 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
       : [...mentionMap.values()].find((entry) => entry.type === "agent" && entry.id === agentId)?.agent;
     if (knownAgent) setCachedAgentProfile(serverId, knownAgent);
     if (onOpenProfile) onOpenProfile("agent", agentId); // its owner's panel (the task dialog): the profile
-    else openConversationAgentActivity(useProfileStore.getState().openProfile, agentId, { openSource: parentMessageId ? "thread" : "channel" });
-  }, [mentionMap, onOpenProfile, parentMessageId, senderAgent, serverId]);
+    else openConversationAgentActivity(useProfileStore.getState().openProfile, agentId, { openSource: parentMessageId ? "thread" : "channel", channelId: parentChannelId || message.channelId });
+  }, [mentionMap, message.channelId, onOpenProfile, parentChannelId, parentMessageId, senderAgent, serverId]);
 
   const handleNavigateHuman = useCallback((userId: string) => {
     if (onOpenProfile) {

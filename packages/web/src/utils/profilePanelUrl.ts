@@ -62,10 +62,11 @@ export function openConversationAgentActivity(
     options: {
       defaultAgentTabIntent: string;
       openSource?: "channel" | "thread";
+      channelId?: string | null;
     },
   ) => void,
   agentId: string,
-  options: { openSource?: "channel" | "thread" } = {},
+  options: { openSource?: "channel" | "thread"; channelId?: string | null } = {},
 ): void {
   openProfile("agent", agentId, { defaultAgentTabIntent: AGENT_ACTIVITY_TAB, ...options });
 }
@@ -77,10 +78,11 @@ export function openConversationAgentProfile(
     options: {
       defaultAgentTabIntent: "ordered-first";
       openSource?: "channel" | "thread";
+      channelId?: string | null;
     },
   ) => void,
   agentId: string,
-  options: { openSource?: "channel" | "thread" } = {},
+  options: { openSource?: "channel" | "thread"; channelId?: string | null } = {},
 ): void {
   openProfile("agent", agentId, { defaultAgentTabIntent: "ordered-first", ...options });
 }

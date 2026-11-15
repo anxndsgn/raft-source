@@ -1,4 +1,3 @@
-import { useInRouterContext } from "react-router-dom";
 import { useCallback, useEffect, useMemo } from "react";
 import { Separator } from "@botiverse/raft-ui";
 import AppBadge from "../agent/AppBadge";
@@ -10,7 +9,6 @@ import { isExternalAgentRuntime, REASONING_EFFORT_RUNTIMES, runtimeConfigModelVa
 import { useAgentDisplayState, useAgentStore } from "../../store/agentStore";
 import type { Agent } from "../../store/agentStore";
 import { useMachineStore } from "../../store/machineStore";
-import { ProfileCardFooter } from "./ProfileCardFooter";
 import { resolveAgentMachineRow } from "../../utils/agentMachineRow";
 import { useServerStore } from "../../store/serverStore";
 import type { ServerMember } from "../../store/serverStore";
@@ -78,8 +76,6 @@ interface ProfilePreviewCardContentProps {
 const EMPTY_TRAJECTORY_LOG: never[] = [];
 
 export default function ProfilePreviewCardContent({ mentionType, mentionId, fallbackAgent, fallbackMember, fallbackLabel, readOnlyProfile, onOpenAgentActivity, readReceipt, origin }: ProfilePreviewCardContentProps) {
-  // The card's foot navigates; a card drawn outside the app's router (a test, an embed) has none.
-  const inRouter = useInRouterContext();
   const intl = useIntl();
   const { formatMessage } = intl;
   const { formatClockWithSeconds } = useTimeFormatter();
@@ -343,7 +339,6 @@ export default function ProfilePreviewCardContent({ mentionType, mentionId, fall
               }
             />
           ) : null}
-          {inRouter && !profileOrigin.external && !isManagedBot ? <ProfileCardFooter type="agent" id={profileAgent.id} /> : null}
         </div>
       );
     }
@@ -389,8 +384,7 @@ export default function ProfilePreviewCardContent({ mentionType, mentionId, fall
           </Tooltip>
           </>
         ) : null}
-        {inRouter && !profileOrigin.external ? <ProfileCardFooter type="human" id={profileMember.userId} /> : null}
       </div>
     );
-  }, [inRouter, mentionType, profileAgent, agentMachine, agentMachineRow.kind, runtimeConfig, runtimeModels, canViewPrivateAgentSurfaces, isChannelSummaryAgent, hideAgentServerFacts, profileOrigin, displayState, trajectoryLog, formatClockWithSeconds, profileMember, readOnlyProfile, readOnlyHandle, unavailableHandle, formatMessage, intl, onOpenAgentActivity, handleOpenActivity, readReceipt, deprecatedHere]);
+  }, [mentionType, profileAgent, agentMachine, agentMachineRow.kind, runtimeConfig, runtimeModels, canViewPrivateAgentSurfaces, isChannelSummaryAgent, hideAgentServerFacts, profileOrigin, displayState, trajectoryLog, formatClockWithSeconds, profileMember, readOnlyProfile, readOnlyHandle, unavailableHandle, formatMessage, intl, onOpenAgentActivity, handleOpenActivity, readReceipt, deprecatedHere]);
 }

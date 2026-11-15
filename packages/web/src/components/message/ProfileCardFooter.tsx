@@ -4,19 +4,17 @@ import { ChevronRight, CircleDot } from "lucide-react";
 import { Button } from "@botiverse/raft-ui";
 
 import { useAppNavigate } from "../../hooks/useAppNavigate";
-import { useProfileStore } from "../../store/profileStore";
 import { useTaskStore } from "../../store/taskStore";
 import { openTaskInSidePanel } from "../task/useOpenTask";
 
 /**
- * Layout redesign (F5): the person card's foot. For an agent, what it is
- * doing now — its task in progress ("Working on Task #1 in #channel ›", opens
- * the task) — then Message (an agent's DM) and View details (the profile).
+ * Layout redesign 7.1: the top of a member's details in the side panel (what the dropped person card held). For an
+ * agent, what it is doing now — its task in progress ("Working on Task #1 in #channel ›", opens the task) — and
+ * Message (its DM).
  */
 export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: string }) {
   const { formatMessage } = useIntl();
   const nav = useAppNavigate();
-  const openProfile = useProfileStore((s) => s.openProfile);
   const serverTasks = useTaskStore((s) => s.serverTasks);
   const loaded = useTaskStore((s) => s.serverTasksLoaded);
   const loadServerTasks = useTaskStore((s) => s.loadServerTasks);
@@ -35,9 +33,9 @@ export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: s
     if (current && !openTaskInSidePanel(current, nav.toChannel)) nav.toChannel(current.channelId);
   }, [current, nav]);
   const messageAgent = useCallback(() => nav.toAgent(id), [id, nav]);
-  const viewDetails = useCallback(() => openProfile(type, id), [id, openProfile, type]);
+  if (!current && type !== "agent") return null;
   return (
-    <div className="flex flex-col gap-2 border-t border-line-hairline px-4 py-3" data-testid="profile-card-footer">
+    <div className="flex shrink-0 flex-col gap-2 border-b border-line-hairline px-4 py-3" data-testid="profile-card-footer">
       {current ? (
         <button
           type="button"
@@ -52,16 +50,11 @@ export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: s
           <ChevronRight size={14} aria-hidden className="shrink-0 text-foreground-hint" />
         </button>
       ) : null}
-      <div className="flex gap-2">
-        {type === "agent" ? (
-          <Button type="button" size="md" variant="outline" className="flex-1" onClick={messageAgent} data-testid="profile-card-message">
-            {formatMessage({ id: "profileCard.message" })}
-          </Button>
-        ) : null}
-        <Button type="button" size="md" variant="accent" className="flex-1" onClick={viewDetails} data-testid="profile-card-details">
-          {formatMessage({ id: "profileCard.viewDetails" })}
+      {type === "agent" ? (
+        <Button type="button" size="md" variant="outline" onClick={messageAgent} data-testid="profile-card-message">
+          {formatMessage({ id: "profileCard.message" })}
         </Button>
-      </div>
+      ) : null}
     </div>
   );
 }
