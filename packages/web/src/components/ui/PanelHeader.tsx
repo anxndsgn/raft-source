@@ -214,6 +214,8 @@ export default function AppPanelHeader({
     <>
     <PanelHeader
       {...containerRest}
+      // Layout redesign 7.1: over a member's details in the side panel the head is text alone (index.css).
+      data-plain-head={below ? "" : undefined}
       data-side-head={drag?.props["data-side-head"] ?? containerRest["data-side-head"]}
       // Last in its column with its head alone (stackEnd): no seam along the column's bottom.
       data-stack-end={drag?.props["data-stack-end"] ?? containerRest["data-stack-end"]}

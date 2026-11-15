@@ -1479,6 +1479,15 @@
   pointer-events: none;
 }
 
+/* Layout redesign 7.1: a member's details in the side panel — the head is text alone ("‹ Members / name ×"): the
+   avatar, handle and tags stay in the card below, and of its actions only Close (Message is in the card). */
+[data-plain-head] > [data-slot="panel-header-icon"],
+[data-plain-head] [data-slot="panel-meta"],
+[data-plain-head] [data-slot="panel-status"],
+[data-plain-head] [data-slot="panel-actions"] > :not(:last-child) {
+  display: none;
+}
+
 /* Layout redesign §5: the workspace expanded fills the conversation area; the conversation (header, timeline, side
    panel) hides as it was, and comes back on restore (ConversationFrame). */
 [data-testid="workspace-frame"][data-workspace-expanded="true"] > [data-testid="conversation-frame"] {

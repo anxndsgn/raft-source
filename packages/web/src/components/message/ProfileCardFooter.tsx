@@ -5,6 +5,9 @@ import { Button } from "@botiverse/raft-ui";
 
 import { useAppNavigate } from "../../hooks/useAppNavigate";
 import { useTaskStore } from "../../store/taskStore";
+import { useAgentStore } from "../../store/agentStore";
+import { useAuthStore } from "../../store/authStore";
+import { useChannelStore } from "../../store/channelStore";
 import { openTaskInSidePanel } from "../task/useOpenTask";
 
 /**
@@ -32,8 +35,18 @@ export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: s
   const openCurrent = useCallback(() => {
     if (current && !openTaskInSidePanel(current, nav.toChannel)) nav.toChannel(current.channelId);
   }, [current, nav]);
-  const messageAgent = useCallback(() => nav.toAgent(id), [id, nav]);
-  if (!current && type !== "agent") return null;
+  // Message: an agent's DM, a person's (opened if there is none yet); none for an archived agent or yourself (7.1).
+  const archived = useAgentStore((s) => type === "agent" && !!s.agents.find((a) => a.id === id)?.deletedAt);
+  const self = useAuthStore((s) => type === "human" && s.user?.id === id);
+  const openUserDM = useChannelStore((s) => s.openUserDM);
+  const dmId = useChannelStore((s) => (type === "human" ? s.dmChannels.find((c) => c.peerId === id)?.id ?? null : null));
+  const message = useCallback(async () => {
+    if (type === "agent") return nav.toAgent(id);
+    const dm = dmId ?? (await openUserDM(id))?.id;
+    if (dm) nav.toDm(dm);
+  }, [dmId, id, nav, openUserDM, type]);
+  const canMessage = !archived && !self;
+  if (!current && !canMessage) return null;
   return (
     <div className="flex shrink-0 flex-col gap-2 border-b border-line-hairline px-4 py-3" data-testid="profile-card-footer">
       {current ? (
@@ -50,8 +63,8 @@ export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: s
           <ChevronRight size={14} aria-hidden className="shrink-0 text-foreground-hint" />
         </button>
       ) : null}
-      {type === "agent" ? (
-        <Button type="button" size="md" variant="outline" onClick={messageAgent} data-testid="profile-card-message">
+      {canMessage ? (
+        <Button type="button" size="md" variant="outline" className="self-start" onClick={message} data-testid="profile-card-message">
           {formatMessage({ id: "profileCard.message" })}
         </Button>
       ) : null}
