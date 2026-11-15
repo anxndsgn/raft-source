@@ -4572,6 +4572,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "workspace.thread.fromWithReplies": "{channel} から · 返信 {count} 件",
   "workspace.thread.open": "ワークスペースで開く",
   "workspace.thread.replyTo": "{channel} に返信",
+  "workspace.artifactSourceWithComments": "{author} · コメント {count} 件",
   "workspace.tabs": "ワークスペースのタブ",
   "taskSection.group.forReview": "確認待ち",
   "taskSection.unclaimed": "未担当 · {name} が作成",

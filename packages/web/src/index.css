@@ -1503,6 +1503,9 @@
   display: none;
 }
 
+[data-workspace-row] [data-workspace-only] {
+  display: inline;
+}
 /* …its source on one line: the version, then where it lives and who's here (the title is on the tab). */
 [data-workspace-row] [data-slot="panel-header-content"] {
   flex-direction: row;

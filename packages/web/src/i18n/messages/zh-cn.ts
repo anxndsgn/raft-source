@@ -4682,6 +4682,7 @@ export const zhCn: Record<MessageId, string> = {
   "workspace.thread.fromWithReplies": "来自 {channel} · {count} 条回复",
   "workspace.thread.open": "在工作区打开",
   "workspace.thread.replyTo": "回复到 {channel}",
+  "workspace.artifactSourceWithComments": "{author} · {count} 条评论",
   "workspace.tabs": "工作区标签",
   "taskSection.group.forReview": "待验收",
   "taskSection.unclaimed": "无人认领 · {name} 创建",

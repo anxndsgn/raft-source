@@ -4780,6 +4780,7 @@ export const en = {
   "workspace.thread.fromWithReplies": "From {channel} · {count, plural, one {# reply} other {# replies}}",
   "workspace.thread.open": "Open in workspace",
   "workspace.thread.replyTo": "Reply to {channel}",
+  "workspace.artifactSourceWithComments": "{author} · {count, plural, one {# comment} other {# comments}}",
   "workspace.tabs": "Workspace tabs",
   "taskSection.group.forReview": "For review",
   "taskSection.unclaimed": "Unclaimed · created by {name}",

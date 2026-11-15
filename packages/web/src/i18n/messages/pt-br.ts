@@ -4571,6 +4571,7 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "workspace.thread.fromWithReplies": "De {channel} · {count, plural, one {# resposta} other {# respostas}}",
   "workspace.thread.open": "Abrir no espaço de trabalho",
   "workspace.thread.replyTo": "Responder em {channel}",
+  "workspace.artifactSourceWithComments": "{author} · {count, plural, one {# comentário} other {# comentários}}",
   "workspace.tabs": "Abas do espaço de trabalho",
   "taskSection.group.forReview": "Para revisar",
   "taskSection.unclaimed": "Sem responsável · criada por {name}",

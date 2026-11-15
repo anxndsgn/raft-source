@@ -4573,6 +4573,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "workspace.thread.fromWithReplies": "Из {channel} · ответов: {count}",
   "workspace.thread.open": "Открыть в рабочей области",
   "workspace.thread.replyTo": "Ответить в {channel}",
+  "workspace.artifactSourceWithComments": "{author} · комментариев: {count}",
   "workspace.tabs": "Вкладки рабочей области",
   "taskSection.group.forReview": "На проверке",
   "taskSection.unclaimed": "Без исполнителя · создал(а) {name}",

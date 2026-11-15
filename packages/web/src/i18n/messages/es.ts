@@ -4571,6 +4571,7 @@ export const es: Partial<Record<MessageId, string>> = {
   "workspace.thread.fromWithReplies": "De {channel} · {count, plural, one {# respuesta} other {# respuestas}}",
   "workspace.thread.open": "Abrir en el espacio de trabajo",
   "workspace.thread.replyTo": "Responder en {channel}",
+  "workspace.artifactSourceWithComments": "{author} · {count, plural, one {# comentario} other {# comentarios}}",
   "workspace.tabs": "Pestañas del espacio de trabajo",
   "taskSection.group.forReview": "Por revisar",
   "taskSection.unclaimed": "Sin asignar · creada por {name}",

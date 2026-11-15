@@ -17,6 +17,7 @@ import { ArtifactFilesPanel } from "./ArtifactFilesPanel";
 import type { ArtifactFilesJump } from "./ArtifactFilesPanel";
 import { useArtifactDownload } from "./artifactDownloads";
 import { ArtifactCommentsProvider, commentCount, useArtifactComments } from "./ArtifactCommentsContext";
+import { artifactActorName } from "./artifactFacts";
 import type { ArtifactCommentsReview } from "./ArtifactCommentsContext";
 import ArtifactContent from "./ArtifactContent";
 import { ArtifactListComposeProvider } from "./ArtifactListComposeProvider";
@@ -534,6 +535,9 @@ export function ArtifactSurfaceMeta({ replace = false, onOpened, testId, scopeIn
   testId?: string;
 }) {
   const { data, actions, chipRef, presence, phone } = useSurface();
+  const { formatMessage } = useIntl();
+  const comments = useArtifactComments();
+  const commentsNumber = comments ? commentCount(comments) : data.card.commentCount;
   return (
     <ArtifactMetaRow
       testId={testId}
@@ -542,6 +546,13 @@ export function ArtifactSurfaceMeta({ replace = false, onOpened, testId, scopeIn
           {/* A narrowing dialog gives focus back to the chip. */}
           {scopeInMenu ? null : <ArtifactScopeLabel home={data.card.home} fromAnotherServer={data.card.fromAnotherServer} visibility={actions.visibility} triggerRef={chipRef} />}
           <ArtifactOriginLink origin={data.origin} replace={replace} onOpened={onOpened} />
+          {/* Layout redesign §5: in the workspace's source row only (index.css data-workspace-only) — who sent it and,
+              when there are any, how many comments. */}
+          <span data-workspace-only="" className="hidden min-w-0 truncate" data-testid="artifact-source-extra">
+            {commentsNumber > 0
+              ? formatMessage({ id: "workspace.artifactSourceWithComments" }, { author: artifactActorName(data.card.author, formatMessage), count: commentsNumber })
+              : artifactActorName(data.card.author, formatMessage)}
+          </span>
         </>
       )}
       readers={<ArtifactPresence presence={presence} facesOnly={phone} />}
