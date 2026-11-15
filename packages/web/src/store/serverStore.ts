@@ -785,8 +785,12 @@ export const useServerStore = create<ServerState>((set, get) => ({
   loadMembers: async () => {
     const serverId = get().current?.id;
     if (!serverId) return;
-    await coalesce(`members:${serverId}`, async () => {
-      const epoch = get().serverEpoch;
+    // The epoch is in the key (as loadSidebarOrder): the boot sets the server
+    // from this device, then again from the network's list, and the second
+    // call must not join the first one's request, which returns into an old
+    // epoch and sets nothing, leaving Members empty.
+    const epoch = get().serverEpoch;
+    await coalesce(`members:${serverId}:${epoch}`, async () => {
       const actorScope = currentActorScope();
       set({ membersLoadError: false });
       try {
