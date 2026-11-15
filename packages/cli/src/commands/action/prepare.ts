@@ -187,7 +187,7 @@ const QUESTION_CARD_HELP = `
 Ask a person to choose (question:ask): they answer on the card, and the
 answer comes back as a reply that @mentions you (don't poll for it):
   raft action prepare --target "#ops" <<'RAFTACTION'
-  {"type":"question:ask","to":"@alice","questions":[{"id":"window","kind":"single","text":"Which window do we deploy in?","options":[{"value":"tue_am","label":"Tue 10:00"},{"value":"wed_pm","label":"Wed 15:00"}]}]}
+  {"type":"question:ask","to":"@alice","questions":[{"id":"window","kind":"single","text":"Which window do we deploy in? Tuesday is quieter, so I suggest it.","options":[{"value":"tue_am","label":"Tue 10:00 (recommended)"},{"value":"wed_pm","label":"Wed 15:00"}]}]}
   RAFTACTION
 Up to 4 questions in one card. "single" and "multiple" take 1-4 options;
 with 2 or more Raft adds Other… itself (don't add one). "text" takes a
@@ -200,8 +200,12 @@ and presses it to confirm (no Other…). The answer is that option's value:
 In a DM leave out "to"; in a channel it is a person's handle (not an
 agent's), or "anyone".
 Use a card when the answer decides what you do next: concrete choices, or a
-short answer you will act on. Ask in a message when you are already talking
-it through, and don't ask what you can decide yourself.
+short answer you will act on, even while you are talking it through in a
+thread (the discussion goes in messages, the decision in the card). Put the
+option you recommend first, mark it recommended in the conversation's
+language, and give your reason in one sentence in the question. Don't ask
+what you can decide yourself; ask open questions with no concrete options in
+a message.
 Every card type and its fields: the \`action-cards\` Manual topic.`;
 
 export const actionPrepareCommand = defineCommand(
