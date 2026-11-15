@@ -43,7 +43,7 @@ export function TeamHeader({ view, onMobileBack, mobileBackProps }: {
         icon={<Users size={18} />}
         // No "0 members" while they load: the counts come with the members.
         titleSuffix={loading ? undefined : (
-          <span className="ml-2 hidden truncate font-mono text-mono-meta text-foreground-hint md:inline" data-testid="team-counts">
+          <span className="ml-2 hidden truncate text-caption text-foreground-muted md:inline" data-testid="team-counts">
             {formatMessage({ id: "team.page.counts" }, { members, humans, agents, computers })}
           </span>
         )}

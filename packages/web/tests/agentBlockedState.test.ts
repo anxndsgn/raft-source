@@ -35,7 +35,7 @@ test("both version reasons are the computer-too-old state, over any activity", (
 
 test("the status text says the update it needs in en and zh-cn, with or without detail", () => {
   const state = resolveAgentDisplayState({ status: "stopped", blockedReason: "computer_version_unknown" }, undefined, false);
-  const expected = { en: "Computer update required", "zh-cn": "Computer 需要更新" } as const;
+  const expected = { en: "Computer update required", "zh-cn": "计算机需要更新" } as const;
   for (const locale of ["en", "zh-cn"] as const) {
     const intl = createIntl({ locale, defaultLocale: "en", messages: mergedMessages(locale) });
     assert.equal(formatAgentDisplayStateText(intl, state), expected[locale]);
@@ -59,7 +59,7 @@ test("a revoked Computer's agent reads Computer access revoked, over its activit
   assert.equal(state.activity, "error", "someone has to act: the warning chip");
   assert.equal(state.isOnline, false);
   assert.equal(state.activityText, "Computer access revoked: move the agent to another computer (re-attaching adds a new one)");
-  const expected = { en: "Computer access revoked: move the agent to another computer (re-attaching adds a new one)", "zh-cn": "Computer 访问权限已撤销：请把 Agent 移到另一台 Computer（重新加入会新增一台 Computer）" } as const;
+  const expected = { en: "Computer access revoked: move the agent to another computer (re-attaching adds a new one)", "zh-cn": "计算机访问权限已撤销：请把 Agent 移到另一台计算机（重新加入会新增一台计算机）" } as const;
   for (const locale of ["en", "zh-cn"] as const) {
     const intl = createIntl({ locale, defaultLocale: "en", messages: mergedMessages(locale) });
     assert.equal(formatAgentDisplayStateText(intl, state), expected[locale]);
