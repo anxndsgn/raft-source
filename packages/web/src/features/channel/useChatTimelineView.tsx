@@ -81,8 +81,8 @@ export function useViewHiddenRows(
   }, [rows, channelId, renderItem]);
 }
 
-/** The head's "What concerns me" switch (desktops only: phones have no views), and the Tasks switch's count. */
-export function useMineViewSwitch(channel: Channel | null, view: TimelineViewState | null, desktop: boolean, tasks: readonly Task[] | undefined) {
+/** The head's "What concerns me" switch (on a phone, an item of the head's ⋯: task #10 item 1), and the Tasks switch's count. */
+export function useMineViewSwitch(channel: Channel | null, view: TimelineViewState | null, tasks: readonly Task[] | undefined) {
   const channelId = channel?.id ?? null;
   const openTaskCount = useMemo(() => (tasks ?? []).filter((t) => t.status !== "done" && t.status !== "closed").length, [tasks]);
   const mineOpen = view?.spec.kind === "mine";
@@ -92,7 +92,7 @@ export function useMineViewSwitch(channel: Channel | null, view: TimelineViewSta
     if (store.views[channelId]?.spec.kind === "mine") store.closeView(channelId);
     else void store.openView(channelId, { kind: "mine" });
   }, [channelId]);
-  const available = channel?.replyMode === true && channel?.type !== "dm" && desktop;
+  const available = channel?.replyMode === true && channel?.type !== "dm";
   const mineView = useMemo(() => (available ? { open: mineOpen, onToggle: toggle } : null), [available, mineOpen, toggle]);
   return { mineView, openTaskCount };
 }

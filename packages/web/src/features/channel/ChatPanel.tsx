@@ -1688,7 +1688,7 @@ export function ChatPanel({
   // A DM peer's face: the live agent / member directory once it knows them (a reset included), else the DM's snapshot.
   const dmPeerAvatar = useMemo(() => resolveDmPeerAvatarFromDirectory(channel ?? {}, agents, members), [channel, agents, members]);
   // The head always fits (#189 rule 6): its own buttons (Search, an agent DM's Lounge, Tasks, Files, Settings) fold into ⋯.
-  const { mineView, openTaskCount } = useMineViewSwitch(channel, timelineView, isDesktopShell, channelTasks);
+  const { mineView, openTaskCount } = useMineViewSwitch(channel, timelineView, channelTasks);
   const openInChannelAction = useOpenInChannelAction(channelId);
   const { threadHere, showTasksCard, showFilesCard } = useThreadAwareCardToggles(channelId, { tasksCardOpen, filesCardOpen, toggleTasksCard, toggleFilesCard, detailsOpen: overflowOpen, closeDetails: setOverflowOpen });
   const { cardToggles, containerProps: headContainerProps, fit: fitHead } = useChannelHeadToggles({ cards: sideCards && supportsChannelTasks, tasksOpen: tasksCardOpen && !threadHere && !overflowOpen, filesOpen: filesCardOpen && !threadHere && !overflowOpen, onToggleTasks: showTasksCard, onToggleFiles: showFilesCard, onOpenLounge: handleOpenLounge, mineView, taskCount: openTaskCount });
