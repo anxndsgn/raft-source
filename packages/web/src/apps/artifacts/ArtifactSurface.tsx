@@ -548,10 +548,13 @@ export function ArtifactSurfaceMeta({ replace = false, onOpened, testId, scopeIn
           <ArtifactOriginLink origin={data.origin} replace={replace} onOpened={onOpened} />
           {/* Layout redesign §5: in the workspace's source row only (index.css data-workspace-only) — who sent it and,
               when there are any, how many comments. */}
-          <span data-workspace-only="" className="hidden min-w-0 truncate" data-testid="artifact-source-extra">
-            {commentsNumber > 0
-              ? formatMessage({ id: "workspace.artifactSourceWithComments" }, { author: artifactActorName(data.card.author, formatMessage), count: commentsNumber })
-              : artifactActorName(data.card.author, formatMessage)}
+          <span data-workspace-only="" className="hidden min-w-0 truncate text-caption text-foreground-muted" data-testid="artifact-source-extra">
+            {formatMessage({ id: commentsNumber > 0 ? "workspace.artifactSourceWithComments" : "workspace.artifactSource" }, {
+              channel: data.card.home.kind === "conversation" ? `#${data.card.home.conversation.name}` : "",
+              author: artifactActorName(data.card.author, formatMessage),
+              version: data.card.version,
+              count: commentsNumber,
+            })}
           </span>
         </>
       )}
