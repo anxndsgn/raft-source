@@ -4590,6 +4590,8 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "taskSection.tab.assigned": "我負責",
   "taskSection.tab.created": "我建立",
   "panel.backTo.channelInfo": "返回頻道資訊",
+  "panel.backTo.tasks": "返回任務",
+  "panel.backTo.members": "返回成員",
   "workspace.drawer.handle": "工作區 {count}",
   "workspace.drawer.name": "工作區",
   "timelineView.task": "只看任務 #{number}",

@@ -23,7 +23,7 @@ const TaskModalHead = lazyPanel(() => import("./TaskModalHead"));
 export function TaskDetailBack({ onBack }: { onBack: () => void }) {
   const { formatMessage } = useIntl();
   // Doc 4.5 (anxndsgn 11/15): a task's details always lead back to its channel's list, however they were opened.
-  const label = formatMessage({ id: "taskDetail.backToTasks" });
+  const label = formatMessage({ id: "panel.backTo.tasks" });
   return (
     <Tooltip content={label}>
       <PanelAction aria-label={label} onClick={onBack} data-testid="channel-task-detail-back"><ArrowLeft /></PanelAction>

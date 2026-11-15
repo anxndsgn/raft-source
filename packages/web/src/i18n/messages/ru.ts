@@ -4592,6 +4592,8 @@ export const ru: Partial<Record<MessageId, string>> = {
   "taskSection.tab.assigned": "Мне",
   "taskSection.tab.created": "Созданные мной",
   "panel.backTo.channelInfo": "Назад к сведениям о канале",
+  "panel.backTo.tasks": "Вернуться к задачам",
+  "panel.backTo.members": "Вернуться к участникам",
   "workspace.drawer.handle": "Рабочая область {count}",
   "workspace.drawer.name": "Рабочая область",
   "timelineView.task": "Только задача #{number}",

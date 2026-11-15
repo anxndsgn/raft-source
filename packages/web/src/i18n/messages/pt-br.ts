@@ -4590,6 +4590,8 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "taskSection.tab.assigned": "Atribuídas a mim",
   "taskSection.tab.created": "Criadas por mim",
   "panel.backTo.channelInfo": "Voltar às informações do canal",
+  "panel.backTo.tasks": "Retornar às tarefas",
+  "panel.backTo.members": "Retornar aos membros",
   "workspace.drawer.handle": "Espaço de trabalho {count}",
   "workspace.drawer.name": "Espaço de trabalho",
   "timelineView.task": "Só a tarefa #{number}",

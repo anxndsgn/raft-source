@@ -1233,7 +1233,7 @@ export function ChannelMembers({
                 </div>
               )}
             >
-              <PanelBackCrumbContext.Provider value={ownHead && profileStack.length === 1 && !initialProfile?.profileOnly ? formatMessage({ id: "agent.channelMembers.backToMembers" }) : null}>
+              <PanelBackCrumbContext.Provider value={ownHead && profileStack.length === 1 && !initialProfile?.profileOnly ? formatMessage({ id: "panel.backTo.members" }) : null}>
               <PanelHeadBelowContext.Provider value={headBelow}><MemberOutsideChannelContext.Provider value={!!initialProfile?.profileOnly && profileStack.length === 1}>
               <ProfilePanel
                 key={`${selectedProfile.type}:${selectedProfile.id}`}

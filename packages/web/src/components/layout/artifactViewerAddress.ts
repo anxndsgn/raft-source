@@ -1,3 +1,4 @@
+import { currentTimeMs } from "@botiverse/raft-shared";
 import { useEffect, useRef } from "react";
 import type { MutableRefObject } from "react";
 import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
@@ -184,6 +185,12 @@ export function useArtifactViewerAddress(): void {
       return;
     }
     restoring.current = false;
+    // A thread just moved into the workspace (§5): its side panel closing takes the address back to the one from
+    // before it opened, an Artifact already among the tabs. That isn't a choice to show it: the thread's tab stays.
+    if (open?.thread && store.tabs.some((t) => t.id === asked.id) && currentTimeMs() - store.openedAt < 2000) {
+      writeArtifactAddress(navigate, artifactAddressClosing(entry, {}), { record: true });
+      return;
+    }
     const place = addressPlaceOf(entry, places);
     if (open && here === place && open.id === asked.id && shownVersion(store) === asked.version) return;
     const target = { id: asked.id, version: asked.version, source: artifactAddressSource(entry, "link") };

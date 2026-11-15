@@ -54,9 +54,11 @@ export function MembersPageHeader({ ownHead, adding, loading, count, onBackOrRes
   const pageHeader = ownHead ? (
     <PanelHeader>
       {adding ? (
-        <PanelAction onClick={onBackOrReset} aria-label={formatMessage({ id: "agent.channelMembers.backToMembers" })} data-testid="add-member-back">
-          <ArrowLeft />
-        </PanelAction>
+        <Tooltip content={formatMessage({ id: "panel.backTo.members" })}>
+          <PanelAction onClick={onBackOrReset} aria-label={formatMessage({ id: "panel.backTo.members" })} data-testid="add-member-back">
+            <ArrowLeft />
+          </PanelAction>
+        </Tooltip>
       ) : onBack ? (
         <Tooltip content={formatMessage({ id: "panel.backTo.channelInfo" })}>
           <PanelAction onClick={onBack} aria-label={formatMessage({ id: "panel.backTo.channelInfo" })} data-testid="member-page-back">

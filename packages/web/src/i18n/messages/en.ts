@@ -4799,6 +4799,8 @@ export const en = {
   "taskSection.tab.assigned": "On me",
   "taskSection.tab.created": "Created by you",
   "panel.backTo.channelInfo": "Back to channel info",
+  "panel.backTo.tasks": "Return to tasks",
+  "panel.backTo.members": "Return to members",
   "workspace.drawer.handle": "Workspace {count}",
   "workspace.drawer.name": "Workspace",
   "timelineView.task": "Only task #{number}",

@@ -4701,6 +4701,8 @@ export const zhCn: Record<MessageId, string> = {
   "taskSection.tab.assigned": "我负责",
   "taskSection.tab.created": "我创建",
   "panel.backTo.channelInfo": "返回频道信息",
+  "panel.backTo.tasks": "返回任务",
+  "panel.backTo.members": "返回成员",
   "workspace.drawer.handle": "工作区 {count}",
   "workspace.drawer.name": "工作区",
   "timelineView.task": "只看任务 #{number}",

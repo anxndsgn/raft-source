@@ -4591,6 +4591,8 @@ export const ja: Partial<Record<MessageId, string>> = {
   "taskSection.tab.assigned": "担当",
   "taskSection.tab.created": "作成",
   "panel.backTo.channelInfo": "チャンネル情報に戻る",
+  "panel.backTo.tasks": "タスクへ戻る",
+  "panel.backTo.members": "メンバーへ戻る",
   "workspace.drawer.handle": "ワークスペース {count}",
   "workspace.drawer.name": "ワークスペース",
   "timelineView.task": "タスク #{number} のみ",

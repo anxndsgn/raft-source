@@ -4590,6 +4590,8 @@ export const es: Partial<Record<MessageId, string>> = {
   "taskSection.tab.assigned": "Asignadas a mí",
   "taskSection.tab.created": "Creadas por mí",
   "panel.backTo.channelInfo": "Volver a la información del canal",
+  "panel.backTo.tasks": "Regresar a tareas",
+  "panel.backTo.members": "Regresar a miembros",
   "workspace.drawer.handle": "Espacio de trabajo {count}",
   "workspace.drawer.name": "Espacio de trabajo",
   "timelineView.task": "Solo la tarea #{number}",
