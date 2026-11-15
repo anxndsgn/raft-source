@@ -110,7 +110,7 @@ export function TaskModalHeadSkeleton({ divider = true }: { divider?: boolean })
   );
 }
 
-export default function TaskModalHead({ task, propertyRows, divider = true, onOpenProfile }: {
+export default function TaskModalHead({ task, propertyRows, divider = true, fullTitle = false, onOpenProfile }: {
   task: Task;
   /** Task v2 dialog: opens a person's or an agent's profile beside the
    *  conversation (the assignee's avatar). */
@@ -123,6 +123,8 @@ export default function TaskModalHead({ task, propertyRows, divider = true, onOp
    *  message follows as the rows follow one another, and in the panel pulled
    *  down from the bar, whose edge is its shadow. */
   divider?: boolean;
+  /** The whole title, not clamped to three lines (the side panel's details are read for it, Figmama 11/15). */
+  fullTitle?: boolean;
 }) {
   const { formatMessage } = useIntl();
   // The task dialog is named by this title (TaskDialogShell).
@@ -237,7 +239,7 @@ export default function TaskModalHead({ task, propertyRows, divider = true, onOp
           </div>
         ) : (
           <div className="group/head-field mb-2 flex items-start gap-1">
-            <h3 id={dialogTitleId} className={TASK_HEAD_TITLE_CLASS} data-testid="task-modal-title">{task.title}</h3>
+            <h3 id={dialogTitleId} className={fullTitle ? TASK_HEAD_TITLE_CLASS.replace("line-clamp-3 ", "") : TASK_HEAD_TITLE_CLASS} data-testid="task-modal-title">{task.title}</h3>
             {canEdit && editingField === null ? (
               <TaskHeadEditButton
                 label={formatMessage({ id: "task.amend.editTitle" })}

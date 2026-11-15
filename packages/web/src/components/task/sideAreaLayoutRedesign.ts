@@ -34,25 +34,6 @@ export function detailsTakeSidePanel(open: Set<string>): void {
 
 const SIDE_PANEL_SECTIONS = ["tasks", "files", "details", "profile", "context"];
 
-/**
- * Layout redesign (Figmama 11/15): where the timeline would go under 480 beside the side panel (its width, a thread its own) and
- * the workspace at its 420, the workspace leaves the row and slides over the timeline from the right instead.
- * `rowWidth`: the main area's (the sidebar folded first, ConversationFrame).
- */
-export function workspaceAsDrawer(open: ReadonlySet<string>, rowWidth: number, desktop: boolean, widths = { panel: 360, thread: 400 }): boolean {
-  if (!desktop || !open.has("artifact") || rowWidth <= 0) return false;
-  const side = open.has("thread") ? threadPanelWidth(widths.thread) : SIDE_PANEL_SECTIONS.some((s) => open.has(s)) ? widths.panel : 0;
-  return rowWidth < 480 + 420 + side;
-}
-
-/** The open sections the row plans: without the workspace while it is a drawer. */
-export function rowSections<T extends string>(open: Set<T>, drawer: boolean): Set<T> {
-  if (!drawer) return open;
-  const row = new Set(open);
-  row.delete("artifact" as T);
-  return row;
-}
-
 /** The drawer's box: over the timeline at the right edge, the workspace's default width, a shadow. */
 // Over the floating pills of the timeline (the unread jump): z-cover. The DS floating layer's offset shadow says "on top".
 export const WORKSPACE_DRAWER_CLASS = "absolute inset-y-0 right-0 z-cover flex w-[min(560px,92%)] border-l border-line-seam bg-layer-canvas shadow-sticker";
@@ -94,19 +75,52 @@ export function sidePanelWidths(sections: readonly string[], saved: number, thre
   return { saved: sections.includes("thread") ? threadPanelWidth(thread) : own, savedWithoutThread: own, fixed: !workspace };
 }
 
+/** Doc §5: dragging the workspace wider stops where the timeline is down to 480. */
+export const WORKSPACE_TIMELINE_MIN = 480;
+
+/** The timeline beside the workspace (which stands outside the row, in the frame): the row's conversation column. */
+export const workspaceMainColumn = (column: HTMLElement): HTMLElement | null =>
+  column.closest<HTMLElement>('[data-testid="workspace-frame"]')?.querySelector<HTMLElement>(".thread-main-column") ?? null;
+
 /** The drawer's one section. */
 export const DRAWER_SECTIONS: "artifact"[] = ["artifact"];
 
-/** The workspace as a drawer or a column: the sections the row plans, and the drawer's column when it is one. */
-export function useWorkspaceDrawer(layout: ChannelSideLayout, open: Set<ChannelSideSection>, rowWidth: number, desktop: boolean) {
+/** The side panel's width beside the timeline now: a thread's, the panel's, or none. */
+function sideWidth(open: ReadonlySet<string>, widths: { panel: number; thread: number }): number {
+  return open.has("thread") ? threadPanelWidth(widths.thread) : SIDE_PANEL_SECTIONS.some((s) => open.has(s)) ? widths.panel : 0;
+}
+
+/**
+ * Doc 4.4 / §5: the workspace is never one of the row's columns — it stands right of the conversation, from the top,
+ * and takes its own width: its saved one, down to 420 so the timeline keeps 480 beside the side panel; with less room
+ * than that it is a drawer over the timeline. Expanded, it fills the conversation area. The row (timeline and side
+ * panel) is planned without it. `row`: the planned row, inside the frame the workspace shares.
+ */
+export function useWorkspaceDrawer(layout: ChannelSideLayout, open: Set<ChannelSideSection>, row: HTMLElement | null, desktop: boolean) {
   const panel = useColumnWidth("sidePanel");
   const thread = useColumnWidth("thread");
-  const drawer = workspaceAsDrawer(open, rowWidth, desktop, { panel, thread });
-  const rowOpen = useMemo(() => rowSections(open, drawer), [drawer, open]);
+  const expanded = useArtifactViewerStore((s) => s.expanded) && desktop;
+  const workspace = desktop && open.has("artifact");
+  const frame = row?.closest<HTMLElement>('[data-testid="workspace-frame"]')?.getBoundingClientRect().width ?? 0;
+  const room = frame - sideWidth(open, { panel, thread }) - WORKSPACE_TIMELINE_MIN;
+  const drawer = workspace && !expanded && frame > 0 && room < 420;
+  const rowOpen = useMemo(() => {
+    if (!workspace) return open;
+    const rest = new Set(open);
+    rest.delete("artifact");
+    return rest;
+  }, [open, workspace]);
+  const column = workspace ? visibleChannelSideColumns(layout, open).find((c) => c.sections.includes("artifact")) : undefined;
+  const width = column ? (expanded ? column.width : Math.max(420, Math.min(column.width, room))) : 0;
   const collapsed = useArtifactViewerStore((st) => st.drawerCollapsed);
-  const drawerColumn = drawer ? visibleChannelSideColumns(layout, open).find((c) => c.sections.includes("artifact")) : undefined;
   const workspaceSlot = useContext(WorkspaceSlotContext);
-  return { rowOpen, drawerColumn, workspaceSlot, drawerCollapsed: drawer && collapsed };
+  return { rowOpen, workspaceColumn: column, workspaceWidth: width, drawer, workspaceSlot, drawerCollapsed: drawer && collapsed };
+}
+
+/** The Artifact shown expanded: a phone's (`placed`) or the desktop workspace's, filling the conversation area (§5). */
+export function useOrWorkspaceExpanded(placed: boolean): boolean {
+  const workspace = useArtifactViewerStore((s) => s.expanded && s.open !== null);
+  return placed || workspace;
 }
 
 /** The drawer covers the timeline only (not the channel's header or side panel): the row's conversation column. */

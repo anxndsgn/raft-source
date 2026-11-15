@@ -34,11 +34,20 @@ function defaultLayout(): ChannelSideLayout {
   return { v: 1, columns: DEFAULT_CHANNEL_SIDE_LAYOUT.columns.map((column, i) => (i === 1 ? { ...column, width: Math.round(legacy) } : column)) };
 }
 
+/**
+ * Layout redesign §5 (Figmama 11/15): the thread and the Artifact (the workspace) stand alone now. A layout saved
+ * before with either stacked among other sections opens as the new default, without trying to keep it.
+ */
+function redesigned(layout: ChannelSideLayout): ChannelSideLayout {
+  const stacked = layout.columns.some((c) => c.sections.length > 1 && (c.sections.includes("artifact") || c.sections.includes("thread")));
+  return stacked ? completeChannelSideLayout(DEFAULT_CHANNEL_SIDE_LAYOUT) : layout;
+}
+
 function read(): ChannelSideLayout {
   try {
     const raw = typeof window !== "undefined" ? window.localStorage.getItem(KEY) : null;
     const parsed = raw ? parseChannelSideLayout(JSON.parse(raw)) : null;
-    return completeChannelSideLayout(parsed ?? defaultLayout());
+    return redesigned(completeChannelSideLayout(parsed ?? defaultLayout()));
   } catch {
     return completeChannelSideLayout(DEFAULT_CHANNEL_SIDE_LAYOUT);
   }
@@ -96,7 +105,7 @@ function save(layout: ChannelSideLayout) {
 
 /** Show `layout` (the server's, or a fallback) and keep it as this browser's. */
 function show(layout: ChannelSideLayout | null) {
-  const next = layout ? completeChannelSideLayout(layout) : read();
+  const next = layout ? redesigned(completeChannelSideLayout(layout)) : read();
   sync.confirmed = next;
   remember(next);
   if (!sameLayout(next, useChannelSideLayoutStore.getState().layout)) useChannelSideLayoutStore.setState({ layout: next });

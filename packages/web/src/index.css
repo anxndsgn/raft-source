@@ -1479,6 +1479,17 @@
   pointer-events: none;
 }
 
+/* Layout redesign §5: the workspace expanded fills the conversation area; the conversation (header, timeline, side
+   panel) hides as it was, and comes back on restore (ConversationFrame). */
+[data-testid="workspace-frame"][data-workspace-expanded="true"] > [data-testid="conversation-frame"] {
+  display: none;
+}
+[data-testid="workspace-frame"][data-workspace-expanded="true"] > [data-testid="workspace-slot"] > [data-testid="channel-side-column"] {
+  flex: 1 1 auto;
+  width: auto !important;
+  max-width: none;
+}
+
 /* Migration log chart: failure marks are non-text graphics, so they use the
    chart warning (raft-ui `warning-graphic`, 3:1 on every surface in both modes);
    text about failures stays `warning-strong` (raft-design Color › Warnings in charts). */

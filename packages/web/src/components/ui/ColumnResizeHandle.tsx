@@ -99,13 +99,13 @@ export type MainColumnLookup = (columnElement: HTMLElement) => HTMLElement | nul
  * it is down to MAIN_COLUMN_MIN_WIDTH; any other column, and one whose conversation cannot be measured, stops at
  * its bounds' max. `maxWidth` tightens it further (ColumnResizeHandle's prop). Never below the column's minimum.
  */
-export function columnDragMax(column: ColumnId, columnElement: HTMLElement | null | undefined, maxWidth?: number, mainColumn: MainColumnLookup = findMainColumn): number {
+export function columnDragMax(column: ColumnId, columnElement: HTMLElement | null | undefined, maxWidth?: number, mainColumn: MainColumnLookup = findMainColumn, mainMin?: number): number {
   const bounds: ColumnBounds = COLUMN_BOUNDS[column];
   let max: number = bounds.max;
   if (bounds.growsToMainMin && columnElement) {
     const columnWidth = shownWidth(columnElement);
     const main = columnWidth > 0 ? mainColumn(columnElement) : null;
-    if (main) max = growToMainMinMax(column, columnWidth, shownWidth(main));
+    if (main) max = growToMainMinMax(column, columnWidth, shownWidth(main), mainMin);
   }
   return maxWidth === undefined ? max : Math.max(bounds.min, Math.min(max, maxWidth));
 }
@@ -133,6 +133,8 @@ export interface ColumnResizeHandleProps {
   /** The conversation this column takes its width from, where the nearest marked sibling is not it (task v2's
    *  Tasks and Files column in the row right of a thread: the channel, not the wider thread). */
   mainColumn?: MainColumnLookup;
+  /** The conversation's minimum this column stops at, if not MAIN_COLUMN_MIN_WIDTH (the workspace: the timeline's 480). */
+  mainMin?: number;
   /** Lit from outside, as by a corner handle that drags this edge along with another: as if hovered, or dragged. */
   highlight?: "hover" | "drag";
   /**
@@ -208,6 +210,7 @@ export default function ColumnResizeHandle({
   label,
   source,
   mainColumn = findMainColumn,
+  mainMin,
   highlight,
   ownBorder = false,
   snap,
@@ -270,7 +273,7 @@ export default function ColumnResizeHandle({
       const measured = shownWidth(columnElement);
       setRenderedColumnWidth(measured > 0 ? Math.round(measured) : null);
       const seam = measured > 0 ? startSeamDrag(columnElement, edge, mainColumn(columnElement)) : null;
-      setMeasuredMax(measured > 0 ? seam?.max ?? columnDragMax(column, columnElement, maxWidth, mainColumn) : null);
+      setMeasuredMax(measured > 0 ? seam?.max ?? columnDragMax(column, columnElement, maxWidth, mainColumn, mainMin) : null);
       markClipped(columnElement, handleRef.current, contentMinRef.current);
       const growsToMainMin = (COLUMN_BOUNDS[column] as ColumnBounds).growsToMainMin === true;
       const main = growsToMainMin && measured > 0 ? mainColumn(columnElement) : null;
@@ -296,7 +299,7 @@ export default function ColumnResizeHandle({
     const measured = handle.parentElement?.getBoundingClientRect().width;
     return clampWidth(measured && measured > 0 ? measured : rememberedWidth());
   };
-  const maxNow = (handle: HTMLElement) => columnDragMax(column, handle.parentElement, maxWidth, mainColumn);
+  const maxNow = (handle: HTMLElement) => columnDragMax(column, handle.parentElement, maxWidth, mainColumn, mainMin);
   const rowSeam = (handle: HTMLElement) => (handle.parentElement ? startSeamDrag(handle.parentElement, edge, mainColumn(handle.parentElement)) : null);
 
   const setSnapped = (next: boolean, via: "pointer" | "keyboard"): boolean => {
@@ -344,7 +347,7 @@ export default function ColumnResizeHandle({
       return;
     }
     const columnElement = handleRef.current?.parentElement;
-    const released = releasedDragWidth(drag.startWidth, drag.last, columnElement ? columnDragMax(column, columnElement, maxWidth, mainColumn) : drag.max, min);
+    const released = releasedDragWidth(drag.startWidth, drag.last, columnElement ? columnDragMax(column, columnElement, maxWidth, mainColumn, mainMin) : drag.max, min);
     if (released !== null) commitWidth(released);
     // Dragged back to where it started: the remembered width comes back, rather than the squeezed one being saved.
     else if (drag.last !== null) previewWidth(drag.restoreWidth);

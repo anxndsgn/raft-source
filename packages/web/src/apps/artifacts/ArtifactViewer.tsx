@@ -494,7 +494,8 @@ function ViewerFrame({
     };
   }, []);
   // The surface's Esc (a comment's card, the list, comment mode); anything else closes the viewer.
-  const handleKeyDown = useArtifactSurfaceKeyDown(onClose);
+  // Expanded, Escape restores it first (layout redesign §5), then closes.
+  const handleKeyDown = useArtifactSurfaceKeyDown(expanded && toggleExpanded ? toggleExpanded : onClose);
   // Cmd/Ctrl+F with the focus fallen to the body, the viewer having had it last: the find bar's too.
   useArtifactFindBodyShortcut(panelElement);
   return (

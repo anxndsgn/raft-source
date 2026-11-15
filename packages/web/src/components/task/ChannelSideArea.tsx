@@ -1,4 +1,4 @@
-import { detailsTakeSidePanel, DRAWER_SECTIONS, drawerHost, inWorkspace, isSidePanelColumn, sidePanelWidths, sidePanelWidthSource, threadTakesSidePanel, useWorkspaceDrawer, WORKSPACE_DRAWER_CLASS } from "./sideAreaLayoutRedesign";
+import { detailsTakeSidePanel, DRAWER_SECTIONS, drawerHost, inWorkspace, isSidePanelColumn, useOrWorkspaceExpanded, WORKSPACE_TIMELINE_MIN, workspaceMainColumn, sidePanelWidths, sidePanelWidthSource, threadTakesSidePanel, useWorkspaceDrawer, WORKSPACE_DRAWER_CLASS } from "./sideAreaLayoutRedesign";
 import { WorkspaceDrawerHandle, WorkspaceDrawerScrim } from "./WorkspaceDrawerScrim";
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
@@ -287,7 +287,7 @@ export function SideArtifactPortal({ title, artifact, render }: { title: string;
     host.remove();
   }, [host, unregister]);
   const placed = useSideSections((s) => s.states.artifact);
-  const expanded = useSideSections((s) => s.placement.artifactExpanded);
+  const expanded = useOrWorkspaceExpanded(useSideSections((s) => s.placement.artifactExpanded));
   const mode: SideArtifactPlace["mode"] = expanded ? "expanded" : placed?.mode ?? "beside";
   const place = useMemo<SideArtifactPlace>(() => ({ mode, canExpand: mode !== "overlay", shown: expanded || placed?.shown !== false }), [expanded, mode, placed?.shown]);
   // Its content renders once the area has put the host in the document, never into a detached node.
@@ -405,8 +405,7 @@ const TOUCH_PORTRAIT = "(pointer: coarse) and (orientation: portrait) and (max-w
 function measurePlan(row: HTMLElement | null) {
   const thread = row?.querySelector<HTMLElement>(":scope > .thread-side-column") ?? null;
   return {
-    // Layout redesign: the workspace stands outside the row (beside the header) yet is one of the plan's columns.
-    rowWidth: row ? (row.closest<HTMLElement>('[data-testid="workspace-frame"]') ?? row).getBoundingClientRect().width : 0,
+    rowWidth: row ? row.getBoundingClientRect().width : 0,
     threadOpen: !!thread && getComputedStyle(thread).display !== "none",
     legacyTask: !!row?.querySelector(':scope > :is([data-testid="legacy-task-panel"], [data-legacy-task-panel-fallback])'),
     touchPortrait: typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(TOUCH_PORTRAIT).matches,
@@ -871,7 +870,7 @@ export default function ChannelSideArea() {
   // the detail column's width, as the thread beside its channel; its Focus Mode is its Expand (rule 5).
   const taskColumn = useRowPlanStore((s) => s.taskColumn !== null);
   const taskExpanded = useRowPlanStore((s) => s.taskColumn?.focused ?? false);
-  const { rowOpen, drawerColumn, workspaceSlot, drawerCollapsed } = useWorkspaceDrawer(layout, open, room.rowWidth, room.viewportWidth >= 768);
+  const { rowOpen, workspaceColumn, workspaceWidth, drawer, workspaceSlot, drawerCollapsed } = useWorkspaceDrawer(layout, open, row, room.viewportWidth >= 768);
   const columnsForPlan = useMemo<PlanColumn[]>(() => {
     if (!planned) return NO_PLAN_COLUMNS;
     let columns = planColumns(visibleChannelSideColumns(layout, rowOpen), threadWidth, panelWidth);
@@ -997,7 +996,8 @@ export default function ChannelSideArea() {
         />
       )))}
       {surface}
-      {drawerColumn && drawerHost(row) ? createPortal(drawerCollapsed ? <WorkspaceDrawerHandle /> : <><WorkspaceDrawerScrim /><div className={WORKSPACE_DRAWER_CLASS} data-testid="workspace-drawer"><SideColumn kind="beside" column={drawerColumn.column} sections={DRAWER_SECTIONS} titles={entries} width={560} minWidth={420} /></div></>, drawerHost(row)!) : null}
+      {workspaceColumn && drawer && drawerHost(row) ? createPortal(drawerCollapsed ? <WorkspaceDrawerHandle /> : <><WorkspaceDrawerScrim /><div className={WORKSPACE_DRAWER_CLASS} data-testid="workspace-drawer"><SideColumn kind="beside" column={workspaceColumn.column} sections={DRAWER_SECTIONS} titles={entries} width={560} minWidth={420} /></div></>, drawerHost(row)!) : null}
+      {workspaceColumn && !drawer && workspaceSlot ? createPortal(<SideColumn kind="beside" column={workspaceColumn.column} widthColumn={workspaceColumn.column} sections={DRAWER_SECTIONS} titles={entries} width={workspaceWidth} minWidth={420} />, workspaceSlot) : null}
       {expandedSurface}
     </>
   );
@@ -1185,7 +1185,7 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
           edge="left"
           label={label}
           source={source}
-          mainColumn={rowMainColumn}
+          mainColumn={panel ? rowMainColumn : workspaceMainColumn} mainMin={panel ? undefined : WORKSPACE_TIMELINE_MIN}
           highlight={highlight}
           // The column draws its left seam itself (columnClass "beside").
           ownBorder

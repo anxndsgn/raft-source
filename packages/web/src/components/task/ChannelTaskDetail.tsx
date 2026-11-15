@@ -98,6 +98,7 @@ export function ChannelTaskDetail({ task }: { task: Task }) {
         <TaskModalHead
           task={task}
           divider={false}
+          fullTitle
           propertyRows={propertyRows}
           onOpenProfile={handleOpenProfile}
         />

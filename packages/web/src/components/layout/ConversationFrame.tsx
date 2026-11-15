@@ -16,8 +16,11 @@ export function ConversationFrame({ children }: { children: ReactNode }) {
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   const [workspaceSlot, setWorkspaceSlot] = useState<HTMLElement | null>(null);
   useWorkspaceMakesRoom();
+  // Doc §5: the workspace expanded takes the whole conversation area (its header, timeline and side panel hide,
+  // as they were; index.css `data-workspace-expanded`). The rail and the sidebar stay.
+  const expanded = useArtifactViewerStore((s) => s.expanded && s.open !== null);
   return (
-    <div className="relative flex min-h-0 min-w-0 flex-1" data-testid="workspace-frame">
+    <div className="relative flex min-h-0 min-w-0 flex-1" data-testid="workspace-frame" data-workspace-expanded={expanded ? "true" : undefined}>
       <ConversationHeaderSlotContext.Provider value={headerSlot}>
         <WorkspaceSlotContext.Provider value={workspaceSlot}>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col" data-testid="conversation-frame">
@@ -35,26 +38,37 @@ export function ConversationFrame({ children }: { children: ReactNode }) {
 const WORKSPACE_ROW_NEED = 480 + 400 + 560;
 
 /**
- * Layout redesign (Figmama 11/15): the workspace opening in a window too narrow for timeline + side panel + workspace
- * folds the sidebar away first (the rail stays; its button opens it again), and gives it back when the workspace
- * closes — only if it was this that folded it. Narrower still, the row's plan shrinks the workspace to its 420.
+ * Layout redesign 4.4 (Figmama 11/15): with the workspace open in a window too narrow for timeline + side panel +
+ * workspace, the sidebar folds away first (the rail stays; its button opens it again) — on opening and as the window
+ * narrows. It comes back when the workspace closes, or the window widens enough again, only if it was this that
+ * folded it (a sidebar the person folded stays folded).
  */
 function useWorkspaceMakesRoom() {
   const workspaceOpen = useArtifactViewerStore((s) => s.open !== null);
-  const foldedByUs = useRef(false);
+  // Expanded, the workspace takes the conversation's place: the sidebar stays as it is (§5).
+  const expanded = useArtifactViewerStore((s) => s.expanded);
+  const foldedByUs = useRef<number | null>(null);
   useEffect(() => {
-    const ui = useUIStore.getState();
-    if (workspaceOpen) {
-      const sidebar = document.getElementById(SIDEBAR_REGION_ID);
-      const sidebarWidth = sidebar?.getBoundingClientRect().width ?? 0;
-      const main = document.querySelector<HTMLElement>('[data-testid="workspace-frame"]')?.getBoundingClientRect().width ?? window.innerWidth;
-      if (!ui.sidebarHidden && sidebarWidth > 0 && main < WORKSPACE_ROW_NEED) {
-        ui.setSidebarHidden(true);
-        foldedByUs.current = true;
-      }
-    } else if (foldedByUs.current) {
-      foldedByUs.current = false;
-      if (useUIStore.getState().sidebarHidden) ui.setSidebarHidden(false);
+    const ui = useUIStore.getState;
+    const frameWidth = () => document.querySelector<HTMLElement>('[data-testid="workspace-frame"]')?.getBoundingClientRect().width ?? window.innerWidth;
+    if (!workspaceOpen) {
+      if (foldedByUs.current !== null && ui().sidebarHidden) ui().setSidebarHidden(false);
+      foldedByUs.current = null;
+      return;
     }
-  }, [workspaceOpen]);
+    const fit = () => {
+      if (expanded) return;
+      const sidebarWidth = document.getElementById(SIDEBAR_REGION_ID)?.getBoundingClientRect().width ?? 0;
+      if (!ui().sidebarHidden && sidebarWidth > 0 && frameWidth() < WORKSPACE_ROW_NEED) {
+        foldedByUs.current = sidebarWidth;
+        ui().setSidebarHidden(true);
+      } else if (foldedByUs.current !== null && ui().sidebarHidden && frameWidth() - foldedByUs.current >= WORKSPACE_ROW_NEED) {
+        foldedByUs.current = null;
+        ui().setSidebarHidden(false);
+      } else if (!ui().sidebarHidden) foldedByUs.current = null;
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [expanded, workspaceOpen]);
 }
