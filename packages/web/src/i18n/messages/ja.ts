@@ -9793,4 +9793,9 @@ export const ja: Partial<Record<MessageId, string>> = {
   "message.taskLinks.failed": "タスクの紐付けを変更できませんでした。もう一度お試しください。",
   "message.taskLinks.save": "保存",
   "message.taskLinks.saving": "保存中",
+  "inbox.forMe.allDone": "すべて完了",
+  "inbox.forMe.doneRow": "「{title}」を完了にする",
+  "inbox.reviewTask.title": "タスク #{number} があなたの確認待ちです",
+  "inbox.question.title": "あなたへの質問",
+  "inbox.question.titleFrom": "{name} からの質問",
 };

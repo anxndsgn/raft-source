@@ -1,0 +1,56 @@
+import { useCallback, useMemo } from "react";
+import { useIntl } from "react-intl";
+import { MessageCircleQuestion } from "lucide-react";
+import { IconTile, InboxItem, InboxItemBody, InboxItemContent, InboxItemHeading, InboxItemLeading, InboxItemSender, InboxItemTitle, InboxItemTrigger } from "@botiverse/raft-ui";
+import { InboxItemLine, InboxItemListGroup } from "@botiverse/raft-ui/wip";
+
+import { useAppNavigate } from "../../hooks/useAppNavigate";
+import { useAgentStore } from "../../store/agentStore";
+import { openQuestions, useForMeStore } from "./forMeStore";
+import type { ForMeQuestion } from "./forMeStore";
+import { InboxRowDone } from "./InboxRowDone";
+
+/**
+ * For me (task #10 item 7): question cards asked of me, still open. Reading one does not handle it: it leaves once
+ * answered, withdrawn or expired (the server's list), or by its Done. A row opens the card in its conversation.
+ */
+export function InboxQuestions() {
+  const questions = useForMeStore((s) => s.questions);
+  const doneAt = useForMeStore((s) => s.doneAt);
+  const open = useMemo(() => openQuestions(questions, doneAt), [doneAt, questions]);
+  if (open.length === 0) return null;
+  return (
+    <InboxItemListGroup className="pb-1" data-testid="inbox-questions">
+      {open.map((question) => <QuestionRow key={question.messageId} question={question} />)}
+    </InboxItemListGroup>
+  );
+}
+
+function QuestionRow({ question }: { question: ForMeQuestion }) {
+  const { formatMessage } = useIntl();
+  const nav = useAppNavigate();
+  const asker = useAgentStore((s) => {
+    const agent = question.askedByAgentId ? s.agents.find((a) => a.id === question.askedByAgentId) : null;
+    return agent ? agent.displayName || agent.name : null;
+  });
+  const open = useCallback(() => nav.toMessage(question.channelId, question.messageId), [nav, question.channelId, question.messageId]);
+  const done = useCallback(() => void useForMeStore.getState().markDone([`card:${question.messageId}`]), [question.messageId]);
+  const title = asker ? formatMessage({ id: "inbox.question.titleFrom" }, { name: asker }) : formatMessage({ id: "inbox.question.title" });
+  const body = question.title || question.firstQuestion || question.reason || "";
+  return (
+    <InboxItem density="compact" data-layout="list" data-testid={`inbox-question-${question.messageId}`}>
+      <InboxItemTrigger aria-label={title} onClick={open} />
+      <InboxItemLeading><IconTile><MessageCircleQuestion aria-hidden /></IconTile></InboxItemLeading>
+      <InboxItemContent>
+        <InboxItemHeading><InboxItemTitle>{title}</InboxItemTitle></InboxItemHeading>
+        <InboxItemLine>
+          <InboxItemBody>
+            {question.reason && question.reason !== body ? <InboxItemSender>{question.reason}</InboxItemSender> : null}
+            {body}
+          </InboxItemBody>
+        </InboxItemLine>
+        <InboxRowDone phone={false} label={formatMessage({ id: "inbox.forMe.doneRow" }, { title })} onDone={done} />
+      </InboxItemContent>
+    </InboxItem>
+  );
+}

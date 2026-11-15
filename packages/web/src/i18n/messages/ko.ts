@@ -9792,4 +9792,9 @@ export const ko: Partial<Record<MessageId, string>> = {
   "message.taskLinks.failed": "작업 연결을 변경하지 못했습니다. 다시 시도하세요.",
   "message.taskLinks.save": "저장",
   "message.taskLinks.saving": "저장 중",
+  "inbox.forMe.allDone": "모두 완료",
+  "inbox.forMe.doneRow": "“{title}” 완료로 표시",
+  "inbox.reviewTask.title": "작업 #{number}이(가) 검토를 기다립니다",
+  "inbox.question.title": "회원님께 온 질문",
+  "inbox.question.titleFrom": "{name}님의 질문",
 };

@@ -13,8 +13,8 @@ import { useSearchContentStore } from "../../store/searchContentStore";
 import { useTimelineViewStore } from "../../store/timelineViewStore";
 import { useThreadStore } from "../../store/threadStore";
 import type { Task as AssignedTask } from "../../store/taskStore";
-
-const OPEN = new Set(["todo", "in_progress", "in_review"]);
+import { forMeTasks, useForMeStore } from "./forMeStore";
+import { InboxRowDone } from "./InboxRowDone";
 
 /**
  * Layout redesign (F4): in the inbox's "For me", the tasks assigned to me and
@@ -29,27 +29,25 @@ export function InboxAssignedTasks() {
   useEffect(() => {
     if (!loaded) void loadServerTasks();
   }, [loaded, loadServerTasks]);
-  const mine = useMemo(
-    () => serverTasks
-      .filter((t) => t.claimedByType === "user" && t.claimedById === viewerId && OPEN.has(t.status))
-      .sort((a, b) => b.taskNumber - a.taskNumber),
-    [serverTasks, viewerId],
-  );
-  if (mine.length === 0) return null;
+  const doneAt = useForMeStore((s) => s.doneAt);
+  const { mine, reviews } = useMemo(() => forMeTasks(serverTasks, viewerId, doneAt), [doneAt, serverTasks, viewerId]);
+  if (mine.length === 0 && reviews.length === 0) return null;
   return (
     <InboxItemListGroup className="pb-1" data-testid="inbox-assigned-tasks">
+      {reviews.map((task) => <AssignedTaskRow key={`review-${task.id}`} task={task} review />)}
       {mine.map((task) => <AssignedTaskRow key={task.id} task={task} />)}
     </InboxItemListGroup>
   );
 }
 
 /** raft-ui InboxItem, as the inbox's other rows: where it is, "Task #N assigned to you", its title. */
-function AssignedTaskRow({ task }: { task: AssignedTask }) {
+function AssignedTaskRow({ task, review = false }: { task: AssignedTask; review?: boolean }) {
   const { formatMessage } = useIntl();
   const open = useCallback(() => openAssignedTaskInInbox(task), [task]);
-  const title = formatMessage({ id: "inbox.assignedTask.title" }, { number: task.taskNumber });
+  const done = useCallback(() => void useForMeStore.getState().markDone([`${review ? "review" : "task"}:${task.id}`]), [review, task.id]);
+  const title = formatMessage({ id: review ? "inbox.reviewTask.title" : "inbox.assignedTask.title" }, { number: task.taskNumber });
   return (
-    <InboxItem density="compact" data-layout="list" data-testid={`inbox-assigned-task-${task.taskNumber}`}>
+    <InboxItem density="compact" data-layout="list" data-testid={`inbox-${review ? "review" : "assigned"}-task-${task.taskNumber}`}>
       <InboxItemTrigger aria-label={title} onClick={open} />
       <InboxItemLeading><IconTile><ListTodo aria-hidden /></IconTile></InboxItemLeading>
       <InboxItemContent>
@@ -60,6 +58,7 @@ function AssignedTaskRow({ task }: { task: AssignedTask }) {
             {task.title}
           </InboxItemBody>
         </InboxItemLine>
+        <InboxRowDone phone={false} label={formatMessage({ id: "inbox.forMe.doneRow" }, { title })} onDone={done} />
       </InboxItemContent>
     </InboxItem>
   );

@@ -9794,4 +9794,9 @@ export const ru: Partial<Record<MessageId, string>> = {
   "message.taskLinks.failed": "Не удалось изменить связи с задачами. Попробуйте ещё раз.",
   "message.taskLinks.save": "Сохранить",
   "message.taskLinks.saving": "Сохранение",
+  "inbox.forMe.allDone": "Готово со всеми",
+  "inbox.forMe.doneRow": "Отметить «{title}» как готовое",
+  "inbox.reviewTask.title": "Задача #{number} ждёт вашей проверки",
+  "inbox.question.title": "Вам вопрос",
+  "inbox.question.titleFrom": "{name} спрашивает",
 };

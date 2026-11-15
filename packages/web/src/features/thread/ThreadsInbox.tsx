@@ -14,6 +14,7 @@ import { InboxSystemNotices } from "./InboxSystemNotices";
 import { InboxAllFilterMenu } from "./InboxAllFilterMenu";
 import { useInboxForMeCount } from "./inboxForMe";
 import { InboxAssignedTasks } from "./InboxAssignedTasks";
+import { InboxQuestions } from "./InboxQuestions";
 import { ActivityInboxPanel, SegmentedControl, SegmentedControlCount, SegmentedControlItem, SegmentedControlLabel, Banner, BannerAction, BannerDescription, Button, ScrollArea, useLocated } from "@botiverse/raft-ui";
 import { MessageIcon } from "@botiverse/ricons";
 import { InboxItemListGroup, InboxItemListHeading } from "@botiverse/raft-ui/wip";
@@ -54,6 +55,7 @@ import { useActivityDayGroups } from "./useActivityDayGroups";
 import { InboxRow } from "./InboxRow";
 import { ObjectInboxRow } from "./ObjectInboxRow";
 import { itemKey, rowSwipeFor } from "./inboxRowShared";
+import { forMeConversationKey, useForMeStore } from "./forMeStore";
 import { ActivityInboxSkeleton } from "./ActivityInboxSkeleton";
 import { moveRowFocus, RETAP_ANCHOR_DROPPING_INPUT, nearLoadedEnd, MAX_PAGES_WITHOUT_SCROLL, rowLandingOffset, activityReadFilter, ACTIVITY_RAIL_INSET, PHONE_ACTIVITY_RAIL_INSET, slotItemKey } from "./threadsInboxHelpers";
 import type { CtxMenu } from "./threadsInboxHelpers";
@@ -174,7 +176,9 @@ export function ThreadsInbox() {
   const activeUnreadCount = useInboxStore((s) => s.activeUnreadCount);
   const shownTotalCount = useSettledValue(totalCount + objectCount, loaded);
   const shownTotalUnreadCount = useSettledValue(totalUnreadCount + filterObjectUnreadCount, loaded, activeUnreadCount + objectUnreadCount);
-  const showMarkAllRead = shownTotalUnreadCount > 0;
+  const forMeTab = useInboxStore((s) => s.filter === "unread_mentions" && !s.scope);
+  const showMarkAllRead = shownTotalUnreadCount > 0 && !forMeTab;
+  const showForMeAllDone = forMeTab && visibleItems.length > 0;
   // Whether a page has ever settled: until then the head has no counts to
   // keep, and says nothing rather than "0 in progress · 0 unread".
   const countsKnown = useSettledValue(true, loaded, false);
@@ -364,8 +368,14 @@ export function ThreadsInbox() {
 
   const handleRowDone = useCallback((item: InboxItem, options?: MarkDoneOptions) => {
     trackActivityMark("done");
+    // For me (task #10 item 7): Done there handles the row for For me only; All keeps it.
+    const forMeKey = forMeTab ? forMeConversationKey(item) : null;
+    if (forMeKey) {
+      useInboxStore.getState().removeItem(item);
+      return useForMeStore.getState().markDone([forMeKey]);
+    }
     return markDone(item, options);
-  }, [markDone]);
+  }, [forMeTab, markDone]);
   // A phone (the phone layout, by touch): no Mark as Done button in the row;
   // a left swipe and the press-and-hold menu instead (stdrc, raft-design
   // #769). A tablet and a desktop keep the button. A narrow window with a
@@ -456,6 +466,13 @@ export function ThreadsInbox() {
     onClick: isPhoneTabRoot ? undefined : handleHeaderTitleClick,
   }), [handleHeaderTitleClick, isPhoneTabRoot, jumpToNextUnreadTitle]);
 
+  // For me: Done all, the replies and @s listed (task #10 item 7).
+  const handleForMeAllDone = useCallback(() => {
+    const listed = useInboxStore.getState().items;
+    const keys = listed.flatMap((item) => { const key = forMeConversationKey(item); return key ? [key] : []; });
+    for (const item of listed) if (forMeConversationKey(item)) useInboxStore.getState().removeItem(item);
+    void useForMeStore.getState().markDone(keys);
+  }, []);
   const handleMarkAllRead = useCallback(() => {
     trackActivityMark("read_all");
     // After any read toggle still writing (a queued Unread), as the server should end.
@@ -546,6 +563,11 @@ export function ThreadsInbox() {
       </div>
       <div className="flex shrink-0 items-center gap-1">
       {activeFilter !== "mentions" ? <InboxAllFilterMenu active={activeFilter} onChoose={chooseFilter} /> : null}
+      {showForMeAllDone ? (
+        <Button onClick={handleForMeAllDone} size="md" variant="ghost" className="-mr-[calc(--spacing(3)+1.5px)] shrink-0 whitespace-nowrap md:pointer-fine:h-(--bar-button-size) md:pointer-fine:rounded-(--bar-button-radius) md:pointer-fine:px-2.5 md:pointer-fine:-mr-[calc(--spacing(2.5)+1.5px)]" data-testid="inbox-for-me-all-done">
+          {formatMessage({ id: "inbox.forMe.allDone" })}
+        </Button>
+      ) : null}
       {showMarkAllRead && (
         <Tooltip content={formatMessage({ id: "thread.markAllRead.title" })}>
           <Button
@@ -651,7 +673,7 @@ export function ThreadsInbox() {
             {isPhoneTabRoot && toolbar}
             {/* Layout redesign (F4): the bell's notices — to act on in For me, the rest atop All. */}
             <InboxSystemNotices actionable={activeFilter === "mentions"} />
-            {activeFilter === "mentions" ? <InboxAssignedTasks /> : null}
+            {activeFilter === "mentions" ? <><InboxQuestions /><InboxAssignedTasks /></> : null}
             {newUpdateCount > 0 && (
               <Button
                 onClick={scrollToTop}

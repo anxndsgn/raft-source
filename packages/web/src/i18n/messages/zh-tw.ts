@@ -9792,4 +9792,9 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "message.taskLinks.failed": "沒能修改任務關聯，請重試。",
   "message.taskLinks.save": "儲存",
   "message.taskLinks.saving": "正在儲存",
+  "inbox.forMe.allDone": "全部完成",
+  "inbox.forMe.doneRow": "將「{title}」標記為完成",
+  "inbox.reviewTask.title": "任務 #{number} 等你驗收",
+  "inbox.question.title": "有個問題等你回答",
+  "inbox.question.titleFrom": "{name} 問你",
 };

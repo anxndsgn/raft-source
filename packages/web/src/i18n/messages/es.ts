@@ -9792,4 +9792,9 @@ export const es: Partial<Record<MessageId, string>> = {
   "message.taskLinks.failed": "No se pudieron cambiar las tareas vinculadas. Inténtalo de nuevo.",
   "message.taskLinks.save": "Guardar",
   "message.taskLinks.saving": "Guardando",
+  "inbox.forMe.allDone": "Completar todo",
+  "inbox.forMe.doneRow": "Marcar «{title}» como completado",
+  "inbox.reviewTask.title": "La tarea #{number} espera tu revisión",
+  "inbox.question.title": "Una pregunta para ti",
+  "inbox.question.titleFrom": "{name} te pregunta",
 };

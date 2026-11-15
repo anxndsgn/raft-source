@@ -41,7 +41,11 @@ export function writeActivityFilterChoice(serverId: string | null | undefined, c
 
 /** Pinned, Saved and Artifacts are scopes over All, not read filters: the store keeps the two apart. */
 export function inboxStateForActivityFilter(choice: ActivityFilterChoice): { filter: InboxFilter; scope: InboxScope | null } {
-  return choice === "pinned" || choice === "saved" || choice === "artifacts" ? { filter: "all", scope: choice } : { filter: choice, scope: null };
+  if (choice === "pinned" || choice === "saved" || choice === "artifacts") return { filter: "all", scope: choice };
+  // For me (task #10 item 7): what still waits on the person — unread replies and @s not handled there — the
+  // read the count is, never every conversation that ever mentioned them.
+  if (choice === "mentions") return { filter: "unread_mentions", scope: null };
+  return { filter: choice, scope: null };
 }
 
 /** The menu's choice for the store's list; a filter the menu doesn't offer (Unread mentions) reads as its nearest, Mentions. */

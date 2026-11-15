@@ -10012,6 +10012,11 @@ export const en = {
   "message.taskLinks.failed": "Couldn't change the task links. Try again.",
   "message.taskLinks.save": "Save",
   "message.taskLinks.saving": "Saving",
+  "inbox.forMe.allDone": "Done all",
+  "inbox.forMe.doneRow": "Mark “{title}” as Done",
+  "inbox.reviewTask.title": "Task #{number} is waiting for your review",
+  "inbox.question.title": "A question for you",
+  "inbox.question.titleFrom": "{name} asks you",
 } as const;
 
 export type MessageId = keyof typeof en;

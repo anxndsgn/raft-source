@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useForMeStore } from "../thread/forMeStore";
 import { createPortal } from "react-dom";
 import type { IntlShape } from "react-intl";
 import type { ReactNode } from "react";
@@ -90,7 +91,11 @@ export function useMineViewSwitch(channel: Channel | null, view: TimelineViewSta
     if (!channelId) return;
     const store = useTimelineViewStore.getState();
     if (store.views[channelId]?.spec.kind === "mine") store.closeView(channelId);
-    else void store.openView(channelId, { kind: "mine" });
+    else {
+      void store.openView(channelId, { kind: "mine" });
+      // Everything for me in the conversation is in front of them: For me's replies and @s there are handled.
+      void useForMeStore.getState().markDone([`conv:${channelId.toLowerCase()}`]);
+    }
   }, [channelId]);
   const available = channel?.replyMode === true && channel?.type !== "dm";
   const mineView = useMemo(() => (available ? { open: mineOpen, onToggle: toggle } : null), [available, mineOpen, toggle]);

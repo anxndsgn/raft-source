@@ -9903,4 +9903,9 @@ export const zhCn: Record<MessageId, string> = {
   "message.taskLinks.failed": "没能修改任务关联，请重试。",
   "message.taskLinks.save": "保存",
   "message.taskLinks.saving": "正在保存",
+  "inbox.forMe.allDone": "全部完成",
+  "inbox.forMe.doneRow": "将「{title}」标记为完成",
+  "inbox.reviewTask.title": "任务 #{number} 等你验收",
+  "inbox.question.title": "有个问题等你回答",
+  "inbox.question.titleFrom": "{name} 问你",
 };

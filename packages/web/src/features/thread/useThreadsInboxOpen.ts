@@ -18,6 +18,7 @@ import type { useAppNavigate } from "../../hooks/useAppNavigate";
 import { isActivityMasterDetailViewport } from "../../components/thread/activityLayout";
 import { activityVisit } from "../../components/thread/activityVisit";
 import { isTaskConversationItem } from "../../utils/taskConversation";
+import { forMeConversationKey, useForMeStore } from "./forMeStore";
 import { itemKey } from "./inboxRowShared";
 import type { ThreadInboxItem } from "./inboxRowShared";
 import { objectRowSlot } from "./threadsInboxHelpers";
@@ -181,6 +182,13 @@ export function useThreadsInboxOpen({
     const replyModeEntry = !automatic && item.kind === "channel" ? openActivityTimelineView(item) : null;
     if (!automatic) {
       trackActivityItemOpen(item.kind);
+      // For me (task #10 item 7): opening a reply or @ here handles it; in For me the row leaves the list.
+      const forMe = useInboxStore.getState().filter === "unread_mentions" || useInboxStore.getState().filter === "mentions";
+      const convKey = forMeConversationKey(item);
+      if (convKey && (item.hasMention || forMe)) {
+        void useForMeStore.getState().markDone([convKey]);
+        if (forMe) useInboxStore.getState().removeItem(item);
+      }
       if (!replyModeEntry && (item.unreadCount > 0 || isScopeMarkedUnread(inboxItemChannelId(item)))) void markRead(item);
     }
     // Every width opens the conversation in Activity's detail slot, the same
