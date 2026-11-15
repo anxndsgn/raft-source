@@ -1,5 +1,5 @@
-import { detailsTakeSidePanel, DRAWER_SECTIONS, drawerHost, inWorkspace, isSidePanelColumn, useOrWorkspaceExpanded, WORKSPACE_TIMELINE_MIN, workspaceMainColumn, sidePanelWidths, sidePanelWidthSource, threadTakesSidePanel, useWorkspaceDrawer, WORKSPACE_DRAWER_CLASS } from "./sideAreaLayoutRedesign";
-import { WorkspaceDrawerHandle, WorkspaceDrawerScrim } from "./WorkspaceDrawerScrim";
+import { detailsTakeSidePanel, DRAWER_SECTIONS, drawerHost, inWorkspace, isSidePanelColumn, useOrWorkspaceExpanded, WORKSPACE_TIMELINE_MIN, workspaceMainColumn, sidePanelWidths, sidePanelWidthSource, threadTakesSidePanel, useWorkspaceDrawer } from "./sideAreaLayoutRedesign";
+import { WorkspaceDrawer, WorkspaceDrawerHandle } from "./WorkspaceDrawerScrim";
 import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -996,7 +996,7 @@ export default function ChannelSideArea() {
         />
       )))}
       {surface}
-      {workspaceColumn && drawer && drawerHost(row) ? createPortal(drawerCollapsed ? <WorkspaceDrawerHandle /> : <><WorkspaceDrawerScrim /><div className={WORKSPACE_DRAWER_CLASS} data-testid="workspace-drawer"><SideColumn kind="beside" column={workspaceColumn.column} sections={DRAWER_SECTIONS} titles={entries} width={560} minWidth={420} /></div></>, drawerHost(row)!) : null}
+      {workspaceColumn && drawer && drawerHost(row) ? createPortal(drawerCollapsed ? <WorkspaceDrawerHandle /> : <WorkspaceDrawer><SideColumn kind="beside" column={workspaceColumn.column} sections={DRAWER_SECTIONS} titles={entries} width={560} minWidth={420} /></WorkspaceDrawer>, drawerHost(row)!) : null}
       {workspaceColumn && !drawer && workspaceSlot ? createPortal(<SideColumn kind="beside" column={workspaceColumn.column} widthColumn={workspaceColumn.column} sections={DRAWER_SECTIONS} titles={entries} width={workspaceWidth} minWidth={420} />, workspaceSlot) : null}
       {expandedSurface}
     </>

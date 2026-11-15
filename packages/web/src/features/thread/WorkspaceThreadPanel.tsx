@@ -1,6 +1,8 @@
 import { useCallback, useMemo } from "react";
 import { useIntl } from "react-intl";
 import { ChevronRight } from "lucide-react";
+import { TextLink } from "@botiverse/raft-ui";
+import { SourceBar, SourceBarActions, SourceBarText } from "@botiverse/raft-ui-ext";
 
 import { useAppNavigate } from "../../hooks/useAppNavigate";
 import { useChannelStore } from "../../store/channelStore";
@@ -25,16 +27,18 @@ export function WorkspaceThreadPanel({ thread, onClose }: { thread: WorkspaceThr
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col" data-testid="workspace-thread">
       <WorkspaceTabStrip />
-      {/* Doc §5 (A): the second row — where it is from on the left, the way back on the right; no head of its own. */}
-      <div className="flex h-12 shrink-0 items-center gap-2 border-b border-line-seam px-4 text-footnote text-foreground-muted md:pointer-fine:h-panel-header" data-testid="workspace-thread-source">
-        <span className="min-w-0 flex-1 truncate">
+      {/* Doc §5 (A): the second row, raft-ui-ext's SourceBar — where it is from, the way back. */}
+      <SourceBar data-testid="workspace-thread-source">
+        <SourceBarText>
           {formatMessage({ id: replies ? "workspace.thread.fromWithReplies" : "workspace.thread.from" }, { channel: channelName ? `#${channelName}` : "", count: replies })}
-        </span>
-        <button type="button" className="inline-flex shrink-0 items-center gap-0.5 rounded-control px-1 py-0.5 text-foreground hover:overlay-subtle" onClick={viewInChannel} data-testid="workspace-thread-view-in-channel">
-          {formatMessage({ id: "message.threadPanel.viewInChannel" })}
-          <ChevronRight size={14} aria-hidden />
-        </button>
-      </div>
+        </SourceBarText>
+        <SourceBarActions>
+          <TextLink render={<button type="button" />} className="inline-flex items-center gap-0.5 text-caption" onClick={viewInChannel} data-testid="workspace-thread-view-in-channel">
+            {formatMessage({ id: "message.threadPanel.viewInChannel" })}
+            <ChevronRight size={14} aria-hidden />
+          </TextLink>
+        </SourceBarActions>
+      </SourceBar>
       <InWorkspaceContext.Provider value>
       <AuthenticatedThreadPanel
         edge="inset"

@@ -747,6 +747,22 @@ importers:
         specifier: ^5.0.3
         version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@25.5.0)(@vitest/coverage-v8@5.0.3)(jsdom@30.1.2(@noble/hashes@1.8.0))(vite@8.3.4(@types/node@25.5.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.9.1))
 
+  packages/raft-ui-ext:
+    dependencies:
+      '@botiverse/raft-ui':
+        specifier: 0.95.3
+        version: 0.95.3(@babel/parser@7.29.9)(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      lucide-react:
+        specifier: '*'
+        version: 1.72.0(@types/react@19.3.0)(react@19.3.0)
+      react:
+        specifier: '*'
+        version: 19.3.0
+    devDependencies:
+      '@types/react':
+        specifier: ^19.3.0
+        version: 19.3.0
+
   packages/runtime-form:
     dependencies:
       '@botiverse/raft-shared':
@@ -1142,6 +1158,9 @@ importers:
       '@botiverse/raft-ui':
         specifier: 0.95.3
         version: 0.95.3(@babel/parser@7.29.9)(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@botiverse/raft-ui-ext':
+        specifier: workspace:*
+        version: link:../raft-ui-ext
       '@botiverse/ricons':
         specifier: ^0.1.1
         version: 0.1.1(react@19.3.0)

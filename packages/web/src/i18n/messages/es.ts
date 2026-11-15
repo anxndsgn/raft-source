@@ -4573,6 +4573,7 @@ export const es: Partial<Record<MessageId, string>> = {
   "workspace.tabs": "Pestañas del espacio de trabajo",
   "panel.backTo.channelInfo": "Volver a la información del canal",
   "workspace.drawer.handle": "Espacio de trabajo {count}",
+  "workspace.drawer.name": "Espacio de trabajo",
   "timelineView.task": "Solo la tarea #{number}",
   "timelineView.taskWithTitle": "Solo la tarea #{number}: {title}",
   "timelineView.chain": "Solo la cadena de respuestas: {name}: {excerpt}",

@@ -4684,6 +4684,7 @@ export const zhCn: Record<MessageId, string> = {
   "workspace.tabs": "工作区标签",
   "panel.backTo.channelInfo": "返回频道信息",
   "workspace.drawer.handle": "工作区 {count}",
+  "workspace.drawer.name": "工作区",
   "timelineView.task": "只看任务 #{number}",
   "timelineView.taskWithTitle": "只看任务 #{number}：{title}",
   "timelineView.chain": "只看回复链：{name}：{excerpt}",

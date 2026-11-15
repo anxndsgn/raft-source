@@ -4782,6 +4782,7 @@ export const en = {
   "workspace.tabs": "Workspace tabs",
   "panel.backTo.channelInfo": "Back to channel info",
   "workspace.drawer.handle": "Workspace {count}",
+  "workspace.drawer.name": "Workspace",
   "timelineView.task": "Only task #{number}",
   "timelineView.taskWithTitle": "Only task #{number}: {title}",
   "timelineView.chain": "Only the reply chain: {name}: {excerpt}",

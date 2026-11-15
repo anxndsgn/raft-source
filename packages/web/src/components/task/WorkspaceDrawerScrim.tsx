@@ -1,20 +1,21 @@
+import { useCallback } from "react";
+import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
-import { ChevronLeft } from "lucide-react";
+import { RegionDrawer, RegionDrawerHandle } from "@botiverse/raft-ui-ext";
 
 import { useArtifactViewerStore } from "../../apps/artifacts/artifactViewerStore";
-import { collapseWorkspace, WORKSPACE_DRAWER_SCRIM_CLASS } from "./sideAreaLayoutRedesign";
+import { collapseWorkspace } from "./sideAreaLayoutRedesign";
 
-/** Layout redesign (Figmama 11/15): the wash over the timeline beside the workspace drawer; pressing it pushes the drawer back. */
-export function WorkspaceDrawerScrim() {
+/**
+ * Layout redesign (Figmama 11/15): the workspace as a drawer over the timeline — raft-ui-ext's RegionDrawer (a drawer
+ * over one region): the veil over the strip of timeline beside it, or Escape in it, pushes it back to its handle.
+ */
+export function WorkspaceDrawer({ children }: { children: ReactNode }) {
   const { formatMessage } = useIntl();
   return (
-    <button
-      type="button"
-      aria-label={formatMessage({ id: "workspace.drawer.collapse" })}
-      className={WORKSPACE_DRAWER_SCRIM_CLASS}
-      onClick={collapseWorkspace}
-      data-testid="workspace-drawer-scrim"
-    />
+    <RegionDrawer onCollapse={collapseWorkspace} collapseLabel={formatMessage({ id: "workspace.drawer.collapse" })} data-testid="workspace-drawer">
+      {children}
+    </RegionDrawer>
   );
 }
 
@@ -22,15 +23,6 @@ export function WorkspaceDrawerScrim() {
 export function WorkspaceDrawerHandle() {
   const { formatMessage } = useIntl();
   const count = useArtifactViewerStore((s) => Math.max(1, s.tabs.length));
-  return (
-    <button
-      type="button"
-      className="absolute top-1/2 right-0 z-cover flex -translate-y-1/2 flex-col items-center gap-1 rounded-l-container border border-r-0 border-line-seam bg-layer-canvas px-1.5 py-3 text-footnote font-semibold text-foreground shadow-sticker hover:bg-fill-medium"
-      onClick={() => useArtifactViewerStore.getState().setDrawerCollapsed(false)}
-      data-testid="workspace-drawer-handle"
-    >
-      <ChevronLeft size={14} aria-hidden />
-      <span className="[writing-mode:vertical-rl]">{formatMessage({ id: "workspace.drawer.handle" }, { count })}</span>
-    </button>
-  );
+  const expand = useCallback(() => useArtifactViewerStore.getState().setDrawerCollapsed(false), []);
+  return <RegionDrawerHandle label={formatMessage({ id: "workspace.drawer.name" })} count={count} onExpand={expand} data-testid="workspace-drawer-handle" />;
 }

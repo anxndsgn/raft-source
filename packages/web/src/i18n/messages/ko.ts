@@ -4573,6 +4573,7 @@ export const ko: Partial<Record<MessageId, string>> = {
   "workspace.tabs": "작업 공간 탭",
   "panel.backTo.channelInfo": "채널 정보로 돌아가기",
   "workspace.drawer.handle": "작업 공간 {count}",
+  "workspace.drawer.name": "작업 공간",
   "timelineView.task": "작업 #{number}만",
   "timelineView.taskWithTitle": "작업 #{number}만: {title}",
   "timelineView.chain": "답장 체인만: {name}: {excerpt}",

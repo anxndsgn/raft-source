@@ -4574,6 +4574,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "workspace.tabs": "ワークスペースのタブ",
   "panel.backTo.channelInfo": "チャンネル情報に戻る",
   "workspace.drawer.handle": "ワークスペース {count}",
+  "workspace.drawer.name": "ワークスペース",
   "timelineView.task": "タスク #{number} のみ",
   "timelineView.taskWithTitle": "タスク #{number} のみ：{title}",
   "timelineView.chain": "返信チェーンのみ：{name}：{excerpt}",

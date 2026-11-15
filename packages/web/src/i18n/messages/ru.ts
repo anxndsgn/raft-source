@@ -4575,6 +4575,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "workspace.tabs": "Вкладки рабочей области",
   "panel.backTo.channelInfo": "Назад к сведениям о канале",
   "workspace.drawer.handle": "Рабочая область {count}",
+  "workspace.drawer.name": "Рабочая область",
   "timelineView.task": "Только задача #{number}",
   "timelineView.taskWithTitle": "Только задача #{number}: {title}",
   "timelineView.chain": "Только цепочка ответов: {name}: {excerpt}",

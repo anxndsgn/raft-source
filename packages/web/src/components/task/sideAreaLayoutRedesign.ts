@@ -34,13 +34,6 @@ export function detailsTakeSidePanel(open: Set<string>): void {
 
 const SIDE_PANEL_SECTIONS = ["tasks", "files", "details", "profile", "context"];
 
-/** The drawer's box: over the timeline at the right edge, the workspace's default width, a shadow. */
-// Over the floating pills of the timeline (the unread jump): z-cover. The DS floating layer's offset shadow says "on top".
-export const WORKSPACE_DRAWER_CLASS = "absolute inset-y-0 right-0 z-cover flex w-[min(560px,92%)] border-l border-line-seam bg-layer-canvas shadow-sticker";
-
-/** Over the strip of timeline left beside the drawer: the scrim, light (layer-backdrop at 30%), that says "behind"; pressing it closes the drawer. */
-export const WORKSPACE_DRAWER_SCRIM_CLASS = "absolute inset-0 z-cover bg-layer-backdrop opacity-30";
-
 /** A thread (or an old discussion) beside the channel: its own remembered width, 400 by default, within 320–480 (4.4). */
 export function threadPanelWidth(saved: number): number {
   return Math.min(480, Math.max(320, saved));

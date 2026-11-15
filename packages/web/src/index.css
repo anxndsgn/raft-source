@@ -24,6 +24,8 @@
 @source "./features";
 @source "./pages";
 @source "../node_modules/@botiverse/raft-ui/dist";
+/* Raft Chat's own components (packages/raft-ui-ext), in raft-ui's style. */
+@source "../../raft-ui-ext/src";
 
 @theme {
   /* Match the two Shiki themes, including plaintext/loading fallbacks. */

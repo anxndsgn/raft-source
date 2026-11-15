@@ -4573,6 +4573,7 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "workspace.tabs": "Abas do espaço de trabalho",
   "panel.backTo.channelInfo": "Voltar às informações do canal",
   "workspace.drawer.handle": "Espaço de trabalho {count}",
+  "workspace.drawer.name": "Espaço de trabalho",
   "timelineView.task": "Só a tarefa #{number}",
   "timelineView.taskWithTitle": "Só a tarefa #{number}: {title}",
   "timelineView.chain": "Só a cadeia de respostas: {name}: {excerpt}",
