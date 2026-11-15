@@ -1499,6 +1499,16 @@ html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [d
   width: auto !important;
   min-width: 0 !important;
 }
+/* Expanded over the Team page, its head is whole again (the strip under it notwithstanding), but for the DM icon:
+   the strip's Message is the one way to it (Figmama 11/16). */
+[data-team-cover-panel] [data-plain-head][data-plain-head] > [data-slot="panel-header-icon"],
+[data-team-cover-panel] [data-plain-head][data-plain-head] [data-slot="panel-meta"],
+[data-team-cover-panel] [data-plain-head][data-plain-head] [data-slot="panel-actions"] > * {
+  display: flex;
+}
+[data-team-cover-panel] [data-testid="agent-profile-message"] {
+  display: none !important;
+}
 /* The Team page's column keeps its ⤢ beside × (PRD 团队页 v2.0 §5.4): it shows the whole page. */
 [data-team-column] [data-plain-head] [data-slot="panel-actions"] > [data-testid^="row-expand-"] {
   display: flex;

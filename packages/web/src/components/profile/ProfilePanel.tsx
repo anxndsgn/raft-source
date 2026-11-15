@@ -157,7 +157,17 @@ export default function ConnectedProfilePanel(props: ProfilePanelOwnProps = {}) 
     document.documentElement.dataset.teamCover = "";
     return () => { delete document.documentElement.dataset.teamCover; };
   }, [cover]);
-  if (!team || expanded || !strip) return <ProfilePanelContent {...props} />;
+  if (!team || !strip) return <ProfilePanelContent {...props} />;
+  if (expanded) {
+    // Expanded, the whole page under its full head, the same strip under it (its Message, not the head's icon).
+    return (
+      <div className="contents" data-team-cover-panel="">
+        <PanelHeadBelowContext.Provider value={strip}>
+          <ProfilePanelContent {...props} />
+        </PanelHeadBelowContext.Provider>
+      </div>
+    );
+  }
   return (
     // `contents`: the panel stays its column's own flex child; the mark lets the plain head keep its ⤢ (index.css).
     <div className="contents" data-team-column="">

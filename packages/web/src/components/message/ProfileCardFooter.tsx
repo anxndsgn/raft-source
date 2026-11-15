@@ -1,22 +1,29 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useIntl } from "react-intl";
-import { CircleDot } from "lucide-react";
-import { Button, ListRow, ListRowBody, ListRowChevron, ListRowIcon, ListRowTitle } from "@botiverse/raft-ui";
+import { Button, ListRow, ListRowBody, ListRowChevron, ListRowDescription, ListRowIcon, ListRowMeta, ListRowTitle, ListRowTop } from "@botiverse/raft-ui";
+import { AgentStateMark } from "@botiverse/raft-ui-ext";
 
 import { useAppNavigate } from "../../hooks/useAppNavigate";
 import { useTaskStore } from "../../store/taskStore";
-import { useAgentStore } from "../../store/agentStore";
+import { useAgentDisplayState, useAgentStore } from "../../store/agentStore";
 import { useAuthStore } from "../../store/authStore";
 import { useChannelStore } from "../../store/channelStore";
+import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
+import { findStoredChannel } from "../../store/storedChannel";
+import { agentMarkState } from "../../features/team/teamWorking";
+import { formatAgentDisplayStateText } from "../../utils/activity";
+import { useUsageLimitAttention } from "../layout/useUsageLimitAttention";
+import { useResumeMoment, useShortSpan } from "../task/agentTimeText";
 import { openTaskInSidePanel } from "../task/useOpenTask";
 
 /**
- * Layout redesign 7.1: the top of a member's details in the side panel (what the dropped person card held). For an
- * agent, what it is doing now — its task in progress ("Working on Task #1 in #channel ›", opens the task) — and
- * Message (its DM).
+ * Layout redesign 7.1, Team page T3 (Figmama 11/16): the top of a member's details. For an agent, one line of what
+ * it is doing now — its state mark, "Working on task #6 in #test · 12 min" and its current step under it (opens the
+ * task), or held: why and when it resumes — and Message at the end of the same line.
  */
 export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: string }) {
-  const { formatMessage } = useIntl();
+  const intl = useIntl();
+  const { formatMessage } = intl;
   const nav = useAppNavigate();
   const serverTasks = useTaskStore((s) => s.serverTasks);
   const loaded = useTaskStore((s) => s.serverTasksLoaded);
@@ -32,6 +39,13 @@ export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: s
       : null),
     [id, serverTasks, type],
   );
+  const channelName = useChannelStore((s) => (current ? current.channelName || findStoredChannel(s, current.channelId)?.name || null : null));
+  const display = useAgentDisplayState(type === "agent" ? id : "");
+  const resetsAt = useUsageLimitAttention().notifications.find((notice) => type === "agent" && notice.affectedAgentIds.includes(id));
+  const mark = type === "agent" ? agentMarkState(display, !!resetsAt) : null;
+  const startedAt = useLiveAgentActivityStore((s) => (type === "agent" ? s.items.find((item) => item.agentId === id && item.idleSince === null)?.startedAt ?? null : null));
+  const resumeMoment = useResumeMoment();
+  const shortSpan = useShortSpan();
   const openCurrent = useCallback(() => {
     if (current && !openTaskInSidePanel(current, nav.toChannel)) nav.toChannel(current.channelId);
   }, [current, nav]);
@@ -45,23 +59,41 @@ export function ProfileCardFooter({ type, id }: { type: "agent" | "human"; id: s
     const dm = dmId ?? (await openUserDM(id))?.id;
     if (dm) nav.toDm(dm);
   }, [dmId, id, nav, openUserDM, type]);
+  // Held: why (a usage limit and when it resumes, or its computer); working on a task: the task, for how long, the step.
+  let title: string | null = null;
+  let step: string | null = null;
+  if (mark === "held") {
+    const moment = !display.blocked ? resumeMoment(resetsAt?.resetsAt) : null;
+    title = display.blocked
+      ? formatAgentDisplayStateText(intl, display, { withDetail: false })
+      : moment
+        ? `${formatMessage({ id: "taskSection.held" })} · ${formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when })}`
+        : formatMessage({ id: "taskSection.held" });
+  } else if (current) {
+    title = formatMessage({ id: "profileCard.workingOn" }, { channel: channelName ? `#${channelName}` : "", number: current.taskNumber });
+    step = mark === "working" ? display.activityText || null : null;
+  }
   // Gone from the server (removed or left): the card below says so, and Message hides (index.css).
   const canMessage = !archived && !self;
-  if (!current && !canMessage) return null;
+  if (!title && !canMessage) return null;
   return (
-    <div className="flex shrink-0 flex-col gap-2 border-b border-line-hairline px-4 py-3" data-testid="profile-card-footer">
-      {current ? (
-        // raft-ui ListRow: what it is doing now, a row that opens the task.
-        <ListRow variant="plain" onClick={openCurrent} data-testid="profile-card-current-task">
-          <ListRowIcon><CircleDot className="text-success-strong" aria-hidden /></ListRowIcon>
+    <div className="flex shrink-0 items-center gap-2 border-b border-line-hairline px-4 py-3" data-testid="profile-card-footer">
+      {title ? (
+        // raft-ui ListRow: what it is doing now; a task's opens it.
+        <ListRow variant="plain" interactive={!!current} onClick={current ? openCurrent : undefined} className="min-w-0 flex-1" data-testid="profile-card-current-task">
+          {mark ? <ListRowIcon className="w-3 justify-center self-start pt-1"><AgentStateMark state={mark} /></ListRowIcon> : null}
           <ListRowBody>
-            <ListRowTitle>{formatMessage({ id: "profileCard.workingOn" }, { channel: current.channelName ? `#${current.channelName}` : "", number: current.taskNumber })}</ListRowTitle>
+            <ListRowTop>
+              <ListRowTitle>{title}</ListRowTitle>
+              {mark === "working" && startedAt ? <ListRowMeta className="font-mono text-mono-meta">{shortSpan(startedAt)}</ListRowMeta> : null}
+            </ListRowTop>
+            {step ? <ListRowDescription>{step}</ListRowDescription> : null}
           </ListRowBody>
-          <ListRowChevron />
+          {current ? <ListRowChevron /> : null}
         </ListRow>
-      ) : null}
+      ) : <span className="flex-1" />}
       {canMessage ? (
-        <Button type="button" size="md" variant="outline" className="self-start" onClick={message} data-testid="profile-card-message">
+        <Button type="button" size="md" variant="outline" className="shrink-0" onClick={message} data-testid="profile-card-message">
           {formatMessage({ id: "profileCard.message" })}
         </Button>
       ) : null}

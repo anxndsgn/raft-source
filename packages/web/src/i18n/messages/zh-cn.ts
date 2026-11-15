@@ -4664,7 +4664,7 @@ export const zhCn: Record<MessageId, string> = {
   "inbox.assignedTask.where": "#{channel}: ",
   "channel.details.about": "关于",
   "inbox.systemNotices": "系统通知",
-  "profileCard.workingOn": "正在 {channel} 做 任务 #{number}",
+  "profileCard.workingOn": "正在 {channel} 做任务 #{number}",
   "profileCard.message": "发私信",
   "profileCard.viewDetails": "查看详情",
   "taskDetail.number": "#{number}",
