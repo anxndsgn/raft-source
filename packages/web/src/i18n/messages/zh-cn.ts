@@ -7170,8 +7170,6 @@ export const zhCn: Record<MessageId, string> = {
   "layout.systemNotifications.machineDiskLowTitle": "你添加的 {count} 台计算机磁盘空间不足",
   "layout.systemNotifications.machineDiskLowBody": "剩余 {free}，共 {total}。腾出空间之前，Agent 可能无法保存工作或启动。",
   "layout.systemNotifications.machineOfflineTitle": "共 {count} 台计算机离线：{names}",
-  "layout.systemNotifications.machineOfflineActiveAgentsBody": "{count} 个 Agent 正在这台计算机上运行，重连前无法继续。",
-  "layout.systemNotifications.machineOfflineNoActiveAgentsBody": "当前没有 Agent 在这台计算机上运行；需要时再重连即可。",
   "layout.systemNotifications.installRaftTitle": "安装 Raft",
   "layout.systemNotifications.installRaftBody": "从此设备更快打开 Raft。",
   "layout.systemNotifications.opening": "打开中…",
@@ -9887,7 +9885,7 @@ export const zhCn: Record<MessageId, string> = {
   "team.computer.version": "Raft Computer {version}",
   "team.computer.usedOfTotal": "{used} / {total}",
   "team.computer.runtimeUsage": "{runtime} 用量",
-  "team.computer.usedPercent": "{percent}%",
-  "team.computer.usedPercentResets": "{percent}% · {when} 恢复",
   "team.computer.open": "打开 {name}",
+  "layout.systemNotifications.machineOfflineAgentsBody": "上面有 {count} 个 agent，重连前都会停工。",
+  "team.computer.agentsPaused": "{count} 个 agent 已暂停",
 };

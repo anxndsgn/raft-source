@@ -13,6 +13,7 @@ import { useAuthStore } from "../../store/authStore";
 import type { Machine } from "../../store/machineStore";
 import { useServerStore } from "../../store/serverStore";
 import { formatDiskSizeBytes, formatFileSizeBytes } from "../../utils/fileSizePresentation";
+import { formatRelativeTime } from "../../utils/relativeTime";
 import { canViewMachineRuntimeAccountUsage } from "../../utils/machineRuntimeUsageVisibility";
 import { useAgentsByMachine } from "../computer/useAgentsByMachine";
 
@@ -27,7 +28,7 @@ export function TeamComputerCards({ machines, workingByMachine }: {
   machines: readonly Machine[];
   workingByMachine: ReadonlyMap<string, number>;
 }) {
-  const { formatMessage } = useIntl();
+  const { formatMessage, locale } = useIntl();
   const nav = useAppNavigate();
   const resumeMoment = useResumeMoment();
   const serverId = useServerStore((s) => s.current?.id ?? null);
@@ -49,7 +50,17 @@ export function TeamComputerCards({ machines, workingByMachine }: {
         const online = machine.status === "online";
         const agents = (agentsByMachine.get(machine.id) ?? []).filter(isAgentInMemberLists).length;
         const version = machine.computerVersion ?? machine.daemonVersion;
-        const system = [machine.osRelease ?? machine.os, version ? formatMessage({ id: "team.computer.version" }, { version }) : null].filter(Boolean).join(" · ");
+        // Online: what it runs and its version. Offline (computers.md › The compact card): when it was last
+        // seen, and how many agents on it are paused, in warning-strong.
+        const lastSeen = online ? null : formatRelativeTime(machine.lastHeartbeat, locale);
+        const system = online
+          ? [machine.osRelease ?? machine.os, version ? formatMessage({ id: "team.computer.version" }, { version }) : null].filter(Boolean).join(" · ")
+          : (
+            <>
+              {lastSeen ? formatMessage({ id: "machine.rack.lastSeen" }, { time: lastSeen }) : formatMessage({ id: "machine.rack.filter.status.offline" })}
+              {agents > 0 ? <span className="text-warning-strong before:px-1 before:text-foreground-muted before:content-['·']">{formatMessage({ id: "team.computer.agentsPaused" }, { count: agents })}</span> : null}
+            </>
+          );
         const results = usage.get(machine.id) ?? null;
         const runtimeCells = RUNTIME_ACCOUNT_USAGE_PROVIDERS
           .map((provider) => rackRuntimeCell(machine, provider, results))
@@ -60,7 +71,7 @@ export function TeamComputerCards({ machines, workingByMachine }: {
             name={machine.name}
             online={online}
             onlineLabel={formatMessage({ id: online ? "machine.rack.filter.status.online" : "machine.rack.filter.status.offline" })}
-            system={system || undefined}
+            system={system}
             agents={formatMessage({ id: "team.computer.agents" }, { count: agents, working: workingByMachine.get(machine.id) ?? 0 })}
             onOpen={nav.toComputer}
             openId={machine.id}
@@ -88,6 +99,7 @@ export function TeamComputerCards({ machines, workingByMachine }: {
               />
             ) : null}
             {runtimeCells.map((cell) => {
+              // computers.md › A runtime's usage cell: "60% used" while there is room; once used up, when it is back.
               const moment = cell.summary.kind === "limit" ? resumeMoment(cell.summary.resetsAt) : null;
               return (
                 <ComputerCardMeter
@@ -95,8 +107,8 @@ export function TeamComputerCards({ machines, workingByMachine }: {
                   label={formatMessage({ id: "team.computer.runtimeUsage" }, { runtime: getRuntimeDisplayName(cell.runtimeId) })}
                   used={cell.used}
                   valueText={moment
-                    ? formatMessage({ id: "team.computer.usedPercentResets" }, { percent: cell.used, when: moment.when })
-                    : formatMessage({ id: "team.computer.usedPercent" }, { percent: cell.used })}
+                    ? formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when })
+                    : formatMessage({ id: "machine.rack.percentUsed" }, { percent: cell.used })}
                 />
               );
             })}

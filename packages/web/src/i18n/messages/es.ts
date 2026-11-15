@@ -7087,8 +7087,6 @@ export const es: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineDiskLowTitle": "{count, plural, one {Una computadora que agregaste tiene poco espacio en disco} other {# computadoras que agregaste tienen poco espacio en disco}}",
   "layout.systemNotifications.machineDiskLowBody": "{free} libres de {total}. Es posible que los agentes no puedan guardar su trabajo ni iniciarse hasta que se libere espacio.",
   "layout.systemNotifications.machineOfflineTitle": "{names} {count, plural, one {está sin conexión} other {están sin conexión}}",
-  "layout.systemNotifications.machineOfflineActiveAgentsBody": "{count, plural, one {# agente está activo en esta computadora y no podrá ejecutarse hasta que se vuelva a conectar.} other {# agentes están activos en esta computadora y no podrán ejecutarse hasta que se vuelva a conectar.}}",
-  "layout.systemNotifications.machineOfflineNoActiveAgentsBody": "No hay agentes activos en esta computadora en este momento; vuelve a conectarla cuando la necesites.",
   "layout.systemNotifications.installRaftTitle": "Instalar Raft",
   "layout.systemNotifications.installRaftBody": "Abre Raft más rápido desde este dispositivo.",
   "layout.systemNotifications.opening": "Abriendo…",
@@ -9776,7 +9774,7 @@ export const es: Partial<Record<MessageId, string>> = {
   "team.computer.version": "Raft Computer {version}",
   "team.computer.usedOfTotal": "{used} / {total}",
   "team.computer.runtimeUsage": "Uso de {runtime}",
-  "team.computer.usedPercent": "{percent}%",
-  "team.computer.usedPercentResets": "{percent}% · vuelve {when}",
   "team.computer.open": "Abrir {name}",
+  "layout.systemNotifications.machineOfflineAgentsBody": "{count, plural, one {# agente está en ella y se detiene hasta que se reconecte.} many {# agentes están en ella y se detienen hasta que se reconecte.} other {# agentes están en ella y se detienen hasta que se reconecte.}}",
+  "team.computer.agentsPaused": "{count, plural, one {# agente en pausa} many {# agentes en pausa} other {# agentes en pausa}}",
 };

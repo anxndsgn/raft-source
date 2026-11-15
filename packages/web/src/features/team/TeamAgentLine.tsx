@@ -34,7 +34,8 @@ function RowLink({ onClick, children }: { onClick: () => void; children: ReactNo
     onClick();
   }, [onClick]);
   return (
-    <TextLink render={<button type="button" />} onClick={click} className="text-inherit">
+    // Body color and underlined on hover (T1), so it reads as a link beside the grey step.
+    <TextLink variant="strong" render={<button type="button" />} onClick={click} className="font-normal">
       {children}
     </TextLink>
   );

@@ -10,7 +10,7 @@ import { machineDiskLowPresentation } from "../../utils/machineDiskPresentation"
 import { showsPlanDowngradeNotice } from "../../utils/planDowngrade";
 import { useFeedbackUnread } from "../../feedback/useFeedbackUnread";
 import { useServerStore } from "../../store/serverStore";
-import { useAgentStore } from "../../store/agentStore";
+import { isAgentInMemberLists, useAgentStore } from "../../store/agentStore";
 import { useMachineStore } from "../../store/machineStore";
 import { useAuthStore } from "../../store/authStore";
 import { useChannelStore } from "../../store/channelStore";
@@ -502,8 +502,12 @@ export function useSystemNotifications(surface: SystemNotificationSurface = "des
       const computerAttention = summarizeComputerAttention(
         reinstallIds.size > 0 ? machines.filter((m) => !reinstallIds.has(m.id)) : machines,
       );
-      const offlineMachines = machines.filter((m) => !m.isComputer && m.status === "offline");
-      const liveAgents = allAgents.filter((a) => !a.deletedAt);
+      // Team page PRD (Anna 11/15): any computer offline with agents on it (the
+      // agents the Members list shows, as the Team page's computer cards count
+      // them) stops those agents, so it is the person's to act on; one with no
+      // agent says nothing (no noise).
+      const listedAgents = allAgents.filter(isAgentInMemberLists);
+      const offlineMachines = machines.filter((m) => m.status === "offline" && listedAgents.some((a) => a.machineId === m.id));
 
       if (surface === "mobile" && computerAttention.status !== "none") {
         const counts = formatComputerAttentionCounts(computerAttention, formatMessage);
@@ -550,28 +554,14 @@ export function useSystemNotifications(surface: SystemNotificationSurface = "des
       }));
 
       if (offlineMachines.length > 0) {
-        // Kind follows impact, not status: an offline machine without
-        // any *active* agents is a warning-level notification the user can clean up later; one
-        // carrying agents the user expects to be running blocks live work
-        // and is escalated to error. Per stdrc 2026-05-02
-        // #proj-uiux:f87f6eb9 msg=fc60d1c2 ("Machine 掉线如果有 active 任务
-        // 确实应该是 error") — only `status === "active"` counts; `stopped`
-        // / `inactive` agents already aren't running, so them being on an
-        // offline machine doesn't change anything for the user right now.
         const offlineIds = new Set(offlineMachines.map((m) => m.id));
-        const activeAgentsOnOffline = liveAgents.filter(
-          (a) =>
-            a.machineId &&
-            offlineIds.has(a.machineId) &&
-            a.status === "active",
-        );
-        const offlineKind: NotificationKind =
-          activeAgentsOnOffline.length > 0 ? "error" : "warning";
+        const agentsOnOffline = listedAgents.filter((a) => a.machineId && offlineIds.has(a.machineId));
         const names = offlineMachines.map((m) => m.name).join(", ");
         const sortedIds = [...offlineIds].sort().join(",");
         out.push({
           id: "machine-offline",
-          kind: offlineKind,
+          // Its agents can't run until it reconnects: an error, always (it is only raised with agents on it).
+          kind: "error",
           icon: <WifiOff size={16} className="text-foreground" />,
           // Fingerprint = which machines are offline. If a different set goes
           // offline (different machine id, or the count changes), the
@@ -581,22 +571,14 @@ export function useSystemNotifications(surface: SystemNotificationSurface = "des
             { id: "layout.systemNotifications.machineOfflineTitle" },
             { names, count: offlineMachines.length },
           ),
-          body:
-            activeAgentsOnOffline.length > 0 ? (
-              <span className="text-foreground-muted">
-                {formatMessage(
-                  { id: "layout.systemNotifications.machineOfflineActiveAgentsBody" },
-                  { count: activeAgentsOnOffline.length },
-                )}
-              </span>
-            ) : (
-              <span className="text-foreground-muted">
-                {formatMessage({ id: "layout.systemNotifications.machineOfflineNoActiveAgentsBody" })}
-              </span>
-            ),
+          body: (
+            <span className="text-foreground-muted">
+              {formatMessage({ id: "layout.systemNotifications.machineOfflineAgentsBody" }, { count: agentsOnOffline.length })}
+            </span>
+          ),
           action: {
             label: formatMessage({ id: "layout.systemNotifications.view" }),
-            onClick: () => nav.toMachine(offlineMachines[0].id),
+            onClick: () => nav.toComputer(offlineMachines[0].id),
             variant: "primary",
           },
         });

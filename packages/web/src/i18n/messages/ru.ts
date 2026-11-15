@@ -7089,8 +7089,6 @@ export const ru: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineDiskLowTitle": "{count, plural, =1 {На добавленном вами компьютере мало места на диске} one {Мало места на диске: # ваш компьютер} few {Мало места на диске: # ваших компьютера} many {Мало места на диске: # ваших компьютеров} other {Мало места на диске: # вашего компьютера}}",
   "layout.systemNotifications.machineDiskLowBody": "Свободно {free} из {total}. Пока место не освободится, агенты могут не сохранить работу или не запуститься.",
   "layout.systemNotifications.machineOfflineTitle": "{count, plural, one {Не в сети: {names}} few {Не в сети: {names}} many {Не в сети: {names}} other {Не в сети: {names}}}",
-  "layout.systemNotifications.machineOfflineActiveAgentsBody": "{count, plural, one {На этом компьютере # активный агент. Работа продолжится, когда компьютер снова подключится.} few {На этом компьютере # активных агента. Работа продолжится, когда компьютер снова подключится.} many {На этом компьютере # активных агентов. Работа продолжится, когда компьютер снова подключится.} other {На этом компьютере # активного агента. Работа продолжится, когда компьютер снова подключится.}}",
-  "layout.systemNotifications.machineOfflineNoActiveAgentsBody": "Сейчас на этом компьютере нет активных агентов — подключите его, когда он снова понадобится.",
   "layout.systemNotifications.installRaftTitle": "Установить Raft",
   "layout.systemNotifications.installRaftBody": "Открывайте Raft на этом устройстве быстрее.",
   "layout.systemNotifications.opening": "Открытие…",
@@ -9778,7 +9776,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "team.computer.version": "Raft Computer {version}",
   "team.computer.usedOfTotal": "{used} / {total}",
   "team.computer.runtimeUsage": "Использование {runtime}",
-  "team.computer.usedPercent": "{percent}%",
-  "team.computer.usedPercentResets": "{percent}% · вернётся {when}",
   "team.computer.open": "Открыть {name}",
+  "layout.systemNotifications.machineOfflineAgentsBody": "{count, plural, one {На нём # агент, он остановлен до переподключения.} few {На нём # агента, они остановлены до переподключения.} many {На нём # агентов, они остановлены до переподключения.} other {На нём # агента, они остановлены до переподключения.}}",
+  "team.computer.agentsPaused": "{count, plural, one {# агент приостановлен} few {# агента приостановлены} many {# агентов приостановлены} other {# агента приостановлены}}",
 };

@@ -7088,8 +7088,6 @@ export const ja: Partial<Record<MessageId, string>> = {
   "layout.systemNotifications.machineDiskLowTitle": "{count, plural, other {追加したコンピューター # 台のディスク容量が不足しています}}",
   "layout.systemNotifications.machineDiskLowBody": "空き容量 {free} / 合計 {total}。空き容量を確保するまで、エージェントが作業を保存できなかったり、起動できなかったりする場合があります。",
   "layout.systemNotifications.machineOfflineTitle": "{names} がオフラインです（{count, plural, other {# 台}}）",
-  "layout.systemNotifications.machineOfflineActiveAgentsBody": "{count, plural, other {このコンピューターでエージェント # 個がアクティブです。再接続するまで実行できません。}}",
-  "layout.systemNotifications.machineOfflineNoActiveAgentsBody": "現在このコンピューターでアクティブなエージェントはいません。次に必要になったときに再接続してください。",
   "layout.systemNotifications.installRaftTitle": "Raft をインストール",
   "layout.systemNotifications.installRaftBody": "このデバイスから Raft をすばやく開けます。",
   "layout.systemNotifications.opening": "開いています…",
@@ -9777,7 +9775,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "team.computer.version": "Raft Computer {version}",
   "team.computer.usedOfTotal": "{used} / {total}",
   "team.computer.runtimeUsage": "{runtime} の使用量",
-  "team.computer.usedPercent": "{percent}%",
-  "team.computer.usedPercentResets": "{percent}% · {when} に回復",
   "team.computer.open": "{name} を開く",
+  "layout.systemNotifications.machineOfflineAgentsBody": "Agent {count} 件がここで動いており、再接続まで停止します。",
+  "team.computer.agentsPaused": "Agent {count} 件が一時停止中",
 };

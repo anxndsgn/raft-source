@@ -7296,8 +7296,6 @@ export const en = {
   "layout.systemNotifications.machineDiskLowTitle": "{count, plural, one {A computer you added is low on disk space} other {# computers you added are low on disk space}}",
   "layout.systemNotifications.machineDiskLowBody": "{free} free of {total}. Agents may fail to save work or start until space is freed.",
   "layout.systemNotifications.machineOfflineTitle": "{names} {count, plural, one {is offline} other {are offline}}",
-  "layout.systemNotifications.machineOfflineActiveAgentsBody": "{count, plural, one {# agent is active on this computer and can't run until it reconnects.} other {# agents are active on this computer and can't run until it reconnects.}}",
-  "layout.systemNotifications.machineOfflineNoActiveAgentsBody": "No agents are active on this computer right now — reconnect when you need it next.",
   "layout.systemNotifications.installRaftTitle": "Install Raft",
   "layout.systemNotifications.installRaftBody": "Open Raft faster from this device.",
   "layout.systemNotifications.opening": "Opening…",
@@ -9996,9 +9994,9 @@ export const en = {
   "team.computer.version": "Raft Computer {version}",
   "team.computer.usedOfTotal": "{used} / {total}",
   "team.computer.runtimeUsage": "{runtime} usage",
-  "team.computer.usedPercent": "{percent}%",
-  "team.computer.usedPercentResets": "{percent}% · back {when}",
   "team.computer.open": "Open {name}",
+  "layout.systemNotifications.machineOfflineAgentsBody": "{count, plural, one {# agent is on it and stopped until it reconnects.} other {# agents are on it and stopped until it reconnects.}}",
+  "team.computer.agentsPaused": "{count, plural, one {# agent paused} other {# agents paused}}",
 } as const;
 
 export type MessageId = keyof typeof en;
