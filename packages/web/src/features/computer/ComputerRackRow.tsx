@@ -1,4 +1,6 @@
 import { memo, useCallback, useMemo } from "react";
+import { AgentStateMark } from "@botiverse/raft-ui-ext";
+import { withTeamAttention } from "../../utils/teamComputerAttention";
 import type { CSSProperties, DragEvent, ReactNode } from "react";
 import { useIntl } from "react-intl";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardLeading, CardTitle, CardTrailing, Separator } from "@botiverse/raft-ui";
@@ -199,6 +201,8 @@ export const ComputerRackRow = memo(function ComputerRackRow({
       {lastSeenFact ? <> · {lastSeenFact}</> : null}
     </span>
   ) : onlineFacts("font-bold text-warning-strong", "relative z-raised font-bold text-warning-strong");
+  // Stuck: an agent no one stopped waits on it (useTeamAttentionMachines' rule, one count everywhere).
+  const stuck = (withTeamAttention([machine], agents)[0]!.attention?.count ?? 0) > 0;
   // The device shape in the leading slot with the row's light on its corner,
   // as on the sidebar's computer row and the agent avatars.
   const deviceIcon = (
@@ -206,6 +210,15 @@ export const ComputerRackRow = memo(function ComputerRackRow({
       <ComputerDeviceIcon machine={machine} size={20} />
       {local ? (
         <StatusDot aria-hidden presence={local.presence} className="absolute -right-1 -bottom-1 z-raised" data-testid={`rack-local-dot-${machine.id}`} />
+      ) : stuck || offline ? (
+        // The Team page's marks (task #10 item 5): a triangle only where an agent is stuck on it (the same count as
+        // Needs you), a grey hollow square for an offline computer nothing waits on.
+        <AgentStateMark
+          state={stuck ? "held" : "offline"}
+          label={formatMessage({ id: stuck ? "team.state.held" : "machine.detail.offline" })}
+          className="absolute -right-1 -bottom-1 z-raised"
+          data-testid={`computer-status-dot-${machine.id}`}
+        />
       ) : (
         <ComputerRowStatusDot className="absolute -right-1 -bottom-1 z-raised" machine={machine} availableVersion={availableVersion} />
       )}

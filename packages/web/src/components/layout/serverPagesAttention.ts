@@ -36,14 +36,13 @@ export function useComputersPageAttention(): ServerPageAttention {
   const lit = useComputerAttentionDot();
   const machines = useTeamAttentionMachines();
   const count = countMachinesNeedingAttention(machines);
-  const total = machines.length;
   return {
     lit,
     label: formatMessage(
       { id: "layout.mobileTabBar.serverPageAttention" },
       {
         page: formatMessage({ id: "layout.sidebar.headerComputers" }),
-        what: formatMessage({ id: "layout.leftRail.computersNeedAttentionSummary" }, { count, total }),
+        what: formatMessage({ id: "readiness.attention.computers" }, { count }),
       },
     ),
   };

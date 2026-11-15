@@ -144,15 +144,12 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
   // The Team page's attention rule (useTeamAttentionMachines): the same count as Needs you and the inbox.
   const teamAttentionMachines = useTeamAttentionMachines();
   const computerAttentionCount = countMachinesNeedingAttention(teamAttentionMachines);
-  const machineCount = teamAttentionMachines.length;
   // Raft DS › Attention dots (raft-design #620): the dot marks an unseen
   // change; opening Computers sees it. The tooltip still counts the state.
   const showComputerAttentionDot = useComputerAttentionDot();
   const computerAttentionTooltip = showComputerAttentionDot && computerAttentionCount > 0
-    ? formatMessage(
-        { id: "layout.leftRail.computersNeedAttentionSummary" },
-        { count: computerAttentionCount, total: machineCount },
-      )
+    // "1 computer needs attention" (Anna 11/16: "1 / 4" read as nothing).
+    ? formatMessage({ id: "readiness.attention.computers" }, { count: computerAttentionCount })
     : undefined;
   const { railMode, currentMode, selectRailMode } = useRailMode();
   // The Computers list is in view whenever the rail is in Computers mode
