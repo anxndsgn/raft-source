@@ -4570,6 +4570,7 @@ export const ko: Partial<Record<MessageId, string>> = {
   "workspace.thread.from": "{channel}에서",
   "workspace.thread.fromWithReplies": "{channel}에서 · 답글 {count}개",
   "workspace.thread.open": "작업 공간에서 열기",
+  "workspace.thread.replyTo": "{channel}에 답글",
   "workspace.tabs": "작업 공간 탭",
   "taskSection.group.forReview": "검토 대기",
   "taskSection.unclaimed": "담당자 없음 · {name} 생성",

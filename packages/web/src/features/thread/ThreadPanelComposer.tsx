@@ -1,4 +1,5 @@
-import { useId } from "react";
+import { WorkspaceThreadChannelContext } from "./workspaceThreadContext";
+import { useContext, useId } from "react";
 import { OldDiscussionFooter } from "./OldDiscussionFooter";
 import type { ReactNode, RefObject } from "react";
 import { useIntl } from "react-intl";
@@ -121,6 +122,8 @@ export function ThreadPanelComposer({
   joiningParentChannel: boolean;
 }) {
   const { formatMessage } = useIntl();
+  // In the workspace (F3b) the reply goes to the thread's channel, wherever the person is: say so.
+  const workspaceChannel = useContext(WorkspaceThreadChannelContext);
   // The assistant's otter on this composer's frame (AssistantOtter), at 80%:
   // a thread's reply under a message; a task's own conversation has none.
   const otterHostId = useId();
@@ -195,7 +198,7 @@ export function ThreadPanelComposer({
         /* Thread message input — use parent channel members for @mention autocomplete */
         <MessageInput
           channelId={threadChannelId ?? `pending-thread:${conversationKey}`}
-          placeholder={formatMessage({ id: hideParentMessage ? "message.threadPanel.taskComposerPlaceholder" : "message.threadPanel.composerPlaceholder" })}
+          placeholder={workspaceChannel ? formatMessage({ id: "workspace.thread.replyTo" }, { channel: `#${workspaceChannel}` }) : formatMessage({ id: hideParentMessage ? "message.threadPanel.taskComposerPlaceholder" : "message.threadPanel.composerPlaceholder" })}
           channelName={formatMessage({ id: "message.composer.threadChannelName" })}
           onWillSend={handleWillSend}
           asTaskShortcutDisabled={taskV2}

@@ -11,7 +11,7 @@ import { WorkspaceTabStrip } from "../../apps/artifacts/WorkspaceTabStrip";
 import { findStoredChannel } from "../../store/storedChannel";
 import type { WorkspaceThread } from "../../apps/artifacts/artifactViewerStore";
 import { AuthenticatedThreadPanel } from "./AuthenticatedThreadPanel";
-import { InWorkspaceContext } from "./workspaceThreadContext";
+import { InWorkspaceContext, WorkspaceThreadChannelContext } from "./workspaceThreadContext";
 
 /**
  * Layout redesign §5 (Figmama 11/15): a thread moved into the workspace, a tab like an Artifact's — kept across
@@ -39,7 +39,7 @@ export function WorkspaceThreadPanel({ thread, onClose }: { thread: WorkspaceThr
           </TextLink>
         </SourceBarActions>
       </SourceBar>
-      <InWorkspaceContext.Provider value>
+      <InWorkspaceContext.Provider value><WorkspaceThreadChannelContext.Provider value={channelName}>
       <AuthenticatedThreadPanel
         edge="inset"
         hideHeader
@@ -47,7 +47,7 @@ export function WorkspaceThreadPanel({ thread, onClose }: { thread: WorkspaceThr
         composerAutoFocus={false}
         threadIdentity={identity}
       />
-      </InWorkspaceContext.Provider>
+      </WorkspaceThreadChannelContext.Provider></InWorkspaceContext.Provider>
     </div>
   );
 }

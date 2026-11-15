@@ -12,7 +12,6 @@ import { currentTimeMs } from "@botiverse/raft-shared";
 import { TaskAssigneeLabel, useTaskAssigneeIdentity } from "./TaskAssignee";
 import { useUsageLimitAttention } from "../layout/useUsageLimitAttention";
 import { useTimeFormatter } from "../../hooks/useTimeFormatter";
-import { resetWhen } from "../machine/rack/rackResetText";
 import type { IntlShape } from "react-intl";
 import { TASK_STATUS_UI, toRuiTaskStatus } from "./taskStatusUi";
 
@@ -100,8 +99,8 @@ function SectionTaskRow({ task, viewerId, selected, onOpen, resetsAtByAgent }: {
     task.claimedById ? <TaskAssigneeLabel key="a" task={task} identity={identity} viewerId={viewerId} /> : (
       <span key="u">{formatMessage({ id: "taskSection.unclaimed" }, { name: task.createdByName ?? "" })}</span>
     ),
-    live.text ? <span key="s" className={live.warning ? "inline-flex items-center gap-1 text-warning-strong" : "inline-flex items-center gap-1"}>{live.warning ? <TriangleAlert className="size-3" aria-hidden /> : <span aria-hidden className="size-2.5 rounded-full border border-dashed border-information-strong" />}{live.text}</span> : null,
-  ], [formatMessage, identity, live.text, live.warning, task, viewerId]);
+    live.text ? <span key="s" title={live.title} className={live.warning ? "inline-flex items-center gap-1 text-warning-strong" : "inline-flex items-center gap-1"}>{live.warning ? <TriangleAlert className="size-3" aria-hidden /> : <span aria-hidden className="size-2.5 rounded-full border border-dashed border-information-strong" />}{live.text}</span> : null,
+  ], [formatMessage, identity, live.text, live.title, live.warning, task, viewerId]);
   return (
     <TaskSectionRow
       status={<TaskStatusIcon status={toRuiTaskStatus(task.status)} className="size-2.5" />}
@@ -119,15 +118,21 @@ function SectionTaskRow({ task, viewerId, selected, onOpen, resetsAtByAgent }: {
 }
 
 /** An agent's task: working (for how long, its step) or held (a usage limit, its computer offline). */
-function useLiveState(task: Task, resetsAtByAgent: Map<string, string | null>): { text: string | null; warning: boolean; step: string | null } {
-  const { formatMessage, locale } = useIntl();
+function useLiveState(task: Task, resetsAtByAgent: Map<string, string | null>): { text: string | null; warning: boolean; step: string | null; title?: string } {
+  const { formatMessage } = useIntl();
+  const { formatClock, formatCompactDate, formatMediumDateTime } = useTimeFormatter();
   const agentId = task.claimedByType === "agent" ? task.claimedById ?? "" : "";
   const display = useAgentDisplayState(agentId);
   const startedAt = useLiveAgentActivityStore((s) => (agentId ? s.items.find((i) => i.agentId === agentId && i.idleSince === null)?.startedAt ?? null : null));
   if (!agentId || task.status !== "in_progress") return { text: null, warning: false, step: null };
   if (resetsAtByAgent.has(agentId)) {
-    const when = resetWhen(resetsAtByAgent.get(agentId), locale, currentTimeMs());
-    return { text: when ? formatMessage({ id: "taskSection.heldUntil" }, { when }) : formatMessage({ id: "taskSection.held" }), warning: true, step: null };
+    // A moment, not a span (Figmama 11/15): "09:00" today, "11/21" on another day; the full date on hover.
+    const at = resetsAtByAgent.get(agentId);
+    const date = at ? new Date(at) : null;
+    const when = date && !Number.isNaN(date.getTime())
+      ? (date.toDateString() === new Date(currentTimeMs()).toDateString() ? formatClock(date) : formatCompactDate(date))
+      : null;
+    return { text: when ? formatMessage({ id: "taskSection.heldUntil" }, { when }) : formatMessage({ id: "taskSection.held" }), warning: true, step: null, title: date ? formatMediumDateTime(date) : undefined };
   }
   if (display.blocked || display.activityErrorCode === "usage_limit" || display.activity === "error") {
     return { text: display.activityText || formatMessage({ id: "taskSection.held" }), warning: true, step: null };

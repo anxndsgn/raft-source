@@ -1,5 +1,5 @@
 import { useIntl } from "react-intl";
-import { PanelToggleAction } from "@botiverse/raft-ui";
+import { Badge, PanelToggleAction } from "@botiverse/raft-ui";
 import { ListTodo } from "lucide-react";
 import { useIsDesktopShell } from "../layout/ShellFrame";
 
@@ -20,7 +20,8 @@ export default function ChannelTasksToggle({ open, onToggle, count }: { open: bo
         {/* Layout redesign: on a desktop the head's side-panel switches are words, the open tasks
             counted; on a phone (M2) an icon, the head being narrow. */}
         {desktop ? formatMessage({ id: "channelHead.tasks" }) : <ListTodo />}
-        {desktop && count ? <span className="font-mono text-mono-meta">{count}</span> : null}
+        {/* A neutral count (Figmama 11/15): raft-ui Badge outline, 4px after the word. */}
+        {desktop && count ? <Badge appearance="outline" className="-ml-0.5" data-testid="channel-tasks-count">{count}</Badge> : null}
       </PanelToggleAction>
     </Tooltip>
   );
