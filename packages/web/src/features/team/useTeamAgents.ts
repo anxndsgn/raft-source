@@ -20,6 +20,10 @@ export interface TeamAgentRow {
   /** Held by a usage limit: when it resumes (the server's usage-limit notice), and what waits on it. */
   resetsAt: string | null;
   waitingTasks: number;
+  /** Held: the runtime whose usage ran out (the notice's provider). */
+  provider: string | null;
+  /** Idle or offline: the last task it finished (in review or done), for "Finished task #3 5 min ago". */
+  finished: Task | null;
 }
 
 export interface TeamAgents {
@@ -31,6 +35,7 @@ export interface TeamAgents {
 }
 
 const OPEN_TASK = new Set(["todo", "in_progress", "in_review"]);
+const movedAt = (task: Task) => task.lastActivityAt ?? task.updatedAt;
 
 /**
  * The server's listed agents by state, from data the web already has: the
@@ -51,7 +56,13 @@ export function useTeamAgents(): TeamAgents {
   }, []);
   return useMemo(() => {
     const resetsAt = new Map<string, string | null>();
-    for (const notice of notifications) for (const id of notice.affectedAgentIds) resetsAt.set(id, notice.resetsAt);
+    const provider = new Map<string, string>();
+    for (const notice of notifications) {
+      for (const id of notice.affectedAgentIds) {
+        resetsAt.set(id, notice.resetsAt);
+        provider.set(id, notice.provider);
+      }
+    }
     const startedAt = new Map<string, number>();
     for (const item of live) if (item.idleSince === null) startedAt.set(item.agentId, item.startedAt);
     const held: TeamAgentRow[] = [];
@@ -60,14 +71,16 @@ export function useTeamAgents(): TeamAgents {
     const offline: TeamAgentRow[] = [];
     for (const agent of agents) {
       if (!isAgentInMemberLists(agent)) continue;
-      const theirs = tasks
-        .filter((task) => task.claimedByType === "agent" && task.claimedById === agent.id && OPEN_TASK.has(task.status))
-        .sort((a, b) => (b.lastActivityAt ?? b.updatedAt).localeCompare(a.lastActivityAt ?? a.updatedAt));
+      const claimed = tasks
+        .filter((task) => task.claimedByType === "agent" && task.claimedById === agent.id)
+        .sort((a, b) => movedAt(b).localeCompare(movedAt(a)));
+      const theirs = claimed.filter((task) => OPEN_TASK.has(task.status));
       const inProgress = theirs.find((task) => task.status === "in_progress") ?? null;
-      const row: TeamAgentRow = { agent, state: "idle", startedAt: null, task: null, resetsAt: null, waitingTasks: 0 };
+      const finished = claimed.find((task) => task.status === "in_review" || task.status === "done") ?? null;
+      const row: TeamAgentRow = { agent, state: "idle", startedAt: null, task: null, resetsAt: null, waitingTasks: 0, provider: null, finished };
       if (resetsAt.has(agent.id)) {
         const waiting = theirs.filter((task) => task.status !== "in_review");
-        held.push({ ...row, state: "held", resetsAt: resetsAt.get(agent.id) ?? null, task: waiting[0] ?? null, waitingTasks: waiting.length });
+        held.push({ ...row, state: "held", resetsAt: resetsAt.get(agent.id) ?? null, task: waiting[0] ?? null, waitingTasks: waiting.length, provider: provider.get(agent.id) ?? null });
         continue;
       }
       const external = agent.external === true || isExternalAgentRuntime(agent.runtime);

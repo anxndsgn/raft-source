@@ -261,9 +261,8 @@ function useMobileTabBarVisible(): boolean {
   const isSearchDetail = path.startsWith(`${pathBase}/search/`);
   const isAgentDetail = path.startsWith(`${pathBase}/agent/`);
   const isHumanDetail = path.startsWith(`${pathBase}/human/`);
-  // Members was a tab root until 2026-10-20; now the server tab pushes it.
-  const isMembersPage = path === `${pathBase}/members` || path.startsWith(`${pathBase}/members/`)
-    || path === `${pathBase}/team` || path.startsWith(`${pathBase}/team/`);
+  // Members (and the Team page's Overview, /team) was a tab root until 2026-10-20; now the server tab pushes it.
+  const isMembersPage = /^\/(members|team)(\/|$)/.test(path.startsWith(pathBase) ? path.slice(pathBase.length) : "");
   const isComputerDetail = path.startsWith(`${pathBase}/computer/`) || path.startsWith(`${pathBase}/machine/`);
   const isComputersList = path === `${pathBase}/computers` || path.startsWith(`${pathBase}/computers/`);
   // Apps is pushed from the server tab's popover too.

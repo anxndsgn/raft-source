@@ -9982,6 +9982,23 @@ export const en = {
   "team.state.idle": "Online, idle",
   "team.state.offline": "Offline",
   "team.state.held": "Held by a limit",
+  "team.overview.needsYou": "Needs you",
+  "team.overview.working": "Working right now",
+  "team.overview.resting": "Idle and offline",
+  "team.overview.computers": "Computers",
+  "team.overview.view": "View",
+  "team.overview.legend": "What the marks mean",
+  "team.overview.nobodyWorking": "No agent is working right now.",
+  "team.held.title": "{name} paused by a usage limit",
+  "team.held.usedUp": "{runtime} usage used up",
+  "team.rest.finished": "Finished task #{number} {when}",
+  "team.computer.agents": "{count, plural, one {# agent} other {# agents}}{working, plural, =0 {} other { · # working}}",
+  "team.computer.version": "Raft Computer {version}",
+  "team.computer.usedOfTotal": "{used} / {total}",
+  "team.computer.runtimeUsage": "{runtime} usage",
+  "team.computer.usedPercent": "{percent}%",
+  "team.computer.usedPercentResets": "{percent}% · back {when}",
+  "team.computer.open": "Open {name}",
 } as const;
 
 export type MessageId = keyof typeof en;

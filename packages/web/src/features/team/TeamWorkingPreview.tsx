@@ -41,7 +41,7 @@ export function TeamWorkingPreview({ onNavigate }: { onNavigate: () => void }) {
       <ScrollArea tabIndex={-1} className="max-h-[min(60vh,420px)]">
         <ListRowGroup className="rounded-none border-0 bg-transparent">
           {rows.map((row) => (
-            <TeamAgentLine key={row.agent.id} row={row} onOpen={open} testId="team-preview-row" />
+            <TeamAgentLine key={row.agent.id} row={row} variant="preview" onOpen={open} testId="team-preview-row" />
           ))}
         </ListRowGroup>
       </ScrollArea>
