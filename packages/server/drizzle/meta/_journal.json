@@ -4873,6 +4873,13 @@
       "when": 1794664039610,
       "tag": "0695_reply_mode_message_tasks",
       "breakpoints": true
+    },
+    {
+      "idx": 696,
+      "version": "7",
+      "when": 1794768845583,
+      "tag": "0696_inbox_for_me_done",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,5 @@
 import { AGENT_LOUNGE_OUTSIDER_ADD_REFUSAL, AgentLoungeImmutableError, filterLoungeOutsiderAgents, getLoungeAgentIds, isLoungeOutsiderAgent } from "../services/agentLoungeService";
+import { listForMeDone, listOpenQuestionsForUser, markForMeDone, parseForMeKeys, withoutHandledConversations } from "../services/inboxForMeService";
 import { projectRuntimeErrorActivityDetail } from "../services/agentRuntimeErrorVisibility";
 import { isRuntimeErrorDetailActivity } from "@botiverse/raft-shared";
 import { refuse, RefusalError, type RefusalInput } from "../lib/refusal";
@@ -1710,7 +1711,9 @@ channelRouter.get("/inbox", async (req, res) => {
           },
         }),
       );
-      const filtered = await filterGuestInboxResult(loadedResult, req.userId!, req.serverId!);
+      const guestFiltered = await filterGuestInboxResult(loadedResult, req.userId!, req.serverId!);
+      // For me (task #10 item 7): a conversation handled there since its last reply or @ to them is not listed.
+      const filtered = filter === "unread_mentions" ? await withoutHandledConversations(req.userId!, guestFiltered) : guestFiltered;
       // RFC 077: the "sent by an assistant for its owner" label on each row's latest message.
       return { ...filtered, items: await withLatestMessageFactsOnConversations(filtered.items) };
     };
@@ -1836,6 +1839,42 @@ channelRouter.get("/inbox/unfollowed", async (req, res) => {
       logPrefix: "Failed to get unfollowed Activity history:",
       err,
     });
+  }
+});
+
+/**
+ * For me (task #10 item 7): mark items handled — a row opened there, its Done, Done all. `keys`: `conv:<conversation
+ * id>`, `task:<id>`, `review:<id>`, `card:<message id>`. Only the person's own marks; nothing anyone else sees changes.
+ */
+channelRouter.post("/inbox/for-me/done", noteInboxWriteBeforeReply, async (req, res) => {
+  try {
+    const keys = parseForMeKeys((req.body ?? {}).keys);
+    if (!keys) {
+      res.status(400).json({ error: "keys: 1 to 200 of conv:|task:|review:|card:<id>", code: "invalid_keys" });
+      return;
+    }
+    await markForMeDone(req.userId!, req.serverId!, keys);
+    res.json({ ok: true, keys });
+  } catch (err) {
+    sendJsonServerError(req, res, { error: "Failed to mark handled", logPrefix: "For me done error:", err });
+  }
+});
+
+/** For me: question cards asked of the person and still open. */
+channelRouter.get("/inbox/for-me/questions", async (req, res) => {
+  try {
+    res.json({ items: await listOpenQuestionsForUser(req.userId!, req.serverId!) });
+  } catch (err) {
+    sendJsonServerError(req, res, { error: "Failed to load questions", logPrefix: "For me questions error:", err });
+  }
+});
+
+/** For me: the person's handled tasks, reviews and questions (the web leaves them out of For me). */
+channelRouter.get("/inbox/for-me/done", async (req, res) => {
+  try {
+    res.json({ items: await listForMeDone(req.userId!, req.serverId!) });
+  } catch (err) {
+    sendJsonServerError(req, res, { error: "Failed to load handled items", logPrefix: "For me done list error:", err });
   }
 });
 

@@ -7409,6 +7409,20 @@ export const inboxSuppressionStates = pgTable("inbox_suppression_states", {
   index("idx_inbox_suppression_states_target").on(t.targetChannelId),
 ]);
 
+// The inbox's "For me" (task #10 item 7): what a person has handled there, one row per item, apart from read
+// positions. `item_key` is `conv:<conversation channel id>` (replies to and @s of them, handled through
+// `done_through_seq`), `task:<id>`, `review:<id>` or `card:<message id>` (handled at `done_at`). Add-only.
+export const inboxForMeDone = pgTable("inbox_for_me_done", {
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  serverId: uuid("server_id").notNull().references(() => servers.id, { onDelete: "cascade" }),
+  itemKey: text("item_key").notNull(),
+  doneThroughSeq: bigint("done_through_seq", { mode: "number" }),
+  doneAt: timestamp("done_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  primaryKey({ columns: [t.userId, t.itemKey] }),
+  index("idx_inbox_for_me_done_server_user").on(t.serverId, t.userId),
+]);
+
 // Durable per-receiver notification facts used to project Activity/Inbox rows.
 // Each row means this receiver should see this message as part of a target's
 // notification history. A row can advance Activity latest without being unread

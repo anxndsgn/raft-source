@@ -89,6 +89,7 @@ export const USER_FOREIGN_KEY_CLASSIFICATION = {
   "user_channel_read_cursors.user_id": del,
   "user_channel_inbox_states.user_id": del,
   "user_channel_display_prefs.user_id": del,
+  "inbox_for_me_done.user_id": del,
   "user_saved.user_id": del,
   "message_reaction_viewer_versions.user_id": del,
   "activity_sync_principal_authorities.principal_id": del,

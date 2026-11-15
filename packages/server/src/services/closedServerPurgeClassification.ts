@@ -184,6 +184,7 @@ export const CLOSED_SERVER_PURGE_CLASSIFICATION = {
   "activity_sync_principal_authorities.server_id": rows(),
   "activity_sync_scopes.server_id": rows(),
   "hosted_runtime_server_plans.server_id": rows(),
+  "inbox_for_me_done.server_id": rows(),
   "inbox_target_mute_states.server_id": rows(cascade, { channels: ["source_channel_id"] }),
   "managed_mcp_assignments.server_id": rows(),
   "managed_mcp_assignments.agent_id": via("managed_mcp_assignments.server_id"),
