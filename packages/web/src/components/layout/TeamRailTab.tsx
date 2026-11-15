@@ -11,10 +11,10 @@ import { RailTabButton } from "./RailTabButton";
 import type { RailTabDrag } from "./SortableRailTabs";
 
 /**
- * The rail's Team tab (PRD 团队页 §4): Members and Computers in one. While
- * agents work, a turning ring round it and their number; hovering it shows
- * who is held and who is working (T2), in place of the old "Working now"
- * popover; a click opens the Team page. Computers' attention dot rides on it.
+ * The rail's Team tab (PRD 团队页 §4): Members and Computers in one. The tab
+ * itself shows no working state (anxndsgn 11/15, card d7ce7df0): only
+ * Computers' attention dot. While anyone is held or working, hovering it shows
+ * who (T2), in place of the old "Working now" popover; a click opens the Team page.
  */
 export function TeamRailTab({ dragProps, onClick, active, attentionDot, attentionTooltip }: {
   dragProps: RailTabDrag["dragProps"];
@@ -48,7 +48,6 @@ export function TeamRailTab({ dragProps, onClick, active, attentionDot, attentio
       label={label}
       active={active}
       onClick={click}
-      working={working}
       showDot={attentionDot}
       dotInactiveOnly
       dotTooltip={attentionTooltip}

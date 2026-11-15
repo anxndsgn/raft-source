@@ -67,7 +67,8 @@ export function TeamAgentLine({ row, onOpen, testId }: {
     <ListRow
       variant="default"
       onClick={open}
-      className="min-h-0 px-4 py-2 pointer-coarse:min-h-0"
+      // The rule between rows inset to the content on both sides (compact list: the heading's left edge, the time's right).
+      className="min-h-0 px-4 py-2 [--list-row-rule-start:16px] before:right-4 pointer-coarse:min-h-0"
       data-testid={testId}
       data-agent-id={row.agent.id}
       data-state={row.state}

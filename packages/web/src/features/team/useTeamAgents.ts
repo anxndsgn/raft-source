@@ -15,7 +15,7 @@ export interface TeamAgentRow {
   state: AgentMarkState;
   /** Working: when this stretch began (the live activity store), for "12 min". */
   startedAt: number | null;
-  /** Working: the task it holds (in progress, claimed by it), the latest moved first. */
+  /** Working: the task it holds (in progress, claimed by it); held: the task waiting on it. The latest moved first. */
   task: Task | null;
   /** Held by a usage limit: when it resumes (the server's usage-limit notice), and what waits on it. */
   resetsAt: string | null;
@@ -66,7 +66,8 @@ export function useTeamAgents(): TeamAgents {
       const inProgress = theirs.find((task) => task.status === "in_progress") ?? null;
       const row: TeamAgentRow = { agent, state: "idle", startedAt: null, task: null, resetsAt: null, waitingTasks: 0 };
       if (resetsAt.has(agent.id)) {
-        held.push({ ...row, state: "held", resetsAt: resetsAt.get(agent.id) ?? null, waitingTasks: theirs.filter((task) => task.status !== "in_review").length });
+        const waiting = theirs.filter((task) => task.status !== "in_review");
+        held.push({ ...row, state: "held", resetsAt: resetsAt.get(agent.id) ?? null, task: waiting[0] ?? null, waitingTasks: waiting.length });
         continue;
       }
       const external = agent.external === true || isExternalAgentRuntime(agent.runtime);
