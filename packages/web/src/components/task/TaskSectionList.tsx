@@ -8,9 +8,12 @@ import { useAgentDisplayState } from "../../store/agentStore";
 import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
 import { useTaskStore } from "../../store/taskStore";
 import type { Task, TaskStatus } from "../../store/taskStore";
-import { formatShortRelativeTime } from "../../utils/relativeTime";
 import { currentTimeMs } from "@botiverse/raft-shared";
 import { TaskAssigneeLabel, useTaskAssigneeIdentity } from "./TaskAssignee";
+import { useUsageLimitAttention } from "../layout/useUsageLimitAttention";
+import { useTimeFormatter } from "../../hooks/useTimeFormatter";
+import { resetWhen } from "../machine/rack/rackResetText";
+import type { IntlShape } from "react-intl";
 import { TASK_STATUS_UI, toRuiTaskStatus } from "./taskStatusUi";
 
 /** raft-design tasks.md (anxndsgn 11/15): what waits on the person first, then the work moving, then what waits,
@@ -31,6 +34,13 @@ export function TaskSectionList({ tasks, replyMode, viewerId, openTaskId, onOpen
   onOpenTask: (task: Task) => void;
 }) {
   const [collapsed, setCollapsed] = useState(INITIALLY_COLLAPSED);
+  // Held by a usage limit (the server's attention incidents): when each agent is back (Anna 11/15). One read here.
+  const usage = useUsageLimitAttention();
+  const resetsAtByAgent = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const n of usage.notifications) for (const id of n.affectedAgentIds) map.set(id, n.resetsAt);
+    return map;
+  }, [usage.notifications]);
   const toggle = useCallback((group: SectionGroup) => setCollapsed((prev) => ({ ...prev, [group]: !prev[group] })), []);
   const byGroup = useMemo(() => {
     const groups: Record<SectionGroup, Task[]> = { in_review: [], in_progress: [], todo: [], backlog: [], done: [] };
@@ -44,7 +54,7 @@ export function TaskSectionList({ tasks, replyMode, viewerId, openTaskId, onOpen
         <section key={group} data-testid={`channel-tasks-group-${group}`}>
           <SectionHeading group={group} count={byGroup[group].length} collapsed={collapsed[group]} first={index === 0} onToggle={toggle} />
           {collapsed[group] ? null : byGroup[group].map((task) => (
-            <SectionTaskRow key={task.id} task={task} viewerId={viewerId} selected={task.id === openTaskId} onOpen={onOpenTask} />
+            <SectionTaskRow key={task.id} task={task} viewerId={viewerId} selected={task.id === openTaskId} onOpen={onOpenTask} resetsAtByAgent={resetsAtByAgent} />
           ))}
         </section>
       ))}
@@ -77,14 +87,14 @@ function SectionHeading({ group, count, collapsed, first, onToggle }: { group: S
   );
 }
 
-function SectionTaskRow({ task, viewerId, selected, onOpen }: { task: Task; viewerId: string | null; selected: boolean; onOpen: (task: Task) => void }) {
-  const intl = useIntl();
-  const { formatMessage } = intl;
+function SectionTaskRow({ task, viewerId, selected, onOpen, resetsAtByAgent }: { task: Task; viewerId: string | null; selected: boolean; onOpen: (task: Task) => void; resetsAtByAgent: Map<string, string | null> }) {
+  const { formatMessage } = useIntl();
+  const { formatMediumDateTime } = useTimeFormatter();
   const { identity } = useTaskAssigneeIdentity(task);
   const open = useCallback(() => onOpen(task), [onOpen, task]);
   const movedAt = task.lastActivityAt ?? task.activityAt ?? task.updatedAt;
   const stale = !!movedAt && currentTimeMs() - Date.parse(movedAt) > STALE_MS && task.status !== "done" && task.status !== "closed";
-  const live = useLiveState(task);
+  const live = useLiveState(task, resetsAtByAgent);
   const state = useMemo(() => [
     <span key="n" className="font-mono text-foreground-hint">{formatMessage({ id: "taskDetail.number" }, { number: task.taskNumber })}</span>,
     task.claimedById ? <TaskAssigneeLabel key="a" task={task} identity={identity} viewerId={viewerId} /> : (
@@ -101,7 +111,7 @@ function SectionTaskRow({ task, viewerId, selected, onOpen }: { task: Task; view
       selected={selected}
       state={state}
       step={live.step}
-      time={movedAt ? <span className={stale ? "text-warning-strong" : undefined}>{formatShortRelativeTime(movedAt, intl.locale)}</span> : null}
+      time={movedAt ? <span className={stale ? "text-warning-strong" : undefined} title={formatMediumDateTime(movedAt)}>{shortAgo(movedAt, formatMessage)}</span> : null}
       action={<RowAction task={task} viewerId={viewerId} />}
       data-testid={`channel-task-row-${task.taskNumber}`}
     />
@@ -109,12 +119,16 @@ function SectionTaskRow({ task, viewerId, selected, onOpen }: { task: Task; view
 }
 
 /** An agent's task: working (for how long, its step) or held (a usage limit, its computer offline). */
-function useLiveState(task: Task): { text: string | null; warning: boolean; step: string | null } {
-  const { formatMessage } = useIntl();
+function useLiveState(task: Task, resetsAtByAgent: Map<string, string | null>): { text: string | null; warning: boolean; step: string | null } {
+  const { formatMessage, locale } = useIntl();
   const agentId = task.claimedByType === "agent" ? task.claimedById ?? "" : "";
   const display = useAgentDisplayState(agentId);
   const startedAt = useLiveAgentActivityStore((s) => (agentId ? s.items.find((i) => i.agentId === agentId && i.idleSince === null)?.startedAt ?? null : null));
   if (!agentId || task.status !== "in_progress") return { text: null, warning: false, step: null };
+  if (resetsAtByAgent.has(agentId)) {
+    const when = resetWhen(resetsAtByAgent.get(agentId), locale, currentTimeMs());
+    return { text: when ? formatMessage({ id: "taskSection.heldUntil" }, { when }) : formatMessage({ id: "taskSection.held" }), warning: true, step: null };
+  }
   if (display.blocked || display.activityErrorCode === "usage_limit" || display.activity === "error") {
     return { text: display.activityText || formatMessage({ id: "taskSection.held" }), warning: true, step: null };
   }
@@ -141,4 +155,13 @@ function RowAction({ task, viewerId }: { task: Task; viewerId: string | null }) 
     return <Button type="button" size="sm" variant="default" onClick={claim} data-testid={`channel-task-claim-${task.taskNumber}`}>{formatMessage({ id: "taskSection.claim" })}</Button>;
   }
   return null;
+}
+
+/** Since it last moved, the row's short Space Mono form (tasks.md): 刚刚, 12 分, 15 时, 3 天; the full time on hover. */
+function shortAgo(at: string, formatMessage: IntlShape["formatMessage"]): string {
+  const minutes = Math.floor(Math.max(0, currentTimeMs() - Date.parse(at)) / 60000);
+  if (minutes < 1) return formatMessage({ id: "taskSection.ago.now" });
+  if (minutes < 60) return formatMessage({ id: "taskSection.ago.minutes" }, { count: minutes });
+  if (minutes < 60 * 24) return formatMessage({ id: "taskSection.ago.hours" }, { count: Math.floor(minutes / 60) });
+  return formatMessage({ id: "taskSection.ago.days" }, { count: Math.floor(minutes / 1440) });
 }

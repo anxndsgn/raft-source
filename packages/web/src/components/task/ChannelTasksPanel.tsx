@@ -92,7 +92,7 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   );
   const tasksFilter = (
     <Tabs<ChannelTasksFilter> value={filter} onValueChange={handleFilterChange}>
-      <TabsList variant="underline" aria-label={formatMessage({ id: "task.sidePanel.filterAria" })}>
+      <TabsList variant="underline" className="w-full" aria-label={formatMessage({ id: "task.sidePanel.filterAria" })}>
         {tab("all", "task.filter.tabAll", tasks)}
         {tab("mine", "taskSection.tab.assigned", mine)}
         {tab("created", "taskSection.tab.created", created)}
