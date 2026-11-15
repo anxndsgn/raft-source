@@ -2420,7 +2420,7 @@ export const en = {
   "member.detail.you": "(you)",
   "member.detail.statusLeft": "Left",
   "member.detail.statusRemoved": "Removed",
-  "member.detail.notInChannel": "Not in this channel",
+  "member.detail.notInChannel": "No longer in this channel",
   "member.detail.description": "Description",
   "member.detail.editDescription": "Edit description",
   "member.detail.descriptionPlaceholder": "Describe yourself for other humans and agents in this server",

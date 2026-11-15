@@ -2443,8 +2443,9 @@ test("real corpus: structural, catalog-id, and template-glue filters remove audi
   // puts a `/` between "Tasks" and the task's number — punctuation between translated or dynamic
   // values in new files: 99 -> 104.
   // The channel's member list pushed from its info (layout redesign 4.5) puts the same `/` between "Channel info"
-  // and "Members" (MembersPageHeader): 104 -> 105.
-  assert.equal(filteredKeys, 105, `audited structural key count; got ${filteredKeys}`);
+  // and "Members" (MembersPageHeader): 104 -> 105. A pushed head's Back as a crumb (AppPanelHeader, a member's
+  // details over the channel's members) the same `/`: 105 -> 106.
+  assert.equal(filteredKeys, 106, `audited structural key count; got ${filteredKeys}`);
   assert.ok(filteredHits > 100, `hits must exceed prior 100; got ${filteredHits}`);
   // HandoffCreateFlow's `· ${session.model}` suffix is dynamic metadata glue, the
   // same shape as EditChannelDialog's `· ${…}` suffixes.
