@@ -9826,6 +9826,7 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "apps.cap.add.checking": "正在檢查伺服器…",
   "apps.cap.add.descriptionLabel": "描述",
   "apps.cap.add.foundKey": "連上了，需要 API 金鑰",
+  "apps.cap.add.foundConfigKey": "連上了，已從設定讀出金鑰 · {count, plural, other {# 個工具}}",
   "apps.cap.add.foundReady": "連上了，不用登入 · {count, plural, other {# 個工具}}",
   "apps.cap.add.foundSignIn": "連上了，需要登入 {name}",
   "apps.cap.add.headerLabel": "請求標頭名稱",

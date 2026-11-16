@@ -305,7 +305,9 @@ export function QuickAddMcpDialog({ onClose, onAdded, onOpenFullEditor, onBrowse
         ? formatMessage({ id: "apps.cap.add.unreachable" })
         : probeFailed;
   let found: string | null = null;
-  if (outcome === "ready") found = formatMessage({ id: "apps.cap.add.foundReady" }, { count: probeResult?.tools?.count ?? 0 });
+  // A key read from the pasted configuration: say so, rather than "no sign-in needed" above a filled key field.
+  if (outcome === "ready" && configHeader) found = formatMessage({ id: "apps.cap.add.foundConfigKey" }, { count: probeResult?.tools?.count ?? 0 });
+  else if (outcome === "ready") found = formatMessage({ id: "apps.cap.add.foundReady" }, { count: probeResult?.tools?.count ?? 0 });
   else if (outcome === "headers") found = formatMessage({ id: "apps.cap.add.foundKey" });
   else if (outcome === "oauth") found = formatMessage({ id: "apps.cap.add.foundSignIn" }, { name: trimmedName || server?.url || "" });
   const ready = Boolean(probeResult && !unreachable);

@@ -9826,6 +9826,7 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "apps.cap.add.checking": "Verificando o servidor…",
   "apps.cap.add.descriptionLabel": "Descrição",
   "apps.cap.add.foundKey": "Conectado. Precisa de uma chave de API.",
+  "apps.cap.add.foundConfigKey": "Conectado. A chave foi lida da configuração · {count, plural, one {# ferramenta} other {# ferramentas}}",
   "apps.cap.add.foundReady": "Conectado. Sem login · {count, plural, one {# ferramenta} other {# ferramentas}}",
   "apps.cap.add.foundSignIn": "Conectado. É preciso entrar em {name}.",
   "apps.cap.add.headerLabel": "Nome do cabeçalho",

@@ -9826,6 +9826,7 @@ export const ko: Partial<Record<MessageId, string>> = {
   "apps.cap.add.checking": "서버 확인 중…",
   "apps.cap.add.descriptionLabel": "설명",
   "apps.cap.add.foundKey": "연결됨. API 키가 필요합니다",
+  "apps.cap.add.foundConfigKey": "연결됨. 설정에서 키를 읽었습니다 · {count, plural, other {도구 #개}}",
   "apps.cap.add.foundReady": "연결됨. 로그인 불필요 · {count, plural, other {도구 #개}}",
   "apps.cap.add.foundSignIn": "연결됨. {name}에 로그인해야 합니다",
   "apps.cap.add.headerLabel": "요청 헤더 이름",

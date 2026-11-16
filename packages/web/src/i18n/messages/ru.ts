@@ -9828,6 +9828,7 @@ export const ru: Partial<Record<MessageId, string>> = {
   "apps.cap.add.checking": "Проверка сервера…",
   "apps.cap.add.descriptionLabel": "Описание",
   "apps.cap.add.foundKey": "Подключено. Нужен API-ключ.",
+  "apps.cap.add.foundConfigKey": "Подключено. Ключ взят из конфигурации · {count, plural, one {# инструмент} few {# инструмента} many {# инструментов} other {# инструмента}}",
   "apps.cap.add.foundReady": "Подключено. Вход не нужен · {count, plural, one {# инструмент} few {# инструмента} many {# инструментов} other {# инструмента}}",
   "apps.cap.add.foundSignIn": "Подключено. Нужно войти в {name}.",
   "apps.cap.add.headerLabel": "Имя заголовка",

@@ -9827,6 +9827,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "apps.cap.add.checking": "サーバーを確認中…",
   "apps.cap.add.descriptionLabel": "説明",
   "apps.cap.add.foundKey": "接続できました。API キーが必要です",
+  "apps.cap.add.foundConfigKey": "接続できました。設定からキーを読み取りました · {count, plural, other {# 個のツール}}",
   "apps.cap.add.foundReady": "接続できました。ログイン不要 · {count, plural, other {# 個のツール}}",
   "apps.cap.add.foundSignIn": "接続できました。{name} へのログインが必要です",
   "apps.cap.add.headerLabel": "リクエストヘッダー名",

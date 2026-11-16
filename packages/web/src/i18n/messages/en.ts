@@ -10048,6 +10048,7 @@ export const en = {
   "apps.cap.add.checking": "Checking the server…",
   "apps.cap.add.descriptionLabel": "Description",
   "apps.cap.add.foundKey": "Connected. It needs an API key.",
+  "apps.cap.add.foundConfigKey": "Connected. The key was read from the configuration · {count, plural, one {# tool} other {# tools}}",
   "apps.cap.add.foundReady": "Connected. No sign-in needed · {count, plural, one {# tool} other {# tools}}",
   "apps.cap.add.foundSignIn": "Connected. It needs you to sign in to {name}.",
   "apps.cap.add.headerLabel": "Request header name",

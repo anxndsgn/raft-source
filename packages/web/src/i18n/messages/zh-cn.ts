@@ -9939,6 +9939,7 @@ export const zhCn: Record<MessageId, string> = {
   "apps.cap.add.checking": "正在检查服务器…",
   "apps.cap.add.descriptionLabel": "描述",
   "apps.cap.add.foundKey": "连上了，需要 API 密钥",
+  "apps.cap.add.foundConfigKey": "连上了，已从配置读出密钥 · {count, plural, other {# 个工具}}",
   "apps.cap.add.foundReady": "连上了，不用登录 · {count, plural, other {# 个工具}}",
   "apps.cap.add.foundSignIn": "连上了，需要登录 {name}",
   "apps.cap.add.headerLabel": "请求头名称",

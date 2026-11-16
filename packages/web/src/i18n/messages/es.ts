@@ -9826,6 +9826,7 @@ export const es: Partial<Record<MessageId, string>> = {
   "apps.cap.add.checking": "Comprobando el servidor…",
   "apps.cap.add.descriptionLabel": "Descripción",
   "apps.cap.add.foundKey": "Conectado. Necesita una clave de API.",
+  "apps.cap.add.foundConfigKey": "Conectado. La clave se leyó de la configuración · {count, plural, one {# herramienta} other {# herramientas}}",
   "apps.cap.add.foundReady": "Conectado. Sin inicio de sesión · {count, plural, one {# herramienta} other {# herramientas}}",
   "apps.cap.add.foundSignIn": "Conectado. Necesitas iniciar sesión en {name}.",
   "apps.cap.add.headerLabel": "Nombre del encabezado",
