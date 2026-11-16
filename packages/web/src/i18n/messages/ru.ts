@@ -9812,4 +9812,6 @@ export const ru: Partial<Record<MessageId, string>> = {
   "task.create.createKeys": "⌘↵",
   "task.create.postsInHint": "Публикует сообщение задачи в {channel}",
   "task.create.assignFailed": "Задача создана, но назначить её не удалось. Нажмите «Создать», чтобы попробовать назначить снова.",
+  "task.create.messageBecomesTask": "Это сообщение станет задачей",
+  "task.create.hangsUnderMessage": "Задача будет привязана к этому сообщению",
 };

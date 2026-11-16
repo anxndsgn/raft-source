@@ -9810,4 +9810,6 @@ export const ko: Partial<Record<MessageId, string>> = {
   "task.create.createKeys": "⌘↵",
   "task.create.postsInHint": "{channel}에 작업 메시지를 올립니다",
   "task.create.assignFailed": "작업은 만들어졌지만 담당자 지정에 실패했습니다. ‘만들기’를 다시 누르면 지정을 다시 시도합니다.",
+  "task.create.messageBecomesTask": "이 메시지가 작업이 됩니다",
+  "task.create.hangsUnderMessage": "이 메시지 아래에 작업이 붙습니다",
 };

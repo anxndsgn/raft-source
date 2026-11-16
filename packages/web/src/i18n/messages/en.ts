@@ -10030,6 +10030,8 @@ export const en = {
   "task.create.createKeys": "⌘↵",
   "task.create.postsInHint": "Posts a task message in {channel}",
   "task.create.assignFailed": "The task was created, but assigning it failed. Press Create to try assigning again.",
+  "task.create.messageBecomesTask": "This message becomes the task",
+  "task.create.hangsUnderMessage": "The task goes under this message",
 } as const;
 
 export type MessageId = keyof typeof en;

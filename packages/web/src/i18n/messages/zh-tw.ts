@@ -9810,4 +9810,6 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "task.create.createKeys": "⌘↵",
   "task.create.postsInHint": "會在 {channel} 發一則任務訊息",
   "task.create.assignFailed": "任務已建立，但指派沒成功。再按一次「建立」重試指派。",
+  "task.create.messageBecomesTask": "這則訊息會變成任務",
+  "task.create.hangsUnderMessage": "會掛在這則訊息下",
 };

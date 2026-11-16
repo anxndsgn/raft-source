@@ -9921,4 +9921,6 @@ export const zhCn: Record<MessageId, string> = {
   "task.create.createKeys": "⌘↵",
   "task.create.postsInHint": "会在 {channel} 发一条任务消息",
   "task.create.assignFailed": "任务已建好，但指派没成功。再点一次「创建」重试指派。",
+  "task.create.messageBecomesTask": "这条消息会变成任务",
+  "task.create.hangsUnderMessage": "会挂在这条消息下",
 };

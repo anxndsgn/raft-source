@@ -9810,4 +9810,6 @@ export const es: Partial<Record<MessageId, string>> = {
   "task.create.createKeys": "⌘↵",
   "task.create.postsInHint": "Publica un mensaje de tarea en {channel}",
   "task.create.assignFailed": "La tarea se creó, pero no se pudo asignar. Pulsa Crear para volver a intentar la asignación.",
+  "task.create.messageBecomesTask": "Este mensaje se convierte en la tarea",
+  "task.create.hangsUnderMessage": "La tarea queda bajo este mensaje",
 };

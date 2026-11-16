@@ -9810,4 +9810,6 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "task.create.createKeys": "⌘↵",
   "task.create.postsInHint": "Publica uma mensagem de tarefa em {channel}",
   "task.create.assignFailed": "A tarefa foi criada, mas a atribuição falhou. Clique em Criar para tentar atribuir de novo.",
+  "task.create.messageBecomesTask": "Esta mensagem vira a tarefa",
+  "task.create.hangsUnderMessage": "A tarefa fica sob esta mensagem",
 };

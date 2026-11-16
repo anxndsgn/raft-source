@@ -157,6 +157,11 @@ export default function CreateTaskDialog({ channelId: fixedChannelId, defaultCha
   };
 
   const createLabel = formatMessage({ id: "task.create.create" });
+  // Where the task lands (Anna 11/16): from a message no new message is posted — before task v2 the message becomes
+  // the task, with it the task hangs under the message.
+  const landsHint = sourceMessage
+    ? formatMessage({ id: taskV2 ? "task.create.hangsUnderMessage" : "task.create.messageBecomesTask" })
+    : channelLabel ? formatMessage({ id: "task.create.postsInHint" }, { channel: channelLabel }) : null;
   return (
     <DialogCard
       title={formatMessage({ id: "task.create.heading" }, { count: 1 })}
@@ -212,15 +217,15 @@ export default function CreateTaskDialog({ channelId: fixedChannelId, defaultCha
         </div>
         {channelError && fixedChannelId ? <FieldError>{channelError}</FieldError> : null}
         {/* A phone's sheet has no footer row (its Create is in the head): the same line under the fields (Figmama). */}
-        {channelLabel ? (
+        {landsHint ? (
           <p className="text-footnote text-foreground-hint md:hidden" data-testid="create-task-posts-in-phone">
-            {formatMessage({ id: "task.create.postsInHint" }, { channel: channelLabel })}
+            {landsHint}
           </p>
         ) : null}
         <DialogCardFooter className="items-center">
-          {channelLabel ? (
+          {landsHint ? (
             <span className="mr-auto min-w-0 truncate text-footnote text-foreground-hint" data-testid="create-task-posts-in">
-              {formatMessage({ id: "task.create.postsInHint" }, { channel: channelLabel })}
+              {landsHint}
             </span>
           ) : null}
           <Button size="lg" variant="ghost" type="button" onClick={onClose}>

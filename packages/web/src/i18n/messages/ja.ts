@@ -9811,4 +9811,6 @@ export const ja: Partial<Record<MessageId, string>> = {
   "task.create.createKeys": "⌘↵",
   "task.create.postsInHint": "{channel} にタスクのメッセージを投稿します",
   "task.create.assignFailed": "タスクは作成されましたが、担当者の設定に失敗しました。もう一度「作成」を押すと設定を再試行します。",
+  "task.create.messageBecomesTask": "このメッセージがタスクになります",
+  "task.create.hangsUnderMessage": "このメッセージの下にタスクが付きます",
 };
