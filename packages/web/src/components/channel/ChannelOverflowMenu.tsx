@@ -1,4 +1,5 @@
 import { deferredDialog, deferredPanel } from "../../boot/deferredUi";
+import { RIcon } from "../redesign/icons";
 import { PanelLoading } from "../layout/PanelLoading";
 import type { ReactNode } from "react";
 import { Children, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -415,7 +416,7 @@ export default function ChannelOverflowMenu({
           aria-label={formatMessage({ id: "channelHead.members" })}
           data-testid="channel-members-toggle"
         >
-          {desktopShell ? formatMessage({ id: "channelHead.members" }) : <Users />}
+          <RIcon name="users" filled={open && view === "members" && !person?.profileOnly} />
         </PanelToggleAction>
         <Tooltip content={formatMessage({ id: "channelHead.infoAndSettings" })}>
           <PanelToggleAction
@@ -425,7 +426,7 @@ export default function ChannelOverflowMenu({
             aria-label={formatMessage({ id: "channelHead.infoAndSettings" })}
             data-testid="channel-overflow-trigger"
           >
-            <Settings />
+            <RIcon name="settings" />
           </PanelToggleAction>
         </Tooltip>
         </>

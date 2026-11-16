@@ -3,7 +3,8 @@ import { ReplyTaskChips } from "./ReplyTaskChips";
 import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } from "react";
 import type { ChangeEvent } from "react";
 import { useIntl } from "react-intl";
-import { Send, Paperclip, ImagePlus, CornerUpLeft, X } from "lucide-react";
+import { CornerUpLeft, X } from "lucide-react";
+import { RIcon } from "../../components/redesign/icons";
 import { ChannelIcon } from "../../components/channel/channelKindIcon";
 import { Badge, Composer, ComposerActions, ComposerAttachments, ComposerDropOverlay, ComposerDropOverlayLabel, ComposerIconButton, ComposerInput, ComposerRoot, ComposerSubmit, ComposerSuggestionAside, ComposerSuggestionContent, ComposerSuggestionGroup, ComposerSuggestionIcon, ComposerSuggestionList, ComposerSuggestionMeta, ComposerSuggestionTitle, ComposerToolbar, Separator, Spinner } from "@botiverse/raft-ui";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
@@ -2176,7 +2177,7 @@ export function MessageInput({
               ? formatMessage({ id: "message.composer.retryFailedTitle" })
               : submitLabelOverride ?? sendLabel;
   // Stryker disable next-line ConditionalExpression: icon branch is covered by MessageInput DOM tests; generated JSX mutants hang tsx.
-  const submitIcon = showSubmitSpinner ? <Spinner size="sm" aria-label={formatMessage({ id: "common.loadingLabel" })} /> : <Send size={18} />;
+  const submitIcon = showSubmitSpinner ? <Spinner size="sm" aria-label={formatMessage({ id: "common.loadingLabel" })} /> : <RIcon name="send" width={20} height={20} />;
 
   return (
     <ComposerRoot
@@ -2485,7 +2486,7 @@ export function MessageInput({
                   data-slot="button"
                   aria-label={formatMessage({ id: "message.composer.attachImage" })}
                 >
-                  <ImagePlus size={18} />
+                  <RIcon name="image" width={20} height={20} />
                 </ComposerIconButton>
                 </Tooltip>
                 <Tooltip content={formatMessage({ id: "message.composer.attachFile" })}>
@@ -2495,7 +2496,7 @@ export function MessageInput({
                   data-slot="button"
                   aria-label={formatMessage({ id: "message.composer.attachFile" })}
                 >
-                  <Paperclip size={18} />
+                  <RIcon name="attach" width={20} height={20} />
                 </ComposerIconButton>
                 </Tooltip>
               </ComposerActions>
@@ -2506,6 +2507,7 @@ export function MessageInput({
               <ComposerSubmit
                 size="icon-md"
                 data-slot="button"
+                data-redesign="send"
                 onPointerDown={preventSendButtonPointerDownBlur}
                 onTouchEnd={handleSendTouchEnd}
                 disabled={submitBlocked}

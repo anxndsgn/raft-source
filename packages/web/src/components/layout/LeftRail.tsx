@@ -44,6 +44,7 @@ import {
   PopoverTrigger,
 } from "@botiverse/raft-ui";
 import { MessageIcon, ArtifactIcon } from "@botiverse/ricons";
+import { RIcon } from "../redesign/icons";
 import Tooltip from "../ui/Tooltip";
 import { labelWithShortcut } from "../ui/LabelWithShortcut";
 import { HelpMenu } from "./HelpMenu";
@@ -276,19 +277,19 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
     if (!topBar) {
       const label = formatMessage({ id: "layout.leftRail.tabSearch" });
       tabs.push(tab("search", label, ({ dragProps, guardClick }) => (
-        <RailTabButton {...dragProps} icon={<Search size={18} />} label={label} active={railMode === "search"} onClick={guardClick(railModeSelectors.search)} testId="left-rail-tab-search" />
+        <RailTabButton {...dragProps} icon={<RIcon name="search" />} label={label} active={railMode === "search"} onClick={guardClick(railModeSelectors.search)} testId="left-rail-tab-search" />
       )));
     }
     const chatLabel = formatMessage({ id: "layout.leftRail.tabChat" });
     tabs.push(tab("chat", chatLabel, ({ dragProps, guardClick }) => (
-      <RailTabButton {...dragProps} icon={<MessageIcon width={18} height={18} />} label={chatLabel} active={railMode === "chat"} onClick={guardClick(railModeSelectors.chat)} showDot={hasChatUnread} dotInactiveOnly testId="left-rail-tab-chat" />
+      <RailTabButton {...dragProps} icon={<RIcon name="message" filled={railMode === "chat"} />} label={chatLabel} active={railMode === "chat"} onClick={guardClick(railModeSelectors.chat)} showDot={hasChatUnread} dotInactiveOnly testId="left-rail-tab-chat" />
     )));
     // Layout redesign: Activity and the bell are one inbox, its unread counted on the rail.
     const activityLabel = formatMessage({ id: "layout.leftRail.tabInbox" });
     tabs.push(tab("activity", activityLabel, ({ dragProps, guardClick }) => (
       <RailTabButton
         {...dragProps}
-        icon={<Inbox size={18} />}
+        icon={<RIcon name="inbox" filled={railMode === "activity"} />}
         label={activityLabel}
         active={railMode === "activity"}
         showDot={hasActivityUnread}
@@ -301,12 +302,12 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
     )));
     const tasksLabel = formatMessage({ id: "layout.leftRail.tabTasks" });
     tabs.push(tab("tasks", tasksLabel, ({ dragProps, guardClick }) => (
-      <RailTabButton {...dragProps} icon={<ListTodo size={18} />} label={tasksLabel} active={railMode === "tasks"} onClick={guardClick(railModeSelectors.tasks)} testId="left-rail-tab-tasks" />
+      <RailTabButton {...dragProps} icon={<RIcon name="tasks" filled={railMode === "tasks"} />} label={tasksLabel} active={railMode === "tasks"} onClick={guardClick(railModeSelectors.tasks)} testId="left-rail-tab-tasks" />
     )));
     if (showArtifacts) {
       const artifactsLabel = formatMessage({ id: "layout.leftRail.tabArtifacts" });
       tabs.push(tab("artifacts", artifactsLabel, ({ dragProps, guardClick }) => (
-        <RailTabButton {...dragProps} icon={<ArtifactIcon width={18} height={18} />} label={artifactsLabel} active={railMode === "artifacts"} onClick={guardClick(railModeSelectors.artifacts)} testId="left-rail-tab-artifacts" />
+        <RailTabButton {...dragProps} icon={<RIcon name="artifact" filled={railMode === "artifacts"} />} label={artifactsLabel} active={railMode === "artifacts"} onClick={guardClick(railModeSelectors.artifacts)} testId="left-rail-tab-artifacts" />
       )));
     }
     if (!isGuest) {
@@ -326,7 +327,7 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
       tabs.push(tab("apps", appsLabel, ({ dragProps, guardClick }) => (
         <RailTabButton
           {...dragProps}
-          icon={<Blocks size={18} />}
+          icon={<RIcon name="plug" filled={railMode === "apps"} />}
           label={appsLabel}
           active={railMode === "apps"}
           showDot={appsAttention.lit}
@@ -599,7 +600,7 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
 
 
       <div className="flex w-full justify-center">
-        <RailTabButton icon={<Settings size={18} />} label={formatMessage({ id: "layout.leftRail.tabSettings" })} active={railMode === "settings"} onClick={railModeSelectors.settings} showDot={feedbackUnread > 0} dotTooltip={formatMessage({ id: "layout.systemNotifications.feedbackRepliesTitle" })} testId="left-rail-settings" />
+        <RailTabButton icon={<RIcon name="settings" />} label={formatMessage({ id: "layout.leftRail.tabSettings" })} active={railMode === "settings"} onClick={railModeSelectors.settings} showDot={feedbackUnread > 0} dotTooltip={formatMessage({ id: "layout.systemNotifications.feedbackRepliesTitle" })} testId="left-rail-settings" />
       </div>
       </AppRailFooter>
       </AppRailRoot>

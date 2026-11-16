@@ -6,6 +6,8 @@
 @import "@botiverse/raft-ui/themes.css";
 @import "./components/mermaid/mermaid.css";
 @import "./components/topbar/titleBar.css";
+/* Redesign test (task #20). */
+@import "./redesign.css";
 
 
 /*
