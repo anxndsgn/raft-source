@@ -9910,4 +9910,6 @@ export const zhCn: Record<MessageId, string> = {
   "inbox.question.titleFrom": "{name} 问你",
   "taskDetail.conversation": "对话",
   "taskDetail.openConversation": "打开任务对话",
+  "agent.detail.startBlockedOffline": "启动 Agent（计算机离线，暂时不能启动）",
+  "agent.detail.noActions": "没有可执行的操作",
 };

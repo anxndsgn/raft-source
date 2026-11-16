@@ -113,3 +113,14 @@ test("conversation message agent navigation records its opening surface", () => 
     ["agent", "agent-1", { defaultAgentTabIntent: "ordered-first", openSource: "thread" }],
   ]);
 });
+
+test("the Team page's column keeps the agent tab from one agent to the next (Team page v2.1 §5.4.1)", () => {
+  assert.equal(
+    shouldDeleteAgentTabDuringProfileSync("/s/team/team", "agent:old-agent", "agent", "next-agent", { keepAgentTabAcrossAgents: true }),
+    false,
+  );
+  assert.equal(
+    shouldDeleteAgentTabDuringProfileSync("/s/team/team", null, "agent", "next-agent", { keepAgentTabAcrossAgents: true }),
+    true,
+  );
+});

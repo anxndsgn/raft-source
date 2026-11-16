@@ -10019,6 +10019,8 @@ export const en = {
   "inbox.question.titleFrom": "{name} asks you",
   "taskDetail.conversation": "Task conversation",
   "taskDetail.openConversation": "Open task conversation",
+  "agent.detail.startBlockedOffline": "Start Agent (its computer is offline)",
+  "agent.detail.noActions": "Nothing you can run here",
 } as const;
 
 export type MessageId = keyof typeof en;

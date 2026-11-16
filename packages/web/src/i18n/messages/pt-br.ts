@@ -9799,4 +9799,6 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "inbox.question.titleFrom": "{name} pergunta",
   "taskDetail.conversation": "Conversa",
   "taskDetail.openConversation": "Abrir a conversa da tarefa",
+  "agent.detail.startBlockedOffline": "Iniciar o agente (o computador está offline)",
+  "agent.detail.noActions": "Nenhuma ação disponível",
 };

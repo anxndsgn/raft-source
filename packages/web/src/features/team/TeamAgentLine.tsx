@@ -109,7 +109,8 @@ export function TeamAgentLine({ row, variant, onOpen, onOpenWork, onOpenChannel,
     const finished = row.finished;
     const when = finished ? formatRelativeTime(finished.lastActivityAt ?? finished.updatedAt, locale) : null;
     description = [
-      formatMessage({ id: MARK_LABEL[row.state] }),
+      // Stopped by a person: said as the details' head says it (Anna 11/16).
+      formatMessage({ id: row.agent.status === "stopped" ? "activity.log.status.stopped" : MARK_LABEL[row.state] }),
       finished && when ? formatMessage({ id: "team.rest.finished" }, { number: finished.taskNumber, when }) : null,
     ];
   }

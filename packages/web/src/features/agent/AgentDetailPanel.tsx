@@ -710,6 +710,8 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
           render={<Tabs<AgentTab> value={activeTab} onValueChange={setActiveTab} />}
         >
           <SortableTabsList<AgentTab>
+            // A longer fade where the row is cut (raft-ui's 24px read as a clipped icon in a narrow column, Anna 11/16).
+            className="[--fade-edge:48px]"
             value={orderedAgentTabIds}
             onReorder={reorderAgentTabs}
           >

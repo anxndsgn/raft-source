@@ -9799,4 +9799,6 @@ export const ko: Partial<Record<MessageId, string>> = {
   "inbox.question.titleFrom": "{name}님의 질문",
   "taskDetail.conversation": "대화",
   "taskDetail.openConversation": "작업 대화 열기",
+  "agent.detail.startBlockedOffline": "Agent 시작 (컴퓨터가 오프라인이라 시작할 수 없음)",
+  "agent.detail.noActions": "실행할 수 있는 작업이 없습니다",
 };

@@ -17,13 +17,15 @@ export function shouldDeleteAgentTabDuringProfileSync(
   previousProfileParam: string | null,
   nextProfileType: "agent" | "human" | "computer" | "external" | null,
   nextProfileId: string | null,
-  options: { resetAgentTabForProfileReopen?: boolean } = {},
+  options: { resetAgentTabForProfileReopen?: boolean; keepAgentTabAcrossAgents?: boolean } = {},
 ): boolean {
   if (options.resetAgentTabForProfileReopen && nextProfileType === "agent" && nextProfileId) {
     return true;
   }
 
   if (nextProfileType === "agent" && nextProfileId) {
+    // In the Team page's column, from one agent to the next row the tab stays (v2.1 §5.4.1).
+    if (options.keepAgentTabAcrossAgents && previousProfileParam?.startsWith("agent:")) return false;
     return previousProfileParam !== `agent:${nextProfileId}`;
   }
 

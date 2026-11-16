@@ -9799,4 +9799,6 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "inbox.question.titleFrom": "{name} 問你",
   "taskDetail.conversation": "對話",
   "taskDetail.openConversation": "打開任務對話",
+  "agent.detail.startBlockedOffline": "啟動 Agent（電腦離線，暫時不能啟動）",
+  "agent.detail.noActions": "沒有可執行的操作",
 };

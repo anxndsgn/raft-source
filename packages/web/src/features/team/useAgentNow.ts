@@ -46,6 +46,9 @@ export function useAgentNow(agent: Agent, limitResetsAt: string | null | undefin
     word = display.blocked ? title : formatMessage({ id: "agent.status.computerOffline" });
   } else if (mark === "working" && startedAt) {
     word = formatMessage({ id: "taskSection.workingFor" }, { minutes: Math.max(1, Math.round((currentTimeMs() - startedAt) / 60000)) });
+  } else if (agent.status === "stopped") {
+    // Stopped by a person: the details' head says so too (Anna 11/16: one name for one state).
+    word = formatMessage({ id: "activity.log.status.stopped" });
   } else {
     word = display.paused || display.likelyOnline ? title : formatActivityText(formatMessage, display.activity, "");
   }

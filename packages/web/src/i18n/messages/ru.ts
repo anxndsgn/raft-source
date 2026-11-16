@@ -9801,4 +9801,6 @@ export const ru: Partial<Record<MessageId, string>> = {
   "inbox.question.titleFrom": "{name} спрашивает",
   "taskDetail.conversation": "Обсуждение",
   "taskDetail.openConversation": "Открыть обсуждение задачи",
+  "agent.detail.startBlockedOffline": "Запустить агента (компьютер не в сети)",
+  "agent.detail.noActions": "Нет доступных действий",
 };

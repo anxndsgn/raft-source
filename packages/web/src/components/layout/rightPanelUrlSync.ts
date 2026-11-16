@@ -570,7 +570,10 @@ export function syncRightPanelUrlFromStores({
   params.delete("profile");
   params.delete("task");
   params.delete("legacyTask");
-  if (shouldDeleteAgentTabDuringProfileSync(pathname, previousProfileParam, profileType, profileId, options)) {
+  if (shouldDeleteAgentTabDuringProfileSync(pathname, previousProfileParam, profileType, profileId, {
+    ...options,
+    keepAgentTabAcrossAgents: useProfileStore.getState().teamColumn,
+  })) {
     params.delete("agentTab");
   }
 

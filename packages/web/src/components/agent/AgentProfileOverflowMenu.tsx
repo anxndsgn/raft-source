@@ -99,8 +99,10 @@ export default function AgentProfileOverflowMenu({
   // their words.
   const teamHead = useContext(ProfileTeamHeadContext);
   const foldMessage = messageInMenu && canMessageAgent && !teamHead;
-  const menuAlways = foldMessage || moves.length > 0 || (teamHead && hasFoldingCommands);
-  if (!canMessageAgent && !hasFoldingCommands && moves.length === 0) return null;
+  // A member's details head keeps ⋯ always (v2.1 §5.4.1, Anna 11/16): with nothing to run, it says why.
+  const menuAlways = foldMessage || moves.length > 0 || teamHead;
+  const startBlockedByComputer = teamHead && canControlAgentRuntime && computerOffline && !canStartStop;
+  if (!teamHead && !canMessageAgent && !hasFoldingCommands && moves.length === 0) return null;
 
   // Header icon buttons are raft-ui PanelAction (44 on a phone, the DS small
   // 32 on desktop); the groups keep the panel head's action gap.
@@ -234,6 +236,16 @@ export default function AgentProfileOverflowMenu({
               {pauseAssistantLabel}
             </DropdownMenuItem>
           )}
+          {startBlockedByComputer ? (
+            <DropdownMenuItem disabled data-testid="agent-profile-overflow-start-blocked">
+              <Play />
+              {formatMessage({ id: "agent.detail.startBlockedOffline" })}
+            </DropdownMenuItem>
+          ) : teamHead && !hasFoldingCommands && moves.length === 0 ? (
+            <DropdownMenuItem disabled data-testid="agent-profile-overflow-none">
+              {formatMessage({ id: "agent.detail.noActions" })}
+            </DropdownMenuItem>
+          ) : null}
           {/* In the row's column: Move Left / Move Right where it can move (#189 rule 7). */}
           <ColumnMoveMenuItems />
         </DropdownMenuContent>

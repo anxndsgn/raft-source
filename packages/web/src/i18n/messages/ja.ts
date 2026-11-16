@@ -9800,4 +9800,6 @@ export const ja: Partial<Record<MessageId, string>> = {
   "inbox.question.titleFrom": "{name} からの質問",
   "taskDetail.conversation": "会話",
   "taskDetail.openConversation": "タスクの会話を開く",
+  "agent.detail.startBlockedOffline": "Agent を起動（コンピューターがオフラインのため起動できません）",
+  "agent.detail.noActions": "実行できる操作はありません",
 };

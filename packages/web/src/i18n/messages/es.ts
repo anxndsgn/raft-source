@@ -9799,4 +9799,6 @@ export const es: Partial<Record<MessageId, string>> = {
   "inbox.question.titleFrom": "{name} te pregunta",
   "taskDetail.conversation": "Conversación",
   "taskDetail.openConversation": "Abrir la conversación de la tarea",
+  "agent.detail.startBlockedOffline": "Iniciar el agente (su computadora está desconectada)",
+  "agent.detail.noActions": "No hay acciones disponibles",
 };
