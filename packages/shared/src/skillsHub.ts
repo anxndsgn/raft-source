@@ -126,6 +126,9 @@ export interface SkillsHubItemView {
 
 export interface SkillsHubCatalogResponse {
   items: SkillsHubItemView[];
+  /** The catalog list only (`GET /api/skills-hub/items`): Agents with each item on, by item id, out of `agentTotal` (task #18). */
+  enabledAgentCounts?: Record<string, number>;
+  agentTotal?: number;
 }
 
 export interface SkillsHubAgentItemView extends SkillsHubItemView {

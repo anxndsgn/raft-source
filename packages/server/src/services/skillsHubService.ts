@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import {
   SKILLS_HUB_MAX_CONTENT_BYTES,
   SKILLS_HUB_PLUGIN_NAME_PATTERN,
@@ -97,10 +97,22 @@ function isUniqueViolation(error: unknown): boolean {
 }
 
 export async function listSkillsHubItems(serverId: string, db: DatabaseExecutor = getDb()): Promise<SkillsHubCatalogResponse> {
-  const rows = await db.select().from(skillsHubItems)
-    .where(eq(skillsHubItems.serverId, serverId))
-    .orderBy(asc(skillsHubItems.kind), asc(skillsHubItems.name));
-  return { items: rows.map(toView) };
+  const [rows, counts, liveAgents] = await Promise.all([
+    db.select().from(skillsHubItems)
+      .where(eq(skillsHubItems.serverId, serverId))
+      .orderBy(asc(skillsHubItems.kind), asc(skillsHubItems.name)),
+    db.select({ itemId: skillsHubAssignments.itemId, count: sql<number>`count(*)::int` })
+      .from(skillsHubAssignments)
+      .innerJoin(agents, and(eq(agents.id, skillsHubAssignments.agentId), isNull(agents.deletedAt)))
+      .where(eq(skillsHubAssignments.serverId, serverId))
+      .groupBy(skillsHubAssignments.itemId),
+    db.select({ count: sql<number>`count(*)::int` }).from(agents).where(and(eq(agents.serverId, serverId), isNull(agents.deletedAt))),
+  ]);
+  return {
+    items: rows.map(toView),
+    enabledAgentCounts: Object.fromEntries(counts.map((row) => [row.itemId, row.count])),
+    agentTotal: liveAgents[0]?.count ?? 0,
+  };
 }
 
 export async function createSkillsHubItem(input: {
