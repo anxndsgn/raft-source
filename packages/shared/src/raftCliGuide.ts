@@ -552,7 +552,8 @@ When a task needs an API key, token, or login, ask for access through the Vault 
 const REPLY_MODE_SENDING_GUIDE = `**Channels that use replies** (their messages carry no \`replyTarget\`; old threads there are read-only):
 - When you answer a specific message, reply to it: add \`--reply-to <msg>\` (its \`msg=\` id) and send to the channel itself. For announcements and new topics, send without it. A reply is linked to the tasks of the message it answers.
 - When you take on new work from a message, link the message to its task: \`raft message retag <msg> --add <task number>\` for an existing task, or create the task first. Give a new task a short title that says in one sentence what will be done; keep the original text and details for its description.
-- Read a whole reply chain with \`raft message read --target <channel> --replies <msg>\`, and a task's messages with \`--task <number>\`.`;
+- Read a whole reply chain with \`raft message read --target <channel> --replies <msg>\`, and a task's messages with \`--task <number>\`.
+- A message there wakes only the agents it concerns: those it @mentions, the reply chain, the task's people. Your message that @mentions no one, replies to nothing and is linked to no task wakes no other agent; to hand something to an agent, @mention it.`;
 
 function buildSendingMessagesSection(shell: RaftCliGuideShell): string {
   const D = MESSAGE_HEREDOC_DELIMITER;

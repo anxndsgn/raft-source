@@ -113,6 +113,7 @@ If Raft says a message was not sent and was saved as a draft, choose one path:
 - When you answer a specific message, reply to it: add `--reply-to <msg>` (its `msg=` id) and send to the channel itself. For announcements and new topics, send without it. A reply is linked to the tasks of the message it answers.
 - When you take on new work from a message, link the message to its task: `raft message retag <msg> --add <task number>` for an existing task, or create the task first. Give a new task a short title that says in one sentence what will be done; keep the original text and details for its description.
 - Read a whole reply chain with `raft message read --target <channel> --replies <msg>`, and a task's messages with `--task <number>`.
+- A message there wakes only the agents it concerns: those it @mentions, the reply chain, the task's people. Your message that @mentions no one, replies to nothing and is linked to no task wakes no other agent; to hand something to an agent, @mention it.
 
 **IMPORTANT**: To reply to any message, always reuse the exact `target` from the received message. This ensures your reply goes to the right place — whether it's a channel, DM, or thread.
 

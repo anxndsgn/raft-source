@@ -14,7 +14,7 @@ import { createApiTest } from "../test/integration/apiTest";
 import { fixturePasswordHash, tokenForHuman } from "../test/integration/credentials";
 import { mintAgentCredential } from "../services/agentCredentialService";
 import { createAgent } from "../services/agentService";
-import { addAgent, addHuman, createChannel, getOrCreateThread, updateChannel } from "../services/channelService";
+import { addAgent, addHuman, createChannel, getOrCreateThread, setInboxTargetActivityMuteState, updateChannel } from "../services/channelService";
 import { broadcastAndDeliver, createMessage } from "../services/messageService";
 import { addMember, createServer } from "../services/serverService";
 import { taskLinkedMessageSummary } from "../services/replyModeService";
@@ -429,4 +429,51 @@ test("reply mode, people: a reply can leave an inherited task; the sender or an 
   assert.deepEqual(byOwner.body.taskNumbers, [1, 2]);
   const empty = await call(owner.email!, `/messages/${originalId}/tasks`, {});
   assert.equal(empty.status, 400);
+});
+
+test("reply mode, task #13: a person's @ wakes only the mentioned agents; an @ that reaches no one wakes all", async ({ app }) => {
+  const deliveries = installRecordingOrchestrator(app.app);
+  const { owner, server, channel, a, b, c } = await setup("rm-at");
+  const [member] = await getDb().insert(users).values({
+    email: `rm-at-member-${randomUUID()}@slock.test`, name: `rm-at-member-${randomUUID().slice(0, 8)}`, displayName: "member",
+    passwordHash: await fixturePasswordHash("password123"), emailVerified: true, profileSetupCompletedAt: new Date("2026-01-01T00:00:00.000Z"),
+  }).returning();
+  await addMember(server.id, member!.id, "member");
+  await addHuman(channel.id, member!.id);
+  const token = await tokenForHuman(owner.email!);
+  const send = async (content: string, extra: Record<string, unknown> = {}) => {
+    const res = await fetch(`${app.baseUrl}/api/v2/messages`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "X-Server-Id": server.id, "Content-Type": "application/json" },
+      body: JSON.stringify({ channelId: channel.id, content, ...extra }),
+    });
+    assert.equal(res.status, 200, await res.clone().text());
+    const id = sentId(await res.json() as Body);
+    await settle();
+    return id;
+  };
+  const all = [a.id, b.id, c.id].sort();
+
+  // Outside reply mode nothing changes: an @ still wakes every agent.
+  assert.deepEqual(wokenFor(deliveries, await send(`@${a.name} look`)), all, "reply mode off: as today");
+
+  await updateChannel(channel.id, { replyMode: true });
+  assert.deepEqual(wokenFor(deliveries, await send(`@${a.name} look`)), [a.id], "@agent: only it");
+  assert.deepEqual(wokenFor(deliveries, await send(`@${member!.name} what do you think`)), [], "@person only: no agent");
+  assert.deepEqual(wokenFor(deliveries, await send(`@${a.name} @${member!.name}`)), [a.id], "@agent @person: the agent");
+  const plain = await send("anyone around?");
+  assert.deepEqual(wokenFor(deliveries, plain), all, "nothing addressed: every agent");
+  assert.deepEqual(wokenFor(deliveries, await send("@nobody-by-this-name look")), all, "an @ that reaches no one: every agent");
+
+  // A reply to b's message with @a: b (the chain) and a.
+  const fromB = await agentSend(app.baseUrl, b.key, { target: `#${channel.name}`, content: "status: deploying" });
+  assert.equal(fromB.status, 200, JSON.stringify(fromB.body));
+  await settle();
+  const bMessage = sentId(fromB.body);
+  assert.deepEqual(wokenFor(deliveries, bMessage), [], "an agent's report wakes no agent");
+  assert.deepEqual(wokenFor(deliveries, await send(`@${a.name} can you check`, { replyToMessageId: bMessage })), [a.id, b.id].sort(), "reply + @: chain and mentioned");
+
+  // A muted agent is still woken by an @.
+  await setInboxTargetActivityMuteState({ receiverType: "agent", receiverId: c.id, serverId: server.id, sourceChannelId: channel.id, activityMuted: true });
+  assert.deepEqual(wokenFor(deliveries, await send(`@${c.name} please`)), [c.id], "@ pierces mute");
 });

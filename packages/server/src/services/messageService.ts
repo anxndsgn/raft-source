@@ -4343,12 +4343,29 @@ export async function deliverMessagesToAgents(
     agent.id, await resolveRecipientDeliveryNames(channel.serverId, agent.id, channel, parentFields),
   ] as const)));
 
+  // Reply mode (replyModeRouting.ts, task #13): batches take the send path's rule too — system notices, an
+  // external user's message, a task's host message wake only the agents they concern; a person's @ wakes only
+  // the mentioned. Outside reply mode (and in threads) nothing changes.
+  const replyModeChannel = channel.replyMode === true && !isSubConversationType(channel.type);
+  const mentionsSomeone = (opts.personalAttentionTargets ?? []).some((target) => target.type === "user" || target.type === "agent");
   for (const [index, message] of messageBatch.entries()) {
     const piercedAgentIds = new Set(
       (opts.personalAttentionTargets ?? [])
         .filter((target) => target.type === "agent")
         .map((target) => target.id),
     );
+    const replyModeAudience = replyModeChannel
+      ? await resolveReplyModeAudience({
+        message: {
+          id: message.id,
+          // An external user speaks as a person.
+          senderType: message.senderType === "external_projection" ? "user" : message.senderType,
+          senderId: message.senderId,
+          replyToMessageId: message.replyToMessageId ?? null,
+        },
+        mentionsSomeone,
+      })
+      : null;
     if (message.senderType !== "external_projection" && message.taskAssigneeType === "agent" && message.taskAssigneeId) {
       piercedAgentIds.add(message.taskAssigneeId);
     }
@@ -4361,6 +4378,8 @@ export async function deliverMessagesToAgents(
     );
     for (const agent of candidateAgents) {
       if (mutedAgentDeliveryIds.has(agent.id)) continue;
+      if (replyModeAudience?.kind === "some"
+        && (replyModeAudience.loopGuarded || (!replyModeAudience.agentIds.has(agent.id) && !piercedAgentIds.has(agent.id)))) continue;
       // Deliver only what the agent's inbox counts as unread (inboxUnreadEligibility).
       if (!isMessageUnreadEligibleForReceiver(message, { type: "agent", id: agent.id }, {
         personallyMentioned: piercedAgentIds.has(agent.id),
@@ -11698,7 +11717,10 @@ export async function broadcastAndDeliver(
   // agent's message wakes only the agents it concerns; the rest keep it as
   // unread, as a muted channel does. @mentions wake as always.
   const replyModeAudience = !isThread && channel?.replyMode === true
-    ? await resolveReplyModeAudience({ message })
+    ? await resolveReplyModeAudience({
+      message,
+      mentionsSomeone: targetVisibleMentions.some((mention) => mention.type === "user" || mention.type === "agent"),
+    })
     : null;
   if (replyModeAudience?.kind === "some" && replyModeAudience.userIds.size > 0 && message.messageType === "chat") {
     void recordReplyModeAttention(message, channel.serverId, [...replyModeAudience.userIds], targetVisibleMentions)

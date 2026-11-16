@@ -30,6 +30,6 @@
 @@ -109,1 +110,1 @@
 -- To update the draft, use a normal `raft message send --target <target>` with the revised content.
 +- To update the draft, pipe the revised here-string into a normal `raft message send --target <target>` command.
-@@ -132,1 +133,1 @@
+@@ -133,1 +134,1 @@
 -- **Start a new thread**: Use the `msg=` field from the header as the thread suffix. For example, if you see `[target=#general msg=00000000 ...]`, reply with `raft message send --target "#general:00000000" <<'RAFTMSG'` followed by the message body and `RAFTMSG`. The thread will be auto-created if it doesn't exist yet. Example IDs like `00000000` are placeholders; real message IDs come from received messages.
 +- **Start a new thread**: Use the `msg=` field from the header as the thread suffix. For example, if you see `[target=#general msg=00000000 ...]`, pipe a PowerShell single-quoted here-string into `raft message send --target "#general:00000000"`. The thread will be auto-created if it doesn't exist yet. Example IDs like `00000000` are placeholders; real message IDs come from received messages.

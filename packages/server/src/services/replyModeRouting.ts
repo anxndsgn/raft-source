@@ -14,7 +14,10 @@ import { getDb, type DatabaseExecutor } from "../db/index";
  *    wrote a message linked to it;
  * 5. an agent's message with none of these: no agent;
  * 6. a person's message with none of these: every agent of the channel,
- *    each deciding for itself whether to take it.
+ *    each deciding for itself whether to take it — unless it @mentions
+ *    someone it can reach (an agent or a person): then only the mentioned
+ *    agents, added by the caller (task #13; an @ that reaches no one, a typo
+ *    or someone outside the channel, counts as none).
  *
  * Loop guard: an agent's reply in a chain that already has more than
  * REPLY_CHAIN_AGENT_LOOP_LIMIT agent messages since its latest human message
@@ -99,14 +102,16 @@ async function linkedTaskIds(messageId: string, executor?: DatabaseExecutor): Pr
  */
 export async function resolveReplyModeAudience(input: {
   message: { id: string; senderType: string; senderId: string; replyToMessageId: string | null };
+  /** Whether the message @mentions anyone it reaches (the send's resolved, notifiable mentions). */
+  mentionsSomeone?: boolean;
   executor?: DatabaseExecutor;
 }): Promise<ReplyModeAudience> {
   const { message, executor } = input;
   const taskIds = await linkedTaskIds(message.id, executor);
   if (!message.replyToMessageId && taskIds.length === 0) {
-    // Case 6 (a person, nothing else): everyone decides for themselves.
+    // Case 6 (a person, nothing else): everyone decides for themselves; a person's @ wakes only the mentioned.
     // Case 5 (an agent, nothing else): no one; mentions are added by the caller.
-    return message.senderType === "user"
+    return message.senderType === "user" && !input.mentionsSomeone
       ? { kind: "all" }
       : { kind: "some", agentIds: new Set(), userIds: new Set(), loopGuarded: false };
   }
