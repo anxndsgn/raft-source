@@ -138,6 +138,15 @@ function readTabs(): { tabs: OpenArtifact[]; titles: Record<string, string>; ope
 
 const savedTabs = readTabs();
 
+/**
+ * Tabs closed this session (anxndsgn 11/16): an address Back lands on — a close goes back through history — must
+ * not bring one of them back. Opening one again takes it off.
+ */
+const closedTabs = new Set<string>();
+export function wasTabClosed(id: string): boolean {
+  return closedTabs.has(id);
+}
+
 export const useArtifactViewerStore = create<ArtifactViewerState>((set) => ({
   open: savedTabs.open,
   tabs: savedTabs.tabs,
@@ -164,6 +173,7 @@ export const useArtifactViewerStore = create<ArtifactViewerState>((set) => ({
     return { open, openedAt: Date.now(), picked: null };
   }),
   closeTab: (id) => set((state) => {
+    closedTabs.add(id);
     const tabs = state.tabs.filter((t) => t.id !== id);
     if (state.open?.id !== id) return { tabs };
     const next = tabs[tabs.length - 1] ?? null;
@@ -174,7 +184,9 @@ export const useArtifactViewerStore = create<ArtifactViewerState>((set) => ({
   expanded: false,
   addressed: null,
   picked: null,
-  openArtifact: (open) => set((state) => ({
+  openArtifact: (open) => set((state) => {
+    closedTabs.delete(open.id);
+    return ({
     open,
     // A tab per Artifact, at most 8: opening one already there brings it forward in its place.
     tabs: state.tabs.some((t) => t.id === open.id)
@@ -184,11 +196,13 @@ export const useArtifactViewerStore = create<ArtifactViewerState>((set) => ({
     expanded: false,
     picked: null,
     drawerCollapsed: false,
-  })),
+  });
+  }),
   showVersion: (version) => set((state) => (state.open ? { picked: { version } } : state)),
   // Closing the workspace's shown Artifact: its tab goes, the one before it shows (none left: the workspace closes).
   close: () => set((state) => {
     if (!state.open) return { open: null, expanded: false, picked: null };
+    closedTabs.add(state.open.id);
     const tabs = state.tabs.filter((t) => t.id !== state.open!.id);
     const next = tabs[tabs.length - 1] ?? null;
     return { tabs, open: next, openedAt: Date.now(), expanded: next ? state.expanded : false, picked: null };

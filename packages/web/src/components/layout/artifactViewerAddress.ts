@@ -4,7 +4,7 @@ import type { MutableRefObject } from "react";
 import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import type { NavigationType } from "react-router-dom";
 
-import { openArtifactOverDialog, useArtifactViewerStore } from "../../apps/artifacts";
+import { openArtifactOverDialog, useArtifactViewerStore, wasTabClosed } from "../../apps/artifacts";
 import type { ArtifactAddressedPlaces } from "../../apps/artifacts";
 import { parseSearchOpenParam } from "../../store/searchContentStore";
 import {
@@ -185,6 +185,15 @@ export function useArtifactViewerAddress(): void {
       return;
     }
     restoring.current = false;
+    // Back onto an Artifact whose tab was closed (a close goes back through history): it stays closed, the address
+    // follows what is shown (anxndsgn 11/16: closing a tab brought back one closed before).
+    if (navigationType === "POP" && wasTabClosed(asked.id) && !store.tabs.some((t) => t.id === asked.id)) {
+      const shownHere = open && here ? { id: open.id, version: shownVersion(store) } : null;
+      writeArtifactAddress(navigate, shownHere
+        ? artifactAddressOpening(entry, shownHere, open!.source, { push: false, place: here! })
+        : artifactAddressClosing(entry, { pushed: false }));
+      return;
+    }
     // A thread just moved into the workspace (§5): its side panel closing takes the address back to the one from
     // before it opened, an Artifact already among the tabs. That isn't a choice to show it: the thread's tab stays.
     if (open?.thread && store.tabs.some((t) => t.id === asked.id) && currentTimeMs() - store.openedAt < 2000) {
@@ -231,7 +240,10 @@ export function useArtifactViewerAddress(): void {
       if (inAddress.version !== version) writeArtifactAddress(navigate, artifactAddressVersion(entry, version), { record: true });
       return;
     }
-    writeArtifactAddress(navigate, artifactAddressOpening(entry, { id: state.open.id, version }, state.open.source, { push: true, place }), { record: true });
+    // The one shown after its neighbour's tab closed takes that entry's place: a new entry would leave the closed
+    // one's under it, and the next close (history Back) would open it again.
+    const afterClose = !!prev.open && !state.tabs.some((t) => t.id === prev.open!.id) && inAddress?.id === prev.open.id;
+    writeArtifactAddress(navigate, artifactAddressOpening(entry, { id: state.open.id, version }, state.open.source, { push: !afterClose, place }), { record: true });
   }), [navigate]);
 }
 

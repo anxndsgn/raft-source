@@ -66,5 +66,5 @@ export type { PublicArtifactPageProps } from "./PublicArtifactPage";
 /** Whether this workspace has Workspace Artifacts on (workspace_artifacts_v0); core reads it to decide what a guest shell offers. */
 export { useWorkspaceArtifactsEnabled } from "./useWorkspaceArtifactsEnabled";
 /** The open Artifact viewer (which conversation it belongs to); a guest shell reads it to keep that conversation reachable. */
-export { openArtifactOverDialog, useArtifactViewerStore } from "./artifactViewerStore";
+export { openArtifactOverDialog, useArtifactViewerStore, wasTabClosed } from "./artifactViewerStore";
 export type { ArtifactAddressedPlaces } from "./artifactViewerStore";
