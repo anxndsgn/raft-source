@@ -211,6 +211,12 @@ export default function CreateTaskDialog({ channelId: fixedChannelId, defaultCha
           <CreateTaskAssigneeField options={assigneeOptions} value={assignee} onValueChange={setAssignee} />
         </div>
         {channelError && fixedChannelId ? <FieldError>{channelError}</FieldError> : null}
+        {/* A phone's sheet has no footer row (its Create is in the head): the same line under the fields (Figmama). */}
+        {channelLabel ? (
+          <p className="text-footnote text-foreground-hint md:hidden" data-testid="create-task-posts-in-phone">
+            {formatMessage({ id: "task.create.postsInHint" }, { channel: channelLabel })}
+          </p>
+        ) : null}
         <DialogCardFooter className="items-center">
           {channelLabel ? (
             <span className="mr-auto min-w-0 truncate text-footnote text-foreground-hint" data-testid="create-task-posts-in">
