@@ -3737,6 +3737,8 @@ export async function broadcastSystemMessage(
     persistedMessage?: typeof messages.$inferSelect;
     /** Structured metadata stored on the new system row (ignored with `persistedMessage`). */
     actionMetadata?: unknown | null;
+    /** Reply mode: the message this notice replies to on the timeline (ignored with `persistedMessage`). */
+    replyToMessageId?: string | null;
     /** Delivery options for an intrinsic persisted system message. */
     agentDeliveryOptions?: DeliverMessageOptions;
     /** Await typed queue receipts and fail if any targeted agent drops delivery. */
@@ -3770,6 +3772,7 @@ export async function broadcastSystemMessage(
       causalActorId: opts.inboxFactPolicy.causalActor?.id ?? null,
       systemSubtype: opts.inboxFactPolicy.producer,
       ...(opts.actionMetadata != null ? { actionMetadata: opts.actionMetadata } : {}),
+      ...(opts.replyToMessageId ? { replyToMessageId: opts.replyToMessageId } : {}),
     });
   const personalAttentionTargets = opts.personalAttentionTargets ?? [];
   // Same manifest-complete `message:new` key set as an ordinary send
@@ -4075,6 +4078,8 @@ export async function broadcastSystemMessageToLocalSurfaces(
     persistedMessage?: typeof messages.$inferSelect;
     /** Structured metadata stored on the new system row (ignored with `persistedMessage`). */
     actionMetadata?: unknown | null;
+    /** Reply mode: the message this notice replies to on the timeline. */
+    replyToMessageId?: string | null;
   },
 ) {
   const deps = resolveMessageServiceDeps();

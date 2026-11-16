@@ -3126,9 +3126,15 @@ export async function postActionCardResultReply(input: {
       ?? (requester.type === "user" ? await otherDmHuman(localCarrierChannelId, requester.id)
         : input.outcome.kind === "question_expired" ? await questionExpiryCausalUser(input.outcome.action, localCarrierChannelId) : null);
     if (!causalUserId) return skip("no_causal_user");
+    // A channel that uses replies has no threads to start (old ones are read-only): the notice is a reply to
+    // the card on the timeline, which wakes the requester through the reply chain (anxndsgn, card 9e0e5722).
+    const timelineReply = carrierChannel.type !== "thread" && carrierChannel.replyMode === true;
     let threadChannelId: string;
     let threadParentMessageId: string;
-    if (carrierChannel.type === "thread") {
+    if (timelineReply) {
+      threadChannelId = localCarrierChannelId;
+      threadParentMessageId = input.messageId;
+    } else if (carrierChannel.type === "thread") {
       if (!carrierChannel.parentMessageId) return skip("thread_without_parent");
       threadChannelId = localCarrierChannelId;
       threadParentMessageId = carrierChannel.parentMessageId;
@@ -3164,15 +3170,18 @@ export async function postActionCardResultReply(input: {
     // Delivery in a thread follows thread attention; start (or revive) the
     // requester's follow at the current tail so this reply is the unread item
     // that wakes an agent and reaches a person.
-    await channelService.recordThreadFollow(
-      requester.type,
-      requester.id,
-      threadChannelId,
-      threadParentMessageId,
-      "mentioned",
-      { reactivateUnfollowed: true, preserveExistingReason: true, joinedThroughSeq: "latest" },
-    );
+    if (!timelineReply) {
+      await channelService.recordThreadFollow(
+        requester.type,
+        requester.id,
+        threadChannelId,
+        threadParentMessageId,
+        "mentioned",
+        { reactivateUnfollowed: true, preserveExistingReason: true, joinedThroughSeq: "latest" },
+      );
+    }
     await messageService.broadcastSystemMessageToLocalSurfaces(input.io, input.orchestrator, threadChannelId, content, {
+      ...(timelineReply ? { replyToMessageId: input.messageId } : {}),
       inboxFactPolicy: {
         mode: "record",
         producer: "action_card.result_reply",

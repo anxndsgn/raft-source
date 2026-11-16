@@ -597,3 +597,20 @@ limitedTest("a person's answers to question cards are limited per hour: over it 
   assert.equal(limited.body.errorCode, "question_answers_rate_limited");
   assert.equal((await cardRow(card.messageId)).state, "prepared");
 });
+
+test("in a channel that uses replies, the answer is told as a reply to the card on the timeline, not in a thread", async ({ app }) => {
+  const f = await seed(app);
+  await channelService.updateChannel(f.channel.id, { replyMode: true });
+  const single = [{ id: "window", kind: "single", text: "Which window?", options: [{ value: "tue", label: "Tue 10:00" }, { value: "wed", label: "Wed 15:00" }] }];
+  const card = await prepared(f, app.baseUrl, ask(`@${f.alice.name}`, { questions: single }));
+  const done = await answer(app.baseUrl, f, "alice", card.messageId, { window: { selected: ["wed"] } });
+  assert.equal(done.status, 200, done.text);
+  await new Promise((resolve) => setTimeout(resolve, 300));
+  assert.deepEqual(await repliesTo(f, card.messageId), [], "no thread reply");
+  const [thread] = await getDb().select().from(channels).where(and(eq(channels.type, "thread"), eq(channels.parentMessageId, card.messageId)));
+  assert.equal(thread, undefined, "no thread started");
+  const replies = await getDb().select().from(messages).where(and(eq(messages.channelId, f.channel.id), eq(messages.systemSubtype, "action_card.result_reply")));
+  assert.equal(replies.length, 1);
+  assert.equal(replies[0]!.replyToMessageId, card.messageId);
+  assert.ok(replies[0]!.content.startsWith(`@${f.agent.name} `), replies[0]!.content);
+});
