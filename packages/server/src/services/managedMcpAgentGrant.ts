@@ -12,10 +12,15 @@ import { actorHasServerCapabilityInServer } from "../lib/actorPermissions";
  *
  * An App with no recorded creator (created before the column was filled, or whose creator's
  * account was deleted) is granted to every Agent, which is how every MCP App behaved before.
+ *
+ * An App in `explicit` grant mode is granted to no Agent automatically: only Agents with an
+ * enabled assignment row hold it, and an Agent created later starts without it. New Apps from the
+ * one-screen Add MCP flow start explicit, and an older App switches to explicit the first time a
+ * person sets its Agents from the App's detail (raft-customized task #18).
  */
 
 type AgentCreator = { creatorType: string | null; creatorId: string | null };
-type AppCreator = { createdByUserId: string | null };
+type AppCreator = { createdByUserId: string | null; agentGrantMode: "automatic" | "explicit" };
 
 /** The automatic-grant rule for one Agent, with each App creator's capability read at most once. */
 export type McpAutoGrantResolver = (app: AppCreator) => Promise<boolean>;
@@ -27,6 +32,7 @@ export function mcpAutoGrantResolver(
 ): McpAutoGrantResolver {
   const creatorCanManageExternalAuth = new Map<string, Promise<boolean>>();
   return async (app) => {
+    if (app.agentGrantMode === "explicit") return false;
     if (app.createdByUserId === null) return true;
     if (agent.creatorType === "user" && agent.creatorId === app.createdByUserId) return true;
     let capability = creatorCanManageExternalAuth.get(app.createdByUserId);
@@ -40,19 +46,22 @@ export function mcpAutoGrantResolver(
 
 /**
  * The per-App side of the rule for counting many Agents: `null` when the App is granted to every
- * Agent, otherwise the one user whose Agents it is granted to.
+ * Agent, `false` when it is granted to none automatically (explicit mode), otherwise the one user
+ * whose Agents it is granted to.
  */
 export async function mcpAutoGrantCreatorScope(
   executor: DatabaseExecutor,
   serverId: string,
   app: AppCreator,
-): Promise<string | null> {
+): Promise<string | null | false> {
+  if (app.agentGrantMode === "explicit") return false;
   if (app.createdByUserId === null) return null;
   const everyone = await actorHasServerCapabilityInServer(serverId, "user", app.createdByUserId, "manageExternalAuth", executor);
   return everyone ? null : app.createdByUserId;
 }
 
-export function mcpAutoGrantCoversAgent(creatorScope: string | null, agent: AgentCreator): boolean {
+export function mcpAutoGrantCoversAgent(creatorScope: string | null | false, agent: AgentCreator): boolean {
+  if (creatorScope === false) return false;
   return creatorScope === null || (agent.creatorType === "user" && agent.creatorId === creatorScope);
 }
 

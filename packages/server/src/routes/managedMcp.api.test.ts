@@ -853,3 +853,74 @@ test("⭐ POST and DELETE /api/mcp/apps/:appId/logo manage an MCP App's logo lik
     await app.close();
   }
 });
+
+test("⭐ task #18: an App's Agents are set as a list; doing so makes it explicit, so a new Agent starts without it", async () => {
+  const app = await openTestApp("pglite://", 0, { humanActivityMuteFlagDefaultEnabled: true });
+  try {
+    const owner = await seedUser(`mcp-agents-owner-${randomUUID()}@slock.test`);
+    const member = await seedUser(`mcp-agents-member-${randomUUID()}@slock.test`);
+    const server = await createServer("App agents", `app-agents-${randomUUID()}`, owner.id);
+    await addMember(server.id, member.id, "member");
+    const first = await createAgent(server.id, "app-agents-first", { creatorType: "user", creatorId: owner.id });
+    const second = await createAgent(server.id, "app-agents-second", { creatorType: "user", creatorId: owner.id });
+    const [mcpApp] = await getDb().insert(managedMcpServers).values({
+      serverId: server.id, name: "Open", endpointUrl: "https://open.example.test/mcp", authMode: "none", sourceKind: "url", createdByUserId: owner.id,
+      lastCheckedAt: new Date(),
+    }).returning();
+    const ownerToken = await login(app.baseUrl, owner.email);
+    const call = async (method: string, path: string, token = ownerToken, body?: unknown) => {
+      const res = await fetch(`${app.baseUrl}/api/mcp${path}`, { method, headers: headers(token, server.id), ...(body ? { body: JSON.stringify(body) } : {}) });
+      return { status: res.status, body: await res.json() as Record<string, any> };
+    };
+    const listed = async () => (await call("GET", "/apps")).body.apps.find((item: { id: string }) => item.id === mcpApp.id);
+
+    // An older App is automatic: the owner (manageExternalAuth) created it, so both Agents hold it.
+    let item = await listed();
+    assert.equal(item.agentGrantMode, "automatic");
+    assert.equal(item.enabledAgentCount, 2);
+    assert.equal(item.agentTotal, 2);
+    assert.equal(item.state, "ok");
+    assert.deepEqual((await call("GET", `/apps/${mcpApp.id}/agents`)).body.agents.map((agent: { enabled: boolean }) => agent.enabled), [true, true]);
+
+    // A plain member may not set the list.
+    assert.equal((await call("PUT", `/apps/${mcpApp.id}/agents`, await login(app.baseUrl, member.email), { agentIds: [first.id] })).status, 403);
+
+    // Only the first: the second loses it, and the App is now explicit.
+    const set = await call("PUT", `/apps/${mcpApp.id}/agents`, ownerToken, { agentIds: [first.id] });
+    assert.equal(set.status, 200);
+    assert.equal(set.body.agentGrantMode, "explicit");
+    assert.deepEqual(
+      set.body.agents.map((agent: { agentId: string; enabled: boolean }) => [agent.agentId, agent.enabled]),
+      [[first.id, true], [second.id, false]],
+    );
+    // A new Agent starts without it.
+    await createAgent(server.id, "app-agents-third", { creatorType: "user", creatorId: owner.id });
+    item = await listed();
+    assert.equal(item.enabledAgentCount, 1);
+    assert.equal(item.agentTotal, 3);
+
+    // All off, then all on.
+    assert.equal((await call("PUT", `/apps/${mcpApp.id}/agents`, ownerToken, { agentIds: [] })).status, 200);
+    assert.equal((await listed()).enabledAgentCount, 0);
+    const all = (await call("GET", `/apps/${mcpApp.id}/agents`)).body.agents.map((agent: { agentId: string }) => agent.agentId);
+    assert.equal((await call("PUT", `/apps/${mcpApp.id}/agents`, ownerToken, { agentIds: all })).status, 200);
+    assert.equal((await listed()).enabledAgentCount, 3);
+
+    // An unknown Agent is refused and changes nothing.
+    assert.equal((await call("PUT", `/apps/${mcpApp.id}/agents`, ownerToken, { agentIds: [randomUUID()] })).status, 404);
+    assert.equal((await listed()).enabledAgentCount, 3);
+  } finally {
+    await app.close();
+  }
+});
+
+test("task #18: the list says needs_auth for a missing or lapsed sign-in before unreachable", async () => {
+  const { mcpAppListState } = await import("../services/managedMcpAppService");
+  assert.equal(mcpAppListState({ authMode: "none", lastCheckError: null }, [], 0), "ok");
+  assert.equal(mcpAppListState({ authMode: "none", lastCheckError: "timeout" }, [], 0), "unreachable");
+  assert.equal(mcpAppListState({ authMode: "headers", lastCheckError: "401" }, [], 0), "needs_auth");
+  assert.equal(mcpAppListState({ authMode: "oauth", lastCheckError: null }, [{ isServerDefault: true, authStatus: "expired" }], 0), "needs_auth");
+  assert.equal(mcpAppListState({ authMode: "oauth", lastCheckError: null }, [{ isServerDefault: true, authStatus: "ready" }], 0), "ok");
+  assert.equal(mcpAppListState({ authMode: "oauth", lastCheckError: "boom" }, [{ isServerDefault: true, authStatus: "ready" }], 0), "unreachable");
+  assert.equal(mcpAppListState({ authMode: "none", lastCheckError: null }, [], 1), "needs_auth");
+});

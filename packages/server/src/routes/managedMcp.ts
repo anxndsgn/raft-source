@@ -5,6 +5,7 @@ import { MANAGED_MCP_OAUTH_RESULT_CHANNEL } from "@botiverse/raft-shared";
 import { and, eq, isNotNull } from "drizzle-orm";
 import { getDb } from "../db/index";
 import { agents, managedMcpServers } from "../db/schema";
+import { inArray } from "drizzle-orm";
 import { actorHasServerCapabilityInServer, getActorServerRoleInServer, userCanActOnAgentResource } from "../lib/actorPermissions";
 import { FencedAuthorizationDeniedError, ServerMembershipRevokedError, withActorMembershipFence } from "../lib/actorMembershipFence";
 import {
@@ -53,7 +54,10 @@ import {
   createMcpApp,
   deleteMcpApp,
   getMcpAppView,
+  listMcpAppAgents,
   listMcpApps,
+  planMcpAppAgents,
+  setMcpAppAgentGrantMode,
   clearMcpAppLogo,
   refreshMcpApp,
   updateMcpApp,
@@ -720,19 +724,127 @@ const probeLimiterForUrlSource = (req: Request, res: Response, next: NextFunctio
   next();
 };
 
+function optionalAgentIds(value: unknown): string[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length > 1000 || value.some((id) => typeof id !== "string" || !UUID_RE.test(id))) {
+    throw new ManagedMcpCredentialError("agentIds must be a list of agent ids", "managed_mcp_credential_invalid");
+  }
+  return [...new Set(value as string[])];
+}
+
+/**
+ * "These Agents, and only these" for one App (task #18): switches the App to explicit grant mode
+ * and writes the rows, re-authorized per Agent inside the membership fence like the per-Agent
+ * route, then restarts the Agents whose access changed.
+ */
+async function applyMcpAppAgents(req: Request, appId: string, agentIds: readonly string[]): Promise<void> {
+  const closedCards: string[] = [];
+  const changed = await withActorMembershipFence(req.serverId!, req.userId!, async (tx, lockedRole) => {
+    const plan = await planMcpAppAgents(tx, req.serverId!, appId, agentIds);
+    const writeIds = plan.writes.map((write) => write.agentId);
+    if (writeIds.length > 0) {
+      const locked = await tx
+        .select({ id: agents.id, creatorType: agents.creatorType, creatorId: agents.creatorId, assistantOwnerUserId: agents.assistantOwnerUserId })
+        .from(agents)
+        .where(and(eq(agents.serverId, req.serverId!), inArray(agents.id, writeIds)))
+        .for("share");
+      for (const agent of locked) {
+        if (!userCanActOnAgentResource(lockedRole, req.userId!, agent, "manageExternalAuth")) throw new FencedAuthorizationDeniedError("forbidden");
+      }
+    }
+    await setMcpAppAgentGrantMode(tx, req.serverId!, appId, "explicit");
+    for (const write of plan.writes) {
+      await setManagedMcpAssignment({
+        serverId: req.serverId!,
+        userId: req.userId!,
+        agentId: write.agentId,
+        mcpServerId: appId,
+        enabled: write.enabled,
+      }, { executor: tx, closedCards });
+    }
+    if (plan.changed.length > 0) await bumpAgentConfigRevision(tx, plan.changed);
+    return plan.changed;
+  });
+  await announceClosedConnectCards(req, closedCards, req.userId!);
+  const orchestrator = req.app.get("agentOrchestrator") as AgentOrchestrator | undefined;
+  for (const agentId of changed) await orchestrator?.applyAgentConfig(agentId);
+  if (changed.length > 0) await orchestrator?.notifyModelLimitsChanged?.({ agentIds: changed });
+}
+
+function sendMcpAppAgentsError(error: unknown, res: Response, next: NextFunction) {
+  if (error instanceof ServerMembershipRevokedError) {
+    res.status(403).json({ error: error.message });
+    return;
+  }
+  if (error instanceof FencedAuthorizationDeniedError) {
+    res.status(403).json({ error: "manageExternalAuth capability or agent creator authority required", code: "managed_mcp_forbidden" });
+    return;
+  }
+  sendManagedMcpError(error, res, next);
+}
+
 managedMcpRouter.post("/apps", requireCapability("manageIntegrations"), probeLimiterForUrlSource, async (req, res, next) => {
   try {
     const input = body(req);
-    res.status(201).json(await createMcpApp({
+    // The one-screen Add MCP (task #18) sends the first Connection's headers and the Agents with
+    // the App, so one "Add" makes all three; any of them failing removes the half-made App.
+    const headers = optionalHeaders(input.headers);
+    const agentIds = optionalAgentIds(input.agentIds);
+    const created = await createMcpApp({
       serverId: req.serverId!,
       userId: req.userId!,
       source: requiredAppSource(input.source),
       profile: optionalProfile(input.profile),
       ...(input.authKind !== undefined ? { authKind: optionalAuthMode(input.authKind)! } : {}),
       ...(input.requiredHeaderNames !== undefined ? { requiredHeaderNames: input.requiredHeaderNames } : {}),
-    }));
+    });
+    if (headers === undefined && agentIds === undefined) {
+      res.status(201).json(created);
+      return;
+    }
+    try {
+      if (headers !== undefined && Object.keys(headers).length > 0) {
+        const closedCards: string[] = [];
+        await createManagedMcpHeaderConnection({
+          serverId: req.serverId!,
+          userId: req.userId!,
+          mcpServerId: created.id,
+          name: created.profile.name,
+          headers,
+          makeDefault: true,
+        }, {}, closedCards);
+        await announceClosedConnectCards(req, closedCards, req.userId!);
+        // With the key in place the server can list its tools now.
+        await refreshMcpApp(req.serverId!, created.id, req.userId!).catch(() => undefined);
+      }
+      if (agentIds !== undefined) await applyMcpAppAgents(req, created.id, agentIds);
+    } catch (error) {
+      await deleteMcpApp(req.serverId!, created.id).catch(() => undefined);
+      throw error;
+    }
+    res.status(201).json(await getMcpAppView(req.serverId!, created.id, req.userId!));
+  } catch (error) {
+    sendMcpAppAgentsError(error, res, next);
+  }
+});
+
+managedMcpRouter.get("/apps/:appId/agents", requireCapability("viewAgents"), async (req, res, next) => {
+  try {
+    res.json(await listMcpAppAgents(req.serverId!, pathParam(req.params.appId)));
   } catch (error) {
     sendManagedMcpError(error, res, next);
+  }
+});
+
+managedMcpRouter.put("/apps/:appId/agents", requireCapability("manageIntegrations"), async (req, res, next) => {
+  try {
+    const agentIds = optionalAgentIds(body(req).agentIds);
+    if (agentIds === undefined) throw new ManagedMcpCredentialError("agentIds is required", "managed_mcp_credential_invalid");
+    const appId = pathParam(req.params.appId);
+    await applyMcpAppAgents(req, appId, agentIds);
+    res.json(await listMcpAppAgents(req.serverId!, appId));
+  } catch (error) {
+    sendMcpAppAgentsError(error, res, next);
   }
 });
 

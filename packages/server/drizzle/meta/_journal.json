@@ -4880,6 +4880,13 @@
       "when": 1794768845583,
       "tag": "0696_inbox_for_me_done",
       "breakpoints": true
+    },
+    {
+      "idx": 697,
+      "version": "7",
+      "when": 1794823423701,
+      "tag": "0697_mcp_agent_grant_mode",
+      "breakpoints": true
     }
   ]
 }

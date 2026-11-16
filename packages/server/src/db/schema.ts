@@ -11262,6 +11262,8 @@ export const managedMcpServers = pgTable("managed_mcp_servers", {
   lastCheckError: text("last_check_error"),
   createdByUserId: uuid("created_by_user_id").references(() => users.id, { onDelete: "set null" }),
   updatedByUserId: uuid("updated_by_user_id").references(() => users.id, { onDelete: "set null" }),
+  /** Who gets the App without a per-Agent row: `automatic` (creator-scope rule) or `explicit` (only enabled rows). managedMcpAgentGrant.ts */
+  agentGrantMode: text("agent_grant_mode", { enum: ["automatic", "explicit"] }).notNull().default("automatic"),
   // App profile and provenance (0408). All nullable with no default, so the migration is
   // metadata-only and an older binary writing this table during a rolling deploy is unaffected.
   // A NULL `sourceKind` is a row that predates MCP Apps: read it as `template` when `provider`

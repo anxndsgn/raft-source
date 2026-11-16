@@ -255,6 +255,33 @@ export interface McpAppListItem {
   /** Where the App came from; a Raft template (Notion, Linear) is maintained by Raft. */
   source: { kind: "url" | "template"; templateKey: string | null; maintainedByRaft: boolean };
   status: { health: "reachable" | "unreachable" | "unknown"; toolCount: number; connectionCount: number; actionNeeded: number };
+  /** How the App signs in: OAuth, request headers (an API key), or nothing. */
+  authKind: "oauth" | "headers" | "none";
+  /**
+   * The one thing the list says about the App (raft-customized task #18): `needs_auth` when its
+   * default Connection is missing or must sign in again (or a Connect card is open), `unreachable`
+   * when the last check failed, otherwise `ok`.
+   */
+  state: "ok" | "needs_auth" | "unreachable";
+  /** Agents that hold the App now, out of `agentTotal` Agents on the server. */
+  enabledAgentCount: number;
+  agentTotal: number;
+  /** `explicit`: only checked Agents get it, a new Agent starts without it. managedMcpAgentGrant.ts */
+  agentGrantMode: "automatic" | "explicit";
+}
+
+/** One Agent in an MCP App's "which agents" list (`GET /api/mcp/apps/:appId/agents`). */
+export interface McpAppAgentItem {
+  agentId: string;
+  name: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+  enabled: boolean;
+}
+
+export interface McpAppAgentsResponse {
+  agentGrantMode: "automatic" | "explicit";
+  agents: McpAppAgentItem[];
 }
 
 export interface McpAppListResponse {

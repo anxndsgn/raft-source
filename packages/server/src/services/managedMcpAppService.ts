@@ -15,9 +15,10 @@ import {
   type ManagedMcpAuthMode,
   type ManagedMcpOAuthClientMode,
   type ManagedMcpToolCatalogEntry,
+  type McpAppAgentsResponse,
   type McpAppListItem,
 } from "@botiverse/raft-shared";
-import { getDb } from "../db/index";
+import { getDb, type DatabaseExecutor } from "../db/index";
 import {
   actionCards,
   agents,
@@ -219,33 +220,159 @@ export async function getMcpAppView(serverId: string, appId: string, viewerUserI
 }
 
 export async function listMcpApps(serverId: string): Promise<McpAppListItem[]> {
-  const [apps, connectionCounts, cards] = await Promise.all([
-    getDb().select().from(managedMcpServers).where(eq(managedMcpServers.serverId, serverId)).orderBy(asc(managedMcpServers.name)),
-    getDb()
-      .select({ mcpServerId: managedMcpCredentials.mcpServerId, count: sql<number>`count(*)::int` })
+  const db = getDb();
+  const [apps, connectionRows, cards, agentRows, assignmentRows] = await Promise.all([
+    db.select().from(managedMcpServers).where(eq(managedMcpServers.serverId, serverId)).orderBy(asc(managedMcpServers.name)),
+    db
+      .select({ mcpServerId: managedMcpCredentials.mcpServerId, isServerDefault: managedMcpCredentials.isServerDefault, authStatus: managedMcpCredentials.authStatus })
       .from(managedMcpCredentials)
-      .where(eq(managedMcpCredentials.serverId, serverId))
-      .groupBy(managedMcpCredentials.mcpServerId),
+      .where(eq(managedMcpCredentials.serverId, serverId)),
     openCardCounts(serverId),
+    db
+      .select({ id: agents.id, creatorType: agents.creatorType, creatorId: agents.creatorId })
+      .from(agents)
+      .where(and(eq(agents.serverId, serverId), isNull(agents.deletedAt))),
+    db
+      .select({ agentId: managedMcpAssignments.agentId, mcpServerId: managedMcpAssignments.mcpServerId, enabled: managedMcpAssignments.enabled })
+      .from(managedMcpAssignments)
+      .where(eq(managedMcpAssignments.serverId, serverId)),
   ]);
-  const counts = new Map(connectionCounts.map((row) => [row.mcpServerId, row.count]));
-  return apps.map((app) => ({
-    kind: "mcp" as const,
-    id: app.id,
-    name: app.name,
-    description: app.description,
-    logoUrl: clientLogoUrl(app.logoUrl),
-    homepageUrl: app.homepageUrl,
-    category: app.category,
-    distribution: "server_local" as const,
-    source: sourceOf(app),
-    status: {
-      health: healthOf(app).status,
-      toolCount: app.toolCatalog.length,
-      connectionCount: counts.get(app.id) ?? 0,
-      actionNeeded: cards.get(app.id) ?? 0,
-    },
+  const connectionsByApp = new Map<string, Array<{ isServerDefault: boolean; authStatus: string }>>();
+  for (const row of connectionRows) {
+    const list = connectionsByApp.get(row.mcpServerId) ?? [];
+    list.push(row);
+    connectionsByApp.set(row.mcpServerId, list);
+  }
+  const assignmentByKey = new Map(assignmentRows.map((row) => [`${row.mcpServerId}:${row.agentId}`, row.enabled]));
+  return Promise.all(apps.map(async (app) => {
+    const connections = connectionsByApp.get(app.id) ?? [];
+    const actionNeeded = cards.get(app.id) ?? 0;
+    const creatorScope = await mcpAutoGrantCreatorScope(db, serverId, app);
+    let enabledAgentCount = 0;
+    for (const agent of agentRows) {
+      const enabled = assignmentByKey.get(`${app.id}:${agent.id}`);
+      const assignment = enabled === undefined ? null : { enabled };
+      if (mcpAgentGrantAllows(mcpAgentGrant(assignment, mcpAutoGrantCoversAgent(creatorScope, agent)))) enabledAgentCount += 1;
+    }
+    return {
+      kind: "mcp" as const,
+      id: app.id,
+      name: app.name,
+      description: app.description,
+      logoUrl: clientLogoUrl(app.logoUrl),
+      homepageUrl: app.homepageUrl,
+      category: app.category,
+      distribution: "server_local" as const,
+      source: sourceOf(app),
+      status: {
+        health: healthOf(app).status,
+        toolCount: app.toolCatalog.length,
+        connectionCount: connections.length,
+        actionNeeded,
+      },
+      authKind: app.authMode,
+      state: mcpAppListState(app, connections, actionNeeded),
+      enabledAgentCount,
+      agentTotal: agentRows.length,
+      agentGrantMode: app.agentGrantMode,
+    };
   }));
+}
+
+/**
+ * The list's one status for an App (task #18): sign-in first, because a failed check on an App
+ * whose sign-in lapsed is the sign-in, not the network.
+ */
+export function mcpAppListState(
+  app: Pick<AppRow, "authMode" | "lastCheckError">,
+  connections: Array<{ isServerDefault: boolean; authStatus: string }>,
+  actionNeeded: number,
+): McpAppListItem["state"] {
+  if (actionNeeded > 0) return "needs_auth";
+  if (app.authMode !== "none") {
+    const usable = connections.find((connection) => connection.isServerDefault) ?? connections[0];
+    if (!usable || usable.authStatus === "needs_auth" || usable.authStatus === "expired" || usable.authStatus === "pending") return "needs_auth";
+  }
+  return app.lastCheckError ? "unreachable" : "ok";
+}
+
+/** Every Agent on the server and whether it holds this App (the App detail's "which agents" list). */
+export async function listMcpAppAgents(serverId: string, appId: string): Promise<McpAppAgentsResponse> {
+  const app = await loadApp(serverId, appId);
+  const db = getDb();
+  const rows = await db
+    .select({
+      id: agents.id,
+      name: agents.name,
+      displayName: agents.displayName,
+      avatarUrl: agents.avatarUrl,
+      creatorType: agents.creatorType,
+      creatorId: agents.creatorId,
+      enabled: managedMcpAssignments.enabled,
+    })
+    .from(agents)
+    .leftJoin(managedMcpAssignments, and(eq(managedMcpAssignments.agentId, agents.id), eq(managedMcpAssignments.mcpServerId, app.id)))
+    .where(and(eq(agents.serverId, serverId), isNull(agents.deletedAt)))
+    .orderBy(asc(agents.name));
+  const creatorScope = await mcpAutoGrantCreatorScope(db, serverId, app);
+  return {
+    agentGrantMode: app.agentGrantMode,
+    agents: rows.map((row) => ({
+      agentId: row.id,
+      name: row.name,
+      displayName: row.displayName,
+      avatarUrl: row.avatarUrl,
+      enabled: mcpAgentGrantAllows(mcpAgentGrant(row.enabled === null ? null : { enabled: row.enabled }, mcpAutoGrantCoversAgent(creatorScope, row))),
+    })),
+  };
+}
+
+/**
+ * Plans "these Agents, and only these" for an App: which Agents need an assignment row written
+ * (and to what), and which Agents' effective access changes. Judged under the App's CURRENT mode,
+ * because the write switches it to explicit: an Agent holding the App only automatically gets an
+ * enabled row so it keeps it.
+ */
+export async function planMcpAppAgents(
+  executor: DatabaseExecutor,
+  serverId: string,
+  appId: string,
+  agentIds: readonly string[],
+): Promise<{ writes: Array<{ agentId: string; enabled: boolean }>; changed: string[] }> {
+  const [app] = await executor
+    .select()
+    .from(managedMcpServers)
+    .where(and(eq(managedMcpServers.id, appId), eq(managedMcpServers.serverId, serverId)))
+    .limit(1);
+  if (!app) throw new ManagedMcpServiceError("MCP App not found", "managed_mcp_server_not_found");
+  const rows = await executor
+    .select({ id: agents.id, creatorType: agents.creatorType, creatorId: agents.creatorId, enabled: managedMcpAssignments.enabled })
+    .from(agents)
+    .leftJoin(managedMcpAssignments, and(eq(managedMcpAssignments.agentId, agents.id), eq(managedMcpAssignments.mcpServerId, app.id)))
+    .where(and(eq(agents.serverId, serverId), isNull(agents.deletedAt)));
+  const wanted = new Set(agentIds);
+  const known = new Set(rows.map((row) => row.id));
+  for (const id of wanted) if (!known.has(id)) throw new ManagedMcpServiceError("Agent not found", "managed_mcp_agent_not_found");
+  const creatorScope = await mcpAutoGrantCreatorScope(executor, serverId, app);
+  const writes: Array<{ agentId: string; enabled: boolean }> = [];
+  const changed: string[] = [];
+  for (const row of rows) {
+    const holds = mcpAgentGrantAllows(mcpAgentGrant(row.enabled === null ? null : { enabled: row.enabled }, mcpAutoGrantCoversAgent(creatorScope, row)));
+    const want = wanted.has(row.id);
+    if (want !== holds) changed.push(row.id);
+    // Explicit mode grants nothing without a row: a wanted Agent needs an enabled row; an unwanted
+    // Agent needs a disabled row only if it already has one (no row already means "off").
+    if (want && row.enabled !== true) writes.push({ agentId: row.id, enabled: true });
+    else if (!want && row.enabled === true) writes.push({ agentId: row.id, enabled: false });
+  }
+  return { writes, changed };
+}
+
+export async function setMcpAppAgentGrantMode(executor: DatabaseExecutor, serverId: string, appId: string, mode: "automatic" | "explicit"): Promise<void> {
+  await executor
+    .update(managedMcpServers)
+    .set({ agentGrantMode: mode })
+    .where(and(eq(managedMcpServers.id, appId), eq(managedMcpServers.serverId, serverId)));
 }
 
 /* ------------------------------------------------------------------ input validation */
