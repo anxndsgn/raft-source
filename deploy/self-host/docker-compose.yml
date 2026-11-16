@@ -32,6 +32,10 @@ x-server-env: &server-env
   ARTIFACTS_CONTENT_DOMAIN: ${ARTIFACTS_CONTENT_DOMAIN:-}
   ARTIFACTS_CONTENT_WORKER_TOKEN: ${ARTIFACTS_CONTENT_WORKER_TOKEN:-}
   ARTIFACTS_CONTENT_RAFT_TOKENS: ${ARTIFACTS_CONTENT_RAFT_TOKENS:-}
+  # Custom MCP apps: base64 32-byte key that encrypts saved connection headers
+  # (API keys). Generate once with `openssl rand -base64 32`; changing it
+  # makes credentials saved under the old key unreadable.
+  SLOCK_MCP_CREDENTIAL_KEY: ${SLOCK_MCP_CREDENTIAL_KEY:-}
   NODE_OPTIONS: --max-old-space-size=${SERVER_HEAP_MB:-512}
 
 services:
