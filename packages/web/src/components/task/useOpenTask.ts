@@ -56,7 +56,9 @@ export function useOpenTask() {
   const nav = useAppNavigate();
   return useCallback((task: Task) => {
     closeProfile();
-    if (!task.isLegacy && !opensAsTaskConversation(task, taskV2) && openTaskInSidePanel(task, nav.toChannel)) return;
+    // Every task (one with its own conversation too: card 6aa5ebbb) opens its details in the side panel; the
+    // details open the conversation.
+    if (!task.isLegacy && openTaskInSidePanel(task, nav.toChannel)) return;
     if (task.isLegacy) {
       closeThread();
       openLegacyTask(task);

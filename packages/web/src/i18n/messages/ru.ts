@@ -9799,4 +9799,6 @@ export const ru: Partial<Record<MessageId, string>> = {
   "inbox.reviewTask.title": "Задача #{number} ждёт вашей проверки",
   "inbox.question.title": "Вам вопрос",
   "inbox.question.titleFrom": "{name} спрашивает",
+  "taskDetail.conversation": "Обсуждение",
+  "taskDetail.openConversation": "Открыть обсуждение задачи",
 };

@@ -9798,4 +9798,6 @@ export const ja: Partial<Record<MessageId, string>> = {
   "inbox.reviewTask.title": "タスク #{number} があなたの確認待ちです",
   "inbox.question.title": "あなたへの質問",
   "inbox.question.titleFrom": "{name} からの質問",
+  "taskDetail.conversation": "会話",
+  "taskDetail.openConversation": "タスクの会話を開く",
 };

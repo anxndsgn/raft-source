@@ -9797,4 +9797,6 @@ export const es: Partial<Record<MessageId, string>> = {
   "inbox.reviewTask.title": "La tarea #{number} espera tu revisión",
   "inbox.question.title": "Una pregunta para ti",
   "inbox.question.titleFrom": "{name} te pregunta",
+  "taskDetail.conversation": "Conversación",
+  "taskDetail.openConversation": "Abrir la conversación de la tarea",
 };

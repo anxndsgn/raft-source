@@ -9797,4 +9797,6 @@ export const ko: Partial<Record<MessageId, string>> = {
   "inbox.reviewTask.title": "작업 #{number}이(가) 검토를 기다립니다",
   "inbox.question.title": "회원님께 온 질문",
   "inbox.question.titleFrom": "{name}님의 질문",
+  "taskDetail.conversation": "대화",
+  "taskDetail.openConversation": "작업 대화 열기",
 };

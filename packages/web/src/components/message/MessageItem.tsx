@@ -3250,6 +3250,8 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
 
   const openLinkedTask = useCallback(() => {
     if (!linkedTask) return;
+    // Every task tag opens the task's details in the side panel (card 6aa5ebbb); a phone keeps the dialog.
+    if (!linkedTask.isLegacy && openTaskInSidePanel(linkedTask)) return;
     if (opensAsTaskConversation(linkedTask, taskV2)) {
       // Task v2: the task's own conversation, not its message's thread — for
       // a task made the v2 way whatever the flag says.

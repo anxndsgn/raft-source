@@ -10017,6 +10017,8 @@ export const en = {
   "inbox.reviewTask.title": "Task #{number} is waiting for your review",
   "inbox.question.title": "A question for you",
   "inbox.question.titleFrom": "{name} asks you",
+  "taskDetail.conversation": "Task conversation",
+  "taskDetail.openConversation": "Open task conversation",
 } as const;
 
 export type MessageId = keyof typeof en;

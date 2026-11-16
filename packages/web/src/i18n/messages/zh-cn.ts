@@ -9908,4 +9908,6 @@ export const zhCn: Record<MessageId, string> = {
   "inbox.reviewTask.title": "任务 #{number} 等你验收",
   "inbox.question.title": "有个问题等你回答",
   "inbox.question.titleFrom": "{name} 问你",
+  "taskDetail.conversation": "对话",
+  "taskDetail.openConversation": "打开任务对话",
 };

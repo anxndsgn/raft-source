@@ -12,6 +12,9 @@ import type { Task } from "../../store/taskStore";
 import { useTimelineViewStore } from "../../store/timelineViewStore";
 import { useProfileStore } from "../../store/profileStore";
 import { lazyPanel } from "../../boot/deferredUi";
+import { TASK_V2_CONVERSATIONS_FLAG_KEY, useServerFeatureFlag } from "../../store/serverFeatureFlags";
+import { opensAsTaskConversation } from "../../utils/taskConversation";
+import { openTaskConversationDialog } from "./useOpenTask";
 
 // Deferred, its own chunk (check-entry-chunk-structure: MainLayout loads it lazily too).
 const TaskModalHead = lazyPanel(() => import("./TaskModalHead"));
@@ -85,7 +88,22 @@ export function ChannelTaskDetail({ task }: { task: Task }) {
     </DescriptionItem>
   ) : null), [filtering, formatMessage, linked, openTaskView, replyMode]);
 
-  const propertyRows = useMemo(() => ({ trailingRows: linkedRow }), [linkedRow]);
+  // Task v2: a task with its own conversation opens its details here like every task, and the conversation from
+  // this row (anxndsgn, card 6aa5ebbb: one behaviour for every task tag).
+  const taskV2 = useServerFeatureFlag(TASK_V2_CONVERSATIONS_FLAG_KEY).enabled;
+  const hasConversation = opensAsTaskConversation(task, taskV2);
+  const openConversation = useCallback(() => openTaskConversationDialog(task), [task]);
+  const conversationRow = useMemo(() => (hasConversation ? (
+    <DescriptionItem data-testid="task-detail-conversation">
+      <DescriptionTerm>{formatMessage({ id: "taskDetail.conversation" })}</DescriptionTerm>
+      <DescriptionDetails>
+        <TextLink render={<button type="button" />} className="text-left" onClick={openConversation} data-testid="task-detail-open-conversation">
+          {formatMessage({ id: "taskDetail.openConversation" })}
+        </TextLink>
+      </DescriptionDetails>
+    </DescriptionItem>
+  ) : null), [formatMessage, hasConversation, openConversation]);
+  const propertyRows = useMemo(() => ({ trailingRows: <>{conversationRow}{linkedRow}</> }), [conversationRow, linkedRow]);
   const handleOpenProfile = useCallback(
     (kind: "agent" | "human", id: string) => openProfile(kind, id, { openSource: "channel", channelId: task.channelId }),
     [openProfile, task.channelId],

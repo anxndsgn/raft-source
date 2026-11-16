@@ -9797,4 +9797,6 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "inbox.reviewTask.title": "任務 #{number} 等你驗收",
   "inbox.question.title": "有個問題等你回答",
   "inbox.question.titleFrom": "{name} 問你",
+  "taskDetail.conversation": "對話",
+  "taskDetail.openConversation": "打開任務對話",
 };
