@@ -22,6 +22,11 @@ export interface ForMeQuestion {
   expiresAt: string | null;
   askedByAgentId: string | null;
   createdAt: string;
+  /** Asked in a thread or a task's conversation: the channel and message it hangs under. */
+  parentChannelId?: string | null;
+  parentMessageId?: string | null;
+  channelType?: string;
+  parentChannelType?: string | null;
 }
 
 interface ForMeState {

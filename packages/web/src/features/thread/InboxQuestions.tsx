@@ -26,6 +26,23 @@ export function InboxQuestions() {
   );
 }
 
+/**
+ * Where a question card opens: its message in its channel; one asked in a thread opens that thread over its
+ * channel, one in a task's conversation the channel (never the sub-conversation as if it were a channel, which
+ * showed "thread-…" and no way to write).
+ */
+function openQuestion(nav: ReturnType<typeof useAppNavigate>, question: ForMeQuestion) {
+  const parent = question.parentChannelId;
+  if (!parent) {
+    nav.toMessage(question.channelId, question.messageId);
+    return;
+  }
+  const routeKind = question.parentChannelType === "dm" ? "dm" : "channel";
+  if (question.parentMessageId) nav.toThreadMessage(parent, question.parentMessageId, question.messageId, routeKind);
+  else if (routeKind === "dm") nav.toDm(parent);
+  else nav.toChannel(parent);
+}
+
 function QuestionRow({ question }: { question: ForMeQuestion }) {
   const { formatMessage } = useIntl();
   const nav = useAppNavigate();
@@ -33,7 +50,7 @@ function QuestionRow({ question }: { question: ForMeQuestion }) {
     const agent = question.askedByAgentId ? s.agents.find((a) => a.id === question.askedByAgentId) : null;
     return agent ? agent.displayName || agent.name : null;
   });
-  const open = useCallback(() => nav.toMessage(question.channelId, question.messageId), [nav, question.channelId, question.messageId]);
+  const open = useCallback(() => openQuestion(nav, question), [nav, question]);
   const done = useCallback(() => void useForMeStore.getState().markDone([`card:${question.messageId}`]), [question.messageId]);
   const title = asker ? formatMessage({ id: "inbox.question.titleFrom" }, { name: asker }) : formatMessage({ id: "inbox.question.title" });
   const body = question.title || question.firstQuestion || question.reason || "";

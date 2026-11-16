@@ -133,6 +133,12 @@ export type ForMeQuestion = {
   expiresAt: string | null;
   askedByAgentId: string | null;
   createdAt: string;
+  /** Asked in a thread or a task's conversation: where it lives (the web opens it there, not as a channel). */
+  parentChannelId: string | null;
+  parentMessageId: string | null;
+  /** The conversation's own type ("thread", "task", "channel", ...) and its parent's ("dm" or a channel's). */
+  channelType: string;
+  parentChannelType: string | null;
 };
 
 /**
@@ -143,6 +149,7 @@ export async function listOpenQuestionsForUser(userId: string, serverId: string)
   const rows = await getDb().execute<{
     message_id: string; channel_id: string; seq: string | number; title: string | null; reason: string | null;
     first_question: string | null; expires_at: string | null; requester_agent_id: string | null; created_at: Date | string;
+    parent_channel_id: string | null; parent_message_id: string | null; channel_type: string; parent_channel_type: string | null;
   }>(sql`
     SELECT ac.message_id::text AS message_id, m.channel_id::text AS channel_id, m.seq,
            m.action_metadata->'presentation'->>'title' AS title,
@@ -150,9 +157,13 @@ export async function listOpenQuestionsForUser(userId: string, serverId: string)
            ac.payload->'questions'->0->>'text' AS first_question,
            ac.payload->>'expiresAt' AS expires_at,
            ac.requester_agent_id::text AS requester_agent_id,
-           ac.created_at
+           ac.created_at,
+           c.parent_channel_id::text AS parent_channel_id, c.parent_message_id::text AS parent_message_id,
+           c.type AS channel_type, pc.type AS parent_channel_type
     FROM action_cards ac
     JOIN messages m ON m.id = ac.message_id
+    JOIN channels c ON c.id = m.channel_id
+    LEFT JOIN channels pc ON pc.id = c.parent_channel_id
     WHERE ac.server_id = ${serverId}::uuid
       AND ac.action_type = 'question:ask'
       AND ac.state = 'prepared'
@@ -173,5 +184,9 @@ export async function listOpenQuestionsForUser(userId: string, serverId: string)
     expiresAt: row.expires_at,
     askedByAgentId: row.requester_agent_id,
     createdAt: new Date(row.created_at).toISOString(),
+    parentChannelId: row.parent_channel_id,
+    parentMessageId: row.parent_message_id,
+    channelType: row.channel_type,
+    parentChannelType: row.parent_channel_type,
   }));
 }
