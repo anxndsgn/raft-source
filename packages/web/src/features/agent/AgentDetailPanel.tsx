@@ -1,7 +1,7 @@
 import { Badge, Button, ConversationPanelTabs, ScrollArea, SortableTabsList, SortableTabsTab, Tabs, TabsLabel, ProfilePanelBody, useOrderedTabs, Separator, PanelNotice, PanelNoticeActions, PanelNoticeContent } from "@botiverse/raft-ui";
+import { MemberNowRow } from "../../components/message/ProfileCardFooter";
 import Tooltip from "../../components/ui/Tooltip";
-import { useState, useEffect, useRef, useMemo, useCallback, useContext } from "react";
-import { ProfileCompactContext } from "../../components/profile/profileCompact";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useIntl } from "react-intl";
 import { Archive, Bug, Pencil, Check, X, RotateCcw, Lock, Copy, SquareTerminal } from "lucide-react";
 import { useLocation } from "react-router-dom";
@@ -303,7 +303,7 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
       if (tab === "usage" && !agentUsagePanelEnabled) return false;
       return canViewPrivateAgentSurfaces;
     }),
-    [agent.deletedAt, agent.managedByAppInstallId, agentUsagePanelEnabled, canViewPrivateAgentSurfaces, canManageAgent, isExternalAgent],
+    [agent.deletedAt, agent.managedByAppInstallId, agentUsagePanelEnabled, canViewPrivateAgentSurfaces],
   );
   const visibleAgentTabItems = useMemo(
     () => AGENT_PANEL_TABS.filter((tab) => visibleAgentTabs.includes(tab.id)),
@@ -329,9 +329,8 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
   const requestedTab = rawTab ?? legacyFullPageTab;
   // The retired MCP and Skills tabs' links land on Capabilities, which lists both now.
   const resolvedTab = requestedTab === "mcp" || requestedTab === "skills" ? "integrations" : requestedTab;
-  // The Team page's column (PRD v2.0 §5.4): the profile alone, no tab row, until ⤢ shows the whole page.
-  const compact = useContext(ProfileCompactContext);
-  const activeTab: AgentTab = compact ? "profile" : activityOnly
+  // The Team page's column has the whole tab row too (PRD v2.1 §5.4.1, anxndsgn 11/16: one design everywhere).
+  const activeTab: AgentTab = activityOnly
     ? "activity"
     : orderedAgentTabs.some((tab) => tab.id === resolvedTab) ? (resolvedTab as AgentTab) : defaultAgentTab;
   const setActiveTab = useCallback((tab: AgentTab) => {
@@ -706,7 +705,7 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
       {/* Tab bar — the same raft-ui chrome as the chat panel tabs. raft-ui's
           tab row scrolls itself when the tabs do not fit (wheel too), fades
           at the hidden side and keeps the selected tab in view. */}
-      {!activityOnly && !compact && <div ref={touchDragRegion} className="min-w-0 max-w-full">
+      {!activityOnly && <div ref={touchDragRegion} className="min-w-0 max-w-full">
         <ConversationPanelTabs
           render={<Tabs<AgentTab> value={activeTab} onValueChange={setActiveTab} />}
         >
@@ -736,6 +735,8 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
       <AgentTabErrorBoundary resetKey={`${agent.id}:${activeTab}`}>
       {activeTab === "profile" ? (
         <ScrollArea className="flex-1 bg-layer-canvas">
+          {/* What it is doing now, kept on the profile (v2.1 §5.4.1): the head says only its state. */}
+          {!agent.deletedAt ? <MemberNowRow id={agent.id} /> : null}
           {isRemoteJointAgent && (agent.serverName || agent.serverSlug) && (
               <>
               <div className="px-(--surface-inset) py-3">

@@ -22,8 +22,9 @@ import { useChannelMemberRemoval } from "../../components/channel/useChannelMemb
 import ConfirmDialog from "../../components/ConfirmDialog";
 import Tooltip from "../../components/ui/Tooltip";
 import { MembersPageHeader } from "./MembersPageHeader";
-import { ProfileCardFooter } from "../../components/message/ProfileCardFooter";
-import { MemberOutsideChannelContext, PanelBackCrumbContext, PanelHeadBelowContext } from "../../components/ui/panelBackCrumb";
+import { MemberHeadNow } from "../../components/message/ProfileCardFooter";
+import { ProfileTeamHeadContext } from "../../components/profile/profileCompact";
+import { MemberOutsideChannelContext, PanelBackCrumbContext, PanelHeadStatusContext } from "../../components/ui/panelBackCrumb";
 import type { ProfilePanelProps, ProfilePanelTarget } from "../../components/profile/ProfilePanel";
 import { primeHumanProfileFromChannelMember, setCachedAgentProfile } from "../../components/profile/profileFallbackCache";
 import { isLocalProjectionMember, memberServerBadgeLabels } from "../../utils/channelLocalMembership";
@@ -148,7 +149,7 @@ export function ChannelMembers({
   const [rosterQuery, setRosterQuery] = useState("");
   const [profileStack, setProfileStack] = useState<ProfilePanelTarget[]>(initialProfile ? [initialProfile.target] : []);
   const selectedProfile = profileStack.at(-1) ?? null;
-  const headBelow = useMemo(() => (ownHead && selectedProfile ? <ProfileCardFooter type={selectedProfile.type === "agent" ? "agent" : "human"} id={selectedProfile.id} /> : null), [ownHead, selectedProfile]);
+  const headBelow = useMemo(() => (ownHead && selectedProfile ? <MemberHeadNow type={selectedProfile.type === "agent" ? "agent" : "human"} id={selectedProfile.id} /> : null), [ownHead, selectedProfile]);
   const backProfile = useCallback(() => {
     setProfileStack((stack) => stack.slice(0, -1));
   }, []);
@@ -1234,7 +1235,8 @@ export function ChannelMembers({
               )}
             >
               <PanelBackCrumbContext.Provider value={ownHead && profileStack.length === 1 && !initialProfile?.profileOnly ? formatMessage({ id: "panel.backTo.members" }) : null}>
-              <PanelHeadBelowContext.Provider value={headBelow}><MemberOutsideChannelContext.Provider value={!!initialProfile?.profileOnly && profileStack.length === 1}>
+              {/* One head everywhere (v2.1 §5.4.1): name and state, Message ⋯ ⤢ ×, the commands in ⋯ with their words. */}
+              <PanelHeadStatusContext.Provider value={headBelow}><ProfileTeamHeadContext.Provider value={!!headBelow}><MemberOutsideChannelContext.Provider value={!!initialProfile?.profileOnly && profileStack.length === 1}>
               <ProfilePanel
                 key={`${selectedProfile.type}:${selectedProfile.id}`}
                 target={selectedProfile}
@@ -1244,7 +1246,7 @@ export function ChannelMembers({
                 onClose={closeProfilePage}
                 onOpenProfile={openNestedProfile}
               />
-              </MemberOutsideChannelContext.Provider></PanelHeadBelowContext.Provider></PanelBackCrumbContext.Provider>
+              </MemberOutsideChannelContext.Provider></ProfileTeamHeadContext.Provider></PanelHeadStatusContext.Provider></PanelBackCrumbContext.Provider>
             </Suspense>
           )}
         </>

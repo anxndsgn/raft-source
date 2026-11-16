@@ -52,10 +52,10 @@ import { RowMoveMenu } from "../layout/ColumnMoveMenu";
 import { RowRegionBody } from "../layout/RowRegionBody";
 import { isCoveredByShortcutHelp } from "../../features/keyboard-shortcuts/shortcutHelpStore";
 import { useShortcutLayer } from "../../features/shortcuts/useShortcutLayer";
-import { ProfileCardFooter } from "../message/ProfileCardFooter";
-import { PanelHeadBelowContext } from "../ui/panelBackCrumb";
+import { MemberHeadNow } from "../message/ProfileCardFooter";
+import { PanelHeadStatusContext } from "../ui/panelBackCrumb";
 import { useRowExpand } from "../layout/rowPlanStore";
-import { ProfileCompactContext, ProfileTeamHeadContext } from "./profileCompact";
+import { ProfileTeamHeadContext } from "./profileCompact";
 import { useIsDesktopShell } from "../layout/ShellFrame";
 
 recordProfileOpenE2eEvent({ kind: "module-evaluated", module: "profile-panel" });
@@ -149,7 +149,7 @@ export default function ConnectedProfilePanel(props: ProfilePanelOwnProps = {}) 
   const profileType = useProfileStore((s) => s.profileType);
   const profileId = useProfileStore((s) => s.profileId);
   const strip = useMemo(
-    () => (profileType === "agent" || profileType === "human") && profileId ? <ProfileCardFooter type={profileType} id={profileId} /> : null,
+    () => (profileType === "agent" || profileType === "human") && profileId ? <MemberHeadNow type={profileType} id={profileId} /> : null,
     [profileId, profileType],
   );
   // Expanded, it covers the Team page whole, its tabs and list too (Figmama 11/16), not rule 5's 160px strip beside
@@ -166,20 +166,20 @@ export default function ConnectedProfilePanel(props: ProfilePanelOwnProps = {}) 
     // head's icon), Stop and Restart in ⋯.
     return (
       <div className="contents" data-team-cover-panel="">
-        <PanelHeadBelowContext.Provider value={strip}><ProfileTeamHeadContext.Provider value>
+        <PanelHeadStatusContext.Provider value={strip}><ProfileTeamHeadContext.Provider value>
           <ProfilePanelContent {...props} />
-        </ProfileTeamHeadContext.Provider></PanelHeadBelowContext.Provider>
+        </ProfileTeamHeadContext.Provider></PanelHeadStatusContext.Provider>
       </div>
     );
   }
   return (
     // `contents`: the panel stays its column's own flex child; the mark lets the plain head keep its ⤢ (index.css).
     <div className="contents" data-team-column="">
-      <PanelHeadBelowContext.Provider value={strip}>
-        <ProfileCompactContext.Provider value><ProfileTeamHeadContext.Provider value>
+      <PanelHeadStatusContext.Provider value={strip}>
+        <ProfileTeamHeadContext.Provider value>
           <ProfilePanelContent {...props} />
-        </ProfileTeamHeadContext.Provider></ProfileCompactContext.Provider>
-      </PanelHeadBelowContext.Provider>
+        </ProfileTeamHeadContext.Provider>
+      </PanelHeadStatusContext.Provider>
     </div>
   );
 }

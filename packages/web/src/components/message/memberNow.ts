@@ -1,0 +1,106 @@
+import { useCallback, useEffect, useMemo } from "react";
+import { useIntl } from "react-intl";
+
+import { useAppNavigate } from "../../hooks/useAppNavigate";
+import { useTaskStore } from "../../store/taskStore";
+import { useAgentDisplayState, useAgentStore } from "../../store/agentStore";
+import { useAuthStore } from "../../store/authStore";
+import { useChannelStore } from "../../store/channelStore";
+import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
+import { findStoredChannel } from "../../store/storedChannel";
+import { agentMarkState, agentStoppedByComputer } from "../../features/team/teamWorking";
+import { useMachineStore } from "../../store/machineStore";
+import { formatActivityText, formatAgentDisplayStateText } from "../../utils/activity";
+import { formatRelativeTime } from "../../utils/relativeTime";
+import { useUsageLimitAttention } from "../layout/useUsageLimitAttention";
+import { useResumeMoment, useShortSpan } from "../task/agentTimeText";
+import { openTaskInSidePanel } from "../task/useOpenTask";
+
+/**
+ * A member's "now" (layout redesign 7.1, Team page v2.1 §5.4.1): their state mark, what they are doing — the task and
+ * its step, or held: why and when it resumes — a short status for the head, and Message.
+ */
+export function useMemberNow(type: "agent" | "human", id: string) {
+  const intl = useIntl();
+  const { formatMessage } = intl;
+  const nav = useAppNavigate();
+  const serverTasks = useTaskStore((s) => s.serverTasks);
+  const loaded = useTaskStore((s) => s.serverTasksLoaded);
+  const loadServerTasks = useTaskStore((s) => s.loadServerTasks);
+  useEffect(() => {
+    if (!loaded) void loadServerTasks();
+  }, [loaded, loadServerTasks]);
+  const current = useMemo(
+    () => (type === "agent"
+      ? serverTasks
+        .filter((t) => t.claimedByType === "agent" && t.claimedById === id && t.status === "in_progress")
+        .sort((a, b) => b.taskNumber - a.taskNumber)[0] ?? null
+      : null),
+    [id, serverTasks, type],
+  );
+  const lastFinished = useMemo(
+    () => (type === "agent"
+      ? serverTasks
+        .filter((t) => t.claimedByType === "agent" && t.claimedById === id && (t.status === "in_review" || t.status === "done"))
+        .sort((a, b) => (b.lastActivityAt ?? b.updatedAt).localeCompare(a.lastActivityAt ?? a.updatedAt))[0] ?? null
+      : null),
+    [id, serverTasks, type],
+  );
+  const stopped = useAgentStore((s) => type === "agent" && s.agents.find((a) => a.id === id)?.status === "stopped");
+  const channelName = useChannelStore((s) => (current ? current.channelName || findStoredChannel(s, current.channelId)?.name || null : null));
+  const display = useAgentDisplayState(type === "agent" ? id : "");
+  const resetsAt = useUsageLimitAttention().notifications.find((notice) => type === "agent" && notice.affectedAgentIds.includes(id));
+  const computerStopped = useMachineStore((s) => {
+    const agent = type === "agent" ? useAgentStore.getState().agents.find((a) => a.id === id) : undefined;
+    return !!agent && agentStoppedByComputer(agent, s.machines);
+  });
+  const mark = type === "agent" ? agentMarkState(display, !!resetsAt, computerStopped) : null;
+  const startedAt = useLiveAgentActivityStore((s) => (type === "agent" ? s.items.find((item) => item.agentId === id && item.idleSince === null)?.startedAt ?? null : null));
+  const resumeMoment = useResumeMoment();
+  const shortSpan = useShortSpan();
+  const openCurrent = useCallback(() => {
+    if (current && !openTaskInSidePanel(current, nav.toChannel)) nav.toChannel(current.channelId);
+  }, [current, nav]);
+  // Message: an agent's DM, a person's (opened if there is none yet); none for an archived agent or yourself (7.1).
+  const archived = useAgentStore((s) => type === "agent" && !!s.agents.find((a) => a.id === id)?.deletedAt);
+  const self = useAuthStore((s) => type === "human" && s.user?.id === id);
+  const openUserDM = useChannelStore((s) => s.openUserDM);
+  const dmId = useChannelStore((s) => (type === "human" ? s.dmChannels.find((c) => c.peerId === id)?.id ?? null : null));
+  const message = useCallback(async () => {
+    if (type === "agent") return nav.toAgent(id);
+    const dm = dmId ?? (await openUserDM(id))?.id;
+    if (dm) nav.toDm(dm);
+  }, [dmId, id, nav, openUserDM, type]);
+  // Held: why (a usage limit and when it resumes, or its computer); working on a task: the task, for how long, the step.
+  let title: string | null = null;
+  let step: string | null = null;
+  if (mark === "held") {
+    const byComputer = !!display.blocked || computerStopped;
+    const moment = !byComputer ? resumeMoment(resetsAt?.resetsAt) : null;
+    title = byComputer
+      ? (display.blocked ? formatAgentDisplayStateText(intl, display, { withDetail: false }) : formatMessage({ id: "agent.status.computerOffline" }))
+      : moment
+        ? `${formatMessage({ id: "taskSection.held" })} · ${formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when })}`
+        : formatMessage({ id: "taskSection.held" });
+  } else if (current) {
+    title = formatMessage({ id: "profileCard.workingOn" }, { channel: channelName ? `#${channelName}` : "", number: current.taskNumber });
+    step = mark === "working" ? display.activityText || null : null;
+  } else if (mark) {
+    // Not on a task: its state, never an empty line (Figmama 11/16) — stopped, idle and what it last finished, offline.
+    const finished = lastFinished;
+    const when = finished ? formatRelativeTime(finished.lastActivityAt ?? finished.updatedAt, intl.locale) : null;
+    title = stopped
+      ? formatMessage({ id: "activity.log.status.stopped" })
+      : mark === "idle"
+        ? [formatMessage({ id: "team.state.idle" }), finished && when ? formatMessage({ id: "team.rest.finished" }, { number: finished.taskNumber, when }) : null].filter(Boolean).join(" · ")
+        : formatActivityText(formatMessage, display.activity, "");
+  }
+  // The head's short status (PRD 团队页 v2.1 §5.4.1): "Working · 3 min", "Held · back 23:00", "Idle"…
+  let short: string | null = null;
+  if (mark === "held") short = title;
+  else if (mark === "working") short = [formatMessage({ id: "team.state.working" }), startedAt ? shortSpan(startedAt) : null].filter(Boolean).join(" · ");
+  else if (stopped) short = formatMessage({ id: "activity.log.status.stopped" });
+  else if (mark === "idle") short = formatMessage({ id: "team.state.idle" });
+  else if (mark) short = formatMessage({ id: "team.state.offline" });
+  return { mark, title, step, short, current, openCurrent, startedAt, shortSpan, canMessage: !archived && !self, message };
+}

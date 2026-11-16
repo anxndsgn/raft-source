@@ -6,7 +6,7 @@ import type { HTMLAttributes, ReactNode, Ref } from "react";
 import type { PanelActionProps } from "@botiverse/raft-ui";
 import { PanelAction, PanelActions, PanelHeader, PanelHeaderContent, PanelHeaderIcon, PanelHeading, PanelMeta, PanelStatus, PanelTitle } from "@botiverse/raft-ui";
 import { PanelHeadChromeContext } from "../layout/panelHeadChrome";
-import { PanelBackCrumbContext, PanelHeadBelowContext } from "./panelBackCrumb";
+import { PanelBackCrumbContext, PanelHeadStatusContext } from "./panelBackCrumb";
 
 // React's `HTMLAttributes` doesn't expose `data-*` keys in TS, so widen
 // passthrough prop types with a string-key index signature so callsites
@@ -174,7 +174,7 @@ export default function AppPanelHeader({
   // title (rule 4). Every other head is as it is.
   const chrome = useContext(PanelHeadChromeContext);
   const backCrumb = useContext(PanelBackCrumbContext);
-  const below = useContext(PanelHeadBelowContext);
+  const headStatus = useContext(PanelHeadStatusContext);
   const drag = chrome;
   const rowTabs = chrome?.tabs ?? null;
   // HOST-SHELL EMBED: the native WebView already draws a title bar, so web must not
@@ -215,8 +215,8 @@ export default function AppPanelHeader({
     <>
     <PanelHeader
       {...containerRest}
-      // Layout redesign 7.1: over a member's details in the side panel the head is text alone (index.css).
-      data-plain-head={below ? "" : undefined}
+      // Layout redesign 7.1, Team page v2.1 §5.4.1: over a member's details the head is their name and state (index.css).
+      data-plain-head={headStatus ? "" : undefined}
       data-side-head={drag?.props["data-side-head"] ?? containerRest["data-side-head"]}
       // Last in its column with its head alone (stackEnd): no seam along the column's bottom.
       data-stack-end={drag?.props["data-stack-end"] ?? containerRest["data-stack-end"]}
@@ -263,12 +263,15 @@ export default function AppPanelHeader({
         <PanelHeaderContent {...titleClickProps}>
           <PanelHeading>
             <PanelTitle
+              // The name never gives way to the status after it (v2.1 §5.4.1).
+              className={headStatus ? "shrink-0" : undefined}
               render={(
                 <h2>
                   {title}
                 </h2>
               )}
             />
+            {headStatus}
             {/* PanelStatus, not PanelMeta: the meta line truncates
                 (overflow hidden), which would cut a badge's edge ring. */}
             {titleSuffix && <PanelStatus>{titleSuffix}</PanelStatus>}
@@ -291,7 +294,6 @@ export default function AppPanelHeader({
         <PanelActions className={actionsClassName}>{actions}</PanelActions>
       )}
     </PanelHeader>
-    {below}
     </>
   );
 }

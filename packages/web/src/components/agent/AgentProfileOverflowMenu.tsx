@@ -95,7 +95,8 @@ export default function AgentProfileOverflowMenu({
   // In the row's column: Move Left / Move Right in ⋯, and Direct Message there where the head is narrow (#189).
   const region = useContext(RowRegionContext);
   const moves = useColumnMoveItems(region);
-  // The Team page's head: always ⋯, its commands in it with their words; Message is the strip's (profileCompact).
+  // A member's details head (Team page, side panel; v2.1 §5.4.1): Message, then ⋯ always, its commands in it with
+  // their words.
   const teamHead = useContext(ProfileTeamHeadContext);
   const foldMessage = messageInMenu && canMessageAgent && !teamHead;
   const menuAlways = foldMessage || moves.length > 0 || (teamHead && hasFoldingCommands);
@@ -245,7 +246,7 @@ export default function AgentProfileOverflowMenu({
       className="agent-profile-responsive-actions gap-0.5 md:pointer-fine:gap-1"
       data-testid="agent-profile-responsive-actions"
     >
-      {teamHead ? null : messageAction}
+      {messageAction}
       {hasFoldingCommands && !teamHead && inlineActions}
       {hasFoldingCommands || menuAlways ? overflowMenu : null}
     </div>
