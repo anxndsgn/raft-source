@@ -10,6 +10,7 @@ import {
   ListRowBody,
   ListRowBottom,
   ListRowDescription,
+  ListRowGroup,
   ListRowMeta,
   ListRowTitle,
   ListRowTop,
@@ -87,7 +88,10 @@ export function MarketplaceListingsTab({
   installingTemplateKey,
   onClearFilters,
   botHint,
+  table = false,
 }: {
+  /** The Apps page (task #18): one table with Category and Installs columns, no cards. */
+  table?: boolean;
   filters: AppsFilters;
   /** Cards in a grid, or rows. */
   viewMode: ConnectedAppsViewMode;
@@ -209,30 +213,32 @@ export function MarketplaceListingsTab({
   }
   return (
     <div className="flex flex-col gap-3" data-testid="apps-marketplace-list">
+      {table ? <MarketplaceTableHeadings /> : null}
       <div
-        className={viewMode === "grid" ? connectedAppsCollectionClassName("grid") : "flex flex-col"}
+        className={table ? "flex flex-col" : viewMode === "grid" ? connectedAppsCollectionClassName("grid") : "flex flex-col"}
         data-testid="connected-apps-marketplace-collection"
-        data-view={viewMode}
+        data-view={table ? "table" : viewMode}
       >
-        {state.items.map((listing) => (
+        {(table ? (rows: ReactNode) => <ListRowGroup>{rows}</ListRowGroup> : (rows: ReactNode) => rows)(state.items.map((listing) => (
           <MarketplaceListingRow
             key={listing.id}
             listing={listing}
             testId={`apps-marketplace-row-${listing.id}`}
             viewMode={viewMode}
+            table={table}
             canManage={canManage}
             installing={listing.kind === "mcp" && listing.templateKey === installingTemplateKey}
             botHint={listing.kind === "app" ? botHint?.(listing.app.id) ?? null : null}
             onOpen={handleOpen}
           />
-        ))}
+        )))}
       </div>
       {state.loadMoreFailed ? (
         <Banner intent="warning" density="sm" live={false} data-testid="apps-marketplace-load-more-failed">
           {formatMessage({ id: "apps.marketplace.loadMoreFailed" })}
         </Banner>
       ) : null}
-      <div className="flex items-center justify-center gap-3">
+      <div className={table ? "flex items-center gap-3 px-3" : "flex items-center justify-center gap-3"}>
         <span className="font-mono text-mono-meta text-foreground-muted" data-testid="apps-marketplace-showing">
           {formatMessage({ id: "apps.marketplace.showing" }, { shown: state.items.length, total: state.total })}
         </span>
@@ -242,6 +248,24 @@ export function MarketplaceListingsTab({
           </Button>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+// The table's column tracks (task #18, Figmama C2), shared by the headings and every row.
+const TABLE_COL_CATEGORY = "hidden w-[160px] shrink-0 @[720px]/market:flex";
+const TABLE_COL_INSTALLS = "hidden w-[140px] shrink-0 @[720px]/market:flex";
+const TABLE_COL_ACTION = "flex w-[96px] shrink-0 justify-end";
+const TABLE_HEADING = "text-footnote font-bold text-foreground-hint";
+
+function MarketplaceTableHeadings() {
+  const { formatMessage } = useIntl();
+  return (
+    <div className="@container/market flex min-w-0 items-baseline gap-3 border-x border-transparent pr-4 pl-3" data-testid="apps-marketplace-headings">
+      <span className={`min-w-0 flex-1 ${TABLE_HEADING}`}>{formatMessage({ id: "apps.cap.column.app" })}</span>
+      <span className={`${TABLE_COL_CATEGORY} ${TABLE_HEADING}`}>{formatMessage({ id: "apps.cap.column.category" })}</span>
+      <span className={`${TABLE_COL_INSTALLS} ${TABLE_HEADING}`}>{formatMessage({ id: "apps.cap.column.installs" })}</span>
+      <span className={TABLE_COL_ACTION} />
     </div>
   );
 }
@@ -310,10 +334,13 @@ export function MarketplaceListingRow<L extends MarketplaceCardListing>({
   botHint,
   summary,
   onOpen,
+  table = false,
 }: {
   listing: L;
   testId: string;
   viewMode: ConnectedAppsViewMode;
+  /** A row of the Apps page's Marketplace table (task #18). */
+  table?: boolean;
   canManage: boolean;
   /** This template's one-step Install is running. */
   installing: boolean;
@@ -370,6 +397,36 @@ export function MarketplaceListingRow<L extends MarketplaceCardListing>({
   const openStates = "relative has-[[data-listing-open]:hover]:overlay-subtle has-[[data-listing-open]:active]:overlay-medium has-[[data-listing-open]:focus-visible]:shadow-focus";
   const hint = botHint ? <div className="relative" data-testid="apps-marketplace-bot-hint">{botHint}</div> : null;
   const logo = <ConnectedAppLogo name={listing.name} logoUrl={listing.logoUrl} seed={listing.kind === "mcp" ? listing.templateKey : listing.app.clientId} />;
+  if (table) {
+    const installs = app
+      ? null
+      : listing.installBucket ? formatMessage({ id: "settings.connectedApps.marketplaceInstallCount" }, { count: MARKETPLACE_INSTALL_BUCKET_LABELS[listing.installBucket] }) : "–";
+    return (
+      <ListRow
+        interactive={interactive && !open}
+        {...(interactive && !open ? { onClick: handleClick } : {})}
+        className={`@container/market min-h-14 items-center ${open ? openStates : ""}`}
+        data-testid={testId}
+        data-kind={listing.kind}
+      >
+        {open}
+        <ConnectedAppLogo name={listing.name} logoUrl={listing.logoUrl} seed={listing.kind === "mcp" ? listing.templateKey : listing.app.clientId} size="sm" />
+        <ListRowBody>
+          <span className="flex min-w-0 items-center gap-2">
+            <ListRowTitle className="min-w-[3ch] flex-none">{name}</ListRowTitle>
+            {listing.kind === "mcp" ? <McpTag /> : null}
+          </span>
+          <ListRowDescription className="truncate" title={description ?? byLine}>{description ?? byLine}</ListRowDescription>
+          {hint ? <div className="mt-1">{hint}</div> : null}
+        </ListRowBody>
+        <span className={`${TABLE_COL_CATEGORY} items-center text-caption text-foreground`}>{categoryLabel}</span>
+        <span className={`${TABLE_COL_INSTALLS} items-center`}>
+          {installs !== null ? <ListRowMeta>{installs}</ListRowMeta> : installBadge}
+        </span>
+        <span className={`${TABLE_COL_ACTION} items-center`}>{status}</span>
+      </ListRow>
+    );
+  }
   if (viewMode === "grid") {
     return (
       <Card

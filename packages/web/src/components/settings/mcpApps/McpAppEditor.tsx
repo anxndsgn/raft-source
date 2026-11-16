@@ -13,7 +13,6 @@ import {
   canDeleteSourceOwnedConnectedApp,
   connectedAppDistributionStatus,
 } from "../../../features/apps/connected-apps/connectedAppStatus";
-import { ConnectedAppEditorActionRow } from "../../../features/apps/connected-apps/ConnectedAppEditorActionRow";
 import { ConnectedAppEditorSection } from "../../../features/apps/connected-apps/ConnectedAppEditorSection";
 import { McpAppAgentsSection } from "./McpAppAgentsSection";
 import { McpAppConnectionsSection } from "./McpAppConnectionsSection";
@@ -68,8 +67,8 @@ export function McpAppEditor({
 }: {
   /** null: add a new Custom MCP App. */
   appId: string | null;
-  /** Opens scrolled to this section: Connections, right after a Marketplace install. */
-  initialSection?: "connections";
+  /** Opens scrolled to this section: Connections right after a Marketplace install, or the section an Apps page detail row names. */
+  initialSection?: McpAppSectionId;
   /** The new-App form's Browse Marketplace: the MCP Apps Raft maintains are installed there. */
   onBrowseMarketplace: () => void;
   canManage: boolean;
@@ -310,8 +309,9 @@ export function McpAppEditor({
 
   const formSections = useMemo((): FormDialogSection[] => {
     // An existing App says which sections it has; a new one stops before Distribution and the Danger zone.
+    // No Distribution: an MCP App can't be published (task #18).
     const ids = view
-      ? MCP_APP_SECTION_IDS.filter((id) => view.sections.includes(id))
+      ? MCP_APP_SECTION_IDS.filter((id) => id !== "distribution" && view.sections.includes(id))
       : MCP_APP_SECTION_IDS.filter((id) => id !== "distribution" && id !== "danger");
     return ids.map((id) => ({
       id: `connected-app-editor-${id}`,
@@ -417,28 +417,9 @@ export function McpAppEditor({
                   title={formatMessage({ id: SECTION_LABEL_ID.agents })}
                   status={sectionStatus.agents}
                 >
-                  {view ? <McpAppAgentsSection view={view} /> : saveFirstNote}
+                  {view ? <McpAppAgentsSection view={view} canManage={canManage} onChanged={onChanged} /> : saveFirstNote}
                 </ConnectedAppEditorSection>
-                {/* Like an ordinary App's form, a new App's stops before Distribution and the Danger zone. */}
-                {view ? (
-                  <ConnectedAppEditorSection
-                    sectionId="distribution"
-                    title={formatMessage({ id: SECTION_LABEL_ID.distribution })}
-                    status={sectionStatus.distribution}
-                  >
-                    {/* An ordinary private App's Distribution, with publishing not offered yet (follow-up). */}
-                    <ConnectedAppEditorActionRow
-                      testId="connected-app-publish-request-card"
-                      title={formatMessage({ id: "settings.connectedApps.publishRequestTitle" })}
-                      description={formatMessage({ id: "settings.mcpApp.distribution.publishUnavailable" })}
-                      action={(
-                        <Button type="button" disabled size="md">
-                          {formatMessage({ id: "settings.connectedApps.requestPublish" })}
-                        </Button>
-                      )}
-                    />
-                  </ConnectedAppEditorSection>
-                ) : null}
+                {/* No Distribution section: an MCP App can't be published (task #18). */}
                 {view ? (
                   <ConnectedAppEditorSection
                     sectionId="danger"

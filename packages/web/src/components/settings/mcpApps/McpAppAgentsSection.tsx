@@ -1,6 +1,7 @@
 import { Card, CardDescription, CardHeader, CardTitle } from "@botiverse/raft-ui";
 import { useIntl } from "react-intl";
 import type { McpAppView } from "./mcpAppApi";
+import { McpAppAgentsEditor } from "../../../features/apps/mcp/McpAppAgentsEditor";
 
 function SummaryCell({ label, value, testId }: { label: string; value: number; testId: string }) {
   return (
@@ -15,13 +16,15 @@ function SummaryCell({ label, value, testId }: { label: string; value: number; t
 
 /**
  * Which Agents use this App and how: following the server default, pinned to a Connection, or
- * switched off. A pin whose Connection was deleted or can't be used is "no connection selected", not pinned. Read-only here; an Agent's own choice is changed on that Agent.
+ * switched off. A pin whose Connection was deleted or can't be used is "no connection selected", not pinned.
+ * Which Agents have it is checkable here (task #18); each Agent's Connection is still chosen on that Agent.
  */
-export function McpAppAgentsSection({ view }: { view: McpAppView }) {
+export function McpAppAgentsSection({ view, canManage, onChanged }: { view: McpAppView; canManage: boolean; onChanged?: () => void }) {
   const { formatMessage } = useIntl();
   const summary = view.agentsSummary;
   return (
     <div className="stack-y-3" data-testid="mcp-app-agents-summary">
+      <McpAppAgentsEditor appId={view.id} canManage={canManage} onChanged={onChanged} testId="mcp-app-agents-picker" />
       <div className="grid gap-2 sm:grid-cols-3">
         <SummaryCell testId="mcp-agents-default" value={summary.usingDefault} label={formatMessage({ id: "settings.mcpApp.agents.usingDefault" }, { count: summary.usingDefault })} />
         <SummaryCell testId="mcp-agents-pinned" value={summary.pinned} label={formatMessage({ id: "settings.mcpApp.agents.pinned" }, { count: summary.pinned })} />
@@ -42,10 +45,6 @@ export function McpAppAgentsSection({ view }: { view: McpAppView }) {
           {formatMessage({ id: "settings.mcpApp.agents.actionNeeded" }, { count: summary.actionNeeded })}
         </div>
       ) : null}
-      {/* The block is read-only: where these are changed (Kirby). */}
-      <p className="text-caption text-foreground-muted" data-testid="mcp-agents-change-on-agent">
-        {formatMessage({ id: "settings.mcpApp.agents.changeOnAgent" })}
-      </p>
     </div>
   );
 }

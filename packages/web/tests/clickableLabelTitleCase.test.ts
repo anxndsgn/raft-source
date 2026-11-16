@@ -170,6 +170,7 @@ function isTitleCased(label: string): boolean {
 }
 
 const CLICKABLE_LABEL_IDS = [
+  "apps.cap.add.submit",
   "skillsHub.import.confirm",
   "skillsHub.plugin.confirm",
   "skillsHub.agent.addSkill",

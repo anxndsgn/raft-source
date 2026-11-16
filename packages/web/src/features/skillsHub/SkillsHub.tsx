@@ -36,6 +36,7 @@ import type {
 import api from "../../api/client";
 import { DialogActions, DialogCommit, NarrowDialogContent } from "../../components/ui/NarrowDialog";
 import SectionHeader from "../../components/ui/SectionHeader";
+import { SkillsHubTable } from "./SkillsHubTable";
 import { showToast } from "../../components/toastBridge";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
 import { useAgentStore } from "../../store/agentStore";
@@ -810,11 +811,43 @@ function HubDialogs({
 }
 
 /** Settings → Skills Hub: the server's shared skill & plugin library. */
-export function SkillsHubSettingsSection() {
+const NO_AGENT_IDS: string[] = [];
+
+/** The Apps page's actions for this tab: Import from GitHub, and Add (a skill or a plugin). */
+function PageAddButtons({ onOpen }: { onOpen: (dialog: HubDialogState) => void }) {
+  const { formatMessage } = useIntl();
+  const openImport = useCallback(() => onOpen({ type: "import" }), [onOpen]);
+  const openSkill = useCallback(() => onOpen({ type: "editor", draft: emptyDraft("skill") }), [onOpen]);
+  const openPlugins = useCallback(() => onOpen({ type: "plugins" }), [onOpen]);
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <Button variant="outline" size="md" onClick={openImport} data-testid="skills-hub-import-github">
+        <Download size={16} /> {formatMessage({ id: "skillsHub.action.importGithub" })}
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="accent" size="md" data-testid="skills-hub-add-menu" />}>
+          {formatMessage({ id: "skillsHub.action.add" })}
+          <ChevronDown size={16} aria-hidden />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={openSkill} data-testid="skills-hub-add-skill">
+            <Sparkles />{formatMessage({ id: "skillsHub.action.addSkill" })}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={openPlugins} data-testid="skills-hub-add-plugin">
+            <Puzzle />{formatMessage({ id: "skillsHub.action.addPlugin" })}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
+export function SkillsHubSettingsSection({ variant = "settings" }: { variant?: "page" | "settings" } = {}) {
   const { formatMessage } = useIntl();
   const { capabilities } = useServerPermissions();
   const canManage = capabilities.manageIntegrations;
   const [items, setItems] = useState<SkillsHubItemView[] | null>(null);
+  const [counts, setCounts] = useState<{ byItem: Record<string, number>; total: number }>({ byItem: {}, total: 0 });
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<HubDialogState | null>(null);
 
@@ -822,6 +855,7 @@ export function SkillsHubSettingsSection() {
     try {
       const { data } = await api.get<SkillsHubCatalogResponse>("/skills-hub/items");
       setItems(data.items);
+      setCounts({ byItem: data.enabledAgentCounts ?? {}, total: data.agentTotal ?? 0 });
       setError(null);
     } catch (err) {
       setError(errorMessage(err, formatMessage({ id: "skillsHub.error.load" })));
@@ -832,7 +866,7 @@ export function SkillsHubSettingsSection() {
     void load();
   }, [load]);
 
-  const remove = async (item: SkillsHubItemView) => {
+  const remove = useCallback(async (item: SkillsHubItemView) => {
     if (!window.confirm(formatMessage({ id: "skillsHub.confirm.delete" }, { name: item.name }))) return;
     try {
       await api.delete(`/skills-hub/items/${item.id}`);
@@ -840,7 +874,37 @@ export function SkillsHubSettingsSection() {
     } catch (err) {
       setError(errorMessage(err, formatMessage({ id: "skillsHub.error.save" })));
     }
-  };
+  }, [formatMessage, load]);
+
+  const closeDialog = useCallback(() => setDialog(null), []);
+  const savedDialog = useCallback(() => {
+    setDialog(null);
+    void load();
+  }, [load]);
+  const editItem = useCallback((item: SkillsHubItemView) => setDialog({ type: "editor", draft: draftFromItem(item) }), []);
+  const removeItem = useCallback((item: SkillsHubItemView) => { void remove(item); }, [remove]);
+  if (variant === "page") {
+    return (
+      <section className="stack-y-3" data-testid="skills-hub-settings">
+        {canManage ? <PageAddButtons onOpen={setDialog} /> : null}
+        {error && <div className="text-caption text-danger" role="alert">{error}</div>}
+        <HubDialogs dialog={dialog} defaultAgentIds={NO_AGENT_IDS} onClose={closeDialog} onSaved={savedDialog} />
+        {items && items.length === 0 ? (
+          <p className="py-6 text-center text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.empty" })}</p>
+        ) : null}
+        {items && items.length > 0 ? (
+          <SkillsHubTable
+            items={items}
+            counts={counts.byItem}
+            total={counts.total}
+            canManage={canManage}
+            onEdit={editItem}
+            onRemove={removeItem}
+          />
+        ) : null}
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-3" data-testid="skills-hub-settings">

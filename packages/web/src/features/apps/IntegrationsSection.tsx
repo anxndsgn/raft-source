@@ -102,7 +102,7 @@ import { RegisteredConnectedAppItem } from "../../components/settings/Registered
 import { McpAppEditor } from "../../components/settings/mcpApps/McpAppEditor";
 import { RegisterAppMenu } from "../../components/settings/mcpApps/RegisterAppMenu";
 import { mcpAppErrorMessage, profilePayload } from "../../components/settings/mcpApps/mcpAppApi";
-import type { McpAppView } from "../../components/settings/mcpApps/mcpAppApi";
+import type { McpAppSectionId, McpAppView } from "../../components/settings/mcpApps/mcpAppApi";
 import { AppsToolbar } from "../../components/apps/AppsToolbar";
 import { AppsNoMatchState, AppsSectionHeading } from "../../components/apps/AppsListParts";
 import { MarketplaceListingsTab } from "../../components/apps/MarketplaceListingsTab";
@@ -162,6 +162,7 @@ import { useMarketplaceListingsTotal } from "./useMarketplaceListingsTotal";
 import { useAppBotLink } from "./useAppBotLink";
 import { useInstalledAppBot } from "./useInstalledAppBot";
 import { useMarketplaceBotHint } from "./useMarketplaceBotHint";
+import { useAppsPageMcp } from "./mcp/useAppsPageMcp";
 
 /**
  * The server's Apps: Installed, Marketplace and My Apps (#proj-apps task #22).
@@ -230,7 +231,8 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
   const [mcpAppsError, setMcpAppsError] = useState(false);
   // Add App ▸ Add a Custom MCP App (`appId: null`), an MCP App opened from its
   // row, or one just installed from the Marketplace (opened on Connections).
-  const [mcpEditor, setMcpEditor] = useState<{ appId: string | null; initialSection?: "connections" } | null>(null);
+  const [mcpEditor, setMcpEditor] = useState<{ appId: string | null; initialSection?: McpAppSectionId } | null>(null);
+
   // This server's Apps have been read once: until then the lists show rows
   // that stand in for them, not an empty state.
   const [loaded, setLoaded] = useState(false);
@@ -1125,10 +1127,8 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
     setError("");
     setMcpEditor({ appId: app.id });
   }, [canManage]);
-  const handleRegisterMcpServer = useCallback(() => {
-    setError("");
-    setMcpEditor({ appId: null });
-  }, []);
+  const handleOpenMcpEditor = useCallback((appId: string | null, section?: McpAppSectionId) => setMcpEditor({ appId, initialSection: section }), []);
+  const clearError = useCallback(() => setError(""), []);
   // A Marketplace MCP row's Install, in one step: the App is made from the
   // Raft template (its profile is the listing's), then its editor opens on
   // Connections, where a template's sign-in is added.
@@ -1175,15 +1175,39 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
     setActiveTab("marketplace");
     setFilters((current) => ({ ...DEFAULT_APPS_FILTERS, sort: current.sort, type: "mcp" }));
   }, []);
+  const handleMcpAppChanged = useCallback(() => {
+    void loadMcpApps();
+    setMarketplaceReloadKey((key) => key + 1);
+  }, [loadMcpApps]);
+  const appsPageMcp = useAppsPageMcp({
+    canManage,
+    showDetail: activeTab === "installed",
+    mcpApps,
+    shownMcpIds: filteredMcpApps.map((app) => app.id),
+    installedApps,
+    shownInstalledIds: filteredInstalledApps.map((app) => app.id),
+    integrationOverview,
+    installedDetailId: installedDetail?.app.id ?? null,
+    reloadMcpApps: handleMcpAppChanged,
+    onMcpAppChanged: handleMcpAppChanged,
+    openEditor: handleOpenMcpEditor,
+    openInstalledApp: handleOpenInstalledApp,
+    requestUninstall: handleRequestMarketplaceUninstall,
+    browseMcpMarketplace: handleBrowseMcpMarketplace,
+    clearError,
+  });
+  const openQuickAdd = appsPageMcp.openQuickAdd;
+  const handleRegisterMcpServer = useCallback(() => {
+    setError("");
+    // The Apps page adds an MCP App in one screen (task #18); Settings keeps the full editor.
+    if (variant === "page") openQuickAdd();
+    else setMcpEditor({ appId: null });
+  }, [openQuickAdd, variant]);
   const handleOpenMarketplaceListing = useCallback((listing: ConnectedAppListing) => {
     setError("");
     setSelectedListing(listing);
   }, []);
   const handleCloseMcpEditor = useCallback(() => setMcpEditor(null), []);
-  const handleMcpAppChanged = useCallback(() => {
-    void loadMcpApps();
-    setMarketplaceReloadKey((key) => key + 1);
-  }, [loadMcpApps]);
   const handleCloseListing = useCallback(() => setSelectedListing(null), []);
   const handleRequestUninstallSelectedListing = useCallback(() => {
     if (selectedListing) handleRequestMarketplaceUninstall(selectedListing);
@@ -1308,7 +1332,8 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
       onClearAll={clearFilters}
       view={connectedAppsViewMode}
       onViewChange={updateConnectedAppsViewMode}
-      viewSwitch={<ConnectedAppsViewToggle value={connectedAppsViewMode} onValueChange={updateConnectedAppsViewMode} />}
+      // The Apps page is one table per tab (task #18): no grid to switch to.
+      viewSwitch={variant === "page" ? undefined : <ConnectedAppsViewToggle value={connectedAppsViewMode} onValueChange={updateConnectedAppsViewMode} />}
       // The page's Add App ends its toolbar; Settings keeps it in the section header.
       addApp={variant === "page" ? addAppMenu : undefined}
       variant={variant}
@@ -1362,6 +1387,9 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
         : filteredInstalledApps.length === 0 && filteredMcpApps.length === 0 ? (
           <AppsNoMatchState title={formatMessage({ id: "settings.connectedApps.noInstalledAppsMatch" })} filters={filters} onClearAll={clearFilters} />
         ) : (
+          variant === "page" ? (
+            appsPageMcp.table
+          ) : (
           <div
             className={connectedAppsCollectionClassName(connectedAppsViewMode)}
             data-testid="connected-apps-installed-collection"
@@ -1396,6 +1424,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
               />
             ))}
           </div>
+          )
         )}
       {mcpAppsError ? <Banner intent="warning" density="sm">{formatMessage({ id: "settings.connectedApps.mcp.loadFailed" })}</Banner> : null}
       {/* Each person's own link-preview answers, one row at the bottom of
@@ -1482,6 +1511,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
       {activeTab === "marketplace" ? (
         <div data-testid="connected-apps-marketplace-tab">
           <MarketplaceListingsTab
+            table={variant === "page"}
             filters={filters}
             viewMode={connectedAppsViewMode}
             query={marketplaceQuery}
@@ -1500,7 +1530,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
         </div>
       ) : null}
       {activeTab === "myapps" ? myAppsTab : null}
-      {activeTab === "skills" ? <SkillsHubSettingsSection /> : null}
+      {activeTab === "skills" ? <SkillsHubSettingsSection variant={variant} /> : null}
     </>
   );
   const dialogs = (
@@ -1747,6 +1777,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
           onChanged={handleMcpAppChanged}
         />
       ) : null}
+      {variant === "page" ? appsPageMcp.dialogs : null}
 
       {canManage && showRegisterDrawer && (
         <FormDialog
@@ -2215,21 +2246,25 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
     // tabs its scope, Add App at its end) drawn at once and pinned; only the
     // list scrolls. On a phone it is a pushed page with Back.
     return (
-      <div className="flex min-h-0 flex-1 flex-col bg-layer-canvas text-foreground" data-testid="apps-page">
-        <PanelHeader
-          title={pageTitle}
-          onMobileBack={onAppsMobileBack}
-          mobileBackProps={appsMobileBackProps}
-        />
-        <div className="shrink-0">
-          {toolbar}
-        </div>
-        <ScrollArea ref={appsScrollRef} className="min-h-0 flex-1" contentClassName="px-4 py-4 safe-bottom md:px-(--surface-inset)" data-testid="apps-page-scroller">
-          <PagePullToRefreshIndicator pull={appsPull} />
-          <div className="stack-y-4" data-testid="connected-apps-v3-section">
-            {body}
+      <div className="flex min-h-0 flex-1 bg-layer-canvas text-foreground" data-testid="apps-page">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <PanelHeader
+            title={pageTitle}
+            onMobileBack={onAppsMobileBack}
+            mobileBackProps={appsMobileBackProps}
+          />
+          <div className="shrink-0">
+            {toolbar}
           </div>
-        </ScrollArea>
+          <ScrollArea ref={appsScrollRef} className="min-h-0 flex-1" contentClassName="px-4 py-4 safe-bottom md:px-(--surface-inset)" data-testid="apps-page-scroller">
+            <PagePullToRefreshIndicator pull={appsPull} />
+            <div className="stack-y-4" data-testid="connected-apps-v3-section">
+              {body}
+            </div>
+          </ScrollArea>
+        </div>
+        {/* An MCP App's detail, a column beside the list from the head down (task #18, as the Team page's). */}
+        {appsPageMcp.detailColumn}
         {dialogs}
       </div>
     );
