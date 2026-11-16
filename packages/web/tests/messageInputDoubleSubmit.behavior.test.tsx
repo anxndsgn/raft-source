@@ -1010,55 +1010,6 @@ test("MessageInput prevents send-button pointerdown from blurring the mobile com
   assert.deepEqual(sendMessage.calls, []);
 });
 
-test("MessageInput prevents task-toggle pointerdown from blurring the mobile composer without sending", () => {
-  const sendMessage = makeSendSpy();
-  const { textarea } = setupComposer(sendMessage, { showTaskButton: true });
-
-  fireEvent.change(textarea, { target: { value: "ready text" } });
-  textarea.focus();
-  assert.ok(document.activeElement === textarea);
-
-  const taskToggle = screen.getByRole("checkbox", { name: "As task" }) as HTMLButtonElement;
-  assert.equal(taskToggle.getAttribute("aria-checked"), "false");
-
-  const pointerDown = new window.Event("pointerdown", { bubbles: true, cancelable: true });
-  taskToggle.dispatchEvent(pointerDown);
-
-  assert.equal(pointerDown.defaultPrevented, true);
-  assert.ok(document.activeElement === textarea);
-  assert.deepEqual(sendMessage.calls, []);
-
-  fireEvent.click(taskToggle);
-  assert.equal(taskToggle.getAttribute("aria-checked"), "true");
-  assert.ok(document.activeElement === textarea);
-  assert.deepEqual(sendMessage.calls, []);
-});
-
-test("MessageInput does not focus the composer when task mode is toggled while the keyboard is closed", () => {
-  const sendMessage = makeSendSpy();
-  const { textarea } = setupComposer(sendMessage, { showTaskButton: true });
-
-  fireEvent.change(textarea, { target: { value: "ready text" } });
-  textarea.focus();
-  textarea.blur();
-  assert.ok(document.activeElement !== textarea);
-
-  const taskToggle = screen.getByRole("checkbox", { name: "As task" }) as HTMLButtonElement;
-  assert.equal(taskToggle.getAttribute("aria-checked"), "false");
-
-  const pointerDown = new window.Event("pointerdown", { bubbles: true, cancelable: true });
-  taskToggle.dispatchEvent(pointerDown);
-
-  assert.equal(pointerDown.defaultPrevented, true);
-  assert.ok(document.activeElement !== textarea);
-  assert.deepEqual(sendMessage.calls, []);
-
-  fireEvent.click(taskToggle);
-  assert.equal(taskToggle.getAttribute("aria-checked"), "true");
-  assert.ok(document.activeElement !== textarea);
-  assert.deepEqual(sendMessage.calls, []);
-});
-
 test("MessageInput preserves focus through the picker tap, then blurs after media selection", async () => {
   const sendMessage = makeSendSpy();
   const { container, textarea } = setupComposer(sendMessage);
@@ -1797,7 +1748,7 @@ test("MessageInput forwards the exact send contract for attachments, task flag, 
     role: "member",
     joinedAt: "2026-07-04T00:00:00.000Z",
   };
-  const composer = setupComposer(sendMessage, { showTaskButton: true }, { members: [member] });
+  const composer = setupComposer(sendMessage, {}, { members: [member] });
   const fileInput = composer.container.querySelector('input[type="file"]:not([accept])') as HTMLInputElement | null;
   assert.ok(fileInput, "file input should be present");
 
@@ -1810,9 +1761,8 @@ test("MessageInput forwards the exact send contract for attachments, task flag, 
     const button = screen.getByRole("button", { name: "Send" }) as HTMLButtonElement;
     assert.equal(button.disabled, false);
   });
-  fireEvent.click(screen.getByRole("checkbox"));
-
-  await submitForm(composer.form);
+  // Sent as a task with ⌘⇧Enter (task #15: the message box's one way; the visible ones open the Create task dialog).
+  fireEvent.keyDown(composer.textarea, { key: "Enter", code: "Enter", metaKey: true, ctrlKey: true, shiftKey: true });
 
   await waitFor(() => assert.equal(sendMessage.details.length, 1));
   const call = sendMessage.details[0]!;
