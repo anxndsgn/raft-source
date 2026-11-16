@@ -5,7 +5,6 @@ import type { ChangeEvent } from "react";
 import { useIntl } from "react-intl";
 import { Send, Paperclip, ImagePlus, CornerUpLeft, X } from "lucide-react";
 import { ChannelIcon } from "../../components/channel/channelKindIcon";
-import { FilterChip, FilterChipLabel, FilterChipRemove } from "@botiverse/raft-ui/wip";
 import { Badge, Composer, ComposerActions, ComposerAttachments, ComposerDropOverlay, ComposerDropOverlayLabel, ComposerIconButton, ComposerInput, ComposerRoot, ComposerSubmit, ComposerSuggestionAside, ComposerSuggestionContent, ComposerSuggestionGroup, ComposerSuggestionIcon, ComposerSuggestionList, ComposerSuggestionMeta, ComposerSuggestionTitle, ComposerToolbar, Separator, Spinner } from "@botiverse/raft-ui";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
@@ -87,7 +86,6 @@ import { SortableAttachment } from "./SortableAttachment";
 import { UploadFailureBanner } from "./UploadFailureBanner";
 import { preventSendButtonPointerDownBlur, preventToolbarButtonPointerDownBlur } from "./composerPointerHandlers";
 import { mayTakeFocus } from "../../utils/focusGuard";
-import { useComposerTaskModeTarget } from "./composerTaskMode";
 
 /**
  * Whether the current server is on Free, read when files are picked. Only the
@@ -107,7 +105,6 @@ function withComposerReference(content: string, reference: Pick<ComposerReferenc
 export function MessageInput({
   channelId,
   channelName,
-  showTaskButton,
   asTaskShortcutDisabled = false,
   onWillSend,
   resolveChannelId,
@@ -140,7 +137,6 @@ export function MessageInput({
 }: {
   channelId: string;
   channelName: string;
-  showTaskButton?: boolean;
   /** Task v2: off where the composer offers no As task (a thread's, a task's conversation). */
   asTaskShortcutDisabled?: boolean;
   onWillSend?: () => void | Promise<void>;
@@ -255,11 +251,6 @@ export function MessageInput({
   const addOptimisticMessage = useMessageStore((s) => s.addOptimisticMessage);
   // Stryker disable next-line all: optimistic rollback is covered by send-failure tests outside this attachment-draft mutation slice.
   const removeOptimisticMessage = useMessageStore((s) => s.removeOptimisticMessage);
-  // Stryker disable next-line all: task-toggle default state is covered by MessageInput submit-contract tests outside this attachment-draft mutation slice.
-  // A new task (the Tasks "+") belongs to the channel it was asked in: another channel shows none (task #10 item 2).
-  const [taskModeFor, setTaskModeFor] = useState<string | null>(null);
-  const alsoCreateTask = taskModeFor === channelId;
-  const setAlsoCreateTask = useCallback((on: boolean) => setTaskModeFor(on ? channelId : null), [channelId]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const composerFrameRef = useRef<HTMLDivElement>(null);
   /** The value the composer box last held as far as this code knows (see the
@@ -578,7 +569,7 @@ export function MessageInput({
   }, [pendingFiles, preservePendingDraftFiles]);
 
   // Picked or uploading attachments, As task on, picked mentions: no silent reload onto a new Web version (utils/reloadSafety).
-  const holdsWork = pendingFiles.length > 0 || alsoCreateTask || selectedMentions.length > 0;
+  const holdsWork = pendingFiles.length > 0 || selectedMentions.length > 0;
   useEffect(() => (holdsWork ? holdReload() : undefined), [holdsWork]);
 
   useEffect(() => {
@@ -1619,7 +1610,8 @@ export function MessageInput({
     const hasContent = content.trim().length > 0;
     const hasFiles = pendingFiles.length > 0;
     if (!hasContent && !hasFiles && !(allowEmptySubmit && onSendOverride)) return;
-    const submitAsTask = alsoCreateTask || options?.forceAsTask === true;
+    // A task from the message box is ⌘⇧Enter's (task #15: the visible ways open the Create task dialog).
+    const submitAsTask = options?.forceAsTask === true;
     if (pendingFiles.some((pf) => pf.uploadStatus === "validating")) {
       setError(formatMessage({ id: "message.composer.waitForAttachmentChecks" }));
       return;
@@ -1838,10 +1830,6 @@ export function MessageInput({
       // through the optimistic -> persisted handoff so sent images do not
       // flash/reload when the server ack replaces the local row.
 
-      if (alsoCreateTask) {
-        // Stryker disable next-line all: checkbox reset predates the stale-submit guard; shortcut/source tests cover task-submit wiring.
-        setAlsoCreateTask(false);
-      }
     } catch (err) {
       // Remove optimistic message on failure, restore content
       submittedDraftIntentRef.current = releaseSubmittedDraftIntent(
@@ -1873,12 +1861,12 @@ export function MessageInput({
     }
   }, [
     submitDisabled, submitBusy, membershipChannelId, content, pendingFiles,
-    allowEmptySubmit, onSendOverride, alsoCreateTask, formatMessage, channelId,
+    allowEmptySubmit, onSendOverride, formatMessage, channelId,
     composerReference, draftPendingFilesCacheKey, selectedMentions, resolveDeliveryChannelId,
     isCommittedComposerOwner, startAttachmentUpload, restoreFailedSendDraft,
     clearDraft, dismissMentionPopover, dismissChannelPopover,
     cancelScheduledAutoResize, onWillSend, addOptimisticMessage, currentUser,
-    conversionBlockedMessage, sendMessage, onChannelResolved, setAlsoCreateTask,
+    conversionBlockedMessage, sendMessage, onChannelResolved,
     removeOptimisticMessage,
   ]);
 
@@ -2112,7 +2100,6 @@ export function MessageInput({
     }
 
     if (handleMentionKeyDown(e, doInsertMention)) return;
-    if (e.key === "Escape" && alsoCreateTask) { e.preventDefault(); setAlsoCreateTask(false); return; }
 
     if (handleChannelKeyDown(e, filteredChannels.length, () => {
       const item = filteredChannels[channel.index];
@@ -2137,19 +2124,9 @@ export function MessageInput({
       e.preventDefault();
       handleSubmit(e, action === "sendAsTask" ? { forceAsTask: true } : undefined);
     }
-  }, [handleMentionKeyDown, handleChannelKeyDown, filteredChannels, channel.index, doInsertMention, doInsertChannel, handleSubmit, asTaskShortcutDisabled, sendKey, alsoCreateTask, setAlsoCreateTask]);
+  }, [handleMentionKeyDown, handleChannelKeyDown, filteredChannels, channel.index, doInsertMention, doInsertChannel, handleSubmit, asTaskShortcutDisabled, sendKey]);
 
 
-  const cancelTaskMode = useCallback(() => { setAlsoCreateTask(false); textareaRef.current?.focus(); }, [setAlsoCreateTask]);
-  // A channel Tasks card's "+" (task v2): a new task — a new topic, so no reply — the cursor at the end of the input.
-  const turnOnTaskMode = useCallback(() => {
-    clearReplyTarget(channelId);
-    setAlsoCreateTask(true);
-    const textarea = textareaRef.current;
-    textarea?.focus();
-    textarea?.setSelectionRange(textarea.value.length, textarea.value.length);
-  }, [channelId, clearReplyTarget, setAlsoCreateTask]);
-  useComposerTaskModeTarget(showTaskButton ? channelId : null, turnOnTaskMode);
 
   const hasValidatingAttachments = pendingFiles.some((pf) => pf.uploadStatus === "validating");
   const hasUploadingAttachments = pendingFiles.some((pf) => pf.uploadStatus === "uploading");
@@ -2171,8 +2148,7 @@ export function MessageInput({
   const submitBlocked = !canSubmit || hasValidatingAttachments || hasUploadingAttachments || hasFailedAttachments || submitDisabled || submitBusy || conversionBlocked;
   // Stryker disable next-line ConditionalExpression,LogicalOperator: spinner state is covered by MessageInput DOM tests; generated mutants hang tsx.
   const showSubmitSpinner = submitBusy || hasValidatingAttachments || hasUploadingAttachments;
-  // As task on: the send button and the input say the next message becomes a task (screen readers too).
-  const sendLabel = alsoCreateTask ? formatMessage({ id: "message.composer.sendAsTaskTooltip" }) : formatMessage({ id: "message.composer.send" });
+  const sendLabel = formatMessage({ id: "message.composer.send" });
   const submitTitle = conversionBlocked ? conversionBlockedMessage : submitBusy
     ? formatMessage({ id: "message.composer.sending" })
     : submitDisabled
@@ -2417,10 +2393,6 @@ export function MessageInput({
           </div>
         ) : null}
         {replyTarget ? <ReplyTaskChips channelId={channelId} target={replyTarget} /> : null}
-        {/* Task v2 without the As task box (task #10 item 2): the Tasks "+" puts "New task ×" here; × or Esc cancels. */}
-        {alsoCreateTask ? (
-          <FilterChip className="self-start" data-testid="composer-new-task-chip"><FilterChipLabel>{formatMessage({ id: "message.composer.newTaskChip" })}</FilterChipLabel><FilterChipRemove aria-label={formatMessage({ id: "message.composer.newTaskCancel" })} onClick={cancelTaskMode} data-testid="composer-new-task-cancel" /></FilterChip>
-        ) : null}
 
         {/* @mention dropdown — placed before <Composer> (outside the card) per
             the RUI spec, so the card never clips it. */}
@@ -2497,9 +2469,7 @@ export function MessageInput({
             onCompositionEnd={adoptBypassedComposerValue}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
-            placeholder={placeholder ?? (alsoCreateTask
-              ? formatMessage({ id: "message.composer.messagePlaceholderAsTask" }, { channel: channelName })
-              : formatMessage({ id: "message.composer.messagePlaceholder" }, { channel: channelName }))}
+            placeholder={placeholder ?? formatMessage({ id: "message.composer.messagePlaceholder" }, { channel: channelName })}
             maxLength={maxLength}
             rows={1}
           />

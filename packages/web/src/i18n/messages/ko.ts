@@ -9801,4 +9801,13 @@ export const ko: Partial<Record<MessageId, string>> = {
   "taskDetail.openConversation": "작업 대화 열기",
   "agent.detail.startBlockedOffline": "Agent 시작 (컴퓨터가 오프라인이라 시작할 수 없음)",
   "agent.detail.noActions": "실행할 수 있는 작업이 없습니다",
+  "task.create.optional": "선택",
+  "task.create.titleLabel": "제목",
+  "task.create.titleField": "할 일",
+  "task.create.descriptionLabel": "설명",
+  "task.create.descriptionPlaceholder": "배경, 완료 기준…",
+  "task.create.create": "만들기",
+  "task.create.createKeys": "⌘↵",
+  "task.create.postsInHint": "{channel}에 작업 메시지를 올립니다",
+  "task.create.assignFailed": "작업은 만들어졌지만 담당자 지정에 실패했습니다. ‘만들기’를 다시 누르면 지정을 다시 시도합니다.",
 };

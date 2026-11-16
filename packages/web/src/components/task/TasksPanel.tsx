@@ -1212,6 +1212,13 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
         <TabRootBar
           name={formatMessage({ id: "task.panel.heading" })}
           headingLevel={isPhoneTabRoot ? 1 : 2}
+          // Task #15: the page's New task, its primary action (the Create task dialog, the channel picked there).
+          actions={(
+            <Button variant="primary" size={isPhoneTabRoot ? "md" : "sm"} onClick={openCreateDialog} data-testid="tasks-page-header-new-task">
+              <Plus aria-hidden />
+              {newTaskLabel}
+            </Button>
+          )}
           // No count before the tasks are read ("0 channel tasks" while they
           // load): the line's box stays, empty.
           subtitle={loading ? "\u00a0" : (
@@ -1336,9 +1343,11 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
         />
       )}
 
-      {showCreateDialog && channelId && (
+      {showCreateDialog && (
         <CreateTaskDialog
-          channelId={channelId}
+          channelId={channelId ?? undefined}
+          // The page with one channel filtered starts on it, else the dialog's last one used.
+          defaultChannelId={!isChannelMode && selectedChannelIds.length === 1 ? selectedChannelIds[0] : null}
           onClose={closeCreateDialog}
         />
       )}

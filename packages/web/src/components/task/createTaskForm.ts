@@ -1,12 +1,8 @@
-import { TASK_CREATE_STATUSES } from "@botiverse/raft-shared";
-import type { TaskCreateStatus } from "@botiverse/raft-shared";
 import { useCallback, useMemo, useState } from "react";
-import { useIntl } from "react-intl";
+import type { useIntl } from "react-intl";
 import { useChannelStore } from "../../store/channelStore";
 import { findStoredChannel } from "../../store/storedChannel";
-import type { TaskCreateDraft } from "../../store/taskStore";
 import { documentTitleChannelLabel } from "../../utils/browserDocumentTitle";
-import { TASK_STATUS_UI } from "./taskStatusUi";
 
 /**
  * The create's refusals a person can act on, in their language; any other shows the server's sentence.
@@ -68,32 +64,4 @@ export function useChannelLabel(channelId: string | undefined): string | null {
     if (!channelId) return null;
     return documentTitleChannelLabel(findStoredChannel(s, channelId));
   });
-}
-
-/** Task v2: a task can start in Backlog, Todo or In progress, Todo by default. */
-export function useCreateTaskStatus() {
-  const { formatMessage } = useIntl();
-  const [status, setStatus] = useState<TaskCreateStatus>("todo");
-  const statusItems = useMemo(
-    () => TASK_CREATE_STATUSES.map((value) => ({ value, label: formatMessage({ id: TASK_STATUS_UI[value].labelId }) })),
-    [formatMessage],
-  );
-  const handleStatusChange = useCallback((next: TaskCreateStatus | null) => {
-    if (next) setStatus(next);
-  }, []);
-  return { status, statusItems, handleStatusChange };
-}
-
-/**
- * Task v2's New task is a message (design "新建任务 = 发一条消息"): its first
- * line is the task's title, the rest its description. Null with no title yet.
- */
-export function taskFromMessage(text: string): TaskCreateDraft | null {
-  const trimmed = text.trim();
-  if (!trimmed) return null;
-  const newline = trimmed.indexOf("\n");
-  if (newline < 0) return { title: trimmed };
-  const title = trimmed.slice(0, newline).trim();
-  const description = trimmed.slice(newline + 1).trim();
-  return description ? { title, description } : { title };
 }

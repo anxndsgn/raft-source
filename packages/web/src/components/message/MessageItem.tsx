@@ -35,7 +35,6 @@ import {
   MessageItemFooter,
   MessageItemGutter,
   MessageItemHeader,
-  MessageItemInlineStatus,
   MessageItemMeta,
   MessageItemSender,
   MessageItemSenderButton,
@@ -2851,7 +2850,6 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
     translationTargetLanguage,
     viewerUserId,
   ]);
-  const convertMessage = useTaskStore((s) => s.convertMessage);
   const channelTasks = useTaskStore((s) => s.tasks);
 
 
@@ -2876,7 +2874,6 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
   }, [channelTasks, serverTasks, linkedTask]);
   const taskContextChannelId = parentChannelId || message.channelId;
   const updateTaskStatus = useTaskStore((s) => s.updateTaskStatus);
-  const [converting, setConverting] = useState(false);
   const pendingReactionEmojisRef = useRef<Set<string>>(new Set());
   const reactionFailureFlashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [reactionFailureEmoji, setReactionFailureEmoji] = useState<string | null>(null);
@@ -3219,18 +3216,6 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
     return parentChannelId || message.channelId; // channel timeline
   }, [mentionComposerChannelId, parentMessageId, hideThreadActions, message.threadId, parentChannelId, message.channelId]);
 
-  const handleConvertToTask = useCallback(async () => {
-    trackFromMenu("convert_to_task");
-    setCtxMenu(null);
-    setConverting(true);
-    try {
-      await convertMessage(message.id);
-    } catch (err) {
-      console.error("Failed to convert message to task:", err);
-    } finally {
-      setConverting(false);
-    }
-  }, [convertMessage, message.id, trackFromMenu]);
 
   const openTaskFromList = useOpenTask();
   // Task v2: a task is created FROM a message (it hangs under it; several may),
@@ -4310,11 +4295,6 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
           <Tooltip content={gutterFullTimestamp}>
           <MessageItemTime dateTime={sentAtIso} className={messageTimeSizeClass}>{time}</MessageItemTime>
           </Tooltip>
-          {converting && (
-            <MessageItemInlineStatus render={<span />}>
-              {formatMessage({ id: "message.messageItem.converting" })}
-            </MessageItemInlineStatus>
-          )}
           </MessageItemHeader>
         )}
         {message.replyTo ? (
@@ -4972,20 +4952,14 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
                       {linkedTask.status === "done" ? formatMessage({ id: "message.messageItem.reopenTask" }) : formatMessage({ id: "message.messageItem.markAsDone" })}
                     </MenuItem>
                   </>
-                ) : taskV2 ? (
+                ) : (
+                  // Task #15: the Create task dialog, its title the message's first line, the task under the message.
                   <MenuItem
                     icon={<Plus size={14} />}
                     onClick={openCreateFromMessage}
                     data-testid="message-create-task-from-message"
                   >
                     {formatMessage({ id: "message.messageItem.createTaskFromMessage" })}
-                  </MenuItem>
-                ) : (
-                  <MenuItem
-                    icon={<Plus size={14} />}
-                    onClick={handleConvertToTask}
-                  >
-                    {formatMessage({ id: "message.messageItem.convertToTask" })}
                   </MenuItem>
                 )) : null
               )}

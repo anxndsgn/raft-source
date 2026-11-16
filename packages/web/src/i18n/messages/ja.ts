@@ -9802,4 +9802,13 @@ export const ja: Partial<Record<MessageId, string>> = {
   "taskDetail.openConversation": "タスクの会話を開く",
   "agent.detail.startBlockedOffline": "Agent を起動（コンピューターがオフラインのため起動できません）",
   "agent.detail.noActions": "実行できる操作はありません",
+  "task.create.optional": "任意",
+  "task.create.titleLabel": "タイトル",
+  "task.create.titleField": "やること",
+  "task.create.descriptionLabel": "説明",
+  "task.create.descriptionPlaceholder": "背景、完了の基準…",
+  "task.create.create": "作成",
+  "task.create.createKeys": "⌘↵",
+  "task.create.postsInHint": "{channel} にタスクのメッセージを投稿します",
+  "task.create.assignFailed": "タスクは作成されましたが、担当者の設定に失敗しました。もう一度「作成」を押すと設定を再試行します。",
 };

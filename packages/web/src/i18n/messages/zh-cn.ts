@@ -9912,4 +9912,13 @@ export const zhCn: Record<MessageId, string> = {
   "taskDetail.openConversation": "打开任务对话",
   "agent.detail.startBlockedOffline": "启动 Agent（计算机离线，暂时不能启动）",
   "agent.detail.noActions": "没有可执行的操作",
+  "task.create.optional": "可不填",
+  "task.create.titleLabel": "标题",
+  "task.create.titleField": "要做的事",
+  "task.create.descriptionLabel": "描述",
+  "task.create.descriptionPlaceholder": "补充背景、验收标准…",
+  "task.create.create": "创建",
+  "task.create.createKeys": "⌘↵",
+  "task.create.postsInHint": "会在 {channel} 发一条任务消息",
+  "task.create.assignFailed": "任务已建好，但指派没成功。再点一次「创建」重试指派。",
 };

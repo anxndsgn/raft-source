@@ -9803,4 +9803,13 @@ export const ru: Partial<Record<MessageId, string>> = {
   "taskDetail.openConversation": "Открыть обсуждение задачи",
   "agent.detail.startBlockedOffline": "Запустить агента (компьютер не в сети)",
   "agent.detail.noActions": "Нет доступных действий",
+  "task.create.optional": "необязательно",
+  "task.create.titleLabel": "Название",
+  "task.create.titleField": "Что нужно сделать",
+  "task.create.descriptionLabel": "Описание",
+  "task.create.descriptionPlaceholder": "Контекст, критерии готовности…",
+  "task.create.create": "Создать",
+  "task.create.createKeys": "⌘↵",
+  "task.create.postsInHint": "Публикует сообщение задачи в {channel}",
+  "task.create.assignFailed": "Задача создана, но назначить её не удалось. Нажмите «Создать», чтобы попробовать назначить снова.",
 };

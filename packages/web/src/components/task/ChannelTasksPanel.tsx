@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useIntl } from "react-intl";
 import { ListTodo, Plus } from "lucide-react";
 import {
@@ -15,7 +15,6 @@ import { useAuthStore } from "../../store/authStore";
 import { selectChannelTaskBucket, useTaskStore } from "../../store/taskStore";
 import type { Task } from "../../store/taskStore";
 import { useChannelSideCardStore } from "../../store/channelSideCardStore";
-import { requestComposerTaskMode } from "../../features/composer/composerTaskMode";
 import type { ChannelTasksFilter } from "../../store/channelSideCardStore";
 import ChannelSideCard from "./ChannelSideCard";
 import { TaskSectionList } from "./TaskSectionList";
@@ -26,7 +25,6 @@ import { CreateTaskDialog } from "./DeferredCreateTaskDialog";
 import { ChannelTaskDetail, TaskDetailBack } from "./ChannelTaskDetail";
 
 const NO_ACTIONS: never[] = [];
-import { SideCardContext } from "./sideCardsLayout";
 
 
 export function isTaskOnViewer(task: Task, viewerId: string | null | undefined): boolean {
@@ -68,19 +66,16 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   const visible = filter === "mine" ? mine : filter === "created" ? created : tasks;
   const replyMode = useChannelStore((st) => findStoredChannel(st, channelId)?.replyMode === true);
   const handleFilterChange = useCallback((value: ChannelTasksFilter) => setFilter(value), [setFilter]);
-  // A task is a message sent As task (design "新建任务 = 发一条消息"), so "+" turns As task on in the channel's
-  // composer beside the card, in every channel (task #10 item 2). Covering the conversation (a phone), or with no composer for the
-  // channel mounted, it opens the New task dialog.
-  const covering = useContext(SideCardContext)?.mode === "overlay";
-  const openCreate = useCallback(() => {
-    // Covering the conversation (a phone): the panel steps aside first, so the composer under it takes the task
-    // (task #10 item 2: "+" works the same on a phone).
-    if (requestComposerTaskMode(channelId)) {
-      if (covering) onClose();
-      return;
-    }
-    setCreating(true);
-  }, [channelId, covering, onClose]);
+  // Task #15: "+" opens the Create task dialog, this channel fixed (every visible way to create a task is that dialog).
+  const openCreate = useCallback(() => setCreating(true), []);
+  // The new task is marked in the list for a moment (the row's selected look), so the eye finds it.
+  const [justCreatedId, setJustCreatedId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!justCreatedId) return;
+    const timer = window.setTimeout(() => setJustCreatedId(null), 2000);
+    return () => window.clearTimeout(timer);
+  }, [justCreatedId]);
+  const handleCreated = useCallback((created: Task[]) => setJustCreatedId(created[0]?.id ?? null), []);
   const closeCreate = useCallback(() => setCreating(false), []);
 
   const newTaskLabel = formatMessage({ id: "task.board.newTask" });
@@ -137,11 +132,11 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
             description={formatMessage({ id: filter === "mine" ? "task.sidePanel.emptyMineBody" : "task.sidePanel.emptyAllBody" })}
           />
         ) : (
-          <TaskSectionList tasks={visible} replyMode={replyMode} viewerId={viewerId} openTaskId={detailTaskId} onOpenTask={openTask} />
+          <TaskSectionList tasks={visible} replyMode={replyMode} viewerId={viewerId} openTaskId={detailTaskId ?? justCreatedId} onOpenTask={openTask} />
         )}
       </ScrollArea>
       </>)}
-      {creating ? <CreateTaskDialog channelId={channelId} onClose={closeCreate} /> : null}
+      {creating ? <CreateTaskDialog channelId={channelId} onClose={closeCreate} onCreated={handleCreated} /> : null}
     </ChannelSideCard>
   );
 }

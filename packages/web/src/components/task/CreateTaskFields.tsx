@@ -1,4 +1,3 @@
-import type { TaskCreateStatus } from "@botiverse/raft-shared";
 import {
   Field,
   FieldError,
@@ -13,12 +12,11 @@ import {
   SelectList,
   SelectTrigger,
   SelectValue,
-  TaskStatusIcon,
 } from "@botiverse/raft-ui";
+import { useCallback, useMemo } from "react";
 import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
 import type { CreateTaskChannelOption } from "./createTaskForm";
-import { toRuiTaskStatus } from "./taskStatusUi";
 
 /** The channel a create goes in, picked (the Tasks page's New task). `error` goes under the select. */
 export function CreateTaskChannelField({
@@ -59,45 +57,53 @@ export function CreateTaskChannelField({
   );
 }
 
-/** Task v2: the status a new task starts in. `description` goes under the select. */
-export function CreateTaskStatusField({
-  status,
-  items,
+export interface CreateTaskAssigneeOption {
+  /** `user:<id>` or `agent:<id>`. */
+  value: string;
+  label: string;
+  leading: ReactNode;
+}
+
+/** Who the new task goes to (task #15): optional, the channel's people and agents. */
+export function CreateTaskAssigneeField({
+  options,
+  value,
   onValueChange,
-  description,
 }: {
-  status: TaskCreateStatus;
-  items: readonly { value: TaskCreateStatus; label: string }[];
-  onValueChange: (next: TaskCreateStatus | null) => void;
-  description?: ReactNode;
+  options: readonly CreateTaskAssigneeOption[];
+  value: string | null;
+  onValueChange: (next: string | null) => void;
 }) {
   const { formatMessage } = useIntl();
+  const items = useMemo(() => [{ value: "", label: formatMessage({ id: "task.properties.unassigned" }) }, ...options], [formatMessage, options]);
+  const change = useCallback((next: string | null) => onValueChange(next || null), [onValueChange]);
   return (
     <Field>
-      <FieldLabel>{formatMessage({ id: "task.properties.status" })}</FieldLabel>
-      <Select<TaskCreateStatus> chrome="field" items={items} value={status} onValueChange={onValueChange}>
-        <SelectTrigger className="w-full" data-testid="create-task-status">
-          <span className="flex min-w-0 items-center gap-2">
-            <TaskStatusIcon status={toRuiTaskStatus(status)} className="shrink-0" />
-            <SelectValue />
-          </span>
+      <FieldLabel>
+        {formatMessage({ id: "task.properties.assignee" })}
+        <span className="ml-1 font-normal text-foreground-hint">{formatMessage({ id: "task.create.optional" })}</span>
+      </FieldLabel>
+      <Select<string> chrome="field" items={items} value={value ?? ""} onValueChange={change}>
+        <SelectTrigger className="w-full" data-testid="create-task-assignee">
+          <SelectValue />
           <SelectIcon />
         </SelectTrigger>
         <SelectContent>
           <SelectList>
-            {items.map((item) => (
-              <SelectItem key={item.value} value={item.value} data-testid={`create-task-status-${item.value}`}>
-                <SelectItemLeading>
-                  <TaskStatusIcon status={toRuiTaskStatus(item.value)} />
-                </SelectItemLeading>
-                <SelectItemText>{item.label}</SelectItemText>
+            <SelectItem value="" data-testid="create-task-assignee-none">
+              <SelectItemText>{items[0]!.label}</SelectItemText>
+              <SelectItemIndicator />
+            </SelectItem>
+            {options.map((option) => (
+              <SelectItem key={option.value} value={option.value} data-testid={`create-task-assignee-${option.value}`}>
+                <SelectItemLeading>{option.leading}</SelectItemLeading>
+                <SelectItemText>{option.label}</SelectItemText>
                 <SelectItemIndicator />
               </SelectItem>
             ))}
           </SelectList>
         </SelectContent>
       </Select>
-      {description}
     </Field>
   );
 }

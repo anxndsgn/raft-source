@@ -2176,7 +2176,6 @@ export function ChatPanel({
                   deferUntilFirstPage
                   channelName={isDM ? `@${displayName}` : isLounge ? loungeTitle : `#${channel.name}`}
                   // Task v2 too: a task is a message sent As task, in a channel or a DM (never a thread's composer).
-                  showTaskButton={supportsChannelTasks && allowTasks}
                   asTaskShortcutDisabled={taskV2 && !(supportsChannelTasks && allowTasks)}
                   autoFocus={composerAutoFocus}
                   onWillSend={handleWillSend}

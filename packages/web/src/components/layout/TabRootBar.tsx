@@ -1,5 +1,5 @@
 import type { HTMLAttributes, ReactNode, Ref } from "react";
-import { PanelHeaderContent, PanelMeta, PanelSectionHeader, PanelTitle } from "@botiverse/raft-ui";
+import { PanelActions, PanelHeaderContent, PanelMeta, PanelSectionHeader, PanelTitle } from "@botiverse/raft-ui";
 
 type DivPassthroughProps = HTMLAttributes<HTMLDivElement> & Record<`data-${string}`, string | undefined>;
 
@@ -20,6 +20,8 @@ export type TabRootBarProps = {
   /** Passed to the name block (e.g. `data-testid`, `onClick`). */
   titleProps?: DivPassthroughProps;
   ref?: Ref<HTMLDivElement>;
+  /** The page's own action at the bar's end (the Tasks page's New task). */
+  actions?: ReactNode;
 };
 
 /**
@@ -31,7 +33,7 @@ export type TabRootBarProps = {
  * `text-headline` with one subtitle line when the page has one; Home shows
  * its own content instead. From `md` up it is the same head as every panel.
  */
-export function TabRootBar({ name, subtitle, content, headingLevel = 1, containerProps, titleProps, ref }: TabRootBarProps) {
+export function TabRootBar({ name, subtitle, content, headingLevel = 1, containerProps, titleProps, ref, actions }: TabRootBarProps) {
   const Heading = headingLevel === 1 ? "h1" : "h2";
   return (
     <PanelSectionHeader {...containerProps} ref={ref} data-tab-root-bar="">
@@ -46,6 +48,7 @@ export function TabRootBar({ name, subtitle, content, headingLevel = 1, containe
           {subtitle != null && <PanelMeta render={<p />}>{subtitle}</PanelMeta>}
         </PanelHeaderContent>
       )}
+      {actions ? <PanelActions>{actions}</PanelActions> : null}
     </PanelSectionHeader>
   );
 }

@@ -2544,7 +2544,6 @@ function ComposerVisualCaseView({ caseConfig }: { caseConfig: ComposerVisualCase
         <MessageInput
           channelId={VISUAL_CHANNEL_ID}
           channelName={fxChannels.design.name}
-          showTaskButton
           placeholder={caseConfig.placeholder}
           activationBanner={caseConfig.activationPlacement === "mobile"
             ? <NotificationActivationBanner placement="mobile" composerChannelId={VISUAL_CHANNEL_ID} />

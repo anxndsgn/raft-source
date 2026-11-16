@@ -10021,6 +10021,15 @@ export const en = {
   "taskDetail.openConversation": "Open task conversation",
   "agent.detail.startBlockedOffline": "Start Agent (its computer is offline)",
   "agent.detail.noActions": "Nothing you can run here",
+  "task.create.optional": "optional",
+  "task.create.titleLabel": "Title",
+  "task.create.titleField": "What needs doing",
+  "task.create.descriptionLabel": "Description",
+  "task.create.descriptionPlaceholder": "Background, what done looks like…",
+  "task.create.create": "Create",
+  "task.create.createKeys": "⌘↵",
+  "task.create.postsInHint": "Posts a task message in {channel}",
+  "task.create.assignFailed": "The task was created, but assigning it failed. Press Create to try assigning again.",
 } as const;
 
 export type MessageId = keyof typeof en;

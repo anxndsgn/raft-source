@@ -9801,4 +9801,13 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "taskDetail.openConversation": "Abrir a conversa da tarefa",
   "agent.detail.startBlockedOffline": "Iniciar o agente (o computador está offline)",
   "agent.detail.noActions": "Nenhuma ação disponível",
+  "task.create.optional": "opcional",
+  "task.create.titleLabel": "Título",
+  "task.create.titleField": "O que precisa ser feito",
+  "task.create.descriptionLabel": "Descrição",
+  "task.create.descriptionPlaceholder": "Contexto, quando está pronto…",
+  "task.create.create": "Criar",
+  "task.create.createKeys": "⌘↵",
+  "task.create.postsInHint": "Publica uma mensagem de tarefa em {channel}",
+  "task.create.assignFailed": "A tarefa foi criada, mas a atribuição falhou. Clique em Criar para tentar atribuir de novo.",
 };

@@ -9801,4 +9801,13 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "taskDetail.openConversation": "打開任務對話",
   "agent.detail.startBlockedOffline": "啟動 Agent（電腦離線，暫時不能啟動）",
   "agent.detail.noActions": "沒有可執行的操作",
+  "task.create.optional": "可不填",
+  "task.create.titleLabel": "標題",
+  "task.create.titleField": "要做的事",
+  "task.create.descriptionLabel": "描述",
+  "task.create.descriptionPlaceholder": "補充背景、驗收標準…",
+  "task.create.create": "建立",
+  "task.create.createKeys": "⌘↵",
+  "task.create.postsInHint": "會在 {channel} 發一則任務訊息",
+  "task.create.assignFailed": "任務已建立，但指派沒成功。再按一次「建立」重試指派。",
 };
