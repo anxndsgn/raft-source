@@ -50,7 +50,9 @@ export function TeamHeader({ view, onMobileBack, mobileBackProps }: {
         onMobileBack={onMobileBack}
         mobileBackProps={mobileBackProps}
       />
-      <div className="border-b border-line-seam px-(--column-margin) py-2">
+      {/* With a mouse on a desktop the row is the conversation tab bar's height (44px), so its seam runs on with the
+          one under the member column's tabs beside it (anxndsgn 11/16). */}
+      <div className="border-b border-line-seam px-(--column-margin) py-2 md:pointer-fine:py-[4.5px]">
         <Tabs<TeamView> value={view} onValueChange={pick} className="min-w-0" data-testid="team-tabs">
           <TabsList aria-label={formatMessage({ id: "team.page.title" })}>
             <TabsTab value="overview" data-testid="team-tab-overview">
