@@ -60,7 +60,9 @@ jobs:
 
       - name: Image name
         id: name
-        run: echo "ref=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/${{ matrix.image }}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "ref=${REGISTRY}/${GITHUB_REPOSITORY_OWNER,,}/${{ matrix.image }}" >> "$GITHUB_OUTPUT"
+          echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
       - uses: docker/build-push-action@v6
         with:
@@ -73,7 +75,10 @@ jobs:
             ${{ steps.name.outputs.ref }}:latest
           build-args: |
             RAFT_RELEASE_SHA=${{ github.sha }}
+            RAFT_BUILD_AT=${{ steps.name.outputs.built_at }}
+            RAFT_RELEASE_BRANCH=${{ github.ref_name }}
             VITE_COMMIT_SHA=${{ github.sha }}
+            VITE_BUILD_AT=${{ steps.name.outputs.built_at }}
             VITE_API_URL=${{ vars.SERVER_URL }}
             VITE_DEPLOYMENT_ENV=production
             VITE_ARTIFACTS_CONTENT_DOMAIN=${{ vars.ARTIFACTS_CONTENT_DOMAIN }}
