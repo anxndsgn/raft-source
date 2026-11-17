@@ -30,6 +30,7 @@ import {
   Blocks,
   RefreshCw,
   AppWindow,
+  Plus,
 } from "lucide-react";
 import {
   normalizeAppSetupUrl,
@@ -1296,6 +1297,11 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
     [formatMessage],
   );
 
+  // The page's Add plugin sits on the tab row (anxndsgn 11/17); the hub tab opens its dialog.
+  const [addPluginOpen, setAddPluginOpen] = useState(false);
+  const requestAddPlugin = useCallback(() => setAddPluginOpen(true), []);
+  const closeAddPlugin = useCallback(() => setAddPluginOpen(false), []);
+
   if (!current) return null;
   const selectedListingBotHint = selectedListing ? renderUndecidedBotHint(selectedListing.id) : null;
 
@@ -1336,6 +1342,11 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
       viewSwitch={variant === "page" ? undefined : <ConnectedAppsViewToggle value={connectedAppsViewMode} onValueChange={updateConnectedAppsViewMode} />}
       // The page's Add App ends its toolbar; Settings keeps it in the section header.
       addApp={variant === "page" ? addAppMenu : undefined}
+      skillsAction={variant === "page" && canManage ? (
+        <Button variant="accent" size="md" onClick={requestAddPlugin} data-testid="skills-hub-add-plugin">
+          <Plus size={16} /> {formatMessage({ id: "skillsHub.action.addPlugin" })}
+        </Button>
+      ) : undefined}
       variant={variant}
     />
   );
@@ -1530,7 +1541,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
         </div>
       ) : null}
       {activeTab === "myapps" ? myAppsTab : null}
-      {activeTab === "skills" ? <SkillsHubSettingsSection variant={variant} /> : null}
+      {activeTab === "skills" ? <SkillsHubSettingsSection variant={variant} addPluginOpen={addPluginOpen} onAddPluginClose={closeAddPlugin} /> : null}
     </>
   );
   const dialogs = (

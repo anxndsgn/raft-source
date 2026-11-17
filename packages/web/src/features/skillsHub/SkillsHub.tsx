@@ -611,20 +611,16 @@ function HubDialogs({
   );
 }
 
-/** The Apps page's action for this tab: Add plugin. */
-function PageAddButtons({ onOpen }: { onOpen: (dialog: HubDialogState) => void }) {
-  const { formatMessage } = useIntl();
-  const openPlugins = useCallback(() => onOpen({ type: "plugins" }), [onOpen]);
-  return (
-    <div className="flex items-center justify-end gap-2">
-      <Button variant="accent" size="md" onClick={openPlugins} data-testid="skills-hub-add-plugin">
-        <Plus size={16} /> {formatMessage({ id: "skillsHub.action.addPlugin" })}
-      </Button>
-    </div>
-  );
-}
-
-export function SkillsHubSettingsSection({ variant = "settings" }: { variant?: "page" | "settings" } = {}) {
+export function SkillsHubSettingsSection({
+  variant = "settings",
+  addPluginOpen = false,
+  onAddPluginClose,
+}: {
+  variant?: "page" | "settings";
+  /** On the Apps page, Add plugin is on the tab row: the page owns whether its dialog is open. */
+  addPluginOpen?: boolean;
+  onAddPluginClose?: () => void;
+} = {}) {
   const { formatMessage } = useIntl();
   const { capabilities } = useServerPermissions();
   const canManage = capabilities.manageIntegrations;
@@ -665,12 +661,17 @@ export function SkillsHubSettingsSection({ variant = "settings" }: { variant?: "
   }, [load]);
   const editItem = useCallback((item: SkillsHubItemView) => setDialog({ type: "editor", draft: draftFromItem(item) }), []);
   const removeItem = useCallback((item: SkillsHubItemView) => { void remove(item); }, [remove]);
+  const closeAddPlugin = useCallback(() => onAddPluginClose?.(), [onAddPluginClose]);
+  const addedPlugins = useCallback(() => {
+    onAddPluginClose?.();
+    void load();
+  }, [load, onAddPluginClose]);
   if (variant === "page") {
     return (
       <section className="stack-y-3" data-testid="skills-hub-settings">
-        {canManage ? <PageAddButtons onOpen={setDialog} /> : null}
         {error && <div className="text-caption text-danger" role="alert">{error}</div>}
         <HubDialogs dialog={dialog} onClose={closeDialog} onSaved={savedDialog} />
+        {addPluginOpen ? <PluginMarketplaceDialog onCancel={closeAddPlugin} onAdded={addedPlugins} /> : null}
         {items && items.length === 0 ? (
           <p className="py-6 text-center text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.empty" })}</p>
         ) : null}
