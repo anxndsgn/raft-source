@@ -2,6 +2,7 @@ import { Pencil } from "lucide-react";
 import { useIntl } from "react-intl";
 import { Badge } from "@botiverse/raft-ui";
 import { ThreadIcon } from "@botiverse/ricons";
+import { RIcon } from "../redesign/icons";
 
 interface ThreadRepliesBadgeProps {
   replyCount: number;
@@ -34,7 +35,7 @@ export function ThreadRepliesBadge({
     >
       {hasReplies ? (
         <>
-          <ThreadIcon width={12} height={12} className="shrink-0" />
+          <RIcon name="thread" width={12} height={12} className="shrink-0" />
           {formatMessage({ id: "message.inlineThreadReplies.replyCount" }, { count: replyCount })}
         </>
       ) : (

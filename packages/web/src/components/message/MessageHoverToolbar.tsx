@@ -1,5 +1,6 @@
 import { MessageItemToolbar, MessageItemToolbarButton } from "@botiverse/raft-ui";
 import { ThreadIcon } from "@botiverse/ricons";
+import { RIcon } from "../redesign/icons";
 import { useCallback, useEffect, useRef } from "react";
 import type { MouseEvent, PointerEvent } from "react";
 import { useIntl } from "react-intl";
@@ -222,7 +223,7 @@ export function MessageHoverToolbar({
                 aria-label={formatMessage({ id: "message.messageItem.replyInThread" })}
                 data-message-affordance="thread"
               >
-                <ThreadIcon width={16} height={16} />
+                <RIcon name="thread" width={16} height={16} />
               </MessageItemToolbarButton>
             );
           case "forward":

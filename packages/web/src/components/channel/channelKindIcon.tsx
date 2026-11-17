@@ -1,5 +1,6 @@
 import { LeaveChannelIcon, LeaveJointChannelIcon, LeavePrivateChannelIcon } from "@botiverse/ricons";
 import type { ReactNode, SVGProps } from "react";
+import { RIcon } from "../redesign/icons";
 import { useIntl } from "react-intl";
 import type { Channel } from "../../store/channelStore";
 import { useServerStore } from "../../store/serverStore";
@@ -62,10 +63,10 @@ export function ChannelKindIcon({
   external?: boolean;
 }) {
   if (external && (type === "channel" || type === "private" || type === "joint")) return <ExternalChannelGlyph size={size} className={className} />;
-  if (type === "private") return <SinglePathIcon name="lock" d={LOCK_PATH} size={size} className={className} />;
+  if (type === "private") return <RIcon name="lock" width={size} height={size} className={`lucide lucide-lock${className ? ` ${className}` : ""}`} />;
   if (type === "channel" && onPublicPage) return <PublicChannelGlyph size={size} className={className} />;
   if (type === "joint") return <SinglePathIcon name="git-branch" d={GIT_BRANCH_PATH} size={size} className={className} />;
-  if (type === "channel") return <SinglePathIcon name="hash" d={HASH_PATH} size={size} className={className} />;
+  if (type === "channel") return <RIcon name="hash" width={size} height={size} className={`lucide lucide-hash${className ? ` ${className}` : ""}`} />;
   return null;
 }
 

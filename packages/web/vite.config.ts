@@ -143,9 +143,15 @@ export default defineConfig({
     catalogPartsPlugin(),
     sharedWithoutSideEffectsPlugin(),
   ],
-  ...(localRaftDesignRoot
-    ? { resolve: { dedupe: ["react", "react-dom", "react/jsx-runtime"] } }
-    : {}),
+  resolve: {
+    // Redesign test (task #20): conversation-page icons -> Raft's own set.
+    alias: [
+      { find: /^lucide-react$/, replacement: resolve(webRoot, "src/components/redesign/lucideShim.tsx") },
+      { find: /^@botiverse\/ricons\/real$/, replacement: resolve(webRoot, "node_modules/@botiverse/ricons/dist/index.mjs") },
+      { find: /^@botiverse\/ricons$/, replacement: resolve(webRoot, "src/components/redesign/riconsShim.tsx") },
+    ],
+    ...(localRaftDesignRoot ? { dedupe: ["react", "react-dom", "react/jsx-runtime"] } : {}),
+  },
   server: {
     ...(localRaftDesignRoot ? { fs: { allow: [resolve(webRoot, "../.."), localRaftDesignRoot] } } : {}),
     host: true,
