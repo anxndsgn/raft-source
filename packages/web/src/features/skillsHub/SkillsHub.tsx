@@ -9,10 +9,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
   Input,
   Switch,
   Textarea,
@@ -20,12 +16,10 @@ import {
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { useIntl } from "react-intl";
-import { ChevronDown, ChevronRight, Download, Package, Pencil, Plus, Puzzle, Sparkles, Trash2 } from "lucide-react";
-import { isExternalAgentRuntime, skillsHubPluginMarketplace } from "@botiverse/raft-shared";
+import { ChevronDown, ChevronRight, Package, Plus, Puzzle, Sparkles, Trash2 } from "lucide-react";
+import { skillsHubPluginMarketplace } from "@botiverse/raft-shared";
 import type {
   SkillsHubAgentCatalogResponse,
-  SkillsHubGithubImportResponse,
-  SkillsHubGithubScanResponse,
   SkillsHubAgentItemView,
   SkillsHubCatalogResponse,
   SkillsHubItemKind,
@@ -39,9 +33,7 @@ import SectionHeader from "../../components/ui/SectionHeader";
 import { SkillsHubTable } from "./SkillsHubTable";
 import { showToast } from "../../components/toastBridge";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
-import { useAgentStore } from "../../store/agentStore";
 
-const GITHUB_URL_PLACEHOLDER = "https://github.com/owner/repo";
 const MARKETPLACE_URL_PLACEHOLDER = "https://github.com/anthropics/claude-plugins-official";
 
 /** The file name itself, not prose: not translated. */
@@ -49,16 +41,6 @@ const SKILL_MD_FILE_NAME = "SKILL.md";
 /** Where a plugin marketplace keeps its manifest; shown as code, never broken across lines. */
 const MARKETPLACE_MANIFEST_PATH = ".claude-plugin/marketplace.json";
 const manifestPath = <code className="whitespace-nowrap font-mono text-mono-meta">{MARKETPLACE_MANIFEST_PATH}</code>;
-
-const SKILL_TEMPLATE = `---
-name: my-skill
-description: What this skill does and when the agent should use it.
----
-
-# My skill
-
-Instructions for the agent.
-`;
 
 function errorMessage(error: unknown, fallback: string): string {
   const data = (error as { response?: { data?: { error?: unknown } } })?.response?.data;
@@ -80,10 +62,6 @@ type Draft = {
   content: string;
   marketplaceRepo: string;
 };
-
-function emptyDraft(kind: SkillsHubItemKind): Draft {
-  return { id: null, kind, name: "", description: "", content: kind === "skill" ? SKILL_TEMPLATE : "", marketplaceRepo: "" };
-}
 
 function draftFromItem(item: SkillsHubItemView): Draft {
   const source = item.marketplaceSource;
@@ -309,21 +287,16 @@ function ItemSummary({ item }: { item: SkillsHubItemView }) {
   );
 }
 
+// Adding skills is off (anxndsgn, 2026-11-17): new items are plugins only.
+// Skills already in the hub can still be edited, toggled and deleted.
 type HubDialogState =
   | { type: "editor"; draft: Draft }
-  | { type: "import" }
   | { type: "plugins" };
 
 function AddButtons({ onOpen }: { onOpen: (dialog: HubDialogState) => void }) {
   const { formatMessage } = useIntl();
   return (
     <div className="flex flex-wrap gap-2">
-      <Button variant="outline" size="sm" onClick={() => onOpen({ type: "import" })} data-testid="skills-hub-import-github">
-        <Download size={14} /> {formatMessage({ id: "skillsHub.action.importGithub" })}
-      </Button>
-      <Button variant="outline" size="sm" onClick={() => onOpen({ type: "editor", draft: emptyDraft("skill") })} data-testid="skills-hub-add-skill">
-        <Plus size={14} /> {formatMessage({ id: "skillsHub.action.addSkill" })}
-      </Button>
       <Button variant="outline" size="sm" onClick={() => onOpen({ type: "plugins" })} data-testid="skills-hub-add-plugin">
         <Plus size={14} /> {formatMessage({ id: "skillsHub.action.addPlugin" })}
       </Button>
@@ -381,173 +354,6 @@ function RepoField({
         ? <p className="text-caption text-danger" role="alert" data-testid={`${testId}-error`}>{error}</p>
         : <p className="text-caption text-foreground-hint">{hint}</p>}
     </div>
-  );
-}
-
-/** Agents a hub item can be enabled for (Raft-run agents only). */
-function useHubAgents() {
-  const allAgents = useAgentStore((s) => s.agents);
-  const loadAgents = useAgentStore((s) => s.loadAgents);
-  useEffect(() => {
-    if (allAgents.length === 0) void loadAgents();
-  }, [allAgents.length, loadAgents]);
-  return useMemo(
-    () => allAgents.filter((agent) => !agent.deletedAt && agent.external !== true && !isExternalAgentRuntime(agent.runtime)),
-    [allAgents],
-  );
-}
-
-type ScanState = SkillsHubGithubScanResponse & { url: string };
-
-/**
- * Import from GitHub: paste a repository (or a folder link), pick the skills
- * found in it, pick the agents to enable them for, import.
- */
-function GithubImportDialog({
-  defaultAgentIds,
-  onCancel,
-  onImported,
-}: {
-  defaultAgentIds: string[];
-  onCancel: () => void;
-  onImported: (items: SkillsHubItemView[]) => void;
-}) {
-  const { formatMessage } = useIntl();
-  const agents = useHubAgents();
-  const [url, setUrl] = useState("");
-  const [scan, setScan] = useState<ScanState | null>(null);
-  const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
-  const [selectedAgents, setSelectedAgents] = useState<Set<string>>(() => new Set(defaultAgentIds));
-  const [busy, setBusy] = useState<"scan" | "import" | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [scanError, setScanError] = useState<string | null>(null);
-
-  const runScan = async () => {
-    setBusy("scan");
-    setError(null);
-    setScanError(null);
-    setScan(null);
-    try {
-      const { data } = await api.post<SkillsHubGithubScanResponse>("/skills-hub/github/scan", { url: url.trim() });
-      setScan({ ...data, url: url.trim() });
-      setSelectedPaths(new Set(data.skills.filter((skill) => !skill.existingItemId).map((skill) => skill.path)));
-    } catch (err) {
-      setScanError(errorMessage(err, formatMessage({ id: "skillsHub.import.error.scan" })));
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const runImport = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!scan || busy || selectedPaths.size === 0) return;
-    setBusy("import");
-    setError(null);
-    try {
-      const { data } = await api.post<SkillsHubGithubImportResponse>("/skills-hub/github/import", {
-        url: scan.url,
-        commitSha: scan.commitSha,
-        paths: [...selectedPaths],
-        agentIds: [...selectedAgents],
-      });
-      onImported(data.items);
-    } catch (err) {
-      setError(errorMessage(err, formatMessage({ id: "skillsHub.import.error.import" })));
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  return (
-    <HubDialog
-      title={formatMessage({ id: "skillsHub.import.title" })}
-      testId="skills-hub-github-import"
-      busy={busy !== null}
-      onClose={onCancel}
-      onSubmit={(event) => void runImport(event)}
-      commit={scan && scan.skills.length > 0 ? {
-        label: formatMessage({ id: "skillsHub.import.confirm" }, { count: selectedPaths.size }),
-        disabled: busy !== null || selectedPaths.size === 0,
-        loading: busy === "import",
-        testId: "skills-hub-github-confirm",
-      } : null}
-    >
-      <RepoField
-        url={url}
-        onUrlChange={setUrl}
-        placeholder={GITHUB_URL_PLACEHOLDER}
-        hint={formatMessage({ id: "skillsHub.import.urlHint" })}
-        error={scanError}
-        scanLabel={formatMessage({ id: "skillsHub.import.scan" })}
-        scanning={busy === "scan"}
-        disabled={busy !== null}
-        onScan={() => void runScan()}
-        testId="skills-hub-github"
-      />
-
-      {scan && scan.skills.length === 0 && (
-        <div className="text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.import.none" })}</div>
-      )}
-
-      {scan && scan.skills.length > 0 && (
-        <>
-          <div className="space-y-2">
-            <div className="text-caption font-semibold text-foreground-muted">
-              {formatMessage({ id: "skillsHub.import.skillsFound" }, { count: scan.skills.length, repo: scan.repo, ref: scan.ref })}
-            </div>
-            <Card render={<ul />} className="max-h-72 divide-y divide-line-hairline overflow-y-auto">
-              {scan.skills.map((skill) => (
-                <li key={skill.path}>
-                  <label className="flex cursor-pointer items-start gap-3 px-3 py-2">
-                    <Checkbox
-                      checked={selectedPaths.has(skill.path)}
-                      onCheckedChange={(checked: boolean) => setSelectedPaths((prev) => toggled(prev, skill.path, checked))}
-                      data-testid={`skills-hub-import-skill-${skill.name}`}
-                    />
-                    <span className="flex min-w-0 flex-1 flex-col">
-                      <span className="flex min-w-0 items-center gap-2">
-                        <span className="truncate text-callout font-semibold text-foreground">{skill.name}</span>
-                        {skill.existingItemId && (
-                          <Badge appearance="outline" className="shrink-0">{formatMessage({ id: "skillsHub.import.exists" })}</Badge>
-                        )}
-                      </span>
-                      {skill.description && <span className="line-clamp-2 text-caption text-foreground-muted">{skill.description}</span>}
-                      <span className="truncate text-caption text-foreground-hint">
-                        {formatMessage({ id: "skillsHub.import.skillMeta" }, { path: skill.path || "/", files: skill.fileCount })}
-                      </span>
-                    </span>
-                  </label>
-                </li>
-              ))}
-            </Card>
-          </div>
-
-          <div className="space-y-2">
-            <div className="text-caption font-semibold text-foreground-muted">{formatMessage({ id: "skillsHub.import.agents" })}</div>
-            {agents.length === 0 ? (
-              <div className="text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.import.noAgents" })}</div>
-            ) : (
-              <Card render={<ul />} className="max-h-56 divide-y divide-line-hairline overflow-y-auto">
-                {agents.map((agent) => (
-                  <li key={agent.id}>
-                    <label className="flex cursor-pointer items-center gap-3 px-3 py-2">
-                      <Checkbox
-                        checked={selectedAgents.has(agent.id)}
-                        onCheckedChange={(checked: boolean) => setSelectedAgents((prev) => toggled(prev, agent.id, checked))}
-                        data-testid={`skills-hub-import-agent-${agent.name}`}
-                      />
-                      <span className="truncate text-callout text-foreground">{agent.displayName || agent.name}</span>
-                    </label>
-                  </li>
-                ))}
-              </Card>
-            )}
-          </div>
-        </>
-      )}
-
-      <ErrorBanner error={error} />
-    </HubDialog>
   );
 }
 
@@ -783,61 +589,37 @@ function PluginMarketplaceDialog({
 /** The open add/edit dialog, if any. */
 function HubDialogs({
   dialog,
-  defaultAgentIds,
   onClose,
   onSaved,
 }: {
   dialog: HubDialogState | null;
-  defaultAgentIds: string[];
   onClose: () => void;
-  /** Items added or changed; `enabledByImport` is true when the import already enabled them for the chosen agents. */
-  onSaved: (items: SkillsHubItemView[], enabledByImport: boolean) => void;
+  /** Items added (none when an existing item was edited). */
+  onSaved: (items: SkillsHubItemView[]) => void;
 }) {
   if (!dialog) return null;
-  if (dialog.type === "import") {
-    return <GithubImportDialog defaultAgentIds={defaultAgentIds} onCancel={onClose} onImported={(items) => onSaved(items, true)} />;
-  }
   if (dialog.type === "plugins") {
-    return <PluginMarketplaceDialog onCancel={onClose} onAdded={(items) => onSaved(items, false)} />;
+    return <PluginMarketplaceDialog onCancel={onClose} onAdded={onSaved} />;
   }
   return (
     <SkillsHubItemDialog
       key={dialog.draft.id ?? `new-${dialog.draft.kind}`}
       draft={dialog.draft}
       onCancel={onClose}
-      onSaved={(item) => onSaved(dialog.draft.id ? [] : [item], false)}
+      onSaved={(item) => onSaved(dialog.draft.id ? [] : [item])}
     />
   );
 }
 
-/** Settings → Skills Hub: the server's shared skill & plugin library. */
-const NO_AGENT_IDS: string[] = [];
-
-/** The Apps page's actions for this tab: Import from GitHub, and Add (a skill or a plugin). */
+/** The Apps page's action for this tab: Add plugin. */
 function PageAddButtons({ onOpen }: { onOpen: (dialog: HubDialogState) => void }) {
   const { formatMessage } = useIntl();
-  const openImport = useCallback(() => onOpen({ type: "import" }), [onOpen]);
-  const openSkill = useCallback(() => onOpen({ type: "editor", draft: emptyDraft("skill") }), [onOpen]);
   const openPlugins = useCallback(() => onOpen({ type: "plugins" }), [onOpen]);
   return (
     <div className="flex items-center justify-end gap-2">
-      <Button variant="outline" size="md" onClick={openImport} data-testid="skills-hub-import-github">
-        <Download size={16} /> {formatMessage({ id: "skillsHub.action.importGithub" })}
+      <Button variant="accent" size="md" onClick={openPlugins} data-testid="skills-hub-add-plugin">
+        <Plus size={16} /> {formatMessage({ id: "skillsHub.action.addPlugin" })}
       </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="accent" size="md" data-testid="skills-hub-add-menu" />}>
-          {formatMessage({ id: "skillsHub.action.add" })}
-          <ChevronDown size={16} aria-hidden />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={openSkill} data-testid="skills-hub-add-skill">
-            <Sparkles />{formatMessage({ id: "skillsHub.action.addSkill" })}
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={openPlugins} data-testid="skills-hub-add-plugin">
-            <Puzzle />{formatMessage({ id: "skillsHub.action.addPlugin" })}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </div>
   );
 }
@@ -888,7 +670,7 @@ export function SkillsHubSettingsSection({ variant = "settings" }: { variant?: "
       <section className="stack-y-3" data-testid="skills-hub-settings">
         {canManage ? <PageAddButtons onOpen={setDialog} /> : null}
         {error && <div className="text-caption text-danger" role="alert">{error}</div>}
-        <HubDialogs dialog={dialog} defaultAgentIds={NO_AGENT_IDS} onClose={closeDialog} onSaved={savedDialog} />
+        <HubDialogs dialog={dialog} onClose={closeDialog} onSaved={savedDialog} />
         {items && items.length === 0 ? (
           <p className="py-6 text-center text-caption text-foreground-muted">{formatMessage({ id: "skillsHub.empty" })}</p>
         ) : null}
@@ -918,7 +700,6 @@ export function SkillsHubSettingsSection({ variant = "settings" }: { variant?: "
       {error && <div className="text-caption text-danger" role="alert">{error}</div>}
       <HubDialogs
         dialog={dialog}
-        defaultAgentIds={[]}
         onClose={() => setDialog(null)}
         onSaved={() => {
           setDialog(null);
@@ -1012,9 +793,10 @@ export function AgentSkillsHubTab({ agentId, agentName }: { agentId: string; age
   const groups: Array<{ kind: SkillsHubItemKind; items: SkillsHubAgentItemView[] }> = useMemo(() => {
     const items = catalog?.items ?? [];
     return [
-      { kind: "skill", items: items.filter((item) => item.kind === "skill") },
-      { kind: "plugin", items: items.filter((item) => item.kind === "plugin") },
-    ];
+      { kind: "skill" as const, items: items.filter((item) => item.kind === "skill") },
+      { kind: "plugin" as const, items: items.filter((item) => item.kind === "plugin") },
+    // Skills can no longer be added: the group shows only while old ones remain.
+    ].filter((group) => group.kind === "plugin" || group.items.length > 0);
   }, [catalog]);
 
   return (
@@ -1040,16 +822,11 @@ export function AgentSkillsHubTab({ agentId, agentName }: { agentId: string; age
 
       <HubDialogs
         dialog={dialog}
-        defaultAgentIds={[agentId]}
         onClose={() => setDialog(null)}
-        onSaved={(items, enabledByImport) => {
+        onSaved={(items) => {
           setDialog(null);
-          // A new item added from an agent is enabled for that agent (an
-          // import already enabled it for the agents chosen in it).
-          if (enabledByImport) {
-            void load();
-            showToast({ title: formatMessage({ id: "skillsHub.agent.restartToast" }, { name: agentName }) });
-          } else if (items.length === 0) void load();
+          // A new item added from an agent is enabled for that agent.
+          if (items.length === 0) void load();
           else void save([...enabledIds, ...items.map((item) => item.id)], catalog?.useHostSkills ?? true);
         }}
       />
@@ -1060,33 +837,12 @@ export function AgentSkillsHubTab({ agentId, agentName }: { agentId: string; age
             label={formatMessage({ id: kind === "skill" ? "skillsHub.group.skills" : "skillsHub.group.plugins" })}
             icon={kind === "skill" ? <Sparkles size={16} /> : <Puzzle size={16} />}
             count={items.filter((item) => item.enabled).length}
-            action={canManageHub ? (kind === "skill" ? (
-              // A skill comes from GitHub or is written here.
-              <DropdownMenu>
-                <DropdownMenuTrigger render={(
-                  <Button variant="outline" size="md" data-testid="skills-hub-agent-add-skill">
-                    <Plus size={14} />
-                    {formatMessage({ id: "skillsHub.agent.addSkill" })}
-                    <ChevronDown size={14} />
-                  </Button>
-                )} />
-                <DropdownMenuContent side="bottom" align="end" sideOffset={4}>
-                  <DropdownMenuItem onClick={() => setDialog({ type: "import" })} data-testid="skills-hub-agent-import-github">
-                    <Download size={14} />
-                    {formatMessage({ id: "skillsHub.action.importGithub" })}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setDialog({ type: "editor", draft: emptyDraft("skill") })} data-testid="skills-hub-agent-write-skill">
-                    <Pencil size={14} />
-                    {formatMessage({ id: "skillsHub.agent.writeSkill" })}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
+            action={canManageHub && kind === "plugin" ? (
               <Button variant="outline" size="md" onClick={() => setDialog({ type: "plugins" })} data-testid="skills-hub-agent-add-plugin">
                 <Plus size={14} />
                 {formatMessage({ id: "skillsHub.agent.addPlugin" })}
               </Button>
-            )) : undefined}
+            ) : undefined}
           />
           {items.length === 0 ? (
             catalog && <div className="text-callout text-foreground-hint">{formatMessage({ id: kind === "skill" ? "skillsHub.agent.noSkills" : "skillsHub.agent.noPlugins" }, { canAdd: canManageHub ? "yes" : "no" })}</div>

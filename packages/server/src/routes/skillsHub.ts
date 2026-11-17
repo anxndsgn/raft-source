@@ -7,10 +7,9 @@ import { actorHasServerCapabilityInServer, getActorServerRoleInServer, userCanAc
 import { guardUuidPathParams } from "../lib/uuidPathParams";
 import { bumpAgentConfigRevision } from "../services/agentConfigRevision";
 import type { AgentOrchestrator } from "../services/agentOrchestrator";
-import { readGithubSkills, scanGithubMarketplace, scanGithubSkills } from "../services/skillsHubGithub";
+import { scanGithubMarketplace } from "../services/skillsHubGithub";
 import {
   createSkillsHubItem,
-  importSkillsHubSkills,
   skillsHubSkillIdsByName,
   deleteSkillsHubItem,
   getAgentSkillsHubCatalog,
@@ -138,13 +137,15 @@ skillsHubRouter.post("/items", requireCapability("manageIntegrations"), async (r
   try {
     const input = body(req);
     const kind = requiredKind(input.kind);
+    // Adding skills is off (anxndsgn, 2026-11-17): only plugins can be added.
+    if (kind === "skill") throw new SkillsHubError("Adding skills is turned off; only plugins can be added", "skills_hub_invalid");
     res.status(201).json(await createSkillsHubItem({
       serverId: req.serverId!,
       userId: req.userId!,
       kind,
       name: requiredString(input.name, "name", 201),
       description: optionalNullableString(input.description, "description", 2_000) ?? null,
-      content: kind === "skill" ? requiredString(input.content, "content", 300_000) : null,
+      content: null,
       marketplaceSource: kind === "plugin" ? validateMarketplaceSource(input.marketplaceSource) : null,
     }));
   } catch (error) {
@@ -209,51 +210,6 @@ skillsHubRouter.put("/agents/:agentId", requireAgentCapabilityOrCreator("editAge
     }, tx));
     res.json(await getAgentSkillsHubCatalog(req.serverId!, agentId));
     if (changed) await restartAgents(req, [agentId]);
-  } catch (error) {
-    sendSkillsHubError(error, res, next);
-  }
-});
-
-function stringArray(value: unknown, field: string, max: number): string[] {
-  if (!Array.isArray(value) || value.length > max || !value.every((v) => typeof v === "string" && v.length <= 1_000)) {
-    throw new SkillsHubError(`${field} must be an array of at most ${max} strings`, "skills_hub_invalid");
-  }
-  return value as string[];
-}
-
-/** List the skills found at a GitHub address (nothing is saved). */
-skillsHubRouter.post("/github/scan", requireCapability("manageIntegrations"), async (req, res, next) => {
-  try {
-    const url = requiredString(body(req).url, "url", 1_000);
-    const [scan, existing] = await Promise.all([scanGithubSkills(url), skillsHubSkillIdsByName(req.serverId!)]);
-    res.json({
-      repo: `${scan.ref.owner}/${scan.ref.repo}`,
-      ref: scan.ref.ref,
-      commitSha: scan.ref.commitSha,
-      skills: scan.skills.map((skill) => ({ ...skill, existingItemId: existing.get(skill.name) ?? null })),
-    });
-  } catch (error) {
-    sendSkillsHubError(error, res, next);
-  }
-});
-
-/** Import the chosen skills at the scanned commit and enable them for the chosen agents. */
-skillsHubRouter.post("/github/import", requireCapability("manageIntegrations"), async (req, res, next) => {
-  try {
-    const input = body(req);
-    const url = requiredString(input.url, "url", 1_000);
-    const commitSha = requiredString(input.commitSha, "commitSha", 40);
-    const paths = stringArray(input.paths, "paths", 100);
-    const agentIds = stringArray(input.agentIds, "agentIds", 500);
-    const skills = await readGithubSkills(url, commitSha, paths);
-    const result = await getDb().transaction((tx) => importSkillsHubSkills({
-      serverId: req.serverId!,
-      userId: req.userId!,
-      skills,
-      agentIds,
-    }, tx));
-    res.status(201).json({ items: result.items });
-    await restartAgents(req, result.affectedAgentIds);
   } catch (error) {
     sendSkillsHubError(error, res, next);
   }
