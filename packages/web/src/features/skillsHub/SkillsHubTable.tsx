@@ -44,7 +44,7 @@ export function SkillsHubTable({ items, counts, total, canManage, onEdit, onRemo
   const { formatMessage } = useIntl();
   const heading = "text-footnote font-bold text-foreground-hint";
   const colSource = "hidden w-[280px] shrink-0 @[760px]/skills:flex";
-  const colAgents = "flex w-[120px] shrink-0";
+  const colAgents = "flex w-[88px] shrink-0 @[480px]/skills:w-[120px]";
   const colAction = "flex w-[48px] shrink-0 justify-end";
   const sourceOf = (item: SkillsHubItemView) => {
     if (item.source) return formatMessage({ id: "skillsHub.item.githubSource" }, { repo: item.source.repo, ref: item.source.ref, files: item.fileCount });
@@ -74,8 +74,8 @@ export function SkillsHubTable({ items, counts, total, canManage, onEdit, onRemo
               <ListRowIcon><KindIcon kind={item.kind} /></ListRowIcon>
               <ListRowBody>
                 <span className="flex min-w-0 items-center gap-2">
-                  <ListRowTitle className="min-w-[3ch] flex-none">{item.name}</ListRowTitle>
-                  <Badge appearance="outline" variant="muted" className="shrink-0">
+                  <ListRowTitle className="min-w-[3ch]" title={item.name}>{item.name}</ListRowTitle>
+                  <Badge appearance="outline" variant="muted" className="hidden shrink-0 @[480px]/skills:inline-flex">
                     {formatMessage({ id: item.kind === "skill" ? "skillsHub.kind.skill" : "skillsHub.kind.plugin" })}
                   </Badge>
                 </span>
