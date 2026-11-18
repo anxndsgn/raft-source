@@ -33,9 +33,10 @@ export function WorkspaceTabStrip() {
   if (tabs.length === 0) return null;
   const expandLabel = formatMessage({ id: expanded ? "artifacts.viewer.restore" : "artifacts.viewer.expand" });
   return (
-    // One line under it, this row's, the channel head's (raft-ui Tabs' own seam is off: border-b-0 below).
-    <div className="flex h-12 shrink-0 items-center gap-1 border-b border-line-seam pr-2 md:pointer-fine:h-panel-header" data-testid="workspace-tab-strip">
-      {expanded && sidebarToggle ? <SidebarToggleHeadAction column={sidebarToggle} className="ml-(--column-margin) shrink-0" /> : null}
+    // One line under it, this row's, the channel head's (raft-ui Tabs' own seam is off: border-b-0 below). On a
+    // desktop its end buttons sit 6px from the island's edge, as far as from its top and bottom (anxndsgn 11/18).
+    <div className="flex h-12 shrink-0 items-center gap-1 border-b border-line-seam pr-2 md:pointer-fine:h-panel-header md:pointer-fine:pr-1.5" data-testid="workspace-tab-strip">
+      {expanded && sidebarToggle ? <SidebarToggleHeadAction column={sidebarToggle} className="ml-(--column-margin) shrink-0 md:pointer-fine:ml-1.5" /> : null}
       <ConversationPanelTabs className="flex h-full min-w-0 flex-1 items-center border-b-0" render={<Tabs<string> value={shownId ?? ""} onValueChange={select} />}>
         <SortableTabsList<string> value={ids} onReorder={reorder} aria-label={formatMessage({ id: "workspace.tabs" })}>
           {tabs.map((tab) => <WorkspaceTab key={tab.id} id={tab.id} thread={!!tab.thread} shown={tab.id === shownId} />)}

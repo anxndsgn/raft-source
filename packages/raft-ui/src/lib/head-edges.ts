@@ -18,6 +18,19 @@
  * the pull holds when its last action is hidden at some width.
  */
 
+/**
+ * Raft redesign: in a 44px bar on a desktop, the icon button at either end
+ * sits 6px from the edge, as far as from the bar's top and bottom (a 32px
+ * button in 44), while text keeps the 14px margin: the end buttons are pulled
+ * out 8px (14 - 6). Same selectors as headEdgePull, so it wins from 768px with
+ * a mouse; a part hidden from 768px (a phone's Back) says `data-phone-only` and
+ * is not counted.
+ */
+export const barEdgePull = [
+  "md:pointer-fine:[&>[data-icon-inset]:nth-child(1_of_:not([data-base-ui-focus-guard],[aria-owns],[data-phone-only]))]:-ml-2",
+  "md:pointer-fine:[&>[data-icon-inset]:nth-last-child(1_of_:not([data-base-ui-focus-guard],[aria-owns],[data-phone-only]))]:-mr-2",
+];
+
 /** The pull alone, for a head whose padding is already its margin (a dialog's surface inset). */
 export const headEdgePull = [
   "[&>[data-icon-inset]:nth-child(1_of_:not([data-base-ui-focus-guard],[aria-owns]))]:-ml-icon-inset",

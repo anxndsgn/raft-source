@@ -396,9 +396,9 @@ export default function ChannelOverflowMenu({
   return (
     <>
       {lead && !leadItem ? lead.node : null}
-      {/* Raft redesign (Figma Channel Header): on a desktop, search is the rail's (⌘K, the whole team), the head has
-          none; its slot still counts in the fit, so the head folds a little early rather than late. */}
-      {shown > 0 && !desktopShell ? (
+      {/* The head's first action searches this conversation: the search opens with an "in #channel" chip that can be
+          cleared (anxndsgn 11/18). The rail's search (⌘K) searches the whole team. */}
+      {shown > 0 ? (
         <OverflowMenuTrigger
           labelId="message.chatPanel.searchChannel"
           onClick={handleSearch}

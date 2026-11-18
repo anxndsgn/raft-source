@@ -25,6 +25,9 @@ export function SidebarToggleHeadAction({ column, className }: { column: Sidebar
     <Tooltip content={shortcut.combos[0] ? labelWithShortcut(label, shortcut.combos[0], formatMessage) : label}>
       <AppShellSidebarTrigger
         {...{ [SIDEBAR_TOGGLE_ATTR]: "" }}
+        // An edge icon button: a 44px head pulls it out to 6px from its edge, as far as from the head's top
+        // and bottom (raft-ui barEdgePull; anxndsgn 11/18).
+        data-icon-inset=""
         className={className}
         aria-label={label}
         aria-keyshortcuts={shortcut.ariaKeyShortcuts || undefined}

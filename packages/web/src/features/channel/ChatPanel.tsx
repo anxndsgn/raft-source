@@ -5,7 +5,7 @@ import CloseButton from "../../components/ui/CloseButton";
 import { Suspense, useContext, useEffect, useId, useLayoutEffect, useRef, useState, useMemo, useCallback } from "react";
 import type { ComponentType, ReactNode } from "react";
 import { useIntl } from "react-intl";
-import { ArrowDown, ChevronDown, X } from "lucide-react";
+import { ArrowDown, X } from "lucide-react";
 import { useChannelHeadToggles } from "./useChannelHeadToggles";
 import { ChatPanelNoChannel } from "./ChatPanelNoChannel";
 import {
@@ -124,6 +124,7 @@ import { useChannelAnnouncement } from "../../store/channelAnnouncementStore";
 import { conversationPathOf, useLandedMessageLink } from "../../components/deeplinks/deepLinksFlag";
 import AvatarSlot from "../../components/ui/AvatarSlot";
 import { ChannelIcon } from "../../components/channel/channelKindIcon";
+import { ChannelHeadTitleButton } from "./ChannelHeadTitleButton";
 import { selectChannelTaskBucket, useTaskStore } from "../../store/taskStore";
 import type { Task } from "../../store/taskStore";
 import { isTaskV2Task } from "../../utils/taskConversation";
@@ -1833,26 +1834,20 @@ export function ChatPanel({
         onMobileBack={headerMobileBack}
         mobileBackProps={CHAT_MOBILE_BACK_PROPS}
         backButtonVisibility={contentSlotBack ? "always" : "responsive"}
-        icon={channelHeaderIcon}
+        // On a desktop a joinable channel's glyph is inside its title button (ChannelHeadTitleButton).
+        icon={isDesktopShell && isJoinableChannel && isRegularChannel && !isLounge ? undefined : channelHeaderIcon}
         containerProps={headContainerProps}
         iconTone="location"
         iconAlwaysVisible={isRegularChannel && !isLounge}
         title={isRegularChannel && !isLounge ? (
           isJoinableChannel ? (
-            /* The channel's name opens its details too, as in other chat apps (raft-design channel.md). */
-            <Tooltip content={formatMessage({ id: "channelHead.infoAndSettings" })}>
-            <button
-              type="button"
-              onClick={openOverflow}
-              // Layout redesign (Figmama 11/15): reads as a button — a chevron, a fill on hover.
-              className="flex shrink-0 items-center gap-1 rounded-control px-1 -mx-1 text-left outline-none hover:bg-fill-medium focus-visible:shadow-focus"
-              aria-expanded={overflowOpen}
-              data-testid="channel-header-title-button"
-            >
-              <span className="whitespace-nowrap">{channel.name}</span>
-              <ChevronDown size={14} aria-hidden className="shrink-0 text-foreground-hint" />
-            </button>
-            </Tooltip>
+            <ChannelHeadTitleButton
+              name={channel.name}
+              icon={isDesktopShell ? channelHeaderIcon : undefined}
+              label={formatMessage({ id: "channelHead.infoAndSettings" })}
+              open={overflowOpen}
+              onOpen={openOverflow}
+            />
           ) : channel.name
         ) : undefined}
         titleSuffix={regularTitleSuffix}

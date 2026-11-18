@@ -1,4 +1,4 @@
-import { barIconInset, headEdges } from "../../lib/head-edges";
+import { barEdgePull, barIconInset, headEdges } from "../../lib/head-edges";
 import { tv } from "../../lib/tv";
 
 /**
@@ -20,9 +20,6 @@ export const panelHeadEdges = headEdges;
 export const panelHeadActions = [
   "flex shrink-0 items-center gap-0.5 md:pointer-fine:gap-1",
   barIconInset,
-  // Raft redesign (Figma Channel Header): on a desktop the last button's box,
-  // not its icon, sits on the head's 14px margin.
-  "md:pointer-fine:[--icon-inset:0px]",
 ];
 
 /**
@@ -85,9 +82,11 @@ export const panelHeader = tv({
       class: [
         "flex h-(--shell-header-height,var(--header-height)) shrink-0 items-center gap-3 max-md:gap-2",
         panelHeadEdges,
-        // Raft redesign (Figma Channel Header): 14px sides and 2px between
-        // its parts on a desktop.
+        // Raft redesign (Figma Channel Header): on a desktop text sits 14px in
+        // and an icon button at either end 6px from the edge, as far as from
+        // the head's top and bottom (32 in 44); 2px between its parts.
         "md:pointer-fine:gap-0.5 md:pointer-fine:px-3.5",
+        ...barEdgePull,
         "border-b border-line-seam bg-layer-canvas text-foreground",
         "max-md:sticky max-md:top-0 max-md:z-chrome",
       ],

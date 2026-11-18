@@ -244,6 +244,8 @@ export default function AppPanelHeader({
           // raft-ui's head puts this Back's icon box on the content margin
           // at every width, mirroring the last action (DS › Alignment).
           className={`${mobileHiddenClass} ${mobileBackProps?.className ?? ""}`}
+          // Hidden from 768px: not the head's first part there (raft-ui barEdgePull).
+          data-phone-only={mobileHiddenClass === "md:hidden" ? "" : undefined}
         >
           <ArrowLeft size={22} />
         </PanelAction>
