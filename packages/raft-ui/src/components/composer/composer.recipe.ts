@@ -8,6 +8,10 @@ export const composer = tv({
       "rounded-container border-[1.5px] px-3 pt-3 pb-[calc(var(--control-embedded-inset)-1px)]",
       "border-line-field bg-layer-card text-foreground shadow-none",
       "has-focus-visible:shadow-focus",
+      // Raft redesign (Figma Composer): on a desktop the canvas with a 1px
+      // hairline, 10px top and bottom, 12px sides, 10px between its rows.
+      "md:pointer-fine:gap-2.5 md:pointer-fine:border md:pointer-fine:border-line-hairline md:pointer-fine:bg-layer-canvas",
+      "md:pointer-fine:px-3 md:pointer-fine:py-2.5",
     ],
     inputFrame: ["w-full min-w-0", "[--r-scroll-area-resize-grip-size:0px]"],
     input: [
@@ -33,6 +37,8 @@ export const composer = tv({
       "disabled:border-transparent disabled:bg-transparent",
       "aria-disabled:border-transparent aria-disabled:bg-transparent",
       "[&_svg:not([class*='size-'])]:size-4.5",
+      // Raft redesign: 20px icons on a desktop, the grid they are drawn on.
+      "md:pointer-fine:[&_svg:not([class*='size-'])]:size-5",
     ],
     submit: ["rounded-chip"],
   },
