@@ -9,10 +9,11 @@ import type { ArtifactId } from "@botiverse/raft-shared";
 import Tooltip from "../../components/ui/Tooltip";
 import { useArtifactViewerStore } from "./artifactViewerStore";
 import { ShellSidebarToggleContext, SidebarToggleHeadAction } from "../../components/layout/appPanelHead";
+import { useIsDesktopShell } from "../../components/layout/ShellFrame";
 
 /**
  * Layout redesign §5 (anxndsgn 11/15, A): the workspace's first row, always, as tall as the channel's head and on
- * its line — raft-ui's Tabs (the shown one the sticker), sortable by drag (SortableTabsList, as an agent's panel
+ * its line — raft-ui's Tabs (the shown one the sticker; underlined on a desktop, Raft redesign), sortable by drag (SortableTabsList, as an agent's panel
  * tabs), one per Artifact or thread; Expand at the end. raft-ui has no closable tab: the × is laid over the tab, a
  * sibling (as the built-in browser's BrowserTabStrip); Delete or a middle click closes too.
  */
@@ -23,6 +24,7 @@ export function WorkspaceTabStrip() {
   // Expanded over the conversation, this row is the leftmost island's head: the sidebar's control leads it.
   const sidebarToggle = useContext(ShellSidebarToggleContext);
   const { formatMessage } = useIntl();
+  const desktop = useIsDesktopShell();
   const ids = useMemo(() => tabs.map((t) => t.id as string), [tabs]);
   const select = useCallback((id: string) => useArtifactViewerStore.getState().activateTab(id as ArtifactId), []);
   const reorder = useCallback((next: string[]) => useArtifactViewerStore.getState().reorderTabs(next), []);
@@ -37,8 +39,10 @@ export function WorkspaceTabStrip() {
     // desktop its end buttons sit 6px from the island's edge, as far as from its top and bottom (anxndsgn 11/18).
     <div className="flex h-12 shrink-0 items-center gap-1 border-b border-line-seam pr-2 md:pointer-fine:h-panel-header md:pointer-fine:pr-1.5" data-testid="workspace-tab-strip">
       {expanded && sidebarToggle ? <SidebarToggleHeadAction column={sidebarToggle} className="ml-(--column-margin) shrink-0 md:pointer-fine:ml-1.5" /> : null}
-      <ConversationPanelTabs className="flex h-full min-w-0 flex-1 items-center border-b-0" render={<Tabs<string> value={shownId ?? ""} onValueChange={select} />}>
-        <SortableTabsList<string> value={ids} onReorder={reorder} aria-label={formatMessage({ id: "workspace.tabs" })}>
+      <ConversationPanelTabs className="flex h-full min-w-0 flex-1 items-center border-b-0 md:pointer-fine:*:data-[slot=tabs-list]:px-2" render={<Tabs<string> value={shownId ?? ""} onValueChange={select} />}>
+        {/* Raft redesign (Figma Workspace, Tab): on a desktop underlined tabs, 44 high, 10px each side, the shown one's
+            2px ink line on the row's bottom edge. */}
+        <SortableTabsList<string> value={ids} onReorder={reorder} variant={desktop ? "underline" : "default"} className={desktop ? "gap-0" : undefined} aria-label={formatMessage({ id: "workspace.tabs" })}>
           {tabs.map((tab) => <WorkspaceTab key={tab.id} id={tab.id} thread={!!tab.thread} shown={tab.id === shownId} />)}
         </SortableTabsList>
       </ConversationPanelTabs>
@@ -78,7 +82,7 @@ function WorkspaceTab({ id, thread, shown }: { id: ArtifactId; thread: boolean; 
         aria-keyshortcuts="Delete"
         onKeyDown={closeByKey}
         onAuxClick={closeByMiddle}
-        className={`w-full min-w-0 justify-start *:data-[slot=tabs-tab-content]:min-w-0 *:data-[slot=tabs-tab-content]:flex-1 ${shown ? "pr-7" : ""}`}
+        className={`w-full min-w-0 justify-start *:data-[slot=tabs-tab-content]:min-w-0 *:data-[slot=tabs-tab-content]:flex-1 md:pointer-fine:px-2.5 md:pointer-fine:text-[13px] ${shown ? "pr-7 md:pointer-fine:pr-7" : ""}`}
         data-testid="workspace-tab"
       >
         <Icon aria-hidden className={shown ? undefined : "group-hover/tab:invisible"} />

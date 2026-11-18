@@ -246,6 +246,9 @@ export default function ArtifactViewer({ target, source, opening, onOpenedMessag
 }
 
 /** The loaded viewer: the card's frame around the surface's parts. */
+/** Raft redesign (Figma Workspace, Source bar): on a desktop the source row is 40 high, its text 16px in; its last button 6px from the edge, as in the bars above. */
+const WORKSPACE_SOURCE_ROW_CLASS = "md:pointer-fine:h-10 md:pointer-fine:pl-4";
+
 function LoadedViewer({ chrome, switching, failedVersion, onRetry, phone, onOpenedMessage, onShownTitle }: {
   chrome: ViewerChrome;
   switching: boolean;
@@ -521,7 +524,7 @@ function ViewerFrame({
       {covering ? null : <WorkspaceTabStrip />}
       {/* Layout redesign §5: in the workspace this is its second row — the source on the left, the actions on the
           right; the title, Expand and Close are on the tab bar above (index.css data-workspace-row). */}
-      <PanelHeader data-testid="artifact-viewer-header" data-workspace-row={covering ? undefined : ""} {...(covering ? null : chrome?.props)} ref={measureHead}>
+      <PanelHeader data-testid="artifact-viewer-header" data-workspace-row={covering ? undefined : ""} {...(covering ? null : chrome?.props)} className={covering ? chrome?.props?.className : [chrome?.props?.className, WORKSPACE_SOURCE_ROW_CLASS].filter(Boolean).join(" ")} ref={measureHead}>
         {covering ? (
           // A narrow desktop panel has no header Back, so the card keeps its
           // own, labelled as the close it stands for (Task v2's ChannelSideCard).
