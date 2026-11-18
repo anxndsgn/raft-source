@@ -7,7 +7,7 @@
  */
 import { afterEach, expect, test } from "vite-plus/test";
 import { cleanup, render, screen } from "@testing-library/react";
-import { Button } from "../button/button";
+import { Button, buttonVariants } from "../button/button";
 import {
   MessageListJumpControls,
   MessageListJumpPill,
@@ -17,9 +17,11 @@ import {
 
 afterEach(cleanup);
 
+import { messageListJump } from "./message-list.recipe";
+
 const classes = (element: Element) => element.className.split(/\s+/).sort();
 
-test("a pill has exactly the classes of a Button at outline md", () => {
+test("a pill has exactly the classes of a Button at outline md, plus its desktop pill (Raft redesign)", () => {
   render(
     <>
       <Button variant="outline" size="md">
@@ -30,7 +32,10 @@ test("a pill has exactly the classes of a Button at outline md", () => {
   );
   const button = screen.getByRole("button", { name: "Back to Bottom" });
   const pill = screen.getByRole("button", { name: "Next Unread Thread" });
-  expect(classes(pill)).toEqual(classes(button));
+  // The Button's own classes, merged with the pill's desktop shape as the pill does.
+  const merged = buttonVariants({ variant: "outline", size: "md" }).root({ className: messageListJump().pill() });
+  expect(classes(pill)).toEqual(merged.split(/\s+/).sort());
+  expect(classes(button).length).toBeGreaterThan(0);
   expect(pill.getAttribute("data-slot")).toBe("message-list-jump-pill");
   expect(pill.getAttribute("type")).toBe("button");
   expect(classes(pill.firstElementChild!)).toEqual(classes(button.firstElementChild!));

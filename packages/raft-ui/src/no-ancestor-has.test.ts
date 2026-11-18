@@ -104,7 +104,7 @@ const BANNED_REGRESSIONS = [
 const BASELINE_TOKENS: Record<string, number> = {
   // A Spinner in place of the icon, for something pending, takes the icon's
   // column (3).
-  "components/banner/banner.tsx": 11,
+  "components/banner/banner.tsx": 9,
   "components/button/button.tsx": 4,
   "components/card/card.recipe.ts": 7,
   "components/composer/composer-attachment.recipe.ts": 7,

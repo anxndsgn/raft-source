@@ -16,8 +16,8 @@ const banner = tv({
       "*:data-[slot=spinner]:col-start-1 *:data-[slot=spinner]:row-start-1",
       "w-full grid-cols-[minmax(0,1fr)] items-start gap-x-2.5 rounded-container border-0",
       "font-sans text-callout text-foreground ring-1 ring-line-hairline ring-inset",
-      "has-[>svg]:grid-cols-[20px_minmax(0,1fr)]",
-      "has-[>[data-slot=spinner]]:grid-cols-[20px_minmax(0,1fr)]",
+      "has-[>svg]:grid-cols-[var(--banner-icon,20px)_minmax(0,1fr)]",
+      "has-[>[data-slot=spinner]]:grid-cols-[var(--banner-icon,20px)_minmax(0,1fr)]",
       "[&>svg]:row-start-1 [&>svg]:size-5 [&>svg]:text-foreground",
       "[&>svg]:mt-[calc((1lh-20px)/2)]",
       "*:data-[slot=spinner]:h-lh *:data-[slot=spinner]:leading-[inherit] *:data-[slot=spinner]:self-start *:data-[slot=spinner]:justify-self-center",
@@ -28,15 +28,15 @@ const banner = tv({
       "has-[>[data-banner-close]]:[--banner-action-end:span_2]",
       // Raft redesign (anxndsgn's card rule, Figmama 11/18): on a desktop no
       // outline, the lines 2px apart.
-      "md:pointer-fine:ring-0 md:pointer-fine:gap-y-0.5",
+      "md:pointer-fine:ring-0 md:pointer-fine:gap-y-0.5 md:pointer-fine:[--banner-title-span:auto]",
     ],
     title: [
       "min-w-0 wrap-break-word text-foreground",
       "row-start-1 font-bold md:pointer-fine:font-semibold",
       "col-start-(--banner-text-col,1)",
-      "@min-[452px]:has-[~[data-slot=banner-description]~[data-slot=banner-action]:not([data-wrap])]:col-end-[span_2]",
-      // Raft redesign: on a desktop the buttons stand beside both lines, so the title keeps to its column.
-      "md:pointer-fine:@min-[452px]:has-[~[data-slot=banner-description]~[data-slot=banner-action]:not([data-wrap])]:col-end-auto",
+      // Raft redesign: on a desktop the buttons stand beside both lines, so the
+      // title keeps to its column (the root sets --banner-title-span).
+      "@min-[452px]:has-[~[data-slot=banner-description]~[data-slot=banner-action]:not([data-wrap])]:col-end-(--banner-title-span,span_2)",
     ],
     description: [
       "min-w-0 wrap-break-word font-normal",
@@ -76,10 +76,10 @@ const banner = tv({
       sm: {
         root: [
           "gap-x-2 px-3 py-2",
-          "has-[>svg]:grid-cols-[16px_minmax(0,1fr)] has-[>[data-slot=spinner]]:grid-cols-[16px_minmax(0,1fr)]",
+          "[--banner-icon:16px]",
           "[&>svg]:mt-[calc((1lh-16px)/2)] [&>svg]:size-4",
           // A 20px icon on a desktop, as the larger banners have.
-          "md:pointer-fine:has-[>svg]:grid-cols-[20px_minmax(0,1fr)] md:pointer-fine:[&>svg]:mt-[calc((1lh-20px)/2)] md:pointer-fine:[&>svg]:size-5",
+          "md:pointer-fine:[--banner-icon:20px] md:pointer-fine:[&>svg]:mt-[calc((1lh-20px)/2)] md:pointer-fine:[&>svg]:size-5",
         ],
       },
       md: { root: ["px-3.5 py-3"] },
