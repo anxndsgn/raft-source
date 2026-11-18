@@ -60,7 +60,7 @@
 
    Accent (Figma 精修 · 组件化, Accent): the frame colour. Yellow is the
    default (foundation.css's accent tokens); `data-accent="green" | "blue"`
-   picks another. Dark mode reads accent-frame-dim. Declared after
+   picks another, in light and dark alike. Declared after
    foundation.css and unlayered, so these win over its root values. */
 :root,
 [data-shape="square"] {

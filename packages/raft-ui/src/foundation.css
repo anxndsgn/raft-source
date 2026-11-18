@@ -518,7 +518,7 @@
   --layer-veil: oklch(0.2213 0.0038 106.71 / 0.8);
   --layer-card: oklch(0.2975 0.0038 84.58);
   --layer-hud: oklch(0.2802 0.0036 106.63);
-  --layer-frame: var(--accent-frame-dim);
+  --layer-frame: var(--accent-frame);
   --layer-frame-active: oklch(0.2228 0.0025 67.7);
   --layer-code: oklch(0.2606 0.004 84.58);
   --fill-muted: oklch(0.2606 0.004 84.58);
@@ -617,7 +617,7 @@
     --layer-veil: oklch(0.2213 0.0038 106.71 / 0.8);
     --layer-card: oklch(0.2975 0.0038 84.58);
     --layer-hud: oklch(0.2802 0.0036 106.63);
-    --layer-frame: var(--accent-frame-dim);
+    --layer-frame: var(--accent-frame);
     --layer-frame-active: oklch(0.2228 0.0025 67.7);
     --layer-code: oklch(0.2606 0.004 84.58);
     --fill-muted: oklch(0.2606 0.004 84.58);
