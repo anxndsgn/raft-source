@@ -474,6 +474,8 @@
   --timeline-row-inset: 4px;
   --sticker-ink: oklch(0.2228 0.0025 67.7);
   --sticker-paper: oklch(1 0 0);
+  /* The sticker's outline: none in either mode. Stickers (buttons, badges,
+     avatars, rail tiles) are told apart by fill alone. */
   --sticker-edge: oklch(0 0 0 / 0);
   /* Hover tier medium on a colour sticker (primary, warning and danger buttons,
      colour badges, the selected segment on press): hover and press, 10% ink in
@@ -591,7 +593,6 @@
   --elevation-sticker: 4px 4px 0 oklch(0 0 0);
   --focus-ring: 0 0 0 2px oklch(0.2213 0.0038 106.71), 0 0 0 4px oklch(0.9211 0.004 106.48);
   --selection: color-mix(in oklch, var(--brand-400) 22%, transparent);
-  --sticker-edge: oklch(0.9843 0.004 106.47 / 0.349);
   --presence-online: oklch(0.6837 0.1484 152.62);
   --presence-busy: oklch(0.7137 0.1434 254.62);
   --presence-busy-soft: oklch(0.7137 0.1434 254.62 / 0.2);
@@ -690,7 +691,6 @@
     --elevation-sticker: 4px 4px 0 oklch(0 0 0);
     --focus-ring: 0 0 0 2px oklch(0.2213 0.0038 106.71), 0 0 0 4px oklch(0.9211 0.004 106.48);
     --selection: color-mix(in oklch, var(--brand-400) 22%, transparent);
-    --sticker-edge: oklch(0.9843 0.004 106.47 / 0.349);
     --presence-online: oklch(0.6837 0.1484 152.62);
     --presence-busy: oklch(0.7137 0.1434 254.62);
     --presence-busy-soft: oklch(0.7137 0.1434 254.62 / 0.2);
