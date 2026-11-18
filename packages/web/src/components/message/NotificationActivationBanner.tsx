@@ -294,7 +294,7 @@ export default function NotificationActivationBanner({
       <Button
         type="button"
         size="md"
-        variant="outline"
+        variant="primary"
         disabled={busy}
         onClick={handleEnable}
       >

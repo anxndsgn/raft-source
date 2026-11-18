@@ -40,7 +40,13 @@ export const composer = tv({
       // Raft redesign: 20px icons on a desktop, the grid they are drawn on.
       "md:pointer-fine:[&_svg:not([class*='size-'])]:size-5",
     ],
-    submit: ["rounded-chip"],
+    submit: [
+      "rounded-chip",
+      // Raft redesign (Figmama 11/18): the send button is an ink square; with
+      // nothing to send it is the 5% fill with a muted icon, not faded.
+      "md:pointer-fine:disabled:bg-fill-medium md:pointer-fine:disabled:text-foreground-muted md:pointer-fine:disabled:opacity-100",
+      "md:pointer-fine:aria-disabled:bg-fill-medium md:pointer-fine:aria-disabled:text-foreground-muted md:pointer-fine:aria-disabled:opacity-100",
+    ],
   },
   variants: {
     // An icon-only send button is one of the composer's icons: a bar button

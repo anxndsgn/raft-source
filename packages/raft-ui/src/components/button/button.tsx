@@ -23,6 +23,32 @@ const outline = (ink: string) => [
   "hover:overlay-medium active:overlay-medium",
 ];
 
+// Raft redesign (Figmama 11/18), on a desktop (from 768px with a mouse):
+// primary ink with canvas text (light on dark in dark mode), 90% on hover;
+// secondary 5% ink, no border; frameless the subtle fill on hover; danger the
+// status red with white text. Disabled, a button keeps its own colours at 40%
+// (the base's grey box holds on a phone and a touch screen), so each style
+// states its colours again for both disabled paths.
+// Written out in full, not built, so Tailwind's scanner sees every class.
+const primaryDesktop = [
+  "md:pointer-fine:bg-foreground md:pointer-fine:text-foreground-inverse md:pointer-fine:ring-0 md:pointer-fine:hover:bg-none md:pointer-fine:active:bg-none md:pointer-fine:hover:opacity-90 md:pointer-fine:active:opacity-90",
+  "md:pointer-fine:disabled:bg-foreground md:pointer-fine:aria-disabled:bg-foreground md:pointer-fine:disabled:text-foreground-inverse md:pointer-fine:aria-disabled:text-foreground-inverse",
+];
+const secondaryDesktop = [
+  "md:pointer-fine:bg-fill-medium md:pointer-fine:ring-0 md:pointer-fine:text-foreground",
+  "md:pointer-fine:disabled:bg-fill-medium md:pointer-fine:aria-disabled:bg-fill-medium md:pointer-fine:disabled:text-foreground md:pointer-fine:aria-disabled:text-foreground",
+];
+const dangerSecondaryDesktop = [
+  "md:pointer-fine:bg-fill-medium md:pointer-fine:ring-0 md:pointer-fine:text-danger-strong",
+  "md:pointer-fine:disabled:bg-fill-medium md:pointer-fine:aria-disabled:bg-fill-medium md:pointer-fine:disabled:text-danger-strong md:pointer-fine:aria-disabled:text-danger-strong",
+];
+const dangerDesktop = [
+  "md:pointer-fine:bg-danger md:pointer-fine:text-sticker-paper md:pointer-fine:ring-0 md:pointer-fine:hover:bg-none md:pointer-fine:active:bg-none md:pointer-fine:hover:opacity-90 md:pointer-fine:active:opacity-90",
+  "md:pointer-fine:disabled:bg-danger md:pointer-fine:aria-disabled:bg-danger md:pointer-fine:disabled:text-sticker-paper md:pointer-fine:aria-disabled:text-sticker-paper",
+];
+const warningDesktop = ["md:pointer-fine:ring-0", "md:pointer-fine:disabled:bg-warning md:pointer-fine:aria-disabled:bg-warning md:pointer-fine:disabled:text-sticker-ink md:pointer-fine:aria-disabled:text-sticker-ink"];
+const ghostDesktop = ["md:pointer-fine:hover:bg-fill-subtle", "md:pointer-fine:disabled:bg-transparent md:pointer-fine:aria-disabled:bg-transparent md:pointer-fine:disabled:text-foreground md:pointer-fine:aria-disabled:text-foreground"];
+
 // Three text sizes and two icon sizes, nothing in between, so a button reads
 // the same wherever it sits; the 32px ones (34px with a mouse on a desktop)
 // keep a 44px hit area through an overhanging ::after. An absolute ::after is
@@ -32,21 +58,22 @@ const outline = (ink: string) => [
 // `lg` and `icon-lg` overhang by `control-hit` to keep 44px. `xs` and `sm`
 // are deprecated aliases of `md`, `icon-xs` and `icon-sm` of `icon-md`, kept
 // until raft-ui 1.0 (codemods/button-sizes.mjs renames them).
-// With a mouse on a desktop `md` is the control height (34px), the one
-// desktop size of a field, a select, a tab and a menu row (stdrc, 2026-11-04),
-// its hit area reaching the control's 44px.
+// Raft redesign: with a mouse on a desktop every button is 32 (`xl` aside),
+// its hit area still reaching 44px.
 // An icon marked `data-icon` that isn't an svg (an `<img>` mark) takes the
 // svg's size at that size, not the font's: 16px in `md`, 18px in `lg` and
 // `xl` (Iconography › Sizes). A `size-` class of its own still wins.
 const textMd = [
-  "h-8 md:pointer-fine:h-control gap-2 rounded-control px-3 py-0 text-control",
+  // Raft redesign: 32 high with a mouse too (Figmama 11/18), 12px sides, 14px.
+  "h-8 gap-2 rounded-control px-3 py-0 text-control",
   "has-data-[icon=inline-start]:pl-2.5 has-data-[icon=inline-end]:pr-2.5",
   "[&_svg:not([class*='size-'])]:size-4 [&_[data-icon]:not(svg):not([class*='size-'])]:size-4",
   "after:absolute after:inset-x-0 after:-inset-y-[calc(--spacing(1.5)+1.5px)]",
   "md:pointer-fine:after:-inset-y-[calc(var(--control-hit-inset)+1.5px)]",
 ];
 const iconMd = [
-  "size-8 md:pointer-fine:size-control rounded-control p-0 [&_svg:not([class*='size-'])]:size-[18px]",
+  // Raft redesign: 32 with a 20px icon with a mouse (the head's icon buttons).
+  "size-8 rounded-control p-0 [&_svg:not([class*='size-'])]:size-[18px] md:pointer-fine:[&_svg:not([class*='size-'])]:size-5",
   "after:absolute after:-inset-[calc(--spacing(1.5)+1.5px)]",
   "md:pointer-fine:after:-inset-[calc(var(--control-hit-inset)+1.5px)]",
 ];
@@ -74,6 +101,10 @@ export const buttonVariants = tv({
       "disabled:opacity-100 aria-disabled:opacity-100",
       "disabled:border-line-hairline disabled:bg-fill-muted disabled:bg-none disabled:text-foreground-disabled disabled:ring-0",
       "aria-disabled:border-line-hairline aria-disabled:bg-fill-muted aria-disabled:bg-none aria-disabled:text-foreground-disabled aria-disabled:ring-0",
+      // Raft redesign (Figmama 11/18): on a desktop a button has no border and
+      // is semibold; disabled, it keeps its colours at 40 percent, no hover.
+      "md:pointer-fine:border-0 md:pointer-fine:font-semibold",
+      "md:pointer-fine:disabled:opacity-40 md:pointer-fine:aria-disabled:opacity-40 md:pointer-fine:aria-disabled:hover:opacity-40 md:pointer-fine:aria-disabled:active:opacity-40 md:pointer-fine:disabled:border-0 md:pointer-fine:aria-disabled:border-0",
     ],
     content:
       "relative z-raised inline-flex min-w-0 max-w-full items-center justify-center gap-[inherit] data-[loading=true]:invisible",
@@ -82,21 +113,22 @@ export const buttonVariants = tv({
   },
   variants: {
     variant: {
-      primary: { root: sticker("bg-attention-400") },
-      accent: { root: sticker("bg-attention-400") },
-      warning: { root: sticker("bg-warning") },
-      danger: { root: sticker("bg-danger") },
-      default: { root: outline("text-foreground") },
-      outline: { root: outline("text-foreground") },
-      information: { root: outline("text-foreground") },
-      muted: { root: outline("text-foreground") },
-      success: { root: outline("text-foreground") },
-      "danger-secondary": { root: outline("text-danger-strong") },
-      "danger-outline": { root: outline("text-danger-strong") },
+      primary: { root: [...sticker("bg-attention-400"), ...primaryDesktop] },
+      accent: { root: [...sticker("bg-attention-400"), ...primaryDesktop] },
+      warning: { root: [...sticker("bg-warning"), ...warningDesktop] },
+      danger: { root: [...sticker("bg-danger"), ...dangerDesktop] },
+      default: { root: [...outline("text-foreground"), ...secondaryDesktop] },
+      outline: { root: [...outline("text-foreground"), ...secondaryDesktop] },
+      information: { root: [...outline("text-foreground"), ...secondaryDesktop] },
+      muted: { root: [...outline("text-foreground"), ...secondaryDesktop] },
+      success: { root: [...outline("text-foreground"), ...secondaryDesktop] },
+      "danger-secondary": { root: [...outline("text-danger-strong"), ...dangerSecondaryDesktop] },
+      "danger-outline": { root: [...outline("text-danger-strong"), ...dangerSecondaryDesktop] },
       ghost: {
         root: [
           "border-transparent bg-transparent text-foreground",
           "hover:bg-fill-medium active:bg-fill-medium",
+          ...ghostDesktop,
         ],
       },
       // Frameless, on the yellow frame (rail, top bar, desktop title bar): the
@@ -120,6 +152,8 @@ export const buttonVariants = tv({
       lg: {
         root: [
           "h-control gap-2 rounded-(--control-radius) px-4 py-0 text-subhead",
+          // Raft redesign: one height on a desktop, 32, 12px sides, 14px (Figmama 11/18).
+          "md:pointer-fine:h-8 md:pointer-fine:px-3 md:pointer-fine:text-[14px]",
           "has-data-[icon=inline-start]:pl-3.5 has-data-[icon=inline-end]:pr-3.5",
           "[&_svg:not([class*='size-'])]:size-[18px] [&_[data-icon]:not(svg):not([class*='size-'])]:size-[18px]",
           "after:absolute after:inset-x-0 after:-inset-y-[calc(var(--spacing-control-hit)+1.5px)]",
@@ -139,6 +173,7 @@ export const buttonVariants = tv({
       "icon-lg": {
         root: [
           "size-control rounded-(--control-radius) p-0 [&_svg:not([class*='size-'])]:size-control-icon",
+          "md:pointer-fine:size-8",
           "after:absolute after:-inset-[calc(var(--spacing-control-hit)+1.5px)]",
         ],
       },
@@ -190,7 +225,7 @@ export const buttonVariants = tv({
       // Its icon box from its edge: 7px in a 32px button; with a mouse the
       // button is the 34px control height, so 8px.
       class: {
-        root: "[--icon-inset:calc((--spacing(8)-18px)/2)] md:pointer-fine:[--icon-inset:calc((var(--control-height)-18px)/2)]",
+        root: "[--icon-inset:calc((--spacing(8)-18px)/2)] md:pointer-fine:[--icon-inset:calc((--spacing(8)-20px)/2)]",
       },
     },
     // On the frame the controls are the frame item (`frame-item-height`: 36px, the 34px control height with a mouse) of the top bar
