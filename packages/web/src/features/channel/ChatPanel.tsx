@@ -2160,7 +2160,7 @@ export function ChatPanel({
                     is as wide as the frame (on a phone the activation banner
                     sits inside MessageInput, on the same edge). Hidden while
                     empty, so it adds no gap of its own. */}
-                <div className={`flex flex-col gap-2 empty:hidden ${COMPOSER_EDGE_CLASS}`} data-testid="composer-notices" data-composer-notices="">
+                <div className={`flex flex-col gap-2 empty:hidden md:pointer-fine:-mb-2 ${COMPOSER_EDGE_CLASS}`} data-testid="composer-notices" data-composer-notices="">
                   {dmAgent ? <HostedCindyFailedBanner agent={dmAgent} /> : null}
                   {primaryComposerEligible && !isMobileComposer ? (
                     <NotificationActivationBanner placement="desktop" composerChannelId={channel.id} />

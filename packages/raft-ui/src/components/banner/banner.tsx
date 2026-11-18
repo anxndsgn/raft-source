@@ -26,16 +26,22 @@ const banner = tv({
       "has-[>[data-slot=banner-title]]:[--banner-desc-row:2]",
       "has-[>[data-slot=banner-description]]:[--banner-last-row:var(--banner-desc-row,1)]",
       "has-[>[data-banner-close]]:[--banner-action-end:span_2]",
+      // Raft redesign (anxndsgn's card rule, Figmama 11/18): on a desktop no
+      // outline, the lines 2px apart.
+      "md:pointer-fine:ring-0 md:pointer-fine:gap-y-0.5",
     ],
     title: [
       "min-w-0 wrap-break-word text-foreground",
-      "row-start-1 font-bold",
+      "row-start-1 font-bold md:pointer-fine:font-semibold",
       "col-start-(--banner-text-col,1)",
       "@min-[452px]:has-[~[data-slot=banner-description]~[data-slot=banner-action]:not([data-wrap])]:col-end-[span_2]",
+      // Raft redesign: on a desktop the buttons stand beside both lines, so the title keeps to its column.
+      "md:pointer-fine:@min-[452px]:has-[~[data-slot=banner-description]~[data-slot=banner-action]:not([data-wrap])]:col-end-auto",
     ],
     description: [
       "min-w-0 wrap-break-word font-normal",
       "text-foreground",
+      "md:pointer-fine:text-[13px] md:pointer-fine:text-foreground-muted",
       "col-start-(--banner-text-col,1)",
       "row-start-(--banner-desc-row,1)",
     ],
@@ -45,6 +51,10 @@ const banner = tv({
       "@min-[452px]:not-data-wrap:col-start-[calc(var(--banner-text-col,1)+1)] @min-[452px]:not-data-wrap:col-end-auto",
       "@min-[452px]:not-data-wrap:row-start-(--banner-last-row,1)",
       "@min-[452px]:not-data-wrap:mt-0 @min-[452px]:not-data-wrap:h-lh @min-[452px]:not-data-wrap:flex-nowrap @min-[452px]:not-data-wrap:self-end",
+      // Raft redesign (Figmama 11/18): on a desktop, beside the text, the
+      // buttons are centred on the title and description together.
+      "md:pointer-fine:@min-[452px]:not-data-wrap:row-start-1 md:pointer-fine:@min-[452px]:not-data-wrap:row-end-[calc(var(--banner-last-row,1)+1)]",
+      "md:pointer-fine:@min-[452px]:not-data-wrap:h-auto md:pointer-fine:@min-[452px]:not-data-wrap:self-center",
     ],
     close: [
       "col-start-[calc(var(--banner-text-col,1)+1)] row-start-1 self-start",
@@ -53,10 +63,11 @@ const banner = tv({
   },
   variants: {
     status: {
-      default: { root: ["bg-fill-muted"] },
+      default: { root: ["bg-fill-muted md:pointer-fine:bg-fill-medium"] },
       destructive: { root: ["bg-danger-soft"] },
       warning: { root: ["bg-warning-soft"] },
-      info: { root: ["bg-info-soft"] },
+      // Raft redesign: an informing banner is a card on a desktop, 5% ink (5% paper in dark).
+      info: { root: ["bg-info-soft md:pointer-fine:bg-fill-medium"] },
       success: { root: ["bg-success-soft"] },
     },
     size: {
@@ -65,6 +76,8 @@ const banner = tv({
           "gap-x-2 px-3 py-2",
           "has-[>svg]:grid-cols-[16px_minmax(0,1fr)] has-[>[data-slot=spinner]]:grid-cols-[16px_minmax(0,1fr)]",
           "[&>svg]:mt-[calc((1lh-16px)/2)] [&>svg]:size-4",
+          // A 20px icon on a desktop, as the larger banners have.
+          "md:pointer-fine:has-[>svg]:grid-cols-[20px_minmax(0,1fr)] md:pointer-fine:[&>svg]:mt-[calc((1lh-20px)/2)] md:pointer-fine:[&>svg]:size-5",
         ],
       },
       md: { root: ["px-3.5 py-3"] },
