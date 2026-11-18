@@ -5,6 +5,7 @@ import { forkHeapExecArgv, isCi, localMaxWorkers, runRecordPlugin } from "../../
 import { holdTestSlotForThisRun } from "../../scripts/vitest/testSlot";
 import { useDevRunEnv } from "../../scripts/dev/raftdev-cache";
 import { defaultTestIncludes } from "./scripts/testLocations";
+import { iconAliases } from "./scripts/iconAliases";
 
 const webRoot = fileURLToPath(new URL(".", import.meta.url));
 const dom = process.env.RAFT_WEB_TEST_DOM === "1";
@@ -67,7 +68,7 @@ export default defineConfig({
   root: webRoot,
   plugins: ci ? [] : [runRecord],
   resolve: {
-    alias: [{ find: /^\.\/fakeArtifactSourceSlot$/, replacement: testFakeArtifactSourceSlot }, ...assertAliases],
+    alias: [{ find: /^\.\/fakeArtifactSourceSlot$/, replacement: testFakeArtifactSourceSlot }, ...assertAliases, ...iconAliases(webRoot)],
   },
   test: {
     globals: true,

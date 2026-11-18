@@ -14,6 +14,7 @@ import { registeredVarFallbacksPlugin } from "./scripts/registeredVarFallbacks";
 import { resolveWebProxyTarget } from "./scripts/webProxyTarget";
 import { applyWorkerApiOrigin, workerApiOrigin } from "./scripts/workerApiOrigin";
 import { webVersionFilePlugin } from "./scripts/webVersionFile";
+import { iconAliases } from "./scripts/iconAliases";
 import {
   createDesktopManifestContractAdapter,
   createFrontendReleaseIdentityDefines,
@@ -143,9 +144,10 @@ export default defineConfig({
     catalogPartsPlugin(),
     sharedWithoutSideEffectsPlugin(),
   ],
-  ...(localRaftDesignRoot
-    ? { resolve: { dedupe: ["react", "react-dom", "react/jsx-runtime"] } }
-    : {}),
+  resolve: {
+    alias: iconAliases(webRoot),
+    ...(localRaftDesignRoot ? { dedupe: ["react", "react-dom", "react/jsx-runtime"] } : {}),
+  },
   server: {
     ...(localRaftDesignRoot ? { fs: { allow: [resolve(webRoot, "../.."), localRaftDesignRoot] } } : {}),
     host: true,

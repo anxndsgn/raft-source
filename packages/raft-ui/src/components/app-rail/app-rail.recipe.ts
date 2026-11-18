@@ -7,6 +7,8 @@ export const appRail = tv({
       // On the frame, beside the islands: no seam of its own (Raft redesign).
       "w-(--rail-width)",
       "bg-layer-frame text-foreground-on-frame",
+      // Rail icons draw 1.5px lines, heavier than the 1px in content (owner 11-18).
+      "[--icon-stroke:1.5px]",
       "[@media(max-height:600px)]:w-(--rail-width-short)",
     ],
     header: [
