@@ -64,11 +64,13 @@ const banner = tv({
   variants: {
     status: {
       default: { root: ["bg-fill-muted md:pointer-fine:bg-fill-medium"] },
-      destructive: { root: ["bg-danger-soft"] },
-      warning: { root: ["bg-warning-soft"] },
+      // Raft redesign (Figmama 11/18): on a desktop every banner is the same
+      // card, 5% ink; only its icon takes the status colour.
+      destructive: { root: ["bg-danger-soft md:pointer-fine:bg-fill-medium md:pointer-fine:[&>svg]:text-danger"] },
+      warning: { root: ["bg-warning-soft md:pointer-fine:bg-fill-medium md:pointer-fine:[&>svg]:text-presence-error"] },
       // Raft redesign: an informing banner is a card on a desktop, 5% ink (5% paper in dark).
       info: { root: ["bg-info-soft md:pointer-fine:bg-fill-medium"] },
-      success: { root: ["bg-success-soft"] },
+      success: { root: ["bg-success-soft md:pointer-fine:bg-fill-medium md:pointer-fine:[&>svg]:text-presence-online"] },
     },
     size: {
       sm: {
