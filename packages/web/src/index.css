@@ -1535,10 +1535,26 @@ html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [d
 [data-testid="workspace-frame"][data-workspace-expanded="true"] > [data-testid="conversation-frame"] {
   display: none;
 }
-[data-testid="workspace-frame"][data-workspace-expanded="true"] > [data-testid="workspace-slot"] > [data-testid="channel-side-column"] {
+[data-testid="workspace-frame"][data-workspace-expanded="true"] > [data-testid="workspace-slot"] > [data-testid="channel-side-column"],
+[data-workspace-expanded="true"] > [data-testid="workspace-island"] > [data-testid="channel-side-column"] {
   flex: 1 1 auto;
   width: auto !important;
   max-width: none;
+}
+
+/* …and in the shell's islands (ShellFrame): the workspace island takes the conversation's room; the conversation's
+   island keeps only the sidebar, and is not drawn when that is folded away. */
+[data-workspace-expanded="true"] > [data-testid="workspace-island"] {
+  flex: 1 1 auto;
+}
+[data-workspace-expanded="true"] > [data-testid="conversation-island"] {
+  flex: none;
+}
+[data-workspace-expanded="true"] > [data-testid="conversation-island"] > [data-testid="conversation-island-main"] {
+  display: none;
+}
+[data-slot="app-shell-root"][data-state="collapsed"] [data-workspace-expanded="true"] > [data-testid="conversation-island"] {
+  display: none;
 }
 
 /* Migration log chart: failure marks are non-text graphics, so they use the

@@ -1601,6 +1601,8 @@ export { Separator } from "./components/separator/index";
 export type { SeparatorProps } from "./components/separator/index";
 
 export {
+  AppShellIsland,
+  AppShellIslandRow,
   AppShellMainSlot,
   AppShellOverlaySlot,
   AppShellPanelSlot,
@@ -1610,6 +1612,8 @@ export {
   AppShellSidebarTrigger,
 } from "./components/app-shell/index";
 export type {
+  AppShellIslandProps,
+  AppShellIslandRowProps,
   AppShellMainSlotProps,
   AppShellOverlaySlotProps,
   AppShellPanelSlotProps,

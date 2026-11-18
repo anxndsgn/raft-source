@@ -24,3 +24,30 @@ export const ConversationHeaderSlotContext = createContext<HTMLElement | null | 
  * top, not under the channel's header. Undefined outside MainLayout.
  */
 export const WorkspaceSlotContext = createContext<HTMLElement | null | undefined>(undefined);
+
+/**
+ * Raft redesign: the workspace island ShellFrame draws beside the conversation's
+ * island, for ConversationFrame to hand on as the WorkspaceSlotContext.
+ * Undefined outside ShellFrame; null until mounted.
+ */
+export const ShellWorkspaceIslandContext = createContext<HTMLElement | null | undefined>(undefined);
+
+/**
+ * The conversation's frame (ConversationFrame's `workspace-frame`) an element
+ * belongs to: its own, or, for the workspace's column in the shell's
+ * workspace island, the one in the island beside it.
+ */
+export function workspaceFrameOf(element: HTMLElement): HTMLElement | null {
+  return element.closest<HTMLElement>('[data-testid="workspace-frame"]')
+    ?? element.closest('[data-slot="app-shell-island-row"]')?.querySelector<HTMLElement>('[data-testid="workspace-frame"]')
+    ?? null;
+}
+
+/**
+ * The room the conversation and the workspace share: the frame's own width,
+ * plus the workspace island's beside it when the shell draws one (ShellFrame).
+ */
+export function workspaceFrameWidth(frame: HTMLElement): number {
+  const island = frame.closest('[data-slot="app-shell-island-row"]')?.querySelector<HTMLElement>(':scope > [data-testid="workspace-island"]');
+  return frame.getBoundingClientRect().width + (island?.getBoundingClientRect().width ?? 0);
+}

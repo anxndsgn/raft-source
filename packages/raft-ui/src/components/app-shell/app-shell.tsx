@@ -34,8 +34,32 @@ const appShell = tv({
     mainSlot: ["flex min-h-0 min-w-0 flex-1 flex-col"],
     panelSlot: ["hidden min-h-0 min-w-0 flex-col md:flex"],
     overlaySlot: ["absolute inset-0 z-cover flex min-h-0 min-w-0"],
+    // From 768px the regions stand on the frame as islands (Raft redesign,
+    // Figma 精修 · 组件化): the frame shows island-gap above, below and right
+    // of them and between two of them; the rail before the row is its left
+    // margin.
+    islandRow: [
+      "flex min-h-0 min-w-0 flex-1",
+      "md:gap-(--island-gap) md:py-(--island-gap) md:pr-(--island-gap)",
+    ],
+    // An island: canvas, a 1px ring outside its edge (a ring, so it takes no
+    // room and the island keeps its width), the island corner. Clipped, so a
+    // region inside it never paints over the corner. Below 768px it is just a
+    // box: the phone's page fills the screen.
+    island: [
+      "relative flex min-h-0 min-w-0 flex-1",
+      "md:overflow-clip md:rounded-island md:bg-layer-canvas md:ring-1 md:ring-line-subtle",
+    ],
   },
   variants: {
+    // Islands on the frame from 768px (AppShellIslandRow): the root shows the
+    // frame colour around them.
+    framed: {
+      false: {},
+      true: {
+        root: "md:bg-layer-frame",
+      },
+    },
     overlay: {
       false: {},
       true: {
@@ -44,6 +68,7 @@ const appShell = tv({
     },
   },
   defaultVariants: {
+    framed: false,
     overlay: false,
   },
 });
@@ -67,6 +92,8 @@ function useOptionalAppShellSidebar() {
 
 export type AppShellRootProps = useRender.ComponentProps<"div"> & {
   defaultSidebarOpen?: boolean;
+  /** From 768px, show the frame colour around the screen's islands (AppShellIslandRow). */
+  framed?: boolean;
   onSidebarOpenChange?: (open: boolean) => void;
   sidebarCollapsible?: boolean;
   sidebarOpen?: boolean;
@@ -75,6 +102,7 @@ export type AppShellRootProps = useRender.ComponentProps<"div"> & {
 export function AppShellRoot({
   className,
   defaultSidebarOpen = true,
+  framed = false,
   onSidebarOpenChange,
   render,
   sidebarCollapsible = false,
@@ -82,7 +110,7 @@ export function AppShellRoot({
   style,
   ...props
 }: AppShellRootProps) {
-  const { root } = appShell();
+  const { root } = appShell({ framed });
   const [uncontrolledSidebarOpen, setUncontrolledSidebarOpen] = useState(defaultSidebarOpen);
   const [sidebarWidth, setSidebarWidth] = useState(0);
   const [sidebarId, setSidebarId] = useState<string | undefined>(undefined);
@@ -240,6 +268,43 @@ export function AppShellPanelSlot({ className, render, ...props }: AppShellPanel
     defaultTagName: "aside",
     render,
     props: mergeProps<"aside">(defaultProps, props),
+  });
+}
+
+export type AppShellIslandRowProps = useRender.ComponentProps<"div">;
+
+/** The islands of a screen, side by side on the frame (from 768px). */
+export function AppShellIslandRow({ className, render, ...props }: AppShellIslandRowProps) {
+  const { islandRow } = appShell();
+
+  const defaultProps: SlotElementProps<"div"> = {
+    "data-slot": "app-shell-island-row",
+    className: islandRow({ className }),
+  };
+
+  return useRender({
+    defaultTagName: "div",
+    render,
+    props: mergeProps<"div">(defaultProps, props),
+  });
+}
+
+export type AppShellIslandProps = useRender.ComponentProps<"div">;
+
+/** One island of an AppShellIslandRow: the conversation with its sidebar, or the workspace. */
+export function AppShellIsland({ className, ref, render, ...props }: AppShellIslandProps) {
+  const { island } = appShell();
+
+  const defaultProps: SlotElementProps<"div"> = {
+    "data-slot": "app-shell-island",
+    className: island({ className }),
+  };
+
+  return useRender({
+    defaultTagName: "div",
+    ref,
+    render,
+    props: mergeProps<"div">(defaultProps, props),
   });
 }
 

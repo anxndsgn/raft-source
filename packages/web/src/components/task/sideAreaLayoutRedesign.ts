@@ -1,5 +1,5 @@
 import { useContext, useMemo } from "react";
-import { WorkspaceSlotContext } from "../layout/rowColumnSlot";
+import { WorkspaceSlotContext, workspaceFrameOf, workspaceFrameWidth } from "../layout/rowColumnSlot";
 import { commitColumnWidth, getColumnWidth, previewColumnWidth, resetColumnWidth, useColumnWidth } from "../../store/columnWidthStore";
 import { COLUMN_BOUNDS } from "../../lib/panelBounds";
 import type { ColumnWidthSource } from "../ui/ColumnResizeHandle";
@@ -73,7 +73,7 @@ export const WORKSPACE_TIMELINE_MIN = 480;
 
 /** The timeline beside the workspace (which stands outside the row, in the frame): the row's conversation column. */
 export const workspaceMainColumn = (column: HTMLElement): HTMLElement | null =>
-  column.closest<HTMLElement>('[data-testid="workspace-frame"]')?.querySelector<HTMLElement>(".thread-main-column") ?? null;
+  workspaceFrameOf(column)?.querySelector<HTMLElement>(".thread-main-column") ?? null;
 
 /** The drawer's one section. */
 export const DRAWER_SECTIONS: "artifact"[] = ["artifact"];
@@ -94,7 +94,8 @@ export function useWorkspaceDrawer(layout: ChannelSideLayout, open: Set<ChannelS
   const thread = useColumnWidth("thread");
   const expanded = useArtifactViewerStore((s) => s.expanded) && desktop;
   const workspace = desktop && open.has("artifact");
-  const frame = row?.closest<HTMLElement>('[data-testid="workspace-frame"]')?.getBoundingClientRect().width ?? 0;
+  const frameElement = row ? workspaceFrameOf(row) : null;
+  const frame = frameElement ? workspaceFrameWidth(frameElement) : 0;
   const room = frame - sideWidth(open, { panel, thread }) - WORKSPACE_TIMELINE_MIN;
   const drawer = workspace && !expanded && frame > 0 && room < 420;
   const rowOpen = useMemo(() => {

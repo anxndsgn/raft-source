@@ -44,6 +44,7 @@ import { useStackEndHead } from "../task/stackEnd";
 import ColumnResizeHandle from "../ui/ColumnResizeHandle";
 import ShellSidebarColumn from "./ShellSidebarColumn";
 import ShellArtifactHost from "./ShellArtifactHost";
+import { useArtifactViewerStore } from "../../apps/artifacts/artifactViewerStore";
 import { useMediaQuery } from "../../hooks/effectPrimitives";
 import { Routes, Route, Navigate, UNSAFE_NavigationContext as NavigationContext, useParams, useNavigate, useLocation, useNavigationType } from "react-router-dom";
 import { directTaskConversationChannelId, opensAsTaskConversation, parseTaskConversationParam } from "../../utils/taskConversation";
@@ -2457,6 +2458,8 @@ export default function MainLayout() {
   // its chrome to this bar (topBarHostContext.ts) gets it at any width: the
   // row is then the window's title bar and drag region.
   const showTopBar = useShowsTopBar(isDesktop);
+  // The workspace expanded takes the conversation's island (ShellFrame, §5).
+  const workspaceExpanded = useArtifactViewerStore((s) => s.expanded && s.open !== null) && isDesktop;
 
   return (
     <ShellFrame
@@ -2466,6 +2469,7 @@ export default function MainLayout() {
       sidebarCollapsible={sidebarCollapsible}
       sidebarOpen={!sidebarHidden}
       onSidebarOpenChange={handleSidebarOpenChange}
+      workspaceExpanded={workspaceExpanded}
       topStrip={<OpenInAppOffers slot="top" />}
       bottomStrip={<OpenInAppOffers slot="bottom" />}
       rail={(

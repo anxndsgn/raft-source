@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ShellPendingContext } from "./shellPending";
 import { DESKTOP_SHELL_QUERY } from "./desktopShell";
 import type { ReactNode } from "react";
-import { AppShellMainSlot, AppShellRailSlot, AppShellRoot } from "@botiverse/raft-ui";
+import { AppShellIsland, AppShellIslandRow, AppShellMainSlot, AppShellRailSlot, AppShellRoot } from "@botiverse/raft-ui";
+import { ShellWorkspaceIslandContext } from "./rowColumnSlot";
 import { ShellTopBar } from "../topbar/ShellTopBar";
 import PwaInstallPrompt from "../pwa/PwaInstallPrompt";
 import { shouldShowTopBar } from "../topbar/topBarVisibility";
@@ -82,6 +83,8 @@ export interface ShellFrameProps {
   main: ReactNode;
   /** After the panes: the phone's tab bar, dialogs, overlays. */
   after?: ReactNode;
+  /** The workspace (an open Artifact) expanded: it takes the conversation's place, beside the sidebar (§5). */
+  workspaceExpanded?: boolean;
 }
 
 /**
@@ -105,7 +108,10 @@ export function ShellFrame({
   mainHidden,
   main,
   after,
+  workspaceExpanded = false,
 }: ShellFrameProps) {
+  // The workspace island: ConversationFrame hands it to the channel's side area, which portals the open Artifact's column into it.
+  const [workspaceIsland, setWorkspaceIsland] = useState<HTMLElement | null>(null);
   useSystemBarSurface(topEdgeSurface);
   // MainLayout is keyed by server: leaving one removes this whole shell, often with the composer focused.
   useReleaseFocusOnUnmount("[data-slot='app-shell-root']");
@@ -133,6 +139,7 @@ export function ShellFrame({
       // - mobile detail routes still update theme-color and this wrapper to match
       //   their white top surface
       className="min-h-0 flex-1 flex-col font-display"
+      framed
       // Standalone: the wrapper above the safe-area inset paints the route's
       // top-edge surface itself at every width, so the status-bar strip
       // matches `meta[theme-color]` (tasks #638, #140; ios-standalone-chrome spec).
@@ -158,21 +165,31 @@ export function ShellFrame({
               header and the bottom MobileTabBar. */}
           <AppShellRailSlot>{rail}</AppShellRailSlot>
 
-          {sidebar}
+          {/* Raft redesign (Figma 精修 · 组件化): from 768px the sidebar and the
+              conversation stand on the frame as one island, and the workspace
+              (an open Artifact) as another beside it; empty, it is not drawn. */}
+          <AppShellIslandRow data-workspace-expanded={workspaceExpanded ? "true" : undefined}>
+            <AppShellIsland data-testid="conversation-island">
+              {sidebar}
 
-          {/* The main slot's box. A collapsible shell positions the main
-              area absolutely inside it, sliding it left over the sidebar when
-              collapsed; it is always rendered so toggling never remounts the
-              routes. */}
-          {/* data-otter-dock: an edge the assistant's otter can be dragged to (assistantOtterDock.ts). */}
-          <div className={`relative min-h-0 min-w-0 flex-1 ${mainHidden ? "hidden" : "flex"}`} data-otter-dock="main">
-            <AppShellMainSlot
-              overlay
-              className={`relative ${mainHidden ? "hidden" : "flex"}`}
-            >
-              {main}
-            </AppShellMainSlot>
-          </div>
+              {/* The main slot's box. A collapsible shell positions the main
+                  area absolutely inside it, sliding it left over the sidebar when
+                  collapsed; it is always rendered so toggling never remounts the
+                  routes. */}
+              {/* data-otter-dock: an edge the assistant's otter can be dragged to (assistantOtterDock.ts). */}
+              <div className={`relative min-h-0 min-w-0 flex-1 ${mainHidden ? "hidden" : "flex"}`} data-otter-dock="main" data-testid="conversation-island-main">
+                <AppShellMainSlot
+                  overlay
+                  className={`relative ${mainHidden ? "hidden" : "flex"}`}
+                >
+                  <ShellWorkspaceIslandContext.Provider value={workspaceIsland}>
+                    {main}
+                  </ShellWorkspaceIslandContext.Provider>
+                </AppShellMainSlot>
+              </div>
+            </AppShellIsland>
+            <AppShellIsland ref={setWorkspaceIsland} data-testid="workspace-island" className="flex-none empty:hidden" />
+          </AppShellIslandRow>
         </div>
 
         {bottomStrip}

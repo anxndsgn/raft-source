@@ -4,14 +4,17 @@ export const appRail = tv({
   slots: {
     root: [
       "flex size-full  flex-col items-center select-none",
-      "w-(--rail-width) border-r border-line-seam",
+      // On the frame, beside the islands: no seam of its own (Raft redesign).
+      "w-(--rail-width)",
       "bg-layer-frame text-foreground-on-frame",
       "[@media(max-height:600px)]:w-(--rail-width-short)",
     ],
     header: [
       "relative flex w-full shrink-0 items-center justify-center",
-      "h-(--shell-header-height,var(--header-height)) border-b border-line-seam",
-      "[@media(max-height:600px)]:h-(--header-height-short)",
+      // Raft redesign (Figma 精修 · 组件化, Rail): no head row and no seam. The
+      // workspace switcher is the rail's first item, its 32px tile 14px from
+      // the top (a 36px item 12px down), and the nav follows a gap below.
+      "pt-3",
     ],
     nav: [
       "flex w-full flex-1 flex-col items-center py-2", // Raft DS › Rail: `rail-item` items, 40px 6px apart on a touch
@@ -23,13 +26,15 @@ export const appRail = tv({
       // 36px item in the 48px rail); short windows use the same 36 and 6.
       "gap-1.5 pt-2.5 pb-2 first:pt-2",
       "[@media(max-height:600px)]:pt-1.5 [@media(max-height:600px)]:first:pt-1.5",
-      "md:pointer-fine:gap-1 md:pointer-fine:pt-1.5 md:pointer-fine:first:pt-1.5",
+      // Raft redesign: with a mouse the items are 36, 6 apart, the first 6
+      // under the switcher's tile (4 under its item box).
+      "md:pointer-fine:gap-1.5 md:pointer-fine:pt-1 md:pointer-fine:first:pt-3",
       "after:mt-auto after:h-28 after:min-h-0 after:w-12 after:shrink after:content-[''] after:frame-decor-rail",
     ],
     footer: [
       "flex w-full shrink-0 flex-col items-center justify-center",
       "h-auto gap-1.5 pb-2 [@media(max-height:600px)]:pb-1.5",
-      "md:pointer-fine:gap-1 md:pointer-fine:pb-1.5",
+      "md:pointer-fine:gap-1.5 md:pointer-fine:pb-1.5",
     ],
     item: [
       "relative inline-flex shrink-0 items-center justify-center",
@@ -37,11 +42,11 @@ export const appRail = tv({
       "disabled:pointer-events-none disabled:opacity-45",
       "[&_svg]:shrink-0",
       "size-(--rail-item) rounded-control border-[1.5px] border-transparent",
-      "text-foreground-on-frame [&_svg]:size-5",
+      // Icons 24 in the rail (Figma size/icon-rail), 20 everywhere else.
+      "text-foreground-on-frame [&_svg]:size-5 md:pointer-fine:[&_svg]:size-6",
       "hover:bg-fill-frame-medium active:bg-fill-frame-medium",
+      // "You are here": the canvas square behind the icon (Raft redesign), no edge.
       "data-[selected=true]:border-line-frame-active data-[selected=true]:bg-layer-frame-active",
-      // The yellow "you are here" is a sticker: the die-cut edge in dark mode.
-      "data-[selected=true]:ring-[1.5px] data-[selected=true]:ring-sticker-edge",
       "data-[selected=true]:text-foreground-on-frame-active",
       "focus-visible:shadow-focus",
       "[@media(max-height:600px)]:size-(--rail-item-short)",

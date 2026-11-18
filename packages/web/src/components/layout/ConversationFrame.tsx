@@ -1,20 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useArtifactViewerStore } from "../../apps/artifacts/artifactViewerStore";
 import { useUIStore } from "../../store/uiStore";
 import { SIDEBAR_REGION_ID } from "./sidebarToggle";
 import type { ReactNode } from "react";
 
-import { ConversationHeaderSlotContext, WorkspaceSlotContext } from "./rowColumnSlot";
+import { ConversationHeaderSlotContext, ShellWorkspaceIslandContext, WorkspaceSlotContext, workspaceFrameWidth } from "./rowColumnSlot";
 
 /**
  * Layout redesign (F1–F3): the main area's frame. The conversation's header
  * sits above its row (so it spans the timeline and the channel's side panel),
- * and the workspace (an open Artifact) stands beside both, from the top.
- * `children` is MainLayout's row.
+ * and the workspace (an open Artifact) stands beside both, from the top:
+ * in the shell's workspace island (ShellFrame, Raft redesign), or in a slot of
+ * its own outside a shell. `children` is MainLayout's row.
  */
 export function ConversationFrame({ children }: { children: ReactNode }) {
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
-  const [workspaceSlot, setWorkspaceSlot] = useState<HTMLElement | null>(null);
+  const [ownWorkspaceSlot, setOwnWorkspaceSlot] = useState<HTMLElement | null>(null);
+  const workspaceIsland = useContext(ShellWorkspaceIslandContext);
+  const workspaceSlot = workspaceIsland === undefined ? ownWorkspaceSlot : workspaceIsland;
   useWorkspaceMakesRoom();
   // Doc §5: the workspace expanded takes the whole conversation area (its header, timeline and side panel hide,
   // as they were; index.css `data-workspace-expanded`). The rail and the sidebar stay.
@@ -29,7 +32,7 @@ export function ConversationFrame({ children }: { children: ReactNode }) {
           </div>
         </WorkspaceSlotContext.Provider>
       </ConversationHeaderSlotContext.Provider>
-      <div ref={setWorkspaceSlot} className="contents" data-testid="workspace-slot" />
+      {workspaceIsland === undefined ? <div ref={setOwnWorkspaceSlot} className="contents" data-testid="workspace-slot" /> : null}
     </div>
   );
 }
@@ -50,7 +53,10 @@ function useWorkspaceMakesRoom() {
   const foldedByUs = useRef<number | null>(null);
   useEffect(() => {
     const ui = useUIStore.getState;
-    const frameWidth = () => document.querySelector<HTMLElement>('[data-testid="workspace-frame"]')?.getBoundingClientRect().width ?? window.innerWidth;
+    const frameWidth = () => {
+      const frame = document.querySelector<HTMLElement>('[data-testid="workspace-frame"]');
+      return frame ? workspaceFrameWidth(frame) : window.innerWidth;
+    };
     if (!workspaceOpen) {
       if (foldedByUs.current !== null && ui().sidebarHidden) ui().setSidebarHidden(false);
       foldedByUs.current = null;
@@ -72,3 +78,4 @@ function useWorkspaceMakesRoom() {
     return () => window.removeEventListener("resize", fit);
   }, [expanded, workspaceOpen]);
 }
+

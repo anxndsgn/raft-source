@@ -34,6 +34,7 @@ app-shell/compositions/responsive
 - `AppShellMainSlot`: the `main` element, for the main area. The only slot shown on a phone. Required.
 - `AppShellPanelSlot`: an `aside` for a side panel next to the main area. Hidden below 768px.
 - `AppShellOverlaySlot`: covers the main area without changing the columns, for a side panel that overlays it. Put it inside an `AppShellMainSlot` with `overlay`.
+- `AppShellIslandRow` and `AppShellIsland`: from 768px, the regions stand on the frame as islands (Raft redesign). Pass `framed` to `AppShellRoot` so the frame colour shows around them. The row leaves `island-gap` (8px) above, below and right of its islands and between two of them; the rail before it is its left margin. An island is `layer-canvas` with a 1px `line-subtle` ring outside its edge and the `radius-island` corner, and clips what is inside it. Below 768px both are plain boxes. Put the sidebar slot and the main slot in one island, and a workspace beside the conversation in another.
 - `AppShellSidebarTrigger`: the button that collapses and expands the sidebar. It is a `PanelAction` for the main area's panel header; render it as an `AppRailItem` to put it in the rail, where the products put it ([Navigation](../../../../../design/patterns/navigation.md#collapsing-the-sidebar)).
 
 The slots are placement markers, not required direct children: a slot can sit inside a `ResizablePanel`.
@@ -81,6 +82,6 @@ app-shell/compositions/mobile-root
 ## Rules
 
 - Build every app screen on AppShell. Don't rebuild the frame from `div`s, because the slots carry the breakpoints, the landmarks and the header height.
-- Don't put a background, a border, a width or a shadow on a slot. Put them on the component inside: a [Panel](../panel/panel.md) with `edge="attached"` draws the one line between it and the region before it ([Page structure](../../../../../design/patterns/page-structure.md#one-line-between-two-regions)).
+- Don't put a background, a border, a width or a shadow on a slot. An island draws its own surface; don't give it another. Put them on the component inside: a [Panel](../panel/panel.md) with `edge="attached"` draws the one line between it and the region before it ([Page structure](../../../../../design/patterns/page-structure.md#one-line-between-two-regions)).
 - Give a screen one `AppShellMainSlot`.
 - Set `overlay` on `AppShellMainSlot` only when an `AppShellOverlaySlot` is inside it.

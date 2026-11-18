@@ -1,4 +1,6 @@
 export {
+  AppShellIsland,
+  AppShellIslandRow,
   AppShellMainSlot,
   AppShellOverlaySlot,
   AppShellPanelSlot,
@@ -8,6 +10,8 @@ export {
   AppShellSidebarTrigger,
 } from "./app-shell";
 export type {
+  AppShellIslandProps,
+  AppShellIslandRowProps,
   AppShellMainSlotProps,
   AppShellOverlaySlotProps,
   AppShellPanelSlotProps,
