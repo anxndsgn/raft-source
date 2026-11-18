@@ -77,10 +77,10 @@ const tabs = tv({
         list: ["gap-2"],
         tab: [
           "h-[25px] justify-center gap-1 rounded-pill border border-line-subtle bg-layer-canvas px-2.5",
-          "font-normal text-foreground",
+          "font-normal text-foreground-muted",
           "after:inset-x-0 after:-inset-y-2.5",
-          "hover:bg-fill-subtle active:bg-fill-medium",
-          "data-active:bg-fill-medium data-active:font-semibold",
+          "hover:bg-fill-subtle hover:text-foreground active:bg-fill-medium",
+          "data-active:bg-fill-medium data-active:font-semibold data-active:text-foreground",
         ],
       },
       underline: {

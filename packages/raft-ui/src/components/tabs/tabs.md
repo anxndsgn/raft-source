@@ -42,7 +42,7 @@ A place with several kinds of content, such as an agent, shows them as one row o
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `variant="default"`   | The sticker tab: the selected tab is a yellow sticker. The default                                                               |
 | `variant="underline"` | Many tabs, or a place that already has a lot of color: the selected tab is ink text with a 2px ink line on the row's bottom edge |
-| `variant="pill"` | A short row of filters right over the list they filter, such as a side panel's All / Assigned / Created (Raft redesign, Figma Filter Pill): 25px pills 8px apart, a subtle line, the selected one the medium fill and semibold |
+| `variant="pill"` | A short row of filters right over the list they filter, such as a side panel's All / Assigned / Created (Raft redesign, Figma Filter Pill): 25px pills 8px apart, a subtle line, the others muted and regular, the selected one ink, semibold, on the medium fill |
 
 The sticker tab is the default, and the one the product ships: a selected tab says "you are here", like a selected sidebar row or segment, so it takes the same yellow sticker ([Navigation](../../../../../design/patterns/navigation.md#where-you-are)). The underline stays a variant. `placement` puts the row on the top (the default), bottom, left or right of the panels.
 
