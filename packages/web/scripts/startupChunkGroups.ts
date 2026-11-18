@@ -14,7 +14,11 @@ export function vendorPackages(names: string[]): RegExp {
 }
 // ricons is the design system's own icons, moved out of raft-ui in 0.95: it
 // stays in raft-ui's chunk, so a ricons release renames only that one.
-export const RAFT_UI = vendorPackages(["@botiverse/raft-ui", "@botiverse/ricons"]);
+// raft-ui itself is vendored (packages/raft-ui, VENDORED.md): Vite resolves its
+// workspace link to the real path, so its built dist is matched there too.
+export const RAFT_UI = new RegExp(
+  `${vendorPackages(["@botiverse/raft-ui", "@botiverse/ricons"]).source}|[\\\\/]packages[\\\\/]raft-ui[\\\\/]dist[\\\\/]`,
+);
 // Packages split out of vendor-startup so a small change in one of them does
 // not rename the whole 750 KB chunk: the minifier renumbers every identifier
 // in a chunk when any module in it changes. v1.21.61 -> v1.21.62 changed only

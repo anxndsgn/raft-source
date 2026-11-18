@@ -1,0 +1,342 @@
+import "./message-action-card.test.css";
+import { afterEach, expect, test } from "vite-plus/test";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { ThemeProvider } from "../../lib/theme/theme-provider";
+import {
+  MessageActionCard,
+  MessageActionCardCollapseTrigger,
+  MessageActionCardContent,
+  MessageActionCardHeader,
+  MessageActionCardHeaderDescription,
+  MessageActionCardHeaderIcon,
+  MessageActionCardHeaderMeta,
+  MessageActionCardHeaderTitle,
+  MessageActionCardHint,
+  MessageActionCardHintLabel,
+  MessageActionCardNotice,
+  MessageActionCardProperties,
+  MessageActionCardProperty,
+  MessageActionCardPropertyLabel,
+  MessageActionCardPropertyValue,
+  MessageActionCardScope,
+  MessageActionCardScopeDescription,
+  MessageActionCardScopeList,
+  MessageActionCardScopeListViewport,
+  MessageActionCardScopeName,
+  MessageActionCardStatus,
+} from "./message-action-card";
+
+const it = test.skipIf(typeof window === "undefined");
+afterEach(cleanup);
+
+function renderCard(options: { defaultOpen?: boolean; scopes?: number } = {}) {
+  const { defaultOpen = true, scopes = 0 } = options;
+  return render(
+    <ThemeProvider>
+      <div style={{ width: 480 }}>
+        <MessageActionCard data-testid="card" defaultOpen={defaultOpen}>
+          <MessageActionCardHeader data-testid="header">
+            <MessageActionCardHeaderTitle>
+              Create private channel #release-review
+            </MessageActionCardHeaderTitle>
+            <MessageActionCardStatus data-testid="status" variant="success">
+              Done
+            </MessageActionCardStatus>
+            <MessageActionCardCollapseTrigger
+              data-testid="toggle"
+              aria-label="Show or hide details"
+            />
+          </MessageActionCardHeader>
+          <MessageActionCardContent>
+            <p data-testid="body">Coordinate the final release review.</p>
+            {scopes > 0 ? (
+              <MessageActionCardScopeList>
+                <MessageActionCardScopeListViewport data-testid="viewport" aria-label="Permissions">
+                  {Array.from({ length: scopes }, (_, n) => (
+                    <MessageActionCardScope key={n}>
+                      <MessageActionCardScopeName>scope-{n}</MessageActionCardScopeName>
+                      <MessageActionCardScopeDescription>
+                        Reads your basic profile fields. No access to messages.
+                      </MessageActionCardScopeDescription>
+                    </MessageActionCardScope>
+                  ))}
+                </MessageActionCardScopeListViewport>
+              </MessageActionCardScopeList>
+            ) : null}
+          </MessageActionCardContent>
+        </MessageActionCard>
+      </div>
+    </ThemeProvider>,
+  );
+}
+
+const visibleHeight = (testId: string) => {
+  const el = screen.queryByTestId(testId);
+  return el === null ? 0 : el.getBoundingClientRect().height;
+};
+
+it("a folded card shows only its header; the toggle opens and folds it again", async () => {
+  renderCard({ defaultOpen: false });
+  const toggle = screen.getByTestId("toggle");
+  expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  expect(visibleHeight("body")).toBe(0);
+
+  fireEvent.click(toggle);
+  expect(toggle.getAttribute("aria-expanded")).toBe("true");
+  await waitFor(() => expect(visibleHeight("body")).toBeGreaterThan(0));
+
+  fireEvent.click(toggle);
+  expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  await waitFor(() => expect(visibleHeight("body")).toBe(0));
+});
+
+it("the Reason label sits right above an upright quote; the notice is a tinted block with its icon on the left", () => {
+  render(
+    <ThemeProvider>
+      <div style={{ width: 480 }}>
+        <MessageActionCard defaultOpen>
+          <MessageActionCardContent>
+            <p>Body</p>
+            <MessageActionCardHintLabel data-testid="hint-label">Reason</MessageActionCardHintLabel>
+            <MessageActionCardHint data-testid="hint">
+              I need to file the issues.
+            </MessageActionCardHint>
+            <MessageActionCardNotice data-testid="notice">
+              Installs the app for this whole Server.
+            </MessageActionCardNotice>
+          </MessageActionCardContent>
+        </MessageActionCard>
+      </div>
+    </ThemeProvider>,
+  );
+  const label = screen.getByTestId("hint-label").getBoundingClientRect();
+  const quote = screen.getByTestId("hint");
+  const gap = quote.getBoundingClientRect().top - label.bottom;
+  expect(gap).toBeGreaterThanOrEqual(0);
+  expect(gap).toBeLessThanOrEqual(6);
+  // Upright: Space Grotesk has no italic, and the DS never slants a quote.
+  expect(getComputedStyle(quote).fontStyle).toBe("normal");
+  expect(Number.parseFloat(getComputedStyle(quote).borderLeftWidth)).toBeGreaterThan(0);
+
+  const notice = getComputedStyle(screen.getByTestId("notice"));
+  expect(notice.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+  expect(Number.parseFloat(notice.paddingLeft)).toBeGreaterThan(0);
+  expect(notice.fontStyle).toBe("normal");
+  // The info icon is there by default; the caller passed text only.
+  const icon = screen.getByTestId("notice").querySelector("svg")!.getBoundingClientRect();
+  const text = screen.getByTestId("notice").querySelector("span")!.getBoundingClientRect();
+  expect(icon.width).toBeGreaterThan(0);
+  expect(icon.right).toBeLessThanOrEqual(text.left);
+  expect(icon.top).toBeGreaterThanOrEqual(text.top - 1);
+});
+
+it("a folded card keeps its description under the title; icon, status and toggle line up with the title's first line", () => {
+  render(
+    <ThemeProvider>
+      <div style={{ width: 280 }}>
+        <MessageActionCard defaultOpen={false}>
+          <MessageActionCardHeader>
+            <MessageActionCardHeaderIcon data-testid="icon" />
+            <MessageActionCardHeaderTitle data-testid="title">
+              Create private channel #release-review
+              <MessageActionCardHeaderDescription data-testid="description">
+                Declined by Ada. Nothing was changed.
+              </MessageActionCardHeaderDescription>
+            </MessageActionCardHeaderTitle>
+            <MessageActionCardStatus data-testid="status" variant="muted">
+              Declined
+            </MessageActionCardStatus>
+            <MessageActionCardCollapseTrigger
+              data-testid="toggle"
+              aria-label="Show or hide details"
+            />
+          </MessageActionCardHeader>
+          <MessageActionCardContent>
+            <p data-testid="body">Coordinate the final release review.</p>
+          </MessageActionCardContent>
+        </MessageActionCard>
+      </div>
+    </ThemeProvider>,
+  );
+  expect(visibleHeight("body")).toBe(0);
+  const description = screen.getByTestId("description").getBoundingClientRect();
+  const title = screen.getByTestId("title");
+  expect(description.height).toBeGreaterThan(0);
+  // Its own line: starts at the title's left edge, below the title text.
+  const titleText = document.createRange();
+  titleText.selectNodeContents(title.firstChild!);
+  const titleRects = [...titleText.getClientRects()];
+  expect(Math.abs(description.left - title.getBoundingClientRect().left)).toBeLessThanOrEqual(1);
+  expect(description.top).toBeGreaterThanOrEqual(titleRects.at(-1)!.bottom - 1);
+
+  // The title wraps at this width; measure its first line, not the block.
+  const range = document.createRange();
+  range.setStart(title.firstChild!, 0);
+  range.setEnd(title.firstChild!, 1);
+  const line = range.getClientRects()[0]!;
+  const lineMid = line.top + line.height / 2;
+  expect(title.getBoundingClientRect().height).toBeGreaterThan(line.height * 2.5);
+  // The status badge's even height leaves up to 1.5px of rounding.
+  for (const [id, tolerance] of [
+    ["icon", 1],
+    ["status", 1.5],
+    ["toggle", 1],
+  ] as const) {
+    const box = screen.getByTestId(id).getBoundingClientRect();
+    expect(Math.abs(box.top + box.height / 2 - lineMid), id).toBeLessThanOrEqual(tolerance);
+  }
+});
+
+it("a long permission list scrolls inside a capped viewport instead of stretching the card", () => {
+  renderCard({ scopes: 6 });
+  const viewport = screen.getByTestId("viewport");
+  expect(viewport.clientHeight).toBe(136);
+  expect(viewport.scrollHeight).toBeGreaterThan(viewport.clientHeight);
+  // The third row is visibly cut, not just clipped at its last pixels: the
+  // cap runs through its name, the first line of its text.
+  const bottom = viewport.getBoundingClientRect().bottom;
+  // The rows are in the ScrollArea's content element, after its gutters.
+  const rows = viewport.querySelector("[data-slot=scroll-area-content]")!;
+  const third = rows.children[2]!.getBoundingClientRect();
+  const shown = (bottom - third.top) / third.height;
+  expect(shown).toBeGreaterThan(0.2);
+  expect(shown).toBeLessThan(0.8);
+  const name = rows.children[2]!.firstElementChild!.getBoundingClientRect();
+  expect(bottom).toBeGreaterThan(name.top + name.height / 4);
+  expect(bottom).toBeLessThan(name.bottom - name.height / 4);
+});
+
+it("the permission viewport is a Tab stop only while it overflows", async () => {
+  const long = renderCard({ scopes: 6 });
+  await waitFor(() => expect(screen.getByTestId("viewport").tabIndex).toBe(0));
+  long.unmount();
+
+  renderCard({ scopes: 1 });
+  const short = screen.getByTestId("viewport");
+  await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+  expect(short.scrollHeight).toBeLessThanOrEqual(short.clientHeight);
+  expect(short.hasAttribute("tabindex")).toBe(false);
+});
+
+it("the header icon falls back to a default icon when the caller passes none", () => {
+  render(
+    <ThemeProvider>
+      <MessageActionCardHeaderIcon data-testid="default-icon" />
+      <MessageActionCardHeaderIcon data-testid="own-icon">
+        <svg data-testid="own" viewBox="0 0 16 16" />
+      </MessageActionCardHeaderIcon>
+    </ThemeProvider>,
+  );
+  const fallback = screen.getByTestId("default-icon").querySelector("svg");
+  expect(fallback === null).toBe(false);
+  expect(fallback!.getBoundingClientRect().width).toBeGreaterThan(0);
+  const own = screen.getByTestId("own-icon").querySelectorAll("svg");
+  expect(own.length).toBe(1);
+  expect(own[0]!.getAttribute("data-testid")).toBe("own");
+});
+
+it("the status label is a soft badge unless the caller picks an appearance", () => {
+  renderCard();
+  expect(screen.getByTestId("status").getAttribute("data-appearance")).toBe("soft");
+});
+
+it("a property label lines up with the first line of a value that wraps", async () => {
+  // A paragraph wraps whether or not its label goes above it, so it keeps two columns.
+  const { page } = await import("vite-plus/test/browser/context");
+  await page.viewport(1024, 800);
+  render(
+    <ThemeProvider>
+      <div style={{ width: 480 }}>
+        <MessageActionCard defaultOpen>
+          <MessageActionCardContent>
+            <MessageActionCardProperties>
+              <MessageActionCardProperty>
+                <MessageActionCardPropertyLabel data-testid="label">
+                  Description
+                </MessageActionCardPropertyLabel>
+                <MessageActionCardPropertyValue data-testid="value">
+                  {"Owns how written docs are shaped and kept current. ".repeat(6)}
+                </MessageActionCardPropertyValue>
+              </MessageActionCardProperty>
+            </MessageActionCardProperties>
+          </MessageActionCardContent>
+        </MessageActionCard>
+      </div>
+    </ThemeProvider>,
+  );
+  const label = screen.getByTestId("label").getBoundingClientRect();
+  const value = screen.getByTestId("value");
+  const valueBox = value.getBoundingClientRect();
+  const lineHeight = Number.parseFloat(getComputedStyle(value).lineHeight);
+  expect(valueBox.height).toBeGreaterThan(lineHeight * 3);
+  // The label sits on the value's first line, not halfway down the block.
+  expect(label.top).toBeGreaterThanOrEqual(valueBox.top);
+  expect(label.bottom).toBeLessThanOrEqual(
+    valueBox.top + Number.parseFloat(getComputedStyle(value).paddingTop) + lineHeight + 1,
+  );
+});
+
+it("the header's time is its own mono line under the title, or ends the description's line", () => {
+  render(
+    <ThemeProvider>
+      <div style={{ width: 440 }}>
+        <MessageActionCard defaultOpen={false}>
+          <MessageActionCardHeader>
+            <MessageActionCardHeaderTitle data-testid="alone-title">
+              Sent to #launch-week
+              <MessageActionCardHeaderMeta data-testid="alone">10:51</MessageActionCardHeaderMeta>
+            </MessageActionCardHeaderTitle>
+          </MessageActionCardHeader>
+        </MessageActionCard>
+        <MessageActionCard defaultOpen={false}>
+          <MessageActionCardHeader>
+            <MessageActionCardHeaderTitle>
+              Merge #26 into main
+              <MessageActionCardHeaderDescription data-testid="description">
+                Approved by Martin ·{" "}
+                <MessageActionCardHeaderMeta data-testid="inline">
+                  10:51
+                </MessageActionCardHeaderMeta>
+              </MessageActionCardHeaderDescription>
+            </MessageActionCardHeaderTitle>
+          </MessageActionCardHeader>
+        </MessageActionCard>
+        <span data-testid="hint" className="text-foreground-hint">
+          hint
+        </span>
+        <span data-testid="mono" className="font-mono">
+          mono
+        </span>
+      </div>
+    </ThemeProvider>,
+  );
+  const hint = getComputedStyle(screen.getByTestId("hint")).color;
+  const mono = getComputedStyle(screen.getByTestId("mono")).fontFamily;
+  const alone = screen.getByTestId("alone");
+  const title = screen.getByTestId("alone-title");
+  const titleText = document.createRange();
+  titleText.selectNodeContents(title.firstChild!);
+  const titleLine = titleText.getClientRects()[0]!;
+  const aloneBox = alone.getBoundingClientRect();
+  // A line of its own: at the title's left edge, below the title's text.
+  expect(Math.abs(aloneBox.left - title.getBoundingClientRect().left)).toBeLessThanOrEqual(1);
+  expect(aloneBox.top).toBeGreaterThanOrEqual(titleLine.bottom - 1);
+  for (const meta of [alone, screen.getByTestId("inline")]) {
+    const style = getComputedStyle(meta);
+    expect(style.fontFamily).toBe(mono);
+    expect(style.fontWeight).toBe("400");
+    expect(style.color).toBe(hint);
+  }
+
+  // Inside the description: on that line, after its words.
+  const description = screen.getByTestId("description");
+  const words = document.createRange();
+  words.selectNodeContents(description.firstChild!);
+  const wordsLine = words.getClientRects()[0]!;
+  const inline = screen.getByTestId("inline").getBoundingClientRect();
+  expect(description.getClientRects()).toHaveLength(1);
+  expect(inline.left).toBeGreaterThanOrEqual(wordsLine.right - 1);
+  expect(
+    Math.abs(inline.top + inline.height / 2 - (wordsLine.top + wordsLine.height / 2)),
+  ).toBeLessThanOrEqual(2);
+});

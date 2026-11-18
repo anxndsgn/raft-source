@@ -12,6 +12,9 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/sync-core/package.json packages/sync-core/
 COPY packages/runtime-form/package.json packages/runtime-form/
 COPY packages/raft-ui-ext/package.json packages/raft-ui-ext/
+# raft-ui is vendored: its `prepare` builds dist/ during install, so it needs
+# its whole source here, not just the manifest.
+COPY packages/raft-ui/ packages/raft-ui/
 COPY packages/shared/package.json packages/shared/
 COPY packages/web/package.json packages/web/
 

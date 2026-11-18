@@ -1,0 +1,515 @@
+import "./message-forwarded-bundle.test.css";
+import { afterEach, beforeAll, expect, test } from "vite-plus/test";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import type { MouseEvent, ReactElement, ReactNode } from "react";
+import { ThemeProvider } from "../../lib/theme/theme-provider";
+import type { ThemeMode } from "../../lib/theme/theme-context";
+import {
+  MessageForwardedBundle,
+  MessageForwardedBundleFooter,
+  MessageForwardedBundleFooterAction,
+  MessageForwardedBundleGallery,
+  MessageForwardedBundleGalleryTile,
+  MessageForwardedBundleHeader,
+  MessageForwardedBundleHeaderLabel,
+  MessageForwardedBundleItem,
+  MessageForwardedBundleItemAuthor,
+  MessageForwardedBundleItemContent,
+  MessageForwardedBundleItemMeta,
+  MessageForwardedBundleItems,
+} from "./message-forwarded-bundle";
+
+const it = test.skipIf(typeof window === "undefined");
+afterEach(cleanup);
+
+// The gallery's three-across rows and taller row heights follow its own
+// width (from 22.5rem), not the window's; the layout assertions still pin a
+// desktop viewport so the rest of the card lays out as on a desktop. Imported lazily:
+// CI also loads this file in the node pool, where the browser context module
+// refuses to import and every test is skipped anyway.
+beforeAll(async () => {
+  if (typeof window === "undefined") return;
+  const { page } = await import("vite-plus/test/browser/context");
+  await page.viewport(1280, 900);
+});
+
+const IMAGE =
+  "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='96'%20height='96'%3E%3Crect%20width='96'%20height='96'%20fill='%23dbeafe'/%3E%3C/svg%3E";
+
+function renderBundle(options: { fullWidth?: boolean; width?: number } = {}) {
+  const { fullWidth = false, width = 560 } = options;
+  return render(
+    <ThemeProvider>
+      <div style={{ width }}>
+        <MessageForwardedBundle data-testid="bundle" fullWidth={fullWidth}>
+          <MessageForwardedBundleHeader>
+            <MessageForwardedBundleHeaderLabel data-testid="label">
+              Forwarded
+            </MessageForwardedBundleHeaderLabel>
+          </MessageForwardedBundleHeader>
+          <MessageForwardedBundleItems data-testid="items">
+            {[0, 1].map((n) => (
+              <MessageForwardedBundleItem key={n} data-testid={`item-${n}`}>
+                <MessageForwardedBundleItemMeta>
+                  <MessageForwardedBundleItemAuthor data-testid={`author-${n}`}>
+                    @Developer
+                  </MessageForwardedBundleItemAuthor>
+                </MessageForwardedBundleItemMeta>
+                forward body {n}
+              </MessageForwardedBundleItem>
+            ))}
+          </MessageForwardedBundleItems>
+        </MessageForwardedBundle>
+      </div>
+    </ThemeProvider>,
+  );
+}
+
+function galleryJsx(
+  images: number,
+  options: { width?: number; mode?: ThemeMode } = {},
+): ReactElement {
+  const { width = 560, mode } = options;
+  return (
+    <ThemeProvider mode={mode}>
+      <div style={{ width }}>
+        <MessageForwardedBundleGallery data-testid="gallery">
+          {Array.from({ length: images }, (_, index) => (
+            <MessageForwardedBundleGalleryTile key={index} data-testid={`tile-${index}`}>
+              <img src={IMAGE} alt="" />
+            </MessageForwardedBundleGalleryTile>
+          ))}
+        </MessageForwardedBundleGallery>
+      </div>
+    </ThemeProvider>
+  );
+}
+
+function renderGallery(images: number, options: { width?: number; mode?: ThemeMode } = {}) {
+  return render(galleryJsx(images, options));
+}
+
+function galleryRows(testid: string) {
+  return [
+    ...screen
+      .getByTestId(testid)
+      .querySelectorAll('[data-slot="message-forwarded-bundle-gallery-row"]'),
+  ];
+}
+
+it("forwarded items carry no divider between entries", () => {
+  renderBundle();
+  // The divider used to live on the items container as `divide-y`, which
+  // borders the entries themselves (Tailwind v4 draws it as the older
+  // entry's BOTTOM border, v3 as the newer entry's TOP — measure both edges
+  // on both entries so either implementation going missing fails). The
+  // container keeps its own frame, so the divider is never measured on the
+  // container.
+  for (const id of ["item-0", "item-1"]) {
+    const style = getComputedStyle(screen.getByTestId(id));
+    expect(style.borderTopWidth).toBe("0px");
+    expect(style.borderBottomWidth).toBe("0px");
+  }
+});
+
+it("the forwarded label keeps its authored casing (no text-transform)", () => {
+  renderBundle();
+  expect(getComputedStyle(screen.getByTestId("label")).textTransform).toBe("none");
+});
+
+it("the forwarded body reads at message scale with an emphasised author", () => {
+  renderBundle();
+  // Message scale is the body, 14px at this desktop viewport (16px on a phone).
+  expect(getComputedStyle(screen.getByTestId("item-0")).fontSize).toBe("14px");
+  expect(
+    Number(getComputedStyle(screen.getByTestId("author-0")).fontWeight),
+  ).toBeGreaterThanOrEqual(600);
+});
+
+// Forwarded images use the same component family as images in a message:
+// MessageImageGallery surfaces inside message-scale rows. The old three-up
+// scroll strip (and its edge cues) is gone, so the behavior is asserted in
+// both modes.
+const MODES = ["light", "dark"] as const satisfies readonly ThemeMode[];
+
+for (const mode of MODES) {
+  const key = mode;
+  it(`forwarded images lay out in message rows with no horizontal scroll — ${key}`, () => {
+    renderGallery(5, { mode });
+    const gallery = screen.getByTestId("gallery");
+    // The gallery composes the shared message image gallery root.
+    // The gallery element itself is the shared message gallery root.
+    expect(gallery.getAttribute("data-slot")).toBe("message-image-gallery");
+    const rows = galleryRows("gallery");
+    expect(rows.length).toBe(2);
+    expect(rows[0].children.length).toBe(3);
+    expect(rows[1].children.length).toBe(2);
+    // Every cell is a message gallery item: one surface for both.
+    const tiles = gallery.querySelectorAll('[data-testid^="tile-"]');
+    expect(tiles.length).toBe(5);
+    for (const tile of tiles) {
+      expect(tile.getAttribute("data-slot")).toBe("message-image-gallery-item");
+    }
+    // The message gallery's md+ width cap — forwarded images inherit it.
+    expect(Math.round(gallery.getBoundingClientRect().width)).toBe(360);
+    // All five cells fit: nothing hides behind a scroll.
+    expect(gallery.scrollWidth - gallery.clientWidth).toBeLessThanOrEqual(2);
+    for (const tile of tiles) {
+      const tileRect = tile.getBoundingClientRect();
+      const galleryRect = gallery.getBoundingClientRect();
+      expect(tileRect.right).toBeLessThanOrEqual(galleryRect.right + 1);
+    }
+  });
+
+  it(`forwarded rows follow the message gallery heights — ${key}`, () => {
+    renderGallery(5, { mode });
+    const rows = galleryRows("gallery");
+    const [threeUp, twoUp] = rows;
+    const height = (el: Element) => el.getBoundingClientRect().height;
+    const width = (el: Element) => el.getBoundingClientRect().width;
+    // Message gallery rows at sm+ in the 360px column (8px gaps): three-up
+    // 115×128 (7rem sm:8rem), two-up 176×144 (8rem sm:9rem); the forwarded
+    // rows carry the same measurements.
+    expect(Math.round(width(threeUp.children[0]))).toBe(115);
+    expect(Math.round(height(threeUp))).toBe(128);
+    expect(Math.round(width(twoUp.children[0]))).toBe(176);
+    expect(Math.round(height(twoUp))).toBe(144);
+    // Cells fill their row.
+    expect(Math.abs(height(threeUp.children[0]) - height(threeUp))).toBeLessThanOrEqual(1);
+    expect(Math.abs(height(twoUp.children[0]) - height(twoUp))).toBeLessThanOrEqual(1);
+  });
+}
+
+// Three images sit three across in a narrow bundle too, as in a message:
+// two over one turned six images into rows of 2, 1, 2, 1 (xxchan, 2026-11-02).
+it("in a bundle narrower than 360px, a row of three still sits three across", () => {
+  renderGallery(6, { width: 300 });
+  const rows = galleryRows("gallery");
+  expect(rows.length).toBe(2);
+  for (const row of rows) {
+    const tops = [...row.children].map((tile) => Math.round(tile.getBoundingClientRect().top));
+    expect(tops.length).toBe(3);
+    expect(new Set(tops).size).toBe(1);
+  }
+});
+
+it("a lone row of four splits into two rows of two", () => {
+  renderGallery(4, { mode: "light" });
+  const rows = galleryRows("gallery");
+  expect(rows.length).toBe(2);
+  expect(rows[0].children.length).toBe(2);
+  expect(rows[1].children.length).toBe(2);
+});
+
+// The component-owned fold: without a `collapsed` prop the items measure their
+// item-content slots and fold when the text renders beyond eight lines in
+// total (~8 x 20px line height). Rendered lines are deliberate: each child div
+// is exactly one line, so the count does not depend on wrapping.
+type FoldableBundleOptions = {
+  mode?: ThemeMode;
+  collapsed?: boolean;
+  foldLineLimit?: number;
+  style?: React.CSSProperties;
+  expandedContent?: ReactNode;
+  onAction?: (event: MouseEvent<HTMLButtonElement>) => void;
+};
+
+function foldableJsx(lines: number, options: FoldableBundleOptions = {}) {
+  const { mode, collapsed, foldLineLimit, style, expandedContent, onAction } = options;
+  const lineChildren = Array.from({ length: lines }, (_, index) => (
+    <div key={index}>Line {index + 1}</div>
+  ));
+  return (
+    <ThemeProvider mode={mode}>
+      <div style={{ width: 560 }}>
+        <MessageForwardedBundle data-testid="bundle">
+          <MessageForwardedBundleItems
+            data-testid="items"
+            collapsed={collapsed}
+            foldLineLimit={foldLineLimit}
+            style={style}
+          >
+            <MessageForwardedBundleItem>
+              <MessageForwardedBundleItemContent data-testid="content">
+                {lineChildren}
+              </MessageForwardedBundleItemContent>
+            </MessageForwardedBundleItem>
+          </MessageForwardedBundleItems>
+          <MessageForwardedBundleFooter data-testid="footer">
+            <MessageForwardedBundleFooterAction
+              data-testid="action"
+              onClick={onAction}
+              expandedContent={expandedContent}
+            >
+              Show all 1 message
+            </MessageForwardedBundleFooterAction>
+          </MessageForwardedBundleFooter>
+        </MessageForwardedBundle>
+      </div>
+    </ThemeProvider>
+  );
+}
+
+function renderFoldableBundle(lines: number, options: FoldableBundleOptions = {}) {
+  return render(foldableJsx(lines, options));
+}
+
+for (const mode of MODES) {
+  const key = mode;
+  it(`nine lines of item text fold the bundle and the action toggles it — ${key}`, () => {
+    renderFoldableBundle(9, { mode });
+    const items = screen.getByTestId("items");
+    // The component measured the content and folded on its own, down to its
+    // eight default lines (8 x the 22px desktop body line).
+    expect(items.getAttribute("data-collapsed")).toBe("true");
+    expect(getComputedStyle(items).maxHeight).toBe("176px");
+    // overflow-clip, never hidden: a folded card must not become a scroll
+    // container (sticky content inside — the mermaid action bar — would
+    // anchor to the clipped card instead of the message list; the Raft web
+    // app keeps the same constraint).
+    expect(getComputedStyle(items).overflow).toBe("clip");
+    // The footer only exists while the content folds.
+    expect(screen.getByTestId("footer")).not.toBeNull();
+    // The action is the disclosure: aria-expanded reflects the fold.
+    expect(screen.getByTestId("action").getAttribute("aria-expanded")).toBe("false");
+    // Without a consumer handler the action toggles the component-owned fold.
+    fireEvent.click(screen.getByTestId("action"));
+    expect(items.getAttribute("data-collapsed")).toBeNull();
+    expect(screen.getByTestId("action").getAttribute("aria-expanded")).toBe("true");
+  });
+
+  it(`eight lines of item text stay open with no footer — ${key}`, () => {
+    renderFoldableBundle(8, { mode });
+    expect(screen.getByTestId("items").getAttribute("data-collapsed")).toBeNull();
+    expect(screen.queryByTestId("footer")).toBeNull();
+  });
+}
+
+function renderMultiItemBundle(itemLines: number[]) {
+  return render(
+    <ThemeProvider mode="light">
+      <div style={{ width: 560 }}>
+        <MessageForwardedBundle data-testid="bundle">
+          <MessageForwardedBundleItems data-testid="items">
+            {itemLines.map((lines, itemIndex) => (
+              <MessageForwardedBundleItem key={itemIndex}>
+                <MessageForwardedBundleItemContent>
+                  {Array.from({ length: lines }, (_, index) => (
+                    <div key={index}>
+                      Item {itemIndex + 1} line {index + 1}
+                    </div>
+                  ))}
+                </MessageForwardedBundleItemContent>
+              </MessageForwardedBundleItem>
+            ))}
+          </MessageForwardedBundleItems>
+          <MessageForwardedBundleFooter data-testid="footer">
+            <MessageForwardedBundleFooterAction data-testid="action">
+              Show all {itemLines.length} messages
+            </MessageForwardedBundleFooterAction>
+          </MessageForwardedBundleFooter>
+        </MessageForwardedBundle>
+      </div>
+    </ThemeProvider>,
+  );
+}
+
+it("the fold line limit is configurable per instance", () => {
+  // Five lines against a limit of four: over → folds.
+  renderFoldableBundle(5, { mode: "light", foldLineLimit: 4 });
+  expect(screen.getByTestId("items").getAttribute("data-collapsed")).toBe("true");
+  // The folded height folds with the same number: four 22px lines.
+  expect(getComputedStyle(screen.getByTestId("items")).maxHeight).toBe("88px");
+  cleanup();
+  // Exactly the limit → stays open.
+  renderFoldableBundle(4, { mode: "light", foldLineLimit: 4 });
+  expect(screen.getByTestId("items").getAttribute("data-collapsed")).toBeNull();
+  expect(screen.queryByTestId("footer")).toBeNull();
+});
+
+it("a consumer style merges with the computed fold height", () => {
+  render(foldableJsx(9, { mode: "light", style: { color: "rgb(1, 2, 3)" } }));
+  const items = screen.getByTestId("items");
+  expect(items.getAttribute("data-collapsed")).toBe("true");
+  const computed = getComputedStyle(items);
+  // The consumer style must not wipe the fold height…
+  expect(computed.maxHeight).toBe("176px");
+  // …while still applying.
+  expect(computed.color).toBe("rgb(1, 2, 3)");
+});
+
+it("a fold shorter than the fade takes the edge fade, a mask, to keep one line", () => {
+  renderFoldableBundle(3, { mode: "light", foldLineLimit: 2 });
+  const items = screen.getByTestId("items");
+  expect(items.getAttribute("data-collapsed")).toBe("true");
+  expect(items.hasAttribute("data-tight-fold")).toBe(true);
+  // A mask over the edge fade (24px), not a card-colored layer over the text.
+  expect(getComputedStyle(items).maskImage).toMatch(/^linear-gradient\(to top, .*24px\)$/);
+  expect(getComputedStyle(items, "::after").backgroundImage).toBe("none");
+  cleanup();
+  // The default fold keeps the content fade (48px).
+  renderFoldableBundle(9, { mode: "light" });
+  expect(screen.getByTestId("items").hasAttribute("data-tight-fold")).toBe(false);
+  expect(getComputedStyle(screen.getByTestId("items")).maskImage).toMatch(
+    /^linear-gradient\(to top, .*48px\)$/,
+  );
+});
+
+it("changing the fold line limit re-evaluates the fold", () => {
+  const view = render(foldableJsx(9, { mode: "light", foldLineLimit: 20 }));
+  expect(screen.getByTestId("items").getAttribute("data-collapsed")).toBeNull();
+  view.rerender(foldableJsx(9, { mode: "light", foldLineLimit: 4 }));
+  expect(screen.getByTestId("items").getAttribute("data-collapsed")).toBe("true");
+});
+
+it("multiple short items fold when their text adds up beyond eight lines", () => {
+  // Three items of four lines each: no single item is long, the card is.
+  renderMultiItemBundle([4, 4, 4]);
+  expect(screen.getByTestId("items").getAttribute("data-collapsed")).toBe("true");
+  expect(screen.getByTestId("footer")).not.toBeNull();
+});
+
+it("multiple short items stay open while their total stays within eight lines", () => {
+  renderMultiItemBundle([3, 3, 2]);
+  expect(screen.getByTestId("items").getAttribute("data-collapsed")).toBeNull();
+  expect(screen.queryByTestId("footer")).toBeNull();
+});
+
+it("a consumer handler that calls preventDefault suppresses the toggle", () => {
+  renderFoldableBundle(9, {
+    mode: "light",
+    onAction: (event) => event.preventDefault(),
+  });
+  const items = screen.getByTestId("items");
+  expect(items.getAttribute("data-collapsed")).toBe("true");
+  fireEvent.click(screen.getByTestId("action"));
+  // The consumer took the click (e.g. opened a detail view): the fold stays.
+  expect(items.getAttribute("data-collapsed")).toBe("true");
+});
+
+/** One wrapped paragraph (no explicit line breaks), so the width drives the line count. */
+const REFLOW_TEXT = "Rollout notes ".repeat(28);
+
+function reflowJsx(width: number, text: string) {
+  return (
+    <ThemeProvider mode="light">
+      <div style={{ width }}>
+        <MessageForwardedBundle data-testid="bundle">
+          <MessageForwardedBundleItems data-testid="items">
+            <MessageForwardedBundleItem>
+              <MessageForwardedBundleItemContent data-testid="content">
+                {text}
+              </MessageForwardedBundleItemContent>
+            </MessageForwardedBundleItem>
+          </MessageForwardedBundleItems>
+          <MessageForwardedBundleFooter data-testid="footer">
+            <MessageForwardedBundleFooterAction data-testid="action">
+              Show all 1 message
+            </MessageForwardedBundleFooterAction>
+          </MessageForwardedBundleFooter>
+        </MessageForwardedBundle>
+      </div>
+    </ThemeProvider>
+  );
+}
+
+/** The observers report asynchronously; poll until the assertion holds. */
+async function eventually(check: () => void) {
+  const deadline = Date.now() + 2000;
+  for (;;) {
+    try {
+      check();
+      return;
+    } catch (error) {
+      if (Date.now() > deadline) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+}
+
+it("a reflow under the limit reopens a manually collapsed bundle", async () => {
+  // Narrow: the paragraph wraps past eight lines and folds.
+  const view = render(reflowJsx(300, REFLOW_TEXT));
+  const items = screen.getByTestId("items");
+  await eventually(() => expect(items.getAttribute("data-collapsed")).toBe("true"));
+  fireEvent.click(screen.getByTestId("action"));
+  expect(items.getAttribute("data-collapsed")).toBeNull();
+  // Manually collapse it again; the reader's choice is in force.
+  fireEvent.click(screen.getByTestId("action"));
+  expect(items.getAttribute("data-collapsed")).toBe("true");
+  // Widen: the text now renders under the limit. The component must reopen
+  // unconditionally — otherwise the list stays clipped at the fold height
+  // with the footer gone and no way back open.
+  view.rerender(reflowJsx(560, REFLOW_TEXT));
+  await eventually(() => expect(items.getAttribute("data-collapsed")).toBeNull());
+  await eventually(() => expect(screen.queryByTestId("footer")).toBeNull());
+});
+
+it("the fold action swaps to expandedContent while the fold is open", () => {
+  renderFoldableBundle(9, {
+    mode: "light",
+    expandedContent: <span>Collapse</span>,
+  });
+  const action = screen.getByTestId("action");
+  expect(action.textContent).toBe("Show all 1 message");
+  fireEvent.click(action);
+  expect(action.textContent).toBe("Collapse");
+  fireEvent.click(action);
+  expect(action.textContent).toBe("Show all 1 message");
+});
+
+it("a controlled collapsed prop skips the measurement", () => {
+  // A limit of one line would fold immediately in the component-owned mode;
+  // the controlled mode must ignore it entirely.
+  renderFoldableBundle(9, {
+    mode: "light",
+    collapsed: false,
+    foldLineLimit: 1,
+    expandedContent: <span>Collapse</span>,
+  });
+  // Pinned open by the consumer despite the line count; the footer stays
+  // caller-owned instead of auto-hiding.
+  expect(screen.getByTestId("items").getAttribute("data-collapsed")).toBeNull();
+  expect(screen.getByTestId("footer")).not.toBeNull();
+  // The controlled mode owns its labels: the action keeps its children.
+  expect(screen.getByTestId("action").textContent).toBe("Show all 1 message");
+});
+
+it("a bundle is a content card, at most 560px; fullWidth releases the cap", () => {
+  renderBundle({ width: 900 });
+  const capped = screen.getByTestId("bundle").getBoundingClientRect().width;
+  cleanup();
+  renderBundle({ fullWidth: true, width: 900 });
+  const released = screen.getByTestId("bundle").getBoundingClientRect().width;
+  expect(capped).toBe(560);
+  expect(released).toBeGreaterThan(800);
+});
+
+it("forwarded rows take the narrow heights in a narrow card, on a wide window", () => {
+  // The gallery switches on its own width, not the window's: a 320px card
+  // on this 1280px window takes the narrow layout.
+  renderGallery(5, { mode: "light", width: 320 });
+  const rows = galleryRows("gallery");
+  // 5 images = a three-up row + a two-up row; below 360px of the gallery's
+  // width the three-up row stays three across, one grid row of 112px images.
+  const threeUp = rows[0];
+  expect(threeUp.children.length).toBe(3);
+  for (const tile of threeUp.children) {
+    expect(Math.round(tile.getBoundingClientRect().height)).toBe(112);
+  }
+  expect(Math.round(threeUp.getBoundingClientRect().height)).toBe(112);
+  // The two-up family keeps 8rem when narrow (only the three-up family is 7rem).
+  const twoUp = rows[1];
+  for (const tile of twoUp.children) {
+    expect(Math.round(tile.getBoundingClientRect().height)).toBe(128);
+  }
+  expect(Math.round(twoUp.getBoundingClientRect().height)).toBe(128);
+  cleanup();
+  // From 360px of its own width: three across, the taller rows.
+  renderGallery(5, { mode: "light", width: 360 });
+  const wide = galleryRows("gallery")[0];
+  for (const tile of wide.children) {
+    expect(Math.round(tile.getBoundingClientRect().height)).toBe(128);
+  }
+  expect(Math.round(wide.getBoundingClientRect().height)).toBe(128);
+});

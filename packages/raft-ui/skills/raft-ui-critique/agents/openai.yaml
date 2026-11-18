@@ -1,0 +1,4 @@
+interface:
+  display_name: "Raft UI Critique"
+  short_description: "Review raft-ui in Light and Dark modes"
+  default_prompt: "Use $raft-ui-critique to review the supplied interface evidence in Light and Dark modes. State coverage, exercise interactions only when authorized, and do not infer unseen states."

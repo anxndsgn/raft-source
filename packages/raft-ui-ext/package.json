@@ -16,7 +16,7 @@
     "typecheck:tsc": "tsc --noEmit"
   },
   "dependencies": {
-    "@botiverse/raft-ui": "0.95.3",
+    "@botiverse/raft-ui": "workspace:*",
     "lucide-react": "*",
     "react": "*"
   },

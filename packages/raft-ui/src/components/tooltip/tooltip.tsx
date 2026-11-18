@@ -1,0 +1,295 @@
+import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip";
+import { Children, Fragment, isValidElement } from "react";
+import type { ComponentProps, ReactNode } from "react";
+import { BASE_COLLISION_PADDING, usePopupCollision } from "../../lib/frame-insets";
+import { tv } from "../../lib/tv";
+import type { StyledProps } from "../../lib/styled-props";
+import { useThemeScopeProps } from "../../lib/theme/theme-scope";
+import { isInlinePart } from "../../lib/inline-part";
+
+const tooltip = tv({
+  slots: {
+    trigger: ["select-none"],
+    positioner: ["isolate z-popup pointer-events-none outline-none"],
+    content: [
+      "pointer-events-none relative inline-block max-w-[min(20rem,var(--available-width,20rem))] min-w-0 px-2.5 py-1",
+      "origin-(--transform-origin) outline-none",
+      "transition-[opacity,transform] duration-150 ease-[cubic-bezier(0.22,1,0.36,1)]",
+      "data-starting-style:scale-[0.97] data-starting-style:opacity-0",
+      "data-ending-style:scale-[0.99] data-ending-style:opacity-0",
+      "data-instant:transition-none",
+      "motion-reduce:transition-none",
+      "rounded-chip bg-layer-hud text-foreground-on-hud",
+      "font-sans font-medium",
+      "shadow-float",
+      "has-data-[slot=kbd]:py-1 has-data-[slot=kbd]:pr-2.5",
+    ],
+    body: [
+      "block min-w-0 text-footnote whitespace-normal wrap-break-word",
+      "**:data-[slot=kbd]:relative **:data-[slot=kbd]:z-raised **:data-[slot=kbd]:ml-1.5",
+      "**:data-[slot=kbd-group]:ml-1.5 [&_[data-slot=kbd-group]_[data-slot=kbd]]:ml-0",
+      "**:data-[slot=kbd]:h-4 **:data-[slot=kbd]:min-w-4 **:data-[slot=kbd]:px-1 **:data-[slot=kbd]:py-0",
+      "[&_[data-slot=kbd][data-glyph=icon]]:px-0",
+      "**:data-[slot=kbd]:text-[12px]/4 **:data-[slot=kbd]:font-normal",
+    ],
+    bodyIcon: ["shrink-0 [&>svg]:block [&>svg]:size-3.5 [&>svg]:shrink-0"],
+    bodyText: ["min-w-0 flex-1"],
+    arrow: [
+      "pointer-events-none flex overflow-visible",
+      "data-[side=top]:bottom-[-5px]",
+      "data-[side=bottom]:top-[-5px] data-[side=bottom]:rotate-180",
+      "data-[side=left]:right-[-8px] data-[side=left]:-rotate-90",
+      "data-[side=right]:left-[-8px] data-[side=right]:rotate-90",
+      "data-[side=inline-start]:right-[-8px] data-[side=inline-start]:-rotate-90",
+      "data-[side=inline-end]:left-[-8px] data-[side=inline-end]:rotate-90",
+    ],
+  },
+  variants: {
+    hasLeadingIcon: {
+      true: {
+        body: ["flex items-center gap-x-1.5"],
+      },
+      false: {},
+    },
+  },
+});
+
+export type TooltipProviderProps = BaseTooltip.Provider.Props;
+
+export function TooltipProvider({ delay = 0, ...props }: TooltipProviderProps) {
+  return <BaseTooltip.Provider delay={delay} {...props} />;
+}
+
+export type TooltipProps = BaseTooltip.Root.Props;
+
+export function Tooltip(props: TooltipProps) {
+  return <BaseTooltip.Root {...props} />;
+}
+
+export type TooltipTriggerProps = StyledProps<BaseTooltip.Trigger.Props>;
+
+export function TooltipTrigger({ className, ...props }: TooltipTriggerProps) {
+  const { trigger } = tooltip();
+  const childSlot = isValidElement<{ "data-slot"?: string }>(props.render)
+    ? props.render.props["data-slot"]
+    : undefined;
+  const slot = (props as { "data-slot"?: string })["data-slot"] ?? childSlot ?? "tooltip-trigger";
+
+  return <BaseTooltip.Trigger data-slot={slot} className={trigger({ className })} {...props} />;
+}
+
+export type TooltipPortalProps = BaseTooltip.Portal.Props;
+
+export function TooltipPortal(props: TooltipPortalProps) {
+  return (
+    <BaseTooltip.Portal
+      data-slot="tooltip-portal"
+      data-raft-ui-overlay=""
+      {...useThemeScopeProps(props)}
+    />
+  );
+}
+
+type TooltipArrowProps = StyledProps<BaseTooltip.Arrow.Props>;
+
+function TooltipArrow({ className, ...props }: TooltipArrowProps) {
+  const { arrow } = tooltip();
+  return (
+    <BaseTooltip.Arrow data-slot="tooltip-arrow" className={arrow({ className })} {...props}>
+      <TooltipArrowSvg />
+    </BaseTooltip.Arrow>
+  );
+}
+
+function TooltipArrowSvg(props: ComponentProps<"svg">) {
+  return (
+    <svg width="12" height="6" viewBox="0 0 12 6" fill="none" {...props}>
+      <path d="M1 0H11L6 5.25Z" className="fill-layer-hud" />
+    </svg>
+  );
+}
+
+function flattenTooltipChildren(children: ReactNode): ReactNode[] {
+  return Children.toArray(children).flatMap((child) => {
+    if (isValidElement<{ children?: ReactNode }>(child) && child.type === Fragment) {
+      return flattenTooltipChildren(child.props.children);
+    }
+
+    return [child];
+  });
+}
+
+function isTooltipLeadingIcon(child: ReactNode) {
+  if (!isValidElement<{ "data-slot"?: string }>(child)) {
+    return false;
+  }
+
+  // A key or a shortcut follows the text; it is never the leading icon.
+  if (child.props["data-slot"] === "kbd" || isInlinePart(child.type)) {
+    return false;
+  }
+
+  if (child.type === "svg") {
+    return true;
+  }
+
+  return typeof child.type !== "string";
+}
+
+function partitionTooltipBodyChildren(children: ReactNode) {
+  const items = flattenTooltipChildren(children);
+  const icons: ReactNode[] = [];
+  const rest: ReactNode[] = [];
+  let seenNonIcon = false;
+
+  for (const item of items) {
+    if (!seenNonIcon && isTooltipLeadingIcon(item)) {
+      icons.push(item);
+      continue;
+    }
+
+    seenNonIcon = true;
+    rest.push(item);
+  }
+
+  // A leading icon leads something: a component alone in the tooltip (a list
+  // of names, a custom label) is its content, not an icon before empty text.
+  if (rest.length === 0) return { icons: [], rest: items };
+
+  return { icons, rest };
+}
+
+function TooltipBodyContent({ children }: { children: ReactNode }) {
+  const { icons, rest } = partitionTooltipBodyChildren(children);
+  const { body, bodyIcon, bodyText } = tooltip({ hasLeadingIcon: icons.length > 0 });
+
+  if (icons.length === 0) {
+    return (
+      <span data-slot="tooltip-body" className={body()}>
+        {children}
+      </span>
+    );
+  }
+
+  return (
+    <span data-slot="tooltip-body" className={body()}>
+      <span data-slot="tooltip-body-icon" className={bodyIcon()}>
+        {icons}
+      </span>
+      <span data-slot="tooltip-body-text" className={bodyText()}>
+        {rest}
+      </span>
+    </span>
+  );
+}
+
+export type TooltipContentProps = StyledProps<BaseTooltip.Popup.Props> &
+  Pick<
+    BaseTooltip.Positioner.Props,
+    | "align"
+    | "alignOffset"
+    | "anchor"
+    | "arrowPadding"
+    | "collisionAvoidance"
+    | "collisionBoundary"
+    | "collisionPadding"
+    | "disableAnchorTracking"
+    | "positionMethod"
+    | "side"
+    | "sideOffset"
+    | "sticky"
+  > & {
+    container?: TooltipPortalProps["container"];
+    portalProps?: TooltipPortalProps;
+  };
+
+const CONTENT_COLLISION_AVOIDANCE: BaseTooltip.Positioner.Props["collisionAvoidance"] = {
+  side: "flip",
+  align: "shift",
+  fallbackAxisSide: "none",
+};
+
+type TooltipPositionerProps = BaseTooltip.Positioner.Props & {
+  container?: TooltipPortalProps["container"];
+};
+
+/**
+ * Inside the portal, so it mounts each time the tooltip opens and reads the
+ * frame insets then (lib/frame-insets.ts): a tooltip that would open into
+ * one flips away from it, and one that would overlap it along its trigger
+ * shifts out of it. It keeps to the inset itself, not past it.
+ *
+ * The insets are its collision boundary, not its padding (frameCollision):
+ * Base UI sizes the shift limiter from the padding, so a padding carrying a
+ * window-controls inset pushed every short tooltip off its trigger, its arrow
+ * off center, by up to half the left and right insets.
+ */
+function TooltipFramePositioner({
+  collisionBoundary,
+  collisionPadding,
+  container,
+  ...props
+}: TooltipPositionerProps) {
+  // The padding a caller passes keeps clear of the insets too, with no gap.
+  const collision = usePopupCollision(
+    undefined,
+    collisionBoundary,
+    collisionPadding ?? BASE_COLLISION_PADDING,
+    container,
+    0,
+  );
+  return <BaseTooltip.Positioner {...collision} {...props} />;
+}
+
+export function TooltipContent({
+  align = "center",
+  alignOffset = 0,
+  anchor,
+  arrowPadding,
+  collisionAvoidance = CONTENT_COLLISION_AVOIDANCE,
+  collisionBoundary,
+  collisionPadding,
+  disableAnchorTracking,
+  positionMethod = "fixed",
+  side = "top",
+  sideOffset,
+  sticky,
+  container,
+  portalProps,
+  className,
+  children,
+  ...props
+}: TooltipContentProps) {
+  const { positioner, content } = tooltip();
+  const portalContainer = container !== undefined ? container : portalProps?.container;
+
+  return (
+    <TooltipPortal {...portalProps} container={portalContainer}>
+      <TooltipFramePositioner
+        align={align}
+        alignOffset={alignOffset}
+        anchor={anchor}
+        arrowPadding={arrowPadding}
+        collisionAvoidance={collisionAvoidance}
+        collisionBoundary={collisionBoundary}
+        collisionPadding={collisionPadding}
+        container={portalContainer}
+        disableAnchorTracking={disableAnchorTracking}
+        positionMethod={positionMethod}
+        side={side}
+        sideOffset={sideOffset ?? 8}
+        sticky={sticky}
+        className={positioner()}
+      >
+        <BaseTooltip.Popup
+          data-slot="tooltip-content"
+          className={content({ className })}
+          {...props}
+        >
+          <TooltipBodyContent>{children}</TooltipBodyContent>
+          <TooltipArrow />
+        </BaseTooltip.Popup>
+      </TooltipFramePositioner>
+    </TooltipPortal>
+  );
+}

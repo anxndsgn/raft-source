@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "moduleDetection": "force",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "types": ["node"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "declaration": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    // ricons from source for the type check, the lint and the editor, as the
+    // docs site reads raft-ui: no build of packages/icons first. The build
+    // drops this (tsconfig.build.json).
+    "paths": {
+      "@botiverse/ricons": ["../icons/src/index.ts"]
+    }
+  }
+}

@@ -1,0 +1,862 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import type { ComponentPropsWithRef, ReactNode, RefObject } from "react";
+import { Select as BaseSelect } from "@base-ui/react/select";
+import { Check, ChevronDown } from "lucide-react";
+import type { DataAttributes } from "../../lib/data-attributes";
+import { usePopupCollision } from "../../lib/frame-insets";
+import { cn } from "../../lib/cn";
+import { tv } from "../../lib/tv";
+import { useOverflowTitle } from "../../lib/use-overflow-title";
+import type { StyledProps } from "../../lib/styled-props";
+import { useThemeScopeProps } from "../../lib/theme/theme-scope";
+import { Button } from "../button/index";
+import { ScrollAreaGutters } from "../scroll-area/scroll-area-gutters";
+import { useScrollAreaContainer } from "../scroll-area/use-scroll-area-container";
+
+const select = tv({
+  slots: {
+    trigger: [
+      "inline-flex select-none items-center justify-between",
+      "outline-none transition-colors",
+      "data-invalid:focus-visible:ring-[color-mix(in_oklch,var(--danger)_60%,transparent)]",
+      "**:data-[slot='button-content']:w-full **:data-[slot='button-content']:justify-between",
+      "[&>span[data-slot='select-trigger-content']]:min-w-0 [&>span[data-slot='select-trigger-content']]:flex-1",
+      "[&_[data-slot='select-trigger-content']_svg]:shrink-0",
+      "h-control w-full gap-2 rounded-(--control-radius) pr-3 pl-3.5",
+      "border-[1.5px] border-line-field",
+      "hover:bg-none",
+      "text-subhead font-semibold text-foreground",
+      "data-placeholder:font-medium data-placeholder:text-foreground-hint",
+      "data-disabled:data-placeholder:text-foreground-disabled disabled:data-placeholder:text-foreground-disabled",
+      "data-disabled:**:data-[slot='select-icon']:text-foreground-disabled disabled:**:data-[slot='select-icon']:text-foreground-disabled",
+      "data-invalid:border-danger-strong data-invalid:hover:border-danger-strong",
+      "data-invalid:focus-visible:border-danger-strong data-invalid:focus-visible:ring-0",
+      "[&_[data-slot='select-trigger-content']_svg:not([class*='size-'])]:size-4",
+      "[&_[data-slot='select-trigger-content']_svg:not([class*='stroke-'])]:stroke-2",
+    ],
+    icon: [
+      "ml-auto flex shrink-0 items-center justify-center transition-transform",
+      "[&>svg]:shrink-0",
+      "text-foreground-hint opacity-100",
+      "[&>svg]:size-4 [&>svg]:stroke-2 [&>svg_*]:stroke-2",
+    ],
+    value: ["flex min-w-0 flex-1 truncate text-left"],
+    fitFrame: ["grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)]"],
+    sizer: [
+      "col-start-1 row-start-1 flex h-0 flex-col overflow-hidden",
+      "pointer-events-none invisible select-none",
+    ],
+    sizerLabel: ["whitespace-nowrap font-semibold"],
+    sizerPlaceholder: ["whitespace-nowrap font-medium"],
+    positioner: ["isolate z-popup outline-none"],
+    content: [
+      "relative max-h-(--available-height) min-w-[max(var(--anchor-width),220px)] overflow-hidden",
+      "max-w-[min(var(--available-width),max(var(--anchor-width),24rem))]",
+      "outline-none",
+      "rounded-container bg-layer-popover p-1 text-foreground",
+      "shadow-float ring-1 ring-line-seam",
+    ],
+    listFrame: ["-mx-1 min-h-0"],
+    // A ScrollArea container (absolute gutters): useScrollAreaContainer gives it its overflow.
+    list: ["max-h-64 min-h-0 scroll-py-6", "flex flex-col px-1"],
+    item: [
+      "flex w-full shrink-0 cursor-default select-none items-center justify-between overflow-hidden",
+      "text-left outline-none transition-colors",
+      "min-h-option flex-wrap gap-x-2.5 gap-y-0.5 rounded-chip px-2.5 py-option-inset",
+      "text-callout font-medium text-foreground",
+      "bg-transparent hover:bg-brand-soft data-highlighted:bg-brand-soft",
+      "data-selected:font-bold data-selected:**:data-[slot='select-item-text']:font-bold",
+      "data-disabled:pointer-events-none data-disabled:text-foreground-disabled",
+      "[&>svg]:pointer-events-none [&>svg]:shrink-0 [&>svg]:text-foreground-muted",
+      "[&>svg:not([class*='size-'])]:size-4",
+      "[&>svg:not([class*='stroke-'])]:stroke-2",
+    ],
+    actionItem: [
+      "flex w-full shrink-0 cursor-default select-none items-center gap-2.5 overflow-hidden",
+      "text-left outline-none transition-colors",
+      "min-h-option rounded-chip px-2.5 py-option-inset",
+      "text-callout font-medium text-foreground-muted",
+      "bg-transparent hover:bg-brand-soft data-highlighted:bg-brand-soft",
+      "data-disabled:pointer-events-none data-disabled:text-foreground-disabled",
+      "[&>svg]:pointer-events-none [&>svg]:shrink-0",
+      "[&>svg:not([class*='size-'])]:size-4",
+      "[&>svg:not([class*='stroke-'])]:stroke-2",
+    ],
+    itemLeading: [
+      "flex shrink-0 items-center justify-center",
+      "[&_svg]:pointer-events-none [&_svg]:shrink-0",
+      "size-4 text-foreground-muted",
+      "[&>svg]:pointer-events-none [&>svg]:shrink-0",
+      "[&>svg:not([class*='size-'])]:size-4",
+      "[&>svg:not([class*='stroke-'])]:stroke-2",
+    ],
+    itemIndicator: [
+      "pointer-events-none ml-auto flex shrink-0 items-center justify-center",
+      "text-foreground [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:stroke-2 [&>svg_*]:stroke-2",
+    ],
+    itemText: ["min-w-0 flex-1 line-clamp-2 wrap-anywhere"],
+    itemDescription: [
+      "order-last min-w-0 basis-full wrap-anywhere",
+      "[[data-slot=select-item-leading]~&]:ps-[calc(--spacing(4)+(--spacing(2.5)))]",
+      "font-sans text-caption font-normal text-foreground-hint",
+    ],
+    label: ["m-0", "font-sans text-footnote font-semibold text-foreground-muted"],
+    group: ["flex flex-col"],
+    groupLabel: ["py-2", "px-2.5 pt-2 pb-1 text-caption font-bold text-foreground-hint"],
+    separator: ["h-px shrink-0 border-0", "-mx-1 my-1 bg-line-hairline"],
+    scrollArrow: [
+      "absolute inset-x-0 z-raised flex h-6 w-full cursor-default items-center justify-center",
+      "outline-none transition-colors",
+      "data-[direction=up]:top-0 data-[direction=down]:bottom-0",
+      "[&_svg]:pointer-events-none [&_svg]:shrink-0",
+      "bg-layer-popover text-foreground-hint",
+    ],
+    empty: ["px-2.5 py-2 text-left text-callout text-foreground-hint"],
+  },
+  variants: {
+    // `field` makes a Select carry the declared field metric axis instead of the
+    // Button size scale it is built on. Trigger and options share font-size,
+    // weight and line-height so a value does not change size when the list
+    // opens; their height and padding stay separate, because a list row is not
+    // a control and must not be stretched to the field's height.
+    chrome: {
+      default: {},
+      field: {
+        // Typography set on the trigger's parts (`button-content`,
+        // `select-value`) outranks a plain `font-field` on the trigger, so the
+        // field type restates itself at those targets.
+        trigger: [
+          "px-3 text-field font-field",
+          "**:data-[slot='button-content']:font-field **:data-[slot='select-value']:font-field",
+          "h-control rounded-(--control-radius) py-0",
+          "data-placeholder:font-field",
+        ],
+        item: ["text-field font-field", "**:data-[slot='select-item-text']:font-field"],
+        actionItem: ["text-field font-field"],
+        sizerLabel: ["font-field"],
+        sizerPlaceholder: ["font-field"],
+      },
+    },
+    // As wide as the longest option, 11rem to 20rem: the sizer in SelectValue
+    // gives the trigger its width, so the width never follows the value.
+    fit: {
+      true: {
+        trigger: ["w-auto min-w-44 max-w-80"],
+      },
+    },
+  },
+  defaultVariants: {
+    chrome: "default",
+  },
+});
+
+export type SelectChrome = "default" | "field";
+
+/**
+ * Declared once on the root and read by both the trigger and the popup.
+ *
+ * The popup renders through a portal, so it has no DOM ancestor in common with
+ * its trigger. React context follows the component tree rather than the DOM,
+ * so both ends read one source instead of each resolving its own — which is
+ * what lets a Select keep the same typography whether its content mounts at the
+ * document root or into a `portalProps.container`.
+ *
+ * Deliberately NOT a prop on the trigger and another on the content: that shape
+ * asks every callsite to restate the decision, which is exactly the duplication
+ * this variant exists to remove.
+ */
+const SelectChromeContext = createContext<SelectChrome>("default");
+
+export function useSelectChrome(): SelectChrome {
+  return useContext(SelectChromeContext);
+}
+
+type SelectItems = BaseSelect.Root.Props<unknown>["items"];
+
+/**
+ * The root's `items`, for a `fit` trigger's sizer: Base UI keeps them in a
+ * store of its own that the trigger can't read.
+ */
+const SelectItemsContext = createContext<SelectItems>(undefined);
+
+/** Whether the trigger around a `SelectValue` sizes to the longest option. */
+const SelectFitContext = createContext(false);
+
+/** Every label in `items`, groups flattened: what a `fit` trigger may show. */
+function itemLabels(items: SelectItems): ReactNode[] {
+  if (items == null) return [];
+  if (!Array.isArray(items)) return Object.values(items);
+  return (items as readonly { label?: ReactNode; items?: readonly { label: ReactNode }[] }[])
+    .flatMap((entry) => (Array.isArray(entry.items) ? entry.items : [entry]))
+    .map((item) => item.label);
+}
+
+export type SelectProps<
+  Value,
+  Multiple extends boolean | undefined = false,
+> = BaseSelect.Root.Props<Value, Multiple> & {
+  /**
+   * `field` opts this Select into the field metric axis, so it reads as a form
+   * field rather than a button. Defaults to `default`, leaving every existing
+   * Select untouched.
+   */
+  chrome?: SelectChrome;
+};
+
+/**
+ * The value a `SelectActionItem` gives Base UI, so the row joins the list's
+ * navigation and typeahead like any item. The root recognises it and never lets
+ * it become the value: a list action changes what the list shows, never what is
+ * chosen.
+ */
+class SelectActionValue {
+  readonly onActionRef: RefObject<((event: Event) => void) | undefined>;
+  readonly closeOnActionRef: RefObject<boolean>;
+  constructor(
+    onActionRef: RefObject<((event: Event) => void) | undefined>,
+    closeOnActionRef: RefObject<boolean>,
+  ) {
+    this.onActionRef = onActionRef;
+    this.closeOnActionRef = closeOnActionRef;
+  }
+}
+
+function findActionValue(value: unknown): SelectActionValue | undefined {
+  if (value instanceof SelectActionValue) return value;
+  if (Array.isArray(value)) return value.find((entry) => entry instanceof SelectActionValue);
+  return undefined;
+}
+
+type RootChangeDetails = BaseSelect.Root.ChangeEventDetails;
+
+/**
+ * Base UI keeps the highlight by position. When an action adds items above its
+ * row, the same position then holds another item while focus stays on the row,
+ * and the next arrow key starts from the wrong place. Once the list has
+ * re-rendered, focus the list and then the row again: the row's focus handler
+ * re-reads its position and moves the highlight back to it. The list takes
+ * focus only for this: it has no tabindex of its own, and Chrome focuses a
+ * scroller without one only while its content overflows it.
+ */
+function keepActionHighlighted(event: Event) {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  const row = target.closest<HTMLElement>('[data-slot="select-action-item"]');
+  if (!row) return;
+  requestAnimationFrame(() => {
+    if (!row.isConnected || row.hasAttribute("data-highlighted")) return;
+    const list = row.closest<HTMLElement>('[role="listbox"]');
+    const lent = list !== null && !list.hasAttribute("tabindex");
+    if (lent) list.tabIndex = -1;
+    list?.focus({ preventScroll: true });
+    row.focus({ preventScroll: true });
+    if (lent) list.removeAttribute("tabindex");
+  });
+}
+
+export function Select<Value, Multiple extends boolean | undefined = false>({
+  chrome = "default",
+  onValueChange,
+  onOpenChange,
+  isItemEqualToValue,
+  itemToStringLabel,
+  itemToStringValue,
+  items,
+  ...props
+}: SelectProps<Value, Multiple>) {
+  // Whether the item press that just ran an action may close the list. Base UI
+  // commits a pressed item's value, then asks to close; the value is cancelled
+  // below and this decides the close that follows.
+  const pendingActionClose = useRef<boolean | undefined>(undefined);
+
+  const handleValueChange = useCallback(
+    (next: unknown, details: RootChangeDetails) => {
+      const action = findActionValue(next);
+      if (!action) {
+        pendingActionClose.current = undefined;
+        (onValueChange as ((v: unknown, d: RootChangeDetails) => void) | undefined)?.(
+          next,
+          details,
+        );
+        return;
+      }
+      details.cancel();
+      // Closed-trigger typeahead and autofill also commit a matched item's
+      // value; only a press on the row runs its action.
+      if (details.reason !== "item-press") return;
+      pendingActionClose.current = action.closeOnActionRef.current;
+      action.onActionRef.current?.(details.event);
+      if (!action.closeOnActionRef.current) keepActionHighlighted(details.event);
+    },
+    [onValueChange],
+  );
+
+  const handleOpenChange = useCallback(
+    (open: boolean, details: BaseSelect.Root.OpenChangeEventDetails) => {
+      const closeOnAction = pendingActionClose.current;
+      pendingActionClose.current = undefined;
+      if (!open && details.reason === "item-press" && closeOnAction === false) {
+        details.cancel();
+        return;
+      }
+      onOpenChange?.(open, details);
+    },
+    [onOpenChange],
+  );
+
+  const handleItemEquality = useMemo(
+    () =>
+      isItemEqualToValue &&
+      ((item: Value, value: Value) =>
+        item instanceof SelectActionValue || value instanceof SelectActionValue
+          ? Object.is(item, value)
+          : isItemEqualToValue(item, value)),
+    [isItemEqualToValue],
+  );
+  const handleStringLabel = useMemo(
+    () =>
+      itemToStringLabel &&
+      ((item: Value) => (item instanceof SelectActionValue ? "" : itemToStringLabel(item))),
+    [itemToStringLabel],
+  );
+  const handleStringValue = useMemo(
+    () =>
+      itemToStringValue &&
+      ((item: Value) => (item instanceof SelectActionValue ? "" : itemToStringValue(item))),
+    [itemToStringValue],
+  );
+
+  return (
+    <SelectChromeContext value={chrome}>
+      <SelectItemsContext value={items}>
+        <BaseSelect.Root
+          data-slot="select"
+          data-chrome={chrome}
+          onValueChange={handleValueChange as SelectProps<Value, Multiple>["onValueChange"]}
+          onOpenChange={handleOpenChange}
+          isItemEqualToValue={handleItemEquality}
+          itemToStringLabel={handleStringLabel}
+          itemToStringValue={handleStringValue}
+          items={items}
+          {...props}
+        />
+      </SelectItemsContext>
+    </SelectChromeContext>
+  );
+}
+
+export type SelectTriggerProps = StyledProps<BaseSelect.Trigger.Props> &
+  DataAttributes & {
+    /**
+     * Makes the trigger as wide as its longest option and its placeholder, at
+     * least 11rem and at most 20rem, past which the value ends in an ellipsis.
+     * The width comes from every label in the root's `items`, so it stays the
+     * same whichever value is chosen. For a select at the end of a settings
+     * row; needs `items` on `Select` and a `SelectValue` in the trigger.
+     * @default false
+     */
+    fit?: boolean;
+  };
+
+export function SelectTrigger({
+  className,
+  children,
+  render,
+  fit = false,
+  "data-invalid": dataInvalid,
+  ...props
+}: SelectTriggerProps) {
+  const chrome = useSelectChrome();
+  const { trigger } = select({ chrome, fit });
+
+  return (
+    <BaseSelect.Trigger
+      data-slot="select-trigger"
+      render={render ?? <Button variant="outline" size="md" className={trigger({ className })} />}
+      {...props}
+      data-invalid={dataInvalid || undefined}
+      aria-invalid={dataInvalid ? "true" : undefined}
+    >
+      <span
+        data-slot="select-trigger-content"
+        data-picker-trigger-content="select"
+        className="flex min-w-0 flex-1 items-center gap-1.5"
+      >
+        <SelectFitContext value={fit}>{children}</SelectFitContext>
+      </span>
+    </BaseSelect.Trigger>
+  );
+}
+
+export type SelectValueProps = StyledProps<BaseSelect.Value.Props>;
+
+export function SelectValue({ className, ref, title, ...props }: SelectValueProps) {
+  const fit = useContext(SelectFitContext);
+  const { value, fitFrame } = select();
+  const overflowRef = useOverflowTitle(ref, title);
+  const node = (
+    <BaseSelect.Value
+      ref={overflowRef}
+      title={title}
+      data-slot="select-value"
+      className={value({ className: cn(fit && "col-start-1 row-start-1", className) })}
+      {...props}
+    />
+  );
+  if (!fit) return node;
+  return (
+    <span data-slot="select-value-fit" className={fitFrame()}>
+      {node}
+      <SelectValueSizer placeholder={props.placeholder} />
+    </span>
+  );
+}
+
+/**
+ * Every option's label and the placeholder, stacked in the value's grid cell,
+ * invisible and 0px high: the cell is as wide as the widest of them, so the
+ * trigger is too, whichever value shows. Each takes the weight it shows at, so
+ * the width doesn't change when the placeholder gives way to a value.
+ */
+function SelectValueSizer({ placeholder }: { placeholder: ReactNode }) {
+  const chrome = useSelectChrome();
+  const items = useContext(SelectItemsContext);
+  const { sizer, sizerLabel, sizerPlaceholder } = select({ chrome });
+  return (
+    <span aria-hidden data-slot="select-value-sizer" className={sizer()}>
+      {typeof placeholder === "string" ? (
+        <span
+          data-label={placeholder}
+          className={sizerPlaceholder({ className: "after:content-[attr(data-label)]" })}
+        />
+      ) : (
+        placeholder != null && <span className={sizerPlaceholder()}>{placeholder}</span>
+      )}
+      {itemLabels(items).map((label, index) =>
+        // A text label is drawn from an attribute, so find in page doesn't
+        // count the hidden copy; a label that isn't text stays in the DOM.
+        typeof label === "string" || typeof label === "number" ? (
+          <span
+            key={index}
+            data-label={label}
+            className={sizerLabel({ className: "after:content-[attr(data-label)]" })}
+          />
+        ) : (
+          <span key={index} className={sizerLabel()}>
+            {label}
+          </span>
+        ),
+      )}
+    </span>
+  );
+}
+
+export type SelectIconProps = StyledProps<BaseSelect.Icon.Props>;
+
+export function SelectIcon({ className, children, ...props }: SelectIconProps) {
+  const { icon } = select();
+  return (
+    <BaseSelect.Icon
+      data-slot="select-icon"
+      data-picker-trigger-indicator=""
+      className={icon({ className })}
+      {...props}
+    >
+      {children ?? <ChevronDown aria-hidden className="size-3.5 shrink-0" />}
+    </BaseSelect.Icon>
+  );
+}
+
+export type SelectPortalProps = BaseSelect.Portal.Props;
+
+export function SelectPortal(props: SelectPortalProps) {
+  return (
+    <BaseSelect.Portal
+      data-slot="select-portal"
+      data-raft-ui-overlay=""
+      {...useThemeScopeProps(props)}
+    />
+  );
+}
+
+export type SelectPopupProps = ComponentPropsWithRef<"div">;
+
+export function SelectPopup({ className, ...props }: SelectPopupProps) {
+  const { content } = select();
+  return <div data-slot="select-content" className={content({ className })} {...props} />;
+}
+
+type SelectFramePositionerProps = BaseSelect.Positioner.Props & {
+  container?: SelectPortalProps["container"];
+};
+
+// Inside the portal, so it mounts each time the popup opens and reads the
+// frame insets then: 8px from each inset, and from the window's edge elsewhere.
+function SelectFramePositioner({
+  collisionBoundary,
+  collisionPadding,
+  container,
+  ...props
+}: SelectFramePositionerProps) {
+  const collision = usePopupCollision(collisionPadding, collisionBoundary, 8, container);
+  return <BaseSelect.Positioner {...collision} {...props} />;
+}
+
+export type SelectContentProps = StyledProps<BaseSelect.Popup.Props> &
+  Pick<
+    BaseSelect.Positioner.Props,
+    | "align"
+    | "alignItemWithTrigger"
+    | "alignOffset"
+    | "anchor"
+    | "arrowPadding"
+    | "collisionAvoidance"
+    | "collisionBoundary"
+    | "disableAnchorTracking"
+    | "positionMethod"
+    | "side"
+    | "sideOffset"
+    | "sticky"
+  > & {
+    /**
+     * Additional space to maintain from the edge of the collision boundary: 8px
+     * from the window's edge, and 8px from a frame inset where a shell keeps one.
+     * A value you pass is kept as it is.
+     * @default 8
+     */
+    collisionPadding?: BaseSelect.Positioner.Props["collisionPadding"];
+    portalProps?: SelectPortalProps;
+  };
+
+export function SelectContent({
+  align = "start",
+  alignItemWithTrigger = false,
+  alignOffset = 0,
+  anchor,
+  arrowPadding,
+  collisionAvoidance,
+  collisionBoundary,
+  collisionPadding,
+  disableAnchorTracking,
+  positionMethod = "fixed",
+  side = "bottom",
+  sideOffset,
+  sticky,
+  portalProps,
+  className,
+  ...props
+}: SelectContentProps) {
+  const { positioner, content } = select();
+  const positionerNode = (
+    <SelectFramePositioner
+      align={align}
+      alignItemWithTrigger={alignItemWithTrigger}
+      alignOffset={alignOffset}
+      anchor={anchor}
+      arrowPadding={arrowPadding}
+      collisionAvoidance={collisionAvoidance}
+      collisionBoundary={collisionBoundary}
+      collisionPadding={collisionPadding}
+      container={portalProps?.container}
+      disableAnchorTracking={disableAnchorTracking}
+      positionMethod={positionMethod}
+      side={side}
+      sideOffset={sideOffset ?? 4}
+      sticky={sticky}
+      className={positioner()}
+    >
+      <BaseSelect.Popup data-slot="select-content" className={content({ className })} {...props} />
+    </SelectFramePositioner>
+  );
+
+  return <SelectPortal {...portalProps}>{positionerNode}</SelectPortal>;
+}
+
+export type SelectListProps = StyledProps<BaseSelect.List.Props>;
+
+/**
+ * The scrolling list, a ScrollArea container with absolute gutters: its frame
+ * reaches into the popup's 4px inset and the list pads it back, so a
+ * separator meets the popup's edge, and the overlay scrollbar takes no room
+ * from the options, on every platform. The list is never a Tab stop: focus
+ * stays on the options, as Base UI manages it.
+ */
+export function SelectList({ className, ref, style, ...props }: SelectListProps) {
+  const { list, listFrame } = select();
+  const { containerProps, frameProps, guttersProps } = useScrollAreaContainer<HTMLDivElement>({
+    containerRef: ref,
+    guttersPosition: "absolute",
+    overscroll: "contain",
+  });
+  const ownStyle = useMemo(
+    () => ({ ...containerProps.style, ...style }),
+    [containerProps.style, style],
+  );
+  return (
+    <div
+      {...frameProps}
+      data-slot="select-list-frame"
+      className={listFrame({ className: frameProps.className })}
+    >
+      <BaseSelect.List
+        data-slot="select-list"
+        {...containerProps}
+        tabIndex={-1}
+        {...props}
+        style={ownStyle}
+        className={list({ className: cn(containerProps.className, className) })}
+      />
+      <ScrollAreaGutters {...guttersProps} />
+    </div>
+  );
+}
+
+export type SelectItemProps = StyledProps<BaseSelect.Item.Props>;
+
+// An item with a description is named by its text alone and described by the
+// description; without one, Base UI's name from content stays as it is.
+interface SelectItemParts {
+  readonly setTextId: (id: string | undefined) => void;
+  readonly setDescriptionId: (id: string | undefined) => void;
+}
+
+const SelectItemPartsContext = createContext<SelectItemParts | null>(null);
+
+export function SelectItem({ className, ...props }: SelectItemProps) {
+  const chrome = useSelectChrome();
+  const { item } = select({ chrome });
+  const [textId, setTextId] = useState<string>();
+  const [descriptionId, setDescriptionId] = useState<string>();
+  const parts = useMemo(() => ({ setTextId, setDescriptionId }), []);
+  return (
+    <SelectItemPartsContext.Provider value={parts}>
+      <BaseSelect.Item
+        data-slot="select-item"
+        className={item({ className })}
+        aria-labelledby={descriptionId && textId ? textId : undefined}
+        aria-describedby={descriptionId}
+        {...props}
+      />
+    </SelectItemPartsContext.Provider>
+  );
+}
+
+export type SelectItemLeadingProps = StyledProps<ComponentPropsWithRef<"span">>;
+
+export function SelectItemLeading({ className, ...props }: SelectItemLeadingProps) {
+  const { itemLeading } = select();
+  return <span data-slot="select-item-leading" className={itemLeading({ className })} {...props} />;
+}
+
+export type SelectItemIndicatorProps = StyledProps<BaseSelect.ItemIndicator.Props>;
+
+export function SelectItemIndicator({ className, children, ...props }: SelectItemIndicatorProps) {
+  const { itemIndicator } = select();
+  const defaultIndicator = <Check aria-hidden className="size-3 shrink-0" />;
+
+  return (
+    <BaseSelect.ItemIndicator
+      data-slot="select-item-indicator"
+      className={itemIndicator({ className })}
+      {...props}
+    >
+      {children ?? defaultIndicator}
+    </BaseSelect.ItemIndicator>
+  );
+}
+
+export type SelectItemTextProps = StyledProps<BaseSelect.ItemText.Props>;
+
+export function SelectItemText({ className, id, ref, title, ...props }: SelectItemTextProps) {
+  const { itemText } = select();
+  const overflowRef = useOverflowTitle(ref, title);
+  const generatedId = useId();
+  const textId = id ?? generatedId;
+  const setTextId = useContext(SelectItemPartsContext)?.setTextId;
+  useLayoutEffect(() => {
+    setTextId?.(textId);
+    return () => setTextId?.(undefined);
+  }, [setTextId, textId]);
+  return (
+    <BaseSelect.ItemText
+      ref={overflowRef}
+      title={title}
+      id={textId}
+      data-slot="select-item-text"
+      className={itemText({ className })}
+      {...props}
+    />
+  );
+}
+
+export type SelectItemDescriptionProps = StyledProps<ComponentPropsWithRef<"span">>;
+
+/**
+ * A second line under an option's label: what it means, not its name again.
+ * It sits beside `SelectItemText`, not inside it, so the selected value in the
+ * trigger stays the label alone. The option grows to fit it.
+ */
+export function SelectItemDescription({ className, id, ...props }: SelectItemDescriptionProps) {
+  const { itemDescription } = select();
+  const generatedId = useId();
+  const descriptionId = id ?? generatedId;
+  const setDescriptionId = useContext(SelectItemPartsContext)?.setDescriptionId;
+  useLayoutEffect(() => {
+    setDescriptionId?.(descriptionId);
+    return () => setDescriptionId?.(undefined);
+  }, [setDescriptionId, descriptionId]);
+  return (
+    <span
+      id={descriptionId}
+      data-slot="select-item-description"
+      className={itemDescription({ className })}
+      {...props}
+    />
+  );
+}
+
+export type SelectActionItemProps = StyledProps<
+  Omit<BaseSelect.Item.Props, "value" | "label" | "onClick">
+> & {
+  /**
+   * Runs when the row is pressed: clicked, or Enter or Space while it is
+   * highlighted. The row never becomes the Select's value and never calls
+   * `onValueChange`.
+   */
+  onAction?: (event: Event) => void;
+  /**
+   * Whether pressing the row closes the list. Off by default: a list action
+   * such as Show all changes what the list shows, so the list stays open.
+   * @default false
+   */
+  closeOnAction?: boolean;
+  /**
+   * The text typeahead matches, when the row's content is not plain text.
+   */
+  label?: string;
+};
+
+/**
+ * An action row inside the list, placed last after a `SelectSeparator`, such as
+ * Show all. It is reached by the arrow keys and typeahead like an item, but
+ * pressing it runs `onAction` instead of choosing a value. It is an option to
+ * assistive technology, so it takes no `aria-expanded`: its label says what it
+ * does.
+ */
+export function SelectActionItem({
+  className,
+  onAction,
+  closeOnAction = false,
+  ...props
+}: SelectActionItemProps) {
+  const chrome = useSelectChrome();
+  const { actionItem } = select({ chrome });
+  const onActionRef = useRef(onAction);
+  const closeOnActionRef = useRef(closeOnAction);
+  useLayoutEffect(() => {
+    onActionRef.current = onAction;
+    closeOnActionRef.current = closeOnAction;
+  }, [onAction, closeOnAction]);
+  const [value] = useState(() => new SelectActionValue(onActionRef, closeOnActionRef));
+  return (
+    <BaseSelect.Item
+      data-slot="select-action-item"
+      className={actionItem({ className })}
+      value={value}
+      {...props}
+    />
+  );
+}
+
+export type SelectLabelProps = StyledProps<BaseSelect.Label.Props>;
+
+export function SelectLabel({ className, ...props }: SelectLabelProps) {
+  const { label } = select();
+  return <BaseSelect.Label data-slot="select-label" className={label({ className })} {...props} />;
+}
+
+export type SelectGroupProps = StyledProps<BaseSelect.Group.Props>;
+
+export function SelectGroup({ className, ...props }: SelectGroupProps) {
+  const { group } = select();
+  return <BaseSelect.Group data-slot="select-group" className={group({ className })} {...props} />;
+}
+
+export type SelectGroupLabelProps = StyledProps<BaseSelect.GroupLabel.Props>;
+
+export function SelectGroupLabel({ className, ...props }: SelectGroupLabelProps) {
+  const { groupLabel } = select();
+  return (
+    <BaseSelect.GroupLabel
+      data-slot="select-group-label"
+      className={groupLabel({ className })}
+      {...props}
+    />
+  );
+}
+
+export type SelectSeparatorProps = StyledProps<ComponentPropsWithRef<"div">>;
+
+export function SelectSeparator({ className, ...props }: SelectSeparatorProps) {
+  const { separator } = select();
+  return (
+    <div
+      role="separator"
+      aria-orientation="horizontal"
+      data-slot="select-separator"
+      className={separator({ className })}
+      {...props}
+    />
+  );
+}
+
+export type SelectScrollUpArrowProps = StyledProps<BaseSelect.ScrollUpArrow.Props>;
+
+export function SelectScrollUpArrow({ className, children, ...props }: SelectScrollUpArrowProps) {
+  const { scrollArrow } = select();
+  return (
+    <BaseSelect.ScrollUpArrow
+      data-slot="select-scroll-up-arrow"
+      data-direction="up"
+      className={scrollArrow({ className })}
+      {...props}
+    >
+      {children ?? <ChevronDown aria-hidden className="size-3.5 shrink-0 rotate-180" />}
+    </BaseSelect.ScrollUpArrow>
+  );
+}
+
+export type SelectScrollDownArrowProps = StyledProps<BaseSelect.ScrollDownArrow.Props>;
+
+export function SelectScrollDownArrow({
+  className,
+  children,
+  ...props
+}: SelectScrollDownArrowProps) {
+  const { scrollArrow } = select();
+  return (
+    <BaseSelect.ScrollDownArrow
+      data-slot="select-scroll-down-arrow"
+      data-direction="down"
+      className={scrollArrow({ className })}
+      {...props}
+    >
+      {children ?? <ChevronDown aria-hidden className="size-3.5 shrink-0" />}
+    </BaseSelect.ScrollDownArrow>
+  );
+}
+
+export type SelectArrowProps = StyledProps<BaseSelect.Arrow.Props>;
+
+export function SelectArrow({ className, ...props }: SelectArrowProps) {
+  return <BaseSelect.Arrow data-slot="select-arrow" className={className} {...props} />;
+}

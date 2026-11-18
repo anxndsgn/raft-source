@@ -1,0 +1,297 @@
+import { createContext, useContext } from "react";
+import type { ComponentPropsWithRef } from "react";
+import { Popover as BasePopover } from "@base-ui/react/popover";
+import { BASE_COLLISION_PADDING, usePopupCollision } from "../../lib/frame-insets";
+import { tv } from "../../lib/tv";
+import { messageCard } from "../message-embed/message-embed.recipe";
+import type { StyledProps } from "../../lib/styled-props";
+import { useThemeScopeProps } from "../../lib/theme/theme-scope";
+
+const popover = tv({
+  slots: {
+    trigger: ["select-none"],
+    positioner: ["isolate z-popup outline-none"],
+    content: [
+      "max-h-(--available-height) min-w-[220px] overflow-hidden",
+      "outline-none",
+      "rounded-container bg-layer-popover text-foreground",
+      "shadow-float ring-1 ring-line-seam",
+    ],
+    header: ["flex items-center justify-between px-3", "min-h-11 gap-2 py-1.5 pr-1.5 pl-4"],
+    body: ["flex min-w-0 flex-col gap-1.5", "px-4 pt-4 pb-3 last:pb-4"],
+    actions: ["flex flex-wrap items-center justify-end gap-2", "px-4 pb-3 last:pb-4"],
+    separator: ["border-t", "border-line-hairline"],
+    title: ["m-0", "font-sans text-headline font-bold text-foreground"],
+    description: ["m-0", "font-sans text-footnote text-foreground-muted"],
+    close: [
+      "inline-flex items-center justify-center",
+      "outline-none transition-colors",
+      "h-8 min-w-8 rounded-chip px-1.5",
+      "font-sans text-footnote font-bold text-foreground",
+      "hover:bg-fill-medium active:bg-fill-medium",
+      "focus-visible:shadow-focus",
+      "[&_svg]:size-4.5",
+    ],
+    arrow: ["size-2 rotate-45", "border-l border-t border-line-seam bg-layer-popover"],
+    backdrop: ["fixed inset-0", "bg-transparent"],
+    viewport: ["block"],
+  },
+  variants: {
+    // A popover about an app's item (the question before an app's link
+    // previews are shown) is drawn as the item card it stands in for:
+    // PreviewCard size="item"'s 400px, and messageCard's body, title and
+    // buttons with their 12px inset (cards-in-messages.md#popovers).
+    size: {
+      default: {},
+      item: { content: messageCard().popover() },
+    },
+  },
+});
+
+const PopoverSizeContext = createContext<"default" | "item">("default");
+
+export type PopoverProps = BasePopover.Root.Props;
+
+export function Popover(props: PopoverProps) {
+  return <BasePopover.Root data-slot="popover" {...props} />;
+}
+
+export type PopoverTriggerProps = StyledProps<BasePopover.Trigger.Props>;
+
+export function PopoverTrigger({ className, ...props }: PopoverTriggerProps) {
+  const { trigger } = popover();
+  return (
+    <BasePopover.Trigger
+      data-slot="popover-trigger"
+      className={trigger({ className })}
+      {...props}
+    />
+  );
+}
+
+export type PopoverPortalProps = BasePopover.Portal.Props;
+
+export function PopoverPortal(props: PopoverPortalProps) {
+  return (
+    <BasePopover.Portal
+      data-slot="popover-portal"
+      data-raft-ui-overlay=""
+      {...useThemeScopeProps(props)}
+    />
+  );
+}
+
+export type PopoverPopupProps = ComponentPropsWithRef<"div">;
+
+export function PopoverPopup({ className, ...props }: PopoverPopupProps) {
+  const { content } = popover();
+  return <div data-slot="popover-content" className={content({ className })} {...props} />;
+}
+
+type PopoverFramePositionerProps = BasePopover.Positioner.Props & {
+  container?: PopoverPortalProps["container"];
+};
+
+// Inside the portal, so it mounts each time the popup opens and reads the
+// frame insets then: 8px from each inset, Base UI's own 5px from the window's
+// edge elsewhere.
+function PopoverFramePositioner({
+  collisionBoundary,
+  collisionPadding,
+  container,
+  ...props
+}: PopoverFramePositionerProps) {
+  const collision = usePopupCollision(
+    collisionPadding,
+    collisionBoundary,
+    BASE_COLLISION_PADDING,
+    container,
+  );
+  return <BasePopover.Positioner {...collision} {...props} />;
+}
+
+export type PopoverContentProps = StyledProps<BasePopover.Popup.Props> &
+  Pick<
+    BasePopover.Positioner.Props,
+    | "align"
+    | "alignOffset"
+    | "anchor"
+    | "arrowPadding"
+    | "collisionAvoidance"
+    | "collisionBoundary"
+    | "collisionPadding"
+    | "disableAnchorTracking"
+    | "positionMethod"
+    | "side"
+    | "sideOffset"
+    | "sticky"
+  > & {
+    container?: PopoverPortalProps["container"];
+    portalProps?: PopoverPortalProps;
+    /**
+     * `item` for a popover about an app's item, such as the question before
+     * its link previews are shown: 400px, and `PopoverBody`, `PopoverTitle`
+     * and `PopoverActions` take a card's parts and 12px inset, like the item
+     * card (PreviewCard `size="item"`). Choose it by what the popover is
+     * about, not by its parts.
+     * @default "default"
+     */
+    size?: "default" | "item";
+  };
+
+export function PopoverContent({
+  align = "start",
+  alignOffset = 0,
+  anchor,
+  arrowPadding,
+  collisionAvoidance,
+  collisionBoundary,
+  collisionPadding,
+  disableAnchorTracking,
+  positionMethod = "fixed",
+  side = "bottom",
+  sideOffset = 4,
+  sticky,
+  container,
+  portalProps,
+  size = "default",
+  className,
+  ...props
+}: PopoverContentProps) {
+  const { positioner, content } = popover({ size });
+  const portalContainer = container !== undefined ? container : portalProps?.container;
+  return (
+    <PopoverPortal {...portalProps} container={portalContainer}>
+      <PopoverFramePositioner
+        align={align}
+        alignOffset={alignOffset}
+        anchor={anchor}
+        arrowPadding={arrowPadding}
+        collisionAvoidance={collisionAvoidance}
+        collisionBoundary={collisionBoundary}
+        collisionPadding={collisionPadding}
+        container={portalContainer}
+        disableAnchorTracking={disableAnchorTracking}
+        positionMethod={positionMethod}
+        side={side}
+        sideOffset={sideOffset}
+        sticky={sticky}
+        className={positioner()}
+      >
+        <PopoverSizeContext.Provider value={size}>
+          <BasePopover.Popup
+            data-slot="popover-content"
+            data-size={size}
+            className={content({ className })}
+            {...props}
+          />
+        </PopoverSizeContext.Provider>
+      </PopoverFramePositioner>
+    </PopoverPortal>
+  );
+}
+
+export type PopoverViewportProps = StyledProps<BasePopover.Viewport.Props>;
+
+export function PopoverViewport({ className, ...props }: PopoverViewportProps) {
+  const { viewport } = popover();
+  return (
+    <BasePopover.Viewport
+      data-slot="popover-viewport"
+      className={viewport({ className })}
+      {...props}
+    />
+  );
+}
+
+export type PopoverHeaderProps = ComponentPropsWithRef<"div">;
+
+export function PopoverHeader({ className, ...props }: PopoverHeaderProps) {
+  const { header } = popover();
+  return <div data-slot="popover-header" className={header({ className })} {...props} />;
+}
+
+export type PopoverSeparatorProps = StyledProps<ComponentPropsWithRef<"div">>;
+
+export function PopoverSeparator({ className, ...props }: PopoverSeparatorProps) {
+  const { separator } = popover();
+  return (
+    <div
+      role="separator"
+      aria-orientation="horizontal"
+      data-slot="popover-separator"
+      className={separator({ className })}
+      {...props}
+    />
+  );
+}
+
+export type PopoverTitleProps = StyledProps<BasePopover.Title.Props>;
+
+export function PopoverTitle({ className, ...props }: PopoverTitleProps) {
+  const title = useContext(PopoverSizeContext) === "item" ? messageCard().title : popover().title;
+  return (
+    <BasePopover.Title data-slot="popover-title" className={title({ className })} {...props} />
+  );
+}
+
+export type PopoverDescriptionProps = StyledProps<BasePopover.Description.Props>;
+
+export function PopoverDescription({ className, ...props }: PopoverDescriptionProps) {
+  const { description } = popover();
+  return (
+    <BasePopover.Description
+      data-slot="popover-description"
+      className={description({ className })}
+      {...props}
+    />
+  );
+}
+
+export type PopoverCloseProps = StyledProps<BasePopover.Close.Props>;
+
+export function PopoverClose({ className, ...props }: PopoverCloseProps) {
+  const { close } = popover();
+  return (
+    <BasePopover.Close data-slot="popover-close" className={close({ className })} {...props} />
+  );
+}
+
+export type PopoverArrowProps = StyledProps<BasePopover.Arrow.Props>;
+
+export function PopoverArrow({ className, ...props }: PopoverArrowProps) {
+  const { arrow } = popover();
+  return (
+    <BasePopover.Arrow data-slot="popover-arrow" className={arrow({ className })} {...props} />
+  );
+}
+
+export type PopoverBackdropProps = StyledProps<BasePopover.Backdrop.Props>;
+
+export function PopoverBackdrop({ className, ...props }: PopoverBackdropProps) {
+  const { backdrop } = popover();
+  return (
+    <BasePopover.Backdrop
+      data-slot="popover-backdrop"
+      className={backdrop({ className })}
+      {...props}
+    />
+  );
+}
+
+export type PopoverBodyProps = ComponentPropsWithRef<"div">;
+
+/** The panel's text: a `PopoverTitle` and a `PopoverDescription`, 16px in from its edges (12px in a `size="item"` popover). */
+export function PopoverBody({ className, ...props }: PopoverBodyProps) {
+  const body = useContext(PopoverSizeContext) === "item" ? messageCard().body : popover().body;
+  return <div data-slot="popover-body" className={body({ className })} {...props} />;
+}
+
+export type PopoverActionsProps = ComponentPropsWithRef<"div">;
+
+/** The panel's buttons, at its end, under `PopoverBody`: the way out first, then the confirm button. */
+export function PopoverActions({ className, ...props }: PopoverActionsProps) {
+  const actions =
+    useContext(PopoverSizeContext) === "item" ? messageCard().actions : popover().actions;
+  return <div data-slot="popover-actions" className={actions({ className })} {...props} />;
+}

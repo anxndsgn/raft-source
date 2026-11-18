@@ -1,0 +1,202 @@
+import { listCell, listCellFocus, listCellStates } from "../../lib/list-cell";
+import { tv } from "../../lib/tv";
+
+// Raft Design System › ListRow: the one row of phone lists, settings, and the
+// people and agents on a detail page. A list is content: no ink line, no
+// shadow. The whole row is the target: hover lays the subtle tier and press
+// the medium tier. Between two rows a hairline runs from where the text starts.
+// A settings card keeps that look. A list of places or people on a phone
+// opts in with `cell` (design/patterns/lists.md): the row is a list cell
+// (lib/list-cell.ts), with no line, and every state is drawn on its inset
+// shape; its list spaces the rows 2px apart and pads its ends by 8px.
+const hairlineLine = [
+  "before:pointer-events-none before:absolute before:top-0 before:right-0 before:hidden",
+  "before:left-(--list-row-rule-start) before:border-t before:border-line-hairline",
+];
+const hairline = [...hairlineLine, "[[data-slot=list-row]+&]:before:block [li+li>&]:before:block"];
+// A display-only attached row (its controls are its targets, such as Remove
+// and Replace) right under a row that is a target keeps the hairline (and,
+// as a `plain` row, its top inset): attached drops them to tie what a
+// setting opens to the setting, but under a target the target's hover and
+// press fill would end on an edge you cannot see, against the attached row's
+// own controls (stdrc, pinned announcement card, #proj-raft-ui:95c3f384).
+// The line gives the fill its edge and the inset keeps the controls off it.
+const attachedAfterTarget = [
+  ...hairlineLine,
+  "[[data-slot=list-row][data-interactive]:not([data-attached])+&]:before:block",
+];
+
+export const listRow = tv({
+  slots: {
+    group: [
+      "flex min-w-0 flex-col overflow-hidden",
+      "rounded-container border border-line-hairline bg-layer-card text-foreground",
+    ],
+    // The row owns its three inks and the parts read them, so the tone and the
+    // disabled state are decided once, on the row: a tone never applies to a
+    // disabled row, which greys everything.
+    root: [
+      "group/list-row flex w-full min-w-0 items-center gap-3 py-3 text-left",
+      "font-sans no-underline",
+      "[--list-row-ink:var(--foreground)] [--list-row-ink-2:var(--foreground-muted)] [--list-row-ink-3:var(--foreground-hint)]",
+      "text-(--list-row-ink)",
+      "[--list-row-risk-ink:initial]",
+      "not-disabled:not-aria-disabled:data-[tone=unread]:[--list-row-ink-2:var(--foreground)]",
+      "not-disabled:not-aria-disabled:data-[tone=muted]:[--list-row-ink:var(--foreground-muted)]",
+      "not-disabled:not-aria-disabled:data-[tone=away]:[--list-row-ink:var(--foreground-hint)]",
+      "not-disabled:not-aria-disabled:data-[tone=away]:[--list-row-ink-2:var(--foreground-hint)]",
+      "disabled:cursor-not-allowed disabled:[--list-row-ink:var(--foreground-disabled)]",
+      "disabled:[--list-row-ink-2:var(--foreground-disabled)] disabled:[--list-row-ink-3:var(--foreground-disabled)]",
+      "aria-disabled:cursor-not-allowed aria-disabled:[--list-row-ink:var(--foreground-disabled)]",
+      "aria-disabled:[--list-row-ink-2:var(--foreground-disabled)] aria-disabled:[--list-row-ink-3:var(--foreground-disabled)]",
+    ],
+    icon: [
+      "flex shrink-0 items-center justify-center",
+      "text-(--list-row-risk-ink,var(--list-row-ink-3)) [&>svg]:size-5 [&>svg]:shrink-0",
+    ],
+    // A SaveStatus error makes up this 2px to sit 4px under the description
+    // (save-status.tsx): change both together.
+    body: ["flex min-w-0 flex-1 flex-col gap-0.5"],
+    line: ["flex min-w-0 items-center gap-2"],
+    title: [
+      "min-w-0 flex-1 truncate",
+      "text-body font-semibold",
+      "group-data-[tone=unread]/list-row:font-bold",
+      "text-(--list-row-risk-ink)",
+    ],
+    // Data about the row's subject, which the row exists to show (a
+    // description someone wrote, a topic, a role, an app's byline): the title's
+    // ink at 400 and a size down, so size and weight, not colour, set it
+    // apart (design/foundations/typography.md#notes-on-deeper-surfaces).
+    subtitle: ["min-w-0 flex-1 truncate", "text-footnote font-normal text-(--list-row-ink)"],
+    description: ["min-w-0 flex-1 truncate", "text-callout text-(--list-row-ink-2)"],
+    // The time or a count, kept whole beside the title, which gives way
+    // first; a value with no room left (an email in a 320px row beside a
+    // button) truncates rather than overflowing the row
+    // (design/patterns/responsive.md#when-a-row-runs-out-of-room).
+    meta: [
+      "min-w-0 truncate",
+      "font-mono text-mono-meta font-normal tabular-nums text-(--list-row-ink-3)",
+    ],
+    value: ["max-w-[45%] shrink-0 truncate", "text-subhead text-(--list-row-ink-3)"],
+    chevron: [
+      "flex shrink-0 items-center justify-center",
+      "text-(--list-row-ink-3) [&>svg]:size-5 [&>svg]:shrink-0",
+    ],
+  },
+  variants: {
+    variant: {
+      // A conversation, a person, an agent: a 35px leading block, a title and
+      // a preview, the time and a badge. The line starts at the text, 16 + 35 + 12.
+      default: {
+        root: "min-h-16 pointer-coarse:min-h-14 pointer-coarse:py-2 [--list-row-rule-start:63px]",
+      },
+      // A setting: a title (and its consequence), the current value and a
+      // chevron, or a switch; 12px (`settings-row-inset`) above and below its
+      // tallest part: 46 with one line and a switch with a mouse, 54 by touch. The line starts at the
+      // row's edge. Its ends, the leading icon, avatar or tile and the
+      // trailing switch, value or chevron, centre on the whole row, with or
+      // without a description: a setting reads as one unit, and its controls
+      // belong to the row, not to the title (Alignment: a control and its
+      // label). A SaveStatus under the description takes no room until a
+      // change fails (save-status.tsx), so there is nothing to leave out:
+      // with its error shown, the ends centre on the whole row, error included.
+      plain: {
+        root: ["py-(--settings-row-inset)", "[--list-row-rule-start:16px]"],
+      },
+      // A shortcut into another page (Search, Activity, Saved): a 20px icon and
+      // a name, 48 tall. A group of them is a set of buttons, so no lines.
+      entry: { root: "" },
+    },
+    interactive: {
+      true: {},
+      false: {},
+    },
+    // A row that belongs to the setting in the row above it (quiet hours'
+    // times, a server's channel overrides under its level): no hairline
+    // above it, since a hairline says "another setting", and in a settings
+    // group no top padding, so the owning row's bottom inset is the only
+    // space between them (cindyz, 2026-11-10, #proj-raft-ui:4ae1a74e). An
+    // interactive one is a target, so it keeps the control height as its
+    // least: 44px on a phone and a touch screen, where a one-line row would
+    // be 36 without its top padding, and 34 with a mouse on a desktop, which
+    // it already is (design/foundations/accessibility.md#hit-targets).
+    attached: {
+      true: {},
+      false: {},
+    },
+    cell: {
+      false: {
+        root: [
+          "relative px-4",
+          "transition-colors duration-100",
+          "outline-none focus-visible:keyboard:inset-ring-2 focus-visible:keyboard:inset-ring-foreground",
+          "data-selected:bg-info-soft",
+        ],
+      },
+      true: {
+        root: [listCell, listCellFocus, "data-selected:before:bg-fill-cell-selected"],
+      },
+    },
+    wrap: {
+      true: { description: "whitespace-normal text-pretty" },
+      false: {},
+    },
+  },
+  compoundVariants: [
+    { cell: false, attached: false, variant: ["default", "plain"], class: { root: hairline } },
+    { variant: "plain", attached: true, class: { root: "pt-0" } },
+    {
+      cell: false,
+      attached: true,
+      interactive: false,
+      variant: ["default", "plain"],
+      class: { root: attachedAfterTarget },
+    },
+    {
+      variant: "plain",
+      attached: true,
+      interactive: false,
+      class: {
+        root: "[[data-slot=list-row][data-interactive]:not([data-attached])+&]:pt-(--settings-row-inset)",
+      },
+    },
+    { variant: "plain", attached: true, interactive: true, class: { root: "min-h-control" } },
+    {
+      cell: false,
+      interactive: true,
+      class: {
+        root: [
+          "not-disabled:not-aria-disabled:not-data-selected:hover:overlay-subtle",
+          "not-disabled:not-aria-disabled:not-data-selected:active:overlay-medium",
+          "not-data-selected:data-popup-open:overlay-subtle",
+        ],
+      },
+    },
+    { cell: true, interactive: true, class: { root: listCellStates } },
+    // An action's risk (Button's `warning` and `danger`): the title and the
+    // leading icon in the strong orange or red, the colour text can take
+    // (4.5:1 on every surface, hovered or pressed, in both modes; the sticker
+    // `warning` and `danger` are fills for ink type). The description, the
+    // value and the fills stay as they are, so the colour marks the action
+    // and nothing around it. Only an action has a risk, so a display-only row
+    // ignores it, and a disabled one greys everything as usual (for
+    // slock's channel details, stdrc/Jasper, 2026-11-10, #proj-raft-ui:dae8db07).
+    {
+      interactive: true,
+      class: {
+        root: [
+          "not-disabled:not-aria-disabled:data-[tone=warning]:[--list-row-risk-ink:var(--warning-strong)]",
+          "not-disabled:not-aria-disabled:data-[tone=danger]:[--list-row-risk-ink:var(--danger-strong)]",
+        ],
+      },
+    },
+  ],
+  defaultVariants: {
+    variant: "default",
+    interactive: true,
+    attached: false,
+    cell: false,
+    wrap: false,
+  },
+});
