@@ -48,6 +48,7 @@ export function MessageListJumpPill({
   ...props
 }: MessageListJumpPillProps) {
   const { root, content } = buttonVariants({ variant: "outline", size: "md" });
+  const { pill } = messageListJump();
 
   return (
     <BaseButton
@@ -55,7 +56,7 @@ export function MessageListJumpPill({
       render={render}
       nativeButton={nativeButton ?? defaultNativeButton(render)}
       data-slot="message-list-jump-pill"
-      className={root({ className })}
+      className={root({ className: pill({ className }) })}
     >
       <span data-slot="message-list-jump-pill-content" className={content()}>
         {children}

@@ -73,7 +73,15 @@ export const messageListJump = tv({
       "inline-flex shrink-0 items-stretch",
       "*:data-[slot=message-list-jump-pill]:rounded-e-none",
     ],
+    // Raft redesign (Figma Typing pill, the floating pill): on a desktop a
+    // 29px canvas pill with a 1px floating line, no ink edge or shadow.
+    pill: [
+      "md:pointer-fine:h-[29px] md:pointer-fine:rounded-pill md:pointer-fine:border md:pointer-fine:border-line-floating",
+      "md:pointer-fine:bg-layer-canvas md:pointer-fine:shadow-none md:pointer-fine:ring-0 md:pointer-fine:pr-3 md:pointer-fine:pl-2",
+    ],
     dismiss: [
+      "md:pointer-fine:h-[29px] md:pointer-fine:w-[29px] md:pointer-fine:rounded-e-pill md:pointer-fine:border md:pointer-fine:border-line-floating",
+      "md:pointer-fine:bg-layer-canvas md:pointer-fine:shadow-none md:pointer-fine:ring-0",
       "rounded-s-none border-s-0",
       "text-foreground-muted hover:text-foreground",
       "[&_svg:not([class*='size-'])]:size-4",
