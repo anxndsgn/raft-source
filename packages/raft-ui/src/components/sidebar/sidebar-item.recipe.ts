@@ -43,18 +43,23 @@ export const sidebarItemRecipe = tv({
       "data-active:font-bold data-active:text-sticker-ink",
       "data-active:before:bg-selected data-active:before:inset-ring-[1.5px] data-active:before:inset-ring-sticker-ink data-active:before:ring-[1.5px] data-active:before:ring-sticker-edge",
       "not-data-active:data-[tone=muted]:text-foreground-muted not-data-active:data-[tone=away]:text-foreground-hint",
+      // Raft redesign (Figma Sidebar Item): on a desktop a row is regular, and
+      // the selected one 5% ink, semibold, with no sticker edge.
+      "md:pointer-fine:font-normal",
+      "md:pointer-fine:data-active:font-semibold md:pointer-fine:data-active:text-foreground",
+      "md:pointer-fine:data-active:before:bg-fill-medium md:pointer-fine:data-active:before:inset-ring-0 md:pointer-fine:data-active:before:ring-0",
     ],
     sidebarItemIcon: [
       "flex shrink-0 items-center justify-center",
       "[&>svg]:shrink-0",
       "size-[19px] md:pointer-fine:size-4 text-foreground-hint [&>svg]:size-4 [&>svg]:stroke-2",
-      "group-data-active/sidebar-item:text-sticker-ink",
+      "group-data-active/sidebar-item:text-sticker-ink md:pointer-fine:group-data-active/sidebar-item:text-foreground",
     ],
     sidebarItemChannelIcon: [
       "flex shrink-0 items-center justify-center",
       "[&_svg]:shrink-0",
       "size-[19px] md:pointer-fine:size-4 text-foreground-hint [&_svg]:size-4 [&_svg]:stroke-2",
-      "group-data-active/sidebar-item:text-sticker-ink",
+      "group-data-active/sidebar-item:text-sticker-ink md:pointer-fine:group-data-active/sidebar-item:text-foreground",
     ],
     sidebarItemContent: ["has-[>[data-slot=sidebar-item-meta-icon]]:items-center"],
     // The name comes first: a description after it gives up its room before
@@ -62,17 +67,17 @@ export const sidebarItemRecipe = tv({
     // ellipsizes once the description has gone.
     sidebarItemTitle: [
       "block min-w-0 shrink truncate",
-      "group-data-[tone=unread]/sidebar-item:font-bold",
+      "group-data-[tone=unread]/sidebar-item:font-bold md:pointer-fine:group-data-[tone=unread]/sidebar-item:font-semibold",
     ],
     sidebarItemSubtitle: [
       "block min-w-0 flex-1 truncate",
       "shrink-1000 text-footnote font-normal text-foreground-muted",
-      "group-data-active/sidebar-item:text-sticker-ink",
+      "group-data-active/sidebar-item:text-sticker-ink md:pointer-fine:group-data-active/sidebar-item:text-foreground",
     ],
     sidebarItemMeta: [
       "ml-auto shrink-0",
       "font-mono text-mono-meta font-normal tabular-nums text-foreground-hint",
-      "group-data-active/sidebar-item:text-sticker-ink",
+      "group-data-active/sidebar-item:text-sticker-ink md:pointer-fine:group-data-active/sidebar-item:text-foreground",
     ],
     sidebarItemStatus: ["shrink-0", "inline-flex items-center"],
     sidebarItemIndicator: [
@@ -87,7 +92,7 @@ export const sidebarItemRecipe = tv({
       "inline-flex size-4 shrink-0 items-center justify-center",
       "[&_svg]:shrink-0",
       "text-foreground-hint [&_svg]:size-3.5",
-      "group-data-active/sidebar-item:text-sticker-ink",
+      "group-data-active/sidebar-item:text-sticker-ink md:pointer-fine:group-data-active/sidebar-item:text-foreground",
     ],
     sidebarItemAside: ["flex shrink-0 items-center gap-1"],
     sidebarItemCount: [
@@ -96,6 +101,10 @@ export const sidebarItemRecipe = tv({
       "data-[slot=sidebar-item-count]:px-1.5",
       "bg-attention text-sticker-ink inset-ring-[1.5px] inset-ring-sticker-ink ring-[1.5px] ring-sticker-edge",
       "font-mono text-mono-meta font-bold tabular-nums tracking-normal",
+      // Raft redesign: on a desktop an 18px ink square, the number in the sans.
+      "md:pointer-fine:h-[18px] md:pointer-fine:min-w-[18px] md:pointer-fine:data-[slot=sidebar-item-count]:px-[5px]",
+      "md:pointer-fine:bg-foreground md:pointer-fine:text-layer-canvas md:pointer-fine:inset-ring-0 md:pointer-fine:ring-0",
+      "md:pointer-fine:font-sans md:pointer-fine:text-[11px] md:pointer-fine:font-semibold",
     ],
     sidebarItemCountSeparator: ["mx-0.5 opacity-60"],
     sidebarItemThreadCount: [
