@@ -4,8 +4,9 @@ export const appRail = tv({
   slots: {
     root: [
       "flex size-full  flex-col items-center select-none",
-      // On the frame, beside the islands: no seam of its own (Raft redesign).
-      "w-(--rail-width)",
+      // On the frame, beside the islands: no seam of its own on a desktop
+      // (Raft redesign); a phone and a touch screen keep theirs.
+      "w-(--rail-width) border-r border-line-seam md:pointer-fine:border-r-0",
       "bg-layer-frame text-foreground-on-frame",
       // Rail icons draw 1.5px lines, heavier than the 1px in content (owner 11-18).
       "[--icon-stroke:1.5px]",
@@ -13,10 +14,14 @@ export const appRail = tv({
     ],
     header: [
       "relative flex w-full shrink-0 items-center justify-center",
-      // Raft redesign (Figma 精修 · 组件化, Rail): no head row and no seam. The
-      // workspace switcher is the rail's first item, its 32px tile 14px from
-      // the top (a 36px item 12px down), and the nav follows a gap below.
-      "pt-3",
+      "h-(--shell-header-height,var(--header-height)) border-b border-line-seam",
+      "[@media(max-height:600px)]:h-(--header-height-short)",
+      // Raft redesign (Figma 精修 · 组件化, Rail), on a desktop: no head row and
+      // no seam. The workspace switcher is the rail's first item, its 32px
+      // tile 14px from the top (a 36px item 12px down), and the nav follows a
+      // gap below. A phone and a touch screen keep the head row.
+      "md:pointer-fine:h-auto md:pointer-fine:border-b-0 md:pointer-fine:pt-3",
+      "md:pointer-fine:[@media(max-height:600px)]:h-auto",
     ],
     nav: [
       "flex w-full flex-1 flex-col items-center py-2", // Raft DS › Rail: `rail-item` items, 40px 6px apart on a touch
