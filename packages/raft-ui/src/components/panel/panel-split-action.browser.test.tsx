@@ -10,8 +10,8 @@ import {
   PanelSplitActionToggle,
 } from "./panel-split-action";
 
-// A split action reads as one control: the part under the pointer takes the
-// medium tier (fill-medium), the other part the subtle tier (fill-subtle), and
+// A split action reads as one control: on a desktop both parts take the medium
+// tier (fill-medium) together under the pointer (Raft redesign), and
 // while the main part is pressed the menu part keeps the subtle tier. The menu
 // part is narrower than the main part. Measured as real computed colours in a
 // browser on a desktop (from 768px with a mouse); jsdom has no hover or layout.
@@ -84,21 +84,22 @@ async function hover(testId: string) {
 }
 
 for (const mode of MODES) {
-  it(`${mode}: hovering the main part tints the menu part one tier lighter`, async () => {
+  // Raft redesign: on a desktop the two parts hover as one block, both the medium tier.
+  it(`${mode}: hovering the main part tints the menu part the same`, async () => {
     const { main, menu, subtle, medium } = renderSplit(mode);
     expect(subtle).not.toBe(medium);
     await hover("stage");
     expect(await settle(menu, "rgba(0, 0, 0, 0)")).toBe("rgba(0, 0, 0, 0)");
     await hover("main");
     expect(await settle(main, medium)).toBe(medium);
-    expect(await settle(menu, subtle)).toBe(subtle);
+    expect(await settle(menu, medium)).toBe(medium);
   });
 
-  it(`${mode}: hovering the menu part tints the main part one tier lighter`, async () => {
-    const { main, menu, subtle, medium } = renderSplit(mode);
+  it(`${mode}: hovering the menu part tints the main part the same`, async () => {
+    const { main, menu, medium } = renderSplit(mode);
     await hover("menu");
     expect(await settle(menu, medium)).toBe(medium);
-    expect(await settle(main, subtle)).toBe(subtle);
+    expect(await settle(main, medium)).toBe(medium);
   });
 
   it(`${mode}: while the main part is pressed the menu part keeps the lighter tint`, async () => {

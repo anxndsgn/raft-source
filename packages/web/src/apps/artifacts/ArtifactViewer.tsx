@@ -246,8 +246,8 @@ export default function ArtifactViewer({ target, source, opening, onOpenedMessag
 }
 
 /** The loaded viewer: the card's frame around the surface's parts. */
-/** Raft redesign (Figma Workspace, Source bar): on a desktop the source row is 40 high, its text 16px in; its last button 6px from the edge, as in the bars above. */
-const WORKSPACE_SOURCE_ROW_CLASS = "md:pointer-fine:h-10 md:pointer-fine:pl-4";
+/** Raft redesign (Figma Workspace, Source bar): on a desktop the source row is 40 high, its text 14px in and its last button 6px from the edge, as in the bars above. */
+const WORKSPACE_SOURCE_ROW_CLASS = "md:pointer-fine:h-10";
 
 function LoadedViewer({ chrome, switching, failedVersion, onRetry, phone, onOpenedMessage, onShownTitle }: {
   chrome: ViewerChrome;

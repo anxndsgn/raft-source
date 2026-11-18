@@ -11,7 +11,8 @@ import { panelAction, panelToggleAction } from "./panel-action.recipe";
  * main part's (or the toggle's) pressed state through a sibling selector, the main part reads
  * the open menu through a has-selector on the root itself (packages/ui/CLAUDE.md,
  * Selector Cost), so a hover, a press, a selection or a disabled state on the
- * part itself always wins over the tint.
+ * part itself always wins over the tint. Raft redesign: on a desktop (from
+ * 768px with a mouse) both parts take the medium tier together, one block.
  */
 export const panelSplitAction = tv({
   base: [
@@ -28,6 +29,9 @@ const splitActionMainParts = [
   "bg-(--split-action-main-tint,transparent)",
   "group-hover/split-action:bg-fill-subtle",
   "hover:bg-fill-medium active:bg-fill-medium",
+  // Raft redesign: on a desktop the two parts hover as one button, the whole
+  // block the medium fill.
+  "md:pointer-fine:group-hover/split-action:bg-fill-medium",
 ];
 
 export const panelSplitActionMain = tv({
@@ -52,6 +56,7 @@ export const panelSplitActionMenu = tv({
     "bg-(--split-action-menu-tint,transparent)",
     "group-hover/split-action:bg-fill-subtle",
     "hover:bg-fill-medium active:bg-fill-medium data-popup-open:bg-fill-medium",
+    "md:pointer-fine:group-hover/split-action:bg-fill-medium",
     "[&>svg]:size-4",
   ],
 });
