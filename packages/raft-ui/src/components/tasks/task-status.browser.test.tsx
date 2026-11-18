@@ -372,21 +372,22 @@ for (const mode of MODES) {
     );
     const scope = screen.getByTestId("backlog-scope");
     const scopeBg = scopeBackground(scope);
+    const hint = parseColor(getComputedStyle(scope).getPropertyValue("--foreground-hint").trim());
     const lineStrong = parseColor(getComputedStyle(scope).getPropertyValue("--line-strong").trim());
     const stickerInk = parseColor(getComputedStyle(scope).getPropertyValue("--sticker-ink").trim());
 
-    // The pixel: the same 10px square and 1.5px edge, nothing inside, and the
-    // edge `line-strong`, not sticker-ink (dark in dark mode, so a hollow
-    // sticker-ink square would vanish on the dark canvas).
+    // The pixel: the 10px box and its 1px edge, nothing inside, the edge
+    // `foreground-hint` (Raft redesign), not sticker-ink (dark in dark mode,
+    // so a hollow sticker-ink square would vanish on the dark canvas).
     const icon = screen.getByTestId("backlog-icon");
     expect(icon.getAttribute("data-status")).toBe("backlog");
     expect(icon.getBoundingClientRect().width).toBe(10);
     const pixel = icon.querySelector("rect")!;
     const pixelStyle = getComputedStyle(pixel);
     expect(pixelStyle.fill, `${key}: the pixel is hollow`).toBe("none");
-    expect(parseFloat(pixelStyle.strokeWidth)).toBe(1.5);
+    expect(parseFloat(pixelStyle.strokeWidth)).toBe(1);
     const edge = composite(parseColor(pixelStyle.stroke), scopeBg);
-    expect(edge, `${key}: the edge is line-strong`).toEqual(composite(lineStrong, scopeBg));
+    expect(edge, `${key}: the edge is foreground-hint`).toEqual(composite(hint, scopeBg));
     // In light the two tokens are one ink; in dark sticker-ink stays dark.
     if (mode === "dark") {
       expect(edge, `${key}: the edge is not sticker-ink`).not.toEqual(

@@ -78,8 +78,8 @@ function SectionHeading({ group, count, collapsed, first, onToggle }: { group: S
       data-testid={`channel-tasks-heading-${group}`}
     >
       <span className="flex items-center gap-1.5">
-        {/* For review asks something of the person: the primary yellow square, not its status pixel. */}
-        {group === "in_review" ? <span aria-hidden className="size-2.5 shrink-0 rounded-[2px] bg-primary" /> : <TaskStatusIcon status={toRuiTaskStatus(group)} className="size-2.5 shrink-0" />}
+        {/* Raft redesign: every group, For review too, leads with its status pixel (its yellow is review's). */}
+        <TaskStatusIcon status={toRuiTaskStatus(group)} className="size-2.5 shrink-0" />
         <span>{label}</span>
         <span className="text-foreground-hint tabular-nums">{count}</span>
         {collapsed ? <ChevronRight className="size-3.5 text-foreground-hint group-hover:text-foreground" /> : <ChevronDown className="size-3.5 text-foreground-hint group-hover:text-foreground" />}

@@ -1,23 +1,24 @@
 import type { CSSProperties, SVGProps } from "react";
 import type { TaskStatusId } from "./task-status.recipe";
 
-/** Raft draws every status as its pixel: a 10px square in the status colour
- *  with a 1.5px sticker-ink edge (2px outer radius), the size of every status
- *  light beside text (status.md#sizes). The square keeps its size
- *  and sits centred in whatever box the context gives the icon, so an icon
- *  slot sized for a glyph still shows the same pixel.
+/** Raft draws every status as its pixel: an 8px square, its corner the badge
+ *  radius, centred in a 10px box, so an icon slot sized for a glyph still
+ *  shows the same pixel (status.md#sizes).
  *
- *  Backlog's pixel is hollow: the same square and edge with nothing inside,
- *  since Backlog has no colour. Its edge is `line-strong`, not sticker-ink:
- *  sticker-ink is dark in dark mode and, with no fill inside it, would vanish
- *  on the dark canvas (design/foundations/color.md#statuses). */
+ *  Raft redesign (Figmama 11/18), from the existing variables only: Backlog
+ *  and To do are hollow, a 1px edge in hint and in the foreground (told apart
+ *  by how dark the edge is); the rest are filled (in progress the working
+ *  blue, in review the review yellow, done the idle green, closed hint) with
+ *  a 1px hairline inside, so the yellow holds on the canvas. No sticker-ink
+ *  edge. Dark mode follows the variables. */
+const HAIRLINE = "var(--line-hairline)";
 const TASK_STATUS_PIXEL_STYLE: Record<TaskStatusId, CSSProperties> = {
-  backlog: { fill: "none", stroke: "var(--line-strong)" },
-  todo: { fill: "var(--task-status-todo)", stroke: "var(--sticker-ink)" },
-  "in-progress": { fill: "var(--task-status-in-progress)", stroke: "var(--sticker-ink)" },
-  "in-review": { fill: "var(--task-status-in-review)", stroke: "var(--sticker-ink)" },
-  done: { fill: "var(--task-status-done)", stroke: "var(--sticker-ink)" },
-  closed: { fill: "var(--task-status-closed)", stroke: "var(--sticker-ink)" },
+  backlog: { fill: "none", stroke: "var(--foreground-hint)" },
+  todo: { fill: "none", stroke: "var(--foreground)" },
+  "in-progress": { fill: "var(--presence-busy)", stroke: HAIRLINE },
+  "in-review": { fill: "var(--task-status-in-review)", stroke: HAIRLINE },
+  done: { fill: "var(--presence-online)", stroke: HAIRLINE },
+  closed: { fill: "var(--foreground-hint)", stroke: HAIRLINE },
 };
 
 function TaskStatusPixel({
@@ -36,15 +37,15 @@ function TaskStatusPixel({
       className={className}
       {...props}
     >
+      {/* 7 + a 1px stroke centred on its edge: 8px outside, the edge inside it. */}
       <rect
         x="50%"
         y="50%"
-        width="8.5"
-        height="8.5"
-        rx="1.25"
-        strokeWidth="1.5"
-        transform="translate(-4.25 -4.25)"
-        style={TASK_STATUS_PIXEL_STYLE[status]}
+        width="7"
+        height="7"
+        strokeWidth="1"
+        transform="translate(-3.5 -3.5)"
+        style={{ ...TASK_STATUS_PIXEL_STYLE[status], rx: "var(--radius-sticker)" }}
       />
     </svg>
   );
