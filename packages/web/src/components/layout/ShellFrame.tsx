@@ -4,6 +4,7 @@ import { DESKTOP_SHELL_QUERY } from "./desktopShell";
 import type { ReactNode } from "react";
 import { AppShellIsland, AppShellIslandRow, AppShellMainSlot, AppShellRailSlot, AppShellRoot } from "@botiverse/raft-ui";
 import { ShellWorkspaceIslandContext } from "./rowColumnSlot";
+import { useArtifactViewerStore } from "../../apps/artifacts/artifactViewerStore";
 import { ShellTopBar } from "../topbar/ShellTopBar";
 import PwaInstallPrompt from "../pwa/PwaInstallPrompt";
 import { shouldShowTopBar } from "../topbar/topBarVisibility";
@@ -83,8 +84,6 @@ export interface ShellFrameProps {
   main: ReactNode;
   /** After the panes: the phone's tab bar, dialogs, overlays. */
   after?: ReactNode;
-  /** The workspace (an open Artifact) expanded: it takes the conversation's place, beside the sidebar (§5). */
-  workspaceExpanded?: boolean;
 }
 
 /**
@@ -108,8 +107,9 @@ export function ShellFrame({
   mainHidden,
   main,
   after,
-  workspaceExpanded = false,
 }: ShellFrameProps) {
+  // The workspace (an open Artifact) expanded takes the conversation's island, beside the sidebar (§5).
+  const workspaceExpanded = useArtifactViewerStore((s) => s.expanded && s.open !== null) && isDesktop;
   // The workspace island: ConversationFrame hands it to the channel's side area, which portals the open Artifact's column into it.
   const [workspaceIsland, setWorkspaceIsland] = useState<HTMLElement | null>(null);
   useSystemBarSurface(topEdgeSurface);

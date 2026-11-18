@@ -101,7 +101,7 @@ export function PendingServerLayout({ prerender = false, offline }: {
       topEdgeSurface={layout.topEdgeSurface}
       sidebarCollapsible={layout.sidebarCollapsible}
       sidebarOpen={!sidebarHidden}
-      rail={<LeftRail hidden={sidebarInline} topBar={showTopBar !== false} sidebarToggle={layout.sidebarCollapsible ? layout.collapseColumn : null} />}
+      rail={<LeftRail hidden={sidebarInline} topBar={showTopBar !== false} />}
       sidebar={layout.hideSidebar ? null : (
         <AppShellSidebarSlot
           id={SIDEBAR_REGION_ID}

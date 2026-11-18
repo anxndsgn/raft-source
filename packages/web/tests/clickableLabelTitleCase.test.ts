@@ -950,6 +950,7 @@ function looksLikeClickableLabelId(id: string): boolean {
 
 /** Ids whose key looks clickable but whose text is not a visible clickable label. */
 const EXEMPT_LABEL_IDS = {
+  "layout.leftRail.selfMenu": "the rail avatar's aria-label and tooltip (a name, then what its menu holds), not a visible label",
   "accountDeletion.groupNeedsAction": "a group label inside Delete Account's list, not a control",
   "assistant.otter.meta.confirm": "the assistant panel's status line, not a control",
   "assistant.otter.state.confirm": "the otter's bubble and the state in its aria-label, not a control",

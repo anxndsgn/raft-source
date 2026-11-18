@@ -71,15 +71,12 @@ test.describe("top bar layout", () => {
       expect(overflow).toEqual({ x: false, y: false });
 
       // The Bell sits at the bar's right end, not on the rail, and opens its
-      // panel under the bar, inside the window. Help stays on the rail, right
-      // above Settings (cindyz 2026-10-14).
+      // panel under the bar, inside the window. Settings and Help are in the
+      // menu of your avatar at the rail's bottom (Raft redesign).
       await expect(page.getByTestId("notification-trigger-rail")).toHaveCount(0);
-      const helpBox = (await page.getByTestId("left-rail-help").boundingBox())!;
-      const settingsBox = (await page.getByTestId("left-rail-settings").boundingBox())!;
-      expect(helpBox.x).toBeGreaterThanOrEqual(railBox.x);
-      expect(helpBox.x + helpBox.width).toBeLessThanOrEqual(railBox.x + railBox.width + 0.5);
-      expect(helpBox.y + helpBox.height, "Help directly above Settings").toBeLessThanOrEqual(settingsBox.y + 0.5);
-      expect(settingsBox.y - (helpBox.y + helpBox.height), "no gap between Help and Settings").toBeLessThanOrEqual(12);
+      const selfBox = (await page.getByTestId("left-rail-self").boundingBox())!;
+      expect(selfBox.x).toBeGreaterThanOrEqual(railBox.x);
+      expect(selfBox.x + selfBox.width).toBeLessThanOrEqual(railBox.x + railBox.width + 0.5);
       for (const [trigger, panel] of [
         ["notification-trigger-top-bar", "notification-center"],
       ] as const) {

@@ -1,6 +1,7 @@
+import { createContext } from "react";
 import { useUIStore } from "../../store/uiStore";
 
-// The desktop sidebar's collapse control (on the rail) and the column it
+// The desktop sidebar's collapse control (leading the main area's head) and the column it
 // controls (MainLayout's AppShellSidebarSlot) are in different components; the
 // ids tie them together for `aria-controls` and for the keyboard toggle below.
 export const SIDEBAR_REGION_ID = "app-sidebar";
@@ -12,6 +13,15 @@ export const SIDEBAR_TOGGLE_ID = "app-sidebar-toggle";
  * state, so collapsing one never collapses the other.
  */
 export type SidebarSlotColumn = "sidebar" | "activityList";
+
+/**
+ * Raft redesign (Figma 精修 · 组件化): the sidebar's collapse control leads the
+ * main area's head, not the rail. MainLayout gives the column around its routes
+ * on a desktop with a collapsible sidebar; the main area's AppPanelHeader reads
+ * it and puts SidebarToggleHeadAction first. Null everywhere else (a side
+ * column's head, a page portalled beside the conversation).
+ */
+export const MainHeadSidebarToggleContext = createContext<SidebarSlotColumn | null>(null);
 
 export function isSidebarSlotHidden(column: SidebarSlotColumn): boolean {
   const state = useUIStore.getState();
@@ -32,7 +42,7 @@ export function useSidebarSlotHidden(column: SidebarSlotColumn): boolean {
 /**
  * ⌘\ / Ctrl+\: collapse or expand the column in the sidebar slot. Collapsing
  * makes the column inert, so focus inside it would drop to <body>; move it to
- * the rail's toggle first — the control that brings the column back.
+ * the head's toggle first — the control that brings the column back.
  */
 export function toggleSidebarFromKeyboard(doc: Document = document, column: SidebarSlotColumn = "sidebar"): void {
   setSidebarSlotHiddenKeepingFocus(column, !isSidebarSlotHidden(column), doc);

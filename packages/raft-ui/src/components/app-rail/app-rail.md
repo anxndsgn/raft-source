@@ -28,13 +28,13 @@ Which destinations a product has, and in which order, is on its own page ([Raft 
 
 ## Anatomy
 
-- `AppRailRoot`: the column, on `layer-frame`, with a `line-seam` along its right edge.
-- `AppRailHeader`: the header-height row at the top, holding the workspace tile. Its seam lines up with the sidebar's and the panel's ([Page structure](../../../../../design/patterns/page-structure.md#headers)). It is left out when the web top bar is shown.
+- `AppRailRoot`: the column, on `layer-frame`, with no seam: the islands beside it have their own edge ([AppShell](../app-shell/app-shell.md)). 48px wide with a mouse, 56px on a touch screen.
+- `AppRailHeader`: the top of the rail, holding the workspace tile 14px from the top, with no seam. It is left out when the web top bar is shown.
 - `AppRailNav`: the destinations.
-- `AppRailItem`: one destination: an `AppRailItemIcon` with a 20px icon, and an `AppRailItemLabel` with its name.
-- `AppRailItemAttention`: the pink pixel on an item, with text for assistive technology. It is built on `AppRailItemIndicator`.
+- `AppRailItem`: one destination: an `AppRailItemIcon` with a 24px icon with a mouse (20px on a touch screen), and an `AppRailItemLabel` with its name.
+- `AppRailItemAttention`: the 8px unread dot (`danger`, no edge) at the icon's top right, with text for assistive technology. It is built on `AppRailItemIndicator`.
 - `AppRailItemBadge`: a count in the same corner. Not recommended, and to be removed: a rail icon shows only the dot, never a number ([Badge](../badge/badge.md#rules)).
-- `AppRailFooter`: notifications, help and settings. Notifications sit here only when there is no web top bar; with it, the bell is in the top bar ([Navigation](../../../../../design/patterns/navigation.md#structure)).
+- `AppRailFooter`: your own avatar, whose menu holds settings and help (Raft redesign). Notifications sit here only when there is no web top bar.
 
 Without the web top bar (an older desktop build, the app embedded in another host, a server's public page), the rail has its header with the workspace tile, search is a destination and the bell sits in the footer:
 
@@ -53,13 +53,13 @@ The product ships the icons-only rail, and raft-ui implements only that one ([Op
 
 ## States
 
-- Selected: a sticker on the frame, white in light mode and yellow in dark mode ([States](../../../../../design/foundations/states.md)).
-- Attention: one pink pixel at the top right of the icon, never a count. The selected item never shows it, with no exception.
+- Selected: a `layer-frame-active` square (the canvas) behind the icon, with no edge; the icon takes `foreground-on-frame-active`, the canvas's text colour, in both modes.
+- Attention: one unread dot at the top right of the icon, never a count. The selected item never shows it, with no exception.
 - Hover and press lay `fill-frame-medium` over the item, the medium tier on the frame ([Hover and press](../../../../../design/foundations/states.md#hover-and-press)). The selected item doesn't change on hover.
 
 ## Behavior
 
-- Space every item, in the nav and in the footer, the same way: with a mouse 36px items (`rail-item`), 4px apart, 6px from both ends of the rail; on a touch screen 40px items, 6px apart, 8px from both ends. Don't wrap the footer tools in fixed-height cells.
+- Space every item, in the nav and in the footer, the same way: with a mouse 36px items (`rail-item`), 6px apart, 6px from the bottom of the rail; on a touch screen 40px items, 6px apart, 8px from both ends. Don't wrap the footer tools in fixed-height cells.
 - Under the header, start the first item as far below the header's seam as the rail's ends: 6px with a mouse, 8px on a touch screen, the same as under the web top bar and at the bottom of the rail, so the rail has one inset.
 - With the web top bar, the rail has no header and the server moves to the top bar, as the workspace button ([Page structure](../../../../../design/patterns/page-structure.md#the-web-top-bar)).
 - In a window shorter than 600px, the rail shrinks with the headers ([Responsive layout](../../../../../design/patterns/responsive.md)), and its items keep 6px from both ends.

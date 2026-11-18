@@ -19,6 +19,7 @@ import { DetailSlotThreadContext, useThreadInDetailSlotOpener } from "./detailSl
 import { PanelLoading } from "./PanelLoading";
 import { TASKS_PAGE_TASK } from "./rowPlan";
 import { RowColumnSlotContext } from "./rowColumnSlot";
+import { MainHeadSidebarToggleContext } from "./sidebarToggle";
 import { toggleRowExpand, useRowExpand, useRowPlanStore } from "./rowPlanStore";
 import { TaskContentSlot } from "./TaskContentSlot";
 
@@ -128,7 +129,8 @@ export function TasksRoute() {
         </TasksPageShownContext.Provider>
       </div>
       {/* In the row, right after the conversation's column (until its slot has mounted, nothing yet); else here. */}
-      {inRow ? (rowSlot ? createPortal(column, rowSlot) : null) : column}
+      {/* Beside the list, the task's head is a column's, not the main area's: no sidebar toggle in it. */}
+      {inRow ? (rowSlot ? createPortal(<MainHeadSidebarToggleContext.Provider value={null}>{column}</MainHeadSidebarToggleContext.Provider>, rowSlot) : null) : column}
     </div>
   );
 }

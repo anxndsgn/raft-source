@@ -6815,6 +6815,7 @@ export const ja: Partial<Record<MessageId, string>> = {
   "layout.leftRail.tabComputers": "コンピューター",
   "layout.leftRail.tabHelp": "ヘルプ",
   "layout.leftRail.tabSettings": "設定",
+  "layout.leftRail.selfMenu": "{name}：設定とヘルプ",
   "layout.leftRail.collapseSidebar": "サイドバーを折りたたむ",
   "layout.leftRail.expandSidebar": "サイドバーを展開",
   // Personal assistant (RFC 075 v4).

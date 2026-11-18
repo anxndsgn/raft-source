@@ -6814,6 +6814,7 @@ export const ptBr: Partial<Record<MessageId, string>> = {
   "layout.leftRail.tabComputers": "Computadores",
   "layout.leftRail.tabHelp": "Ajuda",
   "layout.leftRail.tabSettings": "Configurações",
+  "layout.leftRail.selfMenu": "{name}: configurações e ajuda",
   "layout.leftRail.collapseSidebar": "Recolher barra lateral",
   "layout.leftRail.expandSidebar": "Expandir barra lateral",
   // Personal assistant (RFC 075 v4).

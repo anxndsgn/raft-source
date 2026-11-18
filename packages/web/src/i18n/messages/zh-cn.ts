@@ -6879,6 +6879,7 @@ export const zhCn: Record<MessageId, string> = {
   "layout.leftRail.tabComputers": "计算机",
   "layout.leftRail.tabHelp": "帮助",
   "layout.leftRail.tabSettings": "设置",
+  "layout.leftRail.selfMenu": "{name}：设置和帮助",
   "layout.leftRail.collapseSidebar": "收起侧栏",
   "layout.leftRail.expandSidebar": "展开侧栏",
   // Personal assistant (RFC 075 v4).

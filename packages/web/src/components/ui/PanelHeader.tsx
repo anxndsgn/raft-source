@@ -1,4 +1,6 @@
 import { useContext } from "react";
+import { MainHeadSidebarToggleContext } from "../layout/sidebarToggle";
+import { SidebarToggleHeadAction } from "../layout/SidebarToggleHeadAction";
 import { ArrowLeft } from "lucide-react";
 import Tooltip from "./Tooltip";
 import { isHostShell } from "../../embed";
@@ -175,6 +177,8 @@ export default function AppPanelHeader({
   const chrome = useContext(PanelHeadChromeContext);
   const backCrumb = useContext(PanelBackCrumbContext);
   const headStatus = useContext(PanelHeadStatusContext);
+  // The main area's head leads with the sidebar's collapse control (Raft redesign); a row region's head never does.
+  const sidebarToggle = useContext(MainHeadSidebarToggleContext);
   const drag = chrome;
   const rowTabs = chrome?.tabs ?? null;
   // HOST-SHELL EMBED: the native WebView already draws a title bar, so web must not
@@ -244,6 +248,7 @@ export default function AppPanelHeader({
           <ArrowLeft size={22} />
         </PanelAction>
       )}
+      {sidebarToggle && !chrome ? <SidebarToggleHeadAction column={sidebarToggle} /> : null}
       {leading}
       {icon && !rowTabs && (
         <PanelHeaderIcon className={`${iconVisibilityClass} ${ICON_TONE_CLASS[iconTone]}`}>

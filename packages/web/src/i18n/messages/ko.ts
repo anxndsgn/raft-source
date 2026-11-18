@@ -6814,6 +6814,7 @@ export const ko: Partial<Record<MessageId, string>> = {
   "layout.leftRail.tabComputers": "컴퓨터",
   "layout.leftRail.tabHelp": "도움말",
   "layout.leftRail.tabSettings": "설정",
+  "layout.leftRail.selfMenu": "{name}: 설정 및 도움말",
   "layout.leftRail.collapseSidebar": "사이드바 접기",
   "layout.leftRail.expandSidebar": "사이드바 펼치기",
   // Personal assistant (RFC 075 v4).

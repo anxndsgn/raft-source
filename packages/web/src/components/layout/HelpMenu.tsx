@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useIntl } from "react-intl";
 import { useNavigate } from "react-router-dom";
-import { BookOpenText, Download, Keyboard, UsersRound } from "lucide-react";
+import { BookOpenText, Download, Keyboard, Settings, UsersRound } from "lucide-react";
 import { DropdownMenuShortcut, PopoverContent, Spinner } from "@botiverse/raft-ui";
 import { FeedbackIcon } from "@botiverse/ricons";
 import { useServerStore } from "../../store/serverStore";
@@ -37,6 +37,9 @@ export function HelpMenu({
   onOpenFeedback,
   onOpenMobileApp,
   keyboardShortcuts = false,
+  onOpenSettings,
+  settingsActive = false,
+  settingsDot = false,
 }: {
   servers: Server[];
   serverSlugOverride?: string;
@@ -49,6 +52,14 @@ export function HelpMenu({
   onOpenMobileApp?: () => void;
   /** Offer Keyboard Shortcuts: only where the panel can open (a server page's MainLayout). */
   keyboardShortcuts?: boolean;
+  /**
+   * Raft redesign: opened from your avatar at the bottom of the rail, the menu
+   * leads with Settings (which left the rail), then Help.
+   */
+  onOpenSettings?: () => void;
+  settingsActive?: boolean;
+  /** Replies to your feedback wait in Settings. */
+  settingsDot?: boolean;
 }) {
   const { formatMessage, locale } = useIntl();
   const helpShortcut = useShortcutBinding("open-help");
@@ -128,6 +139,11 @@ export function HelpMenu({
     void openCommunity();
   }, [openCommunity]);
 
+  const openSettings = useCallback(() => {
+    onOpenSettings?.();
+    onCloseRef.current();
+  }, [onOpenSettings]);
+
   return (
     <>
       <PopoverContent
@@ -140,6 +156,19 @@ export function HelpMenu({
         data-testid="left-rail-help-menu"
         className="w-80 overflow-hidden p-0"
       >
+          {onOpenSettings ? (
+            <div className="flex flex-col border-b border-line-hairline p-1">
+              <MenuItem
+                icon={<Settings size={14} className="shrink-0" />}
+                trailing={settingsDot ? <AttentionDot className="shrink-0" aria-hidden="true" /> : undefined}
+                aria-current={settingsActive ? "page" : undefined}
+                onClick={openSettings}
+                data-testid="help-menu-settings"
+              >
+                {formatMessage({ id: "layout.leftRail.tabSettings" })}
+              </MenuItem>
+            </div>
+          ) : null}
           <div className="flex items-center border-b border-line-hairline px-3 py-2">
             <SectionEyebrow>
               {formatMessage({ id: "layout.leftRail.helpMenuTitle" })}

@@ -1081,7 +1081,7 @@ test.describe("Inbox contract", () => {
     };
     const shellState = () => page.locator('[data-slot="app-shell-root"]').getAttribute("data-state");
     const railActivity = page.getByTestId("left-rail-tab-activity");
-    const toggle = page.getByTestId("left-rail-sidebar-toggle");
+    const toggle = page.getByTestId("sidebar-toggle");
     const listColumn = page.locator('[data-slot="app-shell-sidebar-slot"] [data-testid="shell-sidebar-column"]');
     const detail = page.locator("[data-activity-detail]");
     const row = page.getByTestId("inbox-row").filter({ hasText: text });

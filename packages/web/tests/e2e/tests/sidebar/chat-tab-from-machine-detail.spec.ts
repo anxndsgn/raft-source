@@ -82,7 +82,9 @@ for (const width of [800, 1280]) {
 
     for (const rail of ["members", "computers", "settings", "search", "activity"]) {
       // Search lives in the top bar at desktop width (task #753); the others are rail tabs.
-      const id = rail === "settings" ? "left-rail-settings" : rail === "search" ? "app-top-bar-search" : `left-rail-tab-${rail}`;
+      // Settings is in the menu of your avatar at the rail's bottom (Raft redesign).
+      if (rail === "settings") await page.getByTestId("left-rail-self").click();
+      const id = rail === "settings" ? "help-menu-settings" : rail === "search" ? "app-top-bar-search" : `left-rail-tab-${rail}`;
       await page.getByTestId(id).click();
       if (rail === "search") {
         // Task #143: at desktop width Search floats as the overlay over the

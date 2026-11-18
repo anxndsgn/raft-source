@@ -44,7 +44,6 @@ import { useStackEndHead } from "../task/stackEnd";
 import ColumnResizeHandle from "../ui/ColumnResizeHandle";
 import ShellSidebarColumn from "./ShellSidebarColumn";
 import ShellArtifactHost from "./ShellArtifactHost";
-import { useArtifactViewerStore } from "../../apps/artifacts/artifactViewerStore";
 import { useMediaQuery } from "../../hooks/effectPrimitives";
 import { Routes, Route, Navigate, UNSAFE_NavigationContext as NavigationContext, useParams, useNavigate, useLocation, useNavigationType } from "react-router-dom";
 import { directTaskConversationChannelId, opensAsTaskConversation, parseTaskConversationParam } from "../../utils/taskConversation";
@@ -111,7 +110,7 @@ import {
   syncRightPanelUrlFromStores,
 } from "./rightPanelUrlSync";
 import { blurFocusedControlForScreenshotShortcut } from "../../utils/keyboardShortcuts";
-import { SIDEBAR_REGION_ID, setSidebarSlotHidden, toggleSidebarFromKeyboard, useSidebarSlotHidden } from "./sidebarToggle";
+import { MainHeadSidebarToggleContext, SIDEBAR_REGION_ID, setSidebarSlotHidden, toggleSidebarFromKeyboard, useSidebarSlotHidden } from "./sidebarToggle";
 import { LegacyMemberGraphRedirect, LegacyThreadsRedirect, LegacyWorkspaceGridRedirect } from "./LegacyRedirects";
 import { ShortcutHelpColumn } from "../../features/keyboard-shortcuts/ShortcutHelpColumn";
 import "../../features/shortcuts/shortcutAccountBridge";
@@ -2458,8 +2457,6 @@ export default function MainLayout() {
   // its chrome to this bar (topBarHostContext.ts) gets it at any width: the
   // row is then the window's title bar and drag region.
   const showTopBar = useShowsTopBar(isDesktop);
-  // The workspace expanded takes the conversation's island (ShellFrame, §5).
-  const workspaceExpanded = useArtifactViewerStore((s) => s.expanded && s.open !== null) && isDesktop;
 
   return (
     <ShellFrame
@@ -2469,14 +2466,12 @@ export default function MainLayout() {
       sidebarCollapsible={sidebarCollapsible}
       sidebarOpen={!sidebarHidden}
       onSidebarOpenChange={handleSidebarOpenChange}
-      workspaceExpanded={workspaceExpanded}
       topStrip={<OpenInAppOffers slot="top" />}
       bottomStrip={<OpenInAppOffers slot="bottom" />}
       rail={(
         <LeftRail
           hidden={mobileShowSidebarInline}
           topBar={showTopBar}
-          sidebarToggle={sidebarCollapsible ? collapseColumn : null}
         />
       )}
       // Sidebar container:
@@ -2580,7 +2575,7 @@ export default function MainLayout() {
             data-main-column=""
             data-otter-dock="conversation"
           >
-            <RowColumnSlotContext.Provider value={rowColumnSlot}>
+            <RowColumnSlotContext.Provider value={rowColumnSlot}><MainHeadSidebarToggleContext.Provider value={sidebarCollapsible && isDesktop && !hideSidebar && !mobileShowSidebarInline ? collapseColumn : null}>
             <Routes location={backgroundLocation ?? location}>
               <Route path="channel/:channelId" element={<ChannelRoute />} />
               <Route path="channel/:channelId/search" element={<ConversationSearchRoute kind="channel" />} />
@@ -2622,7 +2617,7 @@ export default function MainLayout() {
               <Route path="workspace" element={<LegacyWorkspaceGridRedirect />} />
               <Route path="*" element={<DefaultRoute />} />
             </Routes>
-            </RowColumnSlotContext.Provider>
+            </MainHeadSidebarToggleContext.Provider></RowColumnSlotContext.Provider>
             {/* Workspace Artifacts: where one clicked outside a channel panel opens (the opening rule). */}
             <ShellArtifactHost />
             <AssistantOtterLayer pageOtter={assistantPageOtter && !mobileShowSidebarInline} />

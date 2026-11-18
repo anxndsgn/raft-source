@@ -7007,6 +7007,7 @@ export const en = {
   "layout.leftRail.tabComputers": "Computers",
   "layout.leftRail.tabHelp": "Help",
   "layout.leftRail.tabSettings": "Settings",
+  "layout.leftRail.selfMenu": "{name}: settings and help",
   "layout.leftRail.collapseSidebar": "Collapse sidebar",
   "layout.leftRail.expandSidebar": "Expand sidebar",
   // Personal assistant (RFC 075 v4).

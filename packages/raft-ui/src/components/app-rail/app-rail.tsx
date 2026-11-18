@@ -157,7 +157,7 @@ export function AppRailItemIndicator({
   ...props
 }: AppRailItemIndicatorProps) {
   const { itemIndicator } = appRail();
-  const resolvedVariant = variant ?? "accent";
+  const resolvedVariant = variant ?? "danger";
 
   return (
     <Status

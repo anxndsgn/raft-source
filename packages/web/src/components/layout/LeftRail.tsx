@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isHostShell } from "../../embed";
 import { useIntl } from "react-intl";
-import { Blocks, CircleHelp, PanelLeftClose, PanelLeftOpen, Search, Settings, ListTodo, Inbox } from "lucide-react";
+import { Blocks, CircleHelp, Search, Settings, ListTodo, Inbox } from "lucide-react";
 import { useFeedbackUnread } from "../../feedback/useFeedbackUnread";
 import { useAuthStore } from "../../store/authStore";
 import { useServerStore } from "../../store/serverStore";
@@ -39,13 +39,11 @@ import {
   AppRailItemIcon,
   AppRailNav,
   AppRailRoot,
-  AppShellSidebarTrigger,
   Popover,
   PopoverTrigger,
 } from "@botiverse/raft-ui";
 import { MessageIcon, ArtifactIcon } from "@botiverse/ricons";
 import Tooltip from "../ui/Tooltip";
-import { labelWithShortcut } from "../ui/LabelWithShortcut";
 import { HelpMenu } from "./HelpMenu";
 import { HELP_MENU_TRIGGER_ID } from "../../features/keyboard-shortcuts/shortcutHelpStore";
 import { useFirstScreenDone } from "../../boot/deferredUi";
@@ -55,9 +53,6 @@ import { SortableRailTabs } from "./SortableRailTabs";
 import type { RailTab, RailTabDrag } from "./SortableRailTabs";
 import { hasChatAttentionUnread, selectChatAttentionChannelIds } from "../../utils/chatAttentionUnread";
 import { useShallow } from "zustand/react/shallow";
-import { useShortcutBinding } from "../../features/shortcuts/useShortcutBinding";
-import { SIDEBAR_TOGGLE_ID, useSidebarSlotHidden } from "./sidebarToggle";
-import type { SidebarSlotColumn } from "./sidebarToggle";
 import { markMobileAppSeen, shouldShowMobileAppBadge } from "./mobileAppBadge";
 
 // Narrow vertical rail to the left of the Sidebar. Hosts, top to bottom:
@@ -90,10 +85,6 @@ interface LeftRailProps {
   hidden?: boolean;
   /** The top bar owns the server switcher, search and notifications, so the rail drops them. */
   topBar?: boolean;
-  /** The column in the shell's sidebar slot can collapse here (desktop, a route
-   *  with a sidebar, or Activity's list beside an opened conversation): show
-   *  its toggle, which reads and flips that column's own remembered state. */
-  sidebarToggle?: SidebarSlotColumn | null;
   publicProjection?: PublicLeftRailProjection;
 }
 
@@ -107,7 +98,7 @@ export interface PublicLeftRailProjection {
   onAnonymousServerSelection: () => void;
 }
 
-export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicProjection }: LeftRailProps) {
+export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailProps) {
   // Display-language (react-intl) — layout namespace. Rail tab labels feed both
   // raft-ui Tooltip content and `aria-label`, so they must come from the catalog,
   // not literals.
@@ -118,6 +109,9 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
   const firstScreenDone = useFirstScreenDone();
   const feedbackUnread = useFeedbackUnread(!hidden && !publicProjection && !pending && firstScreenDone);
   const currentUserId = useAuthStore((s) => s.user?.id ?? null);
+  const selfAvatarUrl = useAuthStore((s) => s.user?.avatarUrl ?? null);
+  const selfName = useAuthStore((s) => s.user?.displayName || s.user?.name || "");
+  const selfLabel = formatMessage({ id: "layout.leftRail.selfMenu" }, { name: selfName });
   const server = useServerStore((s) => s.current);
   const isGuest = server?.role === "guest";
   const servers = useServerStore((s) => s.servers);
@@ -548,97 +542,53 @@ export function LeftRail({ hidden, topBar = false, sidebarToggle = null, publicP
         <SortableRailTabs tabs={railTabs} />
       </AppRailNav>
 
-      {/* Notification Center trigger — the permanent Bell sits above Help.
-          Its pink dot is conditional, but the entry point and empty-state
-          drawer remain available even with zero notifications: workspace
-          notices collect there instead of stacking warning bars on the page.
-          The popup floats to the right of the rail. */}
+      {/* Raft redesign (Figma 精修 · 组件化): the footer is your own avatar.
+          Its menu holds Settings and Help; the sidebar's collapse control
+          leads the main area's head (SidebarToggleHeadAction). */}
       <AppRailFooter>
-      {/* Collapse / expand the sidebar: an action on the shell, not a
-          destination, so it heads the footer tools rather than joining the
-          sortable tabs. */}
-      {sidebarToggle ? <SidebarToggleRailItem column={sidebarToggle} /> : null}
-
-      {/* With the top bar, the Bell lives in its right region; Help stays here
-          above Settings. */}
       {/* Layout redesign: the bell is part of the inbox (its head), not a rail button. */}
       {topBar || !pending ? null : <PendingNotificationTrigger flavor="rail-bottom" />}
 
-      {/* Each footer item is the bare 40px rail button: the footer's 6px gap
-          spaces them like the items above (Raft DS › Rail). */}
       <Popover open={showHelpMenu} onOpenChange={setShowHelpMenu}>
         <div className="relative flex w-full justify-center">
-          <PopoverTrigger
-            openOnHover
-            delay={0}
-            closeDelay={120}
-            render={(
-              <RailTabButton
-                icon={<CircleHelp size={18} />}
-                label={formatMessage({ id: "layout.leftRail.tabHelp" })}
-                active={showHelpMenu}
-                onClick={closeServerMenu}
-                testId="left-rail-help"
-                id={HELP_MENU_TRIGGER_ID}
-                ariaHasPopup="menu"
-                ariaExpanded={showHelpMenu}
-                showTooltip={false}
-                showDot={showMobileAppBadge}
-              />
-            )}
-          />
+          <Tooltip content={selfLabel} contentProps={TOOLTIP_CONTENT_PROPS.right}>
+            <PopoverTrigger
+              render={(
+                <AppRailItem
+                  selected={false}
+                  aria-label={selfLabel}
+                  aria-haspopup="menu"
+                  aria-expanded={showHelpMenu}
+                  onClick={closeServerMenu}
+                  data-testid="left-rail-self"
+                  id={HELP_MENU_TRIGGER_ID}
+                  className="size-(--rail-item) p-0 [@media(max-height:600px)]:h-9 [@media(max-height:600px)]:w-9"
+                />
+              )}
+            >
+              <AppRailItemIcon>
+                <AvatarSlot context="compact-row" type="human" humanAvatarUrl={selfAvatarUrl} />
+                {showMobileAppBadge || feedbackUnread > 0 ? (
+                  <AppRailItemAttention title={feedbackUnread > 0 ? formatMessage({ id: "layout.systemNotifications.feedbackRepliesTitle" }) : selfLabel} />
+                ) : null}
+              </AppRailItemIcon>
+            </PopoverTrigger>
+          </Tooltip>
           <HelpMenu
             servers={servers}
             onClose={closeHelpMenu}
             showMobileAppBadge={showMobileAppBadge}
             onMobileAppOpened={dismissMobileAppBadge}
             keyboardShortcuts={!pending}
+            onOpenSettings={railModeSelectors.settings}
+            settingsActive={railMode === "settings"}
+            settingsDot={feedbackUnread > 0}
           />
         </div>
       </Popover>
-
-
-      <div className="flex w-full justify-center">
-        <RailTabButton icon={<Settings size={18} />} label={formatMessage({ id: "layout.leftRail.tabSettings" })} active={railMode === "settings"} onClick={railModeSelectors.settings} showDot={feedbackUnread > 0} dotTooltip={formatMessage({ id: "layout.systemNotifications.feedbackRepliesTitle" })} testId="left-rail-settings" />
-      </div>
       </AppRailFooter>
       </AppRailRoot>
     </>
-  );
-}
-
-// raft-ui's AppShellSidebarTrigger owns the toggle (aria-expanded, aria-controls
-// naming the sidebar slot, the shell's open state); rendered as an AppRailItem
-// it sits in the rail like the other footer tools. Its built-in English label
-// and native `title` are replaced by the catalog's words and the rail's
-// tooltip, which also shows the shortcut.
-function SidebarToggleRailItem({ column }: { column: SidebarSlotColumn }) {
-  const { formatMessage } = useIntl();
-  const sidebarHidden = useSidebarSlotHidden(column);
-  const label = formatMessage({ id: sidebarHidden ? "layout.leftRail.expandSidebar" : "layout.leftRail.collapseSidebar" });
-  // The person's keys (the shortcuts panel); none set, the tooltip is the label alone.
-  const shortcut = useShortcutBinding("sidebar");
-  return (
-    <Tooltip
-      content={shortcut.combos[0] ? labelWithShortcut(label, shortcut.combos[0], formatMessage) : label}
-      contentProps={TOOLTIP_CONTENT_PROPS.right}
-    >
-      <AppShellSidebarTrigger
-        render={<AppRailItem className="size-(--rail-item) [@media(max-height:600px)]:h-9 [@media(max-height:600px)]:w-9" />}
-        id={SIDEBAR_TOGGLE_ID}
-        aria-label={label}
-        aria-keyshortcuts={shortcut.ariaKeyShortcuts || undefined}
-        title={undefined}
-        data-testid="left-rail-sidebar-toggle"
-        data-sidebar-column={column}
-      >
-        <AppRailItemIcon>
-          {sidebarHidden
-            ? <PanelLeftOpen size={18} aria-hidden="true" />
-            : <PanelLeftClose size={18} aria-hidden="true" />}
-        </AppRailItemIcon>
-      </AppShellSidebarTrigger>
-    </Tooltip>
   );
 }
 

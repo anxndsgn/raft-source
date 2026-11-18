@@ -6814,6 +6814,7 @@ export const zhTw: Partial<Record<MessageId, string>> = {
   "layout.leftRail.tabComputers": "電腦",
   "layout.leftRail.tabHelp": "說明",
   "layout.leftRail.tabSettings": "設定",
+  "layout.leftRail.selfMenu": "{name}：設定和說明",
   "layout.leftRail.collapseSidebar": "收合側邊欄",
   "layout.leftRail.expandSidebar": "展開側邊欄",
   // Personal assistant (RFC 075 v4).

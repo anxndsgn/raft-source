@@ -1,5 +1,5 @@
 import { forwardRef, useCallback } from "react";
-import { AppRailItem, AppRailItemAttention, AppRailItemBadge, AppRailItemIcon, AppRailItemLabel } from "@botiverse/raft-ui";
+import { AppRailItem, AppRailItemAttention, AppRailItemIcon, AppRailItemLabel } from "@botiverse/raft-ui";
 
 import Tooltip from "../ui/Tooltip";
 
@@ -21,7 +21,7 @@ type RailTabButtonProps = Omit<
   label: string;
   active: boolean;
   showDot?: boolean;
-  /** A count instead of the dot (the inbox's unread). */
+  /** The inbox's unread count: shown as the dot (Raft redesign). */
   badgeCount?: number;
   dotInactiveOnly?: boolean;
   dotTooltip?: string;
@@ -78,9 +78,8 @@ export const RailTabButton = forwardRef<HTMLButtonElement, RailTabButtonProps>(f
     >
       <AppRailItemIcon className="relative">
         {icon}
-        {badgeCount && badgeCount > 0 ? (
-          <AppRailItemBadge data-testid={testId ? `${testId}-badge` : undefined}>{Math.min(badgeCount, 99)}</AppRailItemBadge>
-        ) : dotVisible ? (
+        {/* Raft redesign: a rail item shows the dot only, never a number; the count is in the place it opens. */}
+        {(badgeCount && badgeCount > 0) || dotVisible ? (
           <AppRailItemAttention title={dotTooltip ?? label} />
         ) : null}
       </AppRailItemIcon>

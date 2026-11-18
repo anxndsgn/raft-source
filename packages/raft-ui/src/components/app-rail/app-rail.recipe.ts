@@ -59,6 +59,8 @@ export const appRail = tv({
       "bg-attention-400 text-sticker-ink inset-ring-[1.5px] inset-ring-sticker-ink ring-[1.5px] ring-sticker-edge",
       "font-mono text-[10px] font-bold leading-4 tabular-nums",
     ],
-    itemIndicator: ["pointer-events-none absolute", "-top-1 -right-1"],
+    // The attention dot (Raft redesign, Figma 精修 · 组件化 Rail): 8px of the
+    // unread colour, no edge, at the icon's top right corner.
+    itemIndicator: ["pointer-events-none absolute", "top-0 -right-0.5", "border-0 rounded-sticker"],
   },
 });
