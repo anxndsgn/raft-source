@@ -1,5 +1,5 @@
 import { LeaveChannelIcon, LeaveJointChannelIcon, LeavePrivateChannelIcon } from "@botiverse/ricons";
-import type { ReactNode, SVGProps } from "react";
+import type { ReactNode } from "react";
 import { RIcon } from "../../icons/raftIcons";
 import { useIntl } from "react-intl";
 import type { Channel } from "../../store/channelStore";
@@ -80,36 +80,12 @@ function KindGlyph({ name, size, className }: { name: "hash" | "lock" | "git-bra
 
 /**
  * An external channel: one with Guests, guest servers or pending external
- * invites (cindyz 10-30, #wg-rbac:0829b5df, option A right; Q12 A): lucide's
- * lock, shrunk into the top-left cells, with an arrow pointing out of the
- * bottom-right corner, the same construction as the # + globe. One glyph, one
- * variant: external channels are always private.
+ * invites (cindyz 10-30, #wg-rbac:0829b5df, option A right; Q12 A): a lock
+ * with an arrow pointing out of its bottom-right corner, Raft's own
+ * lock-external. One glyph, one variant: external channels are always private.
  */
-const EXTERNAL_CHANNEL_PATH = "M3 9.5h9a1.5 1.5 0 0 1 1.5 1.5v0M3 9.5a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 3 17.5h5.5M4.5 9.5V6.5a3.5 3.5 0 0 1 7 0v3M13 21 21 13M15.5 13H21v5.5";
-
 export function ExternalChannelIcon({ size = CHANNEL_KIND_ICON_SIZE, className }: { size?: number; className?: string }) {
-  return <SinglePathIcon name="external-channel" d={EXTERNAL_CHANNEL_PATH} size={size} className={className} />;
-}
-
-/** A lucide-style stroke icon in one path; keeps lucide's classes, which tests and styles select. */
-function SinglePathIcon({ name, d, size, className }: { name: string; d: string; size: number; className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      className={`lucide lucide-${name}${className ? ` ${className}` : ""}`}
-    >
-      <path d={d} />
-    </svg>
-  );
+  return <RIcon name="lock-external" width={size} height={size} className={`lucide lucide-external-channel${className ? ` ${className}` : ""}`} />;
 }
 
 /** The external glyph with its meaning as text, like the # + globe (one glyph, a native tooltip, a screen-reader phrase). */
@@ -166,36 +142,10 @@ function MeaningfulGlyph({ label, children }: { label: string; children: ReactNo
 }
 
 /**
- * One glyph, not two stacked icons (cindyz): lucide's # with its bottom-right
- * cell given over to a larger Globe (circle, meridian, equator); the hash
- * strokes stop short of it, so the two read as one mark at 14px. Every stroke
- * is 2 units, like lucide's own #: a thinner globe stroke rendered as grey
- * partial pixels with solid dots where lines cross (cindyz: crossings looked
- * darker).
+ * One glyph, not two stacked icons (cindyz): a # with its bottom-right cell
+ * given over to a globe, Raft's own hash-globe, its body as large as the
+ * plain #, so the two align in a list.
  */
-function HashGlobeIcon({ size, ...props }: { size: number } & Omit<SVGProps<SVGSVGElement>, "ref">) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-      data-on-public-page=""
-      {...props}
-    >
-      <line x1="2.5" x2="15" y1="8" y2="8" />
-      <line x1="2.5" x2="8" y1="14" y2="14" />
-      <line x1="8.5" x2="7" y1="2.5" y2="17" />
-      <line x1="13.5" x2="13" y1="2.5" y2="8" />
-      <circle cx="16.5" cy="16.5" r="6.5" />
-      <path d="M16.5 10a9 9 0 0 0 0 13 9 9 0 0 0 0-13" />
-      <path d="M10 16.5h13" />
-    </svg>
-  );
+function HashGlobeIcon({ size, className }: { size: number; className?: string }) {
+  return <RIcon name="hash-globe" width={size} height={size} className={className} data-on-public-page="" />;
 }
