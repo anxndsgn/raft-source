@@ -47,6 +47,45 @@
    class, so it costs WebKit no ancestor dependency on unrelated elements. */
 @custom-variant keyboard (&:not(:where(:root[data-input-modality="pointer"] *)));
 
+/* Shape and accent: two settings of their own, independent of light / dark
+   (the `.light` / `.dark` classes) and of the server theme (`data-theme`).
+   Both go on the root element.
+
+   Shape (Figma 精修 · 组件化, Shape): square is the default, `data-shape=
+   "rounded"` the other mode. Figma's names map to these as radius/badge ->
+   sticker and chip, radius/control -> control, radius/card -> container and
+   dialog, radius/island -> island; radius/pill stays round in both. The
+   control and bar-button corners (foundation.css, which sizes them per
+   device) follow the same switch.
+
+   Accent (Figma 精修 · 组件化, Accent): the frame colour. Yellow is the
+   default (foundation.css's accent tokens); `data-accent="green" | "blue"`
+   picks another. Dark mode reads accent-frame-dim. Declared after
+   foundation.css and unlayered, so these win over its root values. */
+:root,
+[data-shape="square"] {
+  --control-radius: 0px;
+  --bar-button-radius: 0px;
+}
+[data-shape="rounded"] {
+  --radius-sticker: 2px;
+  --radius-chip: 2px;
+  --radius-control: 4px;
+  --radius-container: 6px;
+  --radius-dialog: 6px;
+  --radius-island: 8px;
+  --control-radius: 4px;
+  --bar-button-radius: 4px;
+}
+[data-accent="green"] {
+  --accent-frame: oklch(0.8187 0.1296 152.81);
+  --accent-frame-dim: oklch(0.6388 0.0905 153.52);
+}
+[data-accent="blue"] {
+  --accent-frame: oklch(0.8071 0.1007 250.45);
+  --accent-frame-dim: oklch(0.6529 0.078 253.22);
+}
+
 @theme {
   --color-black: oklch(0 0 0);
   --color-white: oklch(1 0 0);
@@ -77,11 +116,17 @@
      completion control and the Android pull-to-refresh disc. A frame keeps
      its radius whatever it holds: the element keeps its own, and the space
      around it adapts (design/foundations/shape.md#inside-a-frame). */
-  --radius-sticker: 4px;
-  --radius-chip: 6px;
-  --radius-control: 8px;
-  --radius-container: 10px;
-  --radius-dialog: 16px;
+  /* Raft redesign (Figma 精修 · 组件化, Shape): square by default, every corner
+     0; `data-shape="rounded"` on the root picks the rounded set (see "Shape
+     and accent" below). island = the main area, workspace and preview
+     islands; pill = filter pills and the floating pill, round in both. */
+  --radius-sticker: 0px;
+  --radius-chip: 0px;
+  --radius-control: 0px;
+  --radius-container: 0px;
+  --radius-dialog: 0px;
+  --radius-island: 0px;
+  --radius-pill: 999px;
 
   /* Raft Design System type styles (size / line-height / weight). Grotesk is
      what people say; pair the mono styles with `font-mono` for what machines
@@ -239,6 +284,7 @@
   --color-foreground: var(--foreground);
   --color-foreground-muted: var(--foreground-muted);
   --color-foreground-hint: var(--foreground-hint);
+  --color-foreground-faint: var(--foreground-faint);
   --color-foreground-disabled: var(--foreground-disabled);
   --color-foreground-inverse: var(--foreground-inverse);
   --color-foreground-active: var(--foreground-active);
@@ -260,6 +306,10 @@
 
   --color-line-strong: var(--line-strong);
   --color-line-hairline: var(--line-hairline);
+  --color-line-subtle: var(--line-subtle);
+  --color-line-floating: var(--line-floating);
+  --color-line-frame: var(--line-frame);
+  --color-line-divider-faint: var(--line-divider-faint);
   --color-line-field: var(--line-field);
   --color-line-field-hover: var(--line-field-hover);
 

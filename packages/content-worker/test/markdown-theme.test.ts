@@ -72,26 +72,26 @@ test("each variable falls back to the table's light value, so the names and valu
   assert.deepEqual([...new Set(variables.map(({ name }) => name))].sort(), Object.keys(ARTIFACT_PAGE_THEME_VARIABLES).sort(), "the table carries nothing the page doesn't draw with");
 });
 
-test("with no theme the page is drawn in the values it always was", () => {
+test("with no theme the page is drawn in raft-ui's light values (the 2026-11 redesign's since then)", () => {
   const css = replaced(styleOf(renderMarkdownToHtml(DOCUMENT, "Doc")), ({ fallback }) => fallback);
-  const ink = "oklch(0.1813 0.005 17.62)";
+  const ink = "oklch(0.2228 0.0025 67.7)";
   for (const rule of [
     `body { margin: 0; background: #fff; color: ${ink};`,
     ".doc { background: #fff;",
-    "nav.outline { border-left: 1px solid oklch(0.1813 0.005 17.62 / 0.149);",
-    "color: oklch(0.1813 0.005 17.62 / 0.62); margin-bottom: 0.5rem;",
-    "color: oklch(0.1813 0.005 17.62 / 0.678); text-decoration: none;",
-    ".doc :not(pre) > code { padding: 0 .25rem; border-radius: 4px; background: oklch(0.9642 0 0);",
+    "nav.outline { border-left: 1px solid oklch(0 0 0 / 0.102);",
+    "color: oklch(0.7065 0.0093 84.58); margin-bottom: 0.5rem;",
+    "color: oklch(0.5184 0.0086 80.7); text-decoration: none;",
+    ".doc :not(pre) > code { padding: 0 .25rem; border-radius: 4px; background: oklch(0.9611 0.0041 91.45);",
     `border-radius: 10px; background: #fff; color: ${ink};`,
-    ".code-copy:hover, .code-copy:focus-visible { color: oklch(0.1813 0.005 17.62); background: oklch(0.1813 0.005 17.62 / 0.078); }",
-    "background-color: #fff; background-image: linear-gradient(45deg,oklch(0.9642 0 0) 25%,transparent 25%)",
-    ".doc th, .doc td { border-bottom: 1px solid oklch(0.1813 0.005 17.62 / 0.149);",
-    ".doc blockquote { margin: .5rem 0; border-left: 2px solid oklch(0.1813 0.005 17.62 / 0.451);",
+    ".code-copy:hover, .code-copy:focus-visible { color: oklch(0.2228 0.0025 67.7); background: oklch(0 0 0 / 0.051); }",
+    "background-color: #fff; background-image: linear-gradient(45deg,oklch(0.9611 0.0041 91.45) 25%,transparent 25%)",
+    ".doc th, .doc td { border-bottom: 1px solid oklch(0 0 0 / 0.102);",
+    ".doc blockquote { margin: .5rem 0; border-left: 2px solid oklch(0 0 0 / 0.102);",
     ".doc a { color: oklch(0.4878 0.2432 264.4);",
     `accent-color: ${ink};`,
     "overflow: hidden; background: #fff; }",
     `.mermaid-tab.is-active { background: oklch(0.883 0.162 91.89); color: ${ink}; box-shadow: inset 0 0 0 1.5px ${ink}; }`,
-    ".mermaid-alert { margin: 0; border-top: 1px solid oklch(0.1813 0.005 17.62 / 0.149); background: oklch(0.9413 0.0275 40.2);",
+    ".mermaid-alert { margin: 0; border-top: 1px solid oklch(0 0 0 / 0.102); background: oklch(0.9413 0.0275 40.2);",
     "background: rgba(0,0,0,.85); }",
     "border-radius: 16px; background: #fff;",
   ]) assert.ok(css.includes(rule), rule);
@@ -116,7 +116,7 @@ test("the card is screen only, from a wide page, and every rule of it asks for t
   for (const rule of [
     ":root[data-raft-card] body { background: #fff; }",
     ":root[data-raft-card] .page { padding: 2.5rem 2rem; }",
-    ":root[data-raft-card] .doc { border: 1px solid oklch(0.1813 0.005 17.62 / 0.149); border-radius: 10px; background: #fff; padding: 3rem 2.5rem; }",
+    ":root[data-raft-card] .doc { border: 1px solid oklch(0 0 0 / 0.102); border-radius: 10px; background: #fff; padding: 3rem 2.5rem; }",
     ":root[data-raft-card] .doc img { background-color: #fff; }",
   ]) assert.ok(card.includes(rule), rule);
   // Nowhere else: narrower (a phone, a medium page) there is no tinted ground, no sheet and none of

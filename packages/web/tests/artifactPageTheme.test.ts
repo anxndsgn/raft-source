@@ -43,8 +43,10 @@ test("a theme overrides those tokens with colours too, and the theme's decor is 
 test("the fallbacks are Raft Yellow's light values, but for those the page's look kept apart", () => {
   // Older values the page has always shown: a theme's own replace them, a page with none keeps them.
   // The sidebar's is white so that a page with no theme has no ground to draw a card on.
-  const kept = new Set<ArtifactPageToken>(["--foreground-link", "--layer-backdrop", "--brand-400", "--layer-sidebar"]);
-  const white = new Set<ArtifactPageToken>(["--layer-canvas", "--layer-card", "--layer-code"]);
+  // The card and code surfaces too: since the 2026-11 redesign raft-ui's are a grey tint on the
+  // white island, while a page keeps its white sheet and code.
+  const kept = new Set<ArtifactPageToken>(["--foreground-link", "--layer-backdrop", "--brand-400", "--layer-sidebar", "--layer-card", "--layer-code"]);
+  const white = new Set<ArtifactPageToken>(["--layer-canvas"]);
   for (const token of Object.keys(ARTIFACT_PAGE_COLORS) as ArtifactPageToken[]) {
     if (kept.has(token)) continue;
     if (white.has(token)) {

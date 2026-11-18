@@ -139,6 +139,9 @@
   --palette-cream-800: oklch(0.396 0.082 95);
   --palette-cream-900: oklch(0.276 0.057 95.1);
   --palette-cream-950: oklch(0.19 0.039 94.7);
+  --accent-frame: oklch(0.8826 0.1648 92.22);
+  --accent-frame-dim: oklch(0.6681 0.1157 92.14);
+  --accent-on-frame: oklch(0.2228 0.0025 67.7);
   --fade-edge: 24px;
   --fade-content: 48px;
   --opacity-dimmed: 0.6;
@@ -155,51 +158,53 @@
 .light {
   color-scheme: light;
 
-  --foreground: oklch(0.1813 0.005 17.62);
-  --foreground-muted: oklch(0.1813 0.005 17.62 / 0.678);
-  --foreground-hint: oklch(0.1813 0.005 17.62 / 0.62);
+  --foreground: oklch(0.2228 0.0025 67.7);
+  --foreground-muted: oklch(0.5184 0.0086 80.7);
+  --foreground-hint: oklch(0.7065 0.0093 84.58);
   --foreground-disabled: oklch(0.1813 0.005 17.62 / 0.302);
   --foreground-inverse: oklch(1 0 0);
   --foreground-on-hud: oklch(0.9647 0.0027 286.35);
   /* Secondary text on the HUD: the shortcut in a tooltip, the detail line of a
      toast. */
   --foreground-on-hud-muted: oklch(0.9647 0.0027 286.35 / 0.7);
-  --foreground-on-frame: var(--sticker-ink);
-  --foreground-on-frame-muted: oklch(0.4082 0.0679 93.96);
+  --foreground-on-frame: var(--accent-on-frame);
+  --foreground-on-frame-muted: oklch(0.2228 0.0025 67.7 / 0.702);
   --foreground-on-frame-active: var(--sticker-ink);
-  --foreground-link: oklch(0.4327 0.1282 256.54);
+  --foreground-link: oklch(0.6231 0.188 259.81);
+  /* Fainter than hint: the date divider label (Figma color/foreground/faint). */
+  --foreground-faint: oklch(0.8761 0 0);
   --layer-canvas: oklch(1 0 0);
-  --layer-sidebar: oklch(0.986 0.0154 86.42);
+  --layer-sidebar: oklch(1 0 0);
   --layer-popover: oklch(1 0 0);
-  --layer-backdrop: oklch(0 0 0 / 0.651);
+  --layer-backdrop: oklch(0.2228 0.0025 67.7 / 0.251);
   --layer-backdrop-nested: oklch(0 0 0 / 0.4);
   /* The cover over something busy or loading in place: an image uploading or
      that failed, a preview being prepared. The page at 80%, so what is under it
      shows through, dimmed, and a default-colour Spinner on it reads in both
      modes. Translucent by contract, like the two backdrops. */
   --layer-veil: oklch(1 0 0 / 0.8);
-  --layer-card: oklch(1 0 0);
+  --layer-card: oklch(0.9612 0 0);
   --layer-hud: oklch(0.2634 0.0093 294.92);
-  --layer-frame: oklch(0.8829 0.1623 91.9);
+  --layer-frame: var(--accent-frame);
   --layer-frame-active: oklch(1 0 0);
-  --layer-code: oklch(1 0 0);
-  --fill-muted: oklch(0.9642 0 0);
+  --layer-code: oklch(0.9611 0.0041 91.45);
+  --fill-muted: oklch(0.9611 0.0041 91.45);
   --fill-strong: oklch(0.936 0.0006 17.62);
   /* Hover tier subtle (light): hover on large things people read, a row, a
      message, a readable card, and a row whose menu is open. About 2.5 to 3 OKLab
      dE in both modes, on paper, the sidebar and cards alike, under every
      selection tint, so text keeps its contrast. */
-  --fill-subtle: oklch(0.1813 0.005 17.62 / 0.04);
+  --fill-subtle: oklch(0.2228 0.0025 67.7 / 0.031);
   /* Hover tier medium: hover on small controls (buttons, icon buttons, chips,
      tabs, segment items) and press on everything, on paper-coloured surfaces.
      About 5.5 to 6.5 OKLab dE; dark is lighter than light because the same ink
      alpha shows more on a dark surface. */
-  --fill-medium: oklch(0.1813 0.005 17.62 / 0.078);
+  --fill-medium: oklch(0 0 0 / 0.051);
   /* Hover tier medium on the frame (rail items, on-frame buttons, the workspace
      button): hover and press. Its own alphas because ink shows differently on
      the yellow and on the near-black frame: 10% on the yellow and 6% on the dark
      frame land on the medium step, about 6 OKLab dE. */
-  --fill-frame-medium: oklch(0.1813 0.005 17.62 / 0.1);
+  --fill-frame-medium: oklch(0.2228 0.0025 67.7 / 0.078);
   /* A list cell's hover and its menu-open fill (lib/list-cell.ts), drawn on the
      cell's inset shape. fill-subtle in light. In dark it steps up to 7.5% ink,
      so the rounded shape reads on a dark surface, where fill-subtle's 3% barely
@@ -215,9 +220,17 @@
      hovered one. */
   --fill-cell-selected: var(--info-soft);
   --line-strong: oklch(0.1813 0.005 17.62);
-  --line-seam: oklch(0.1813 0.005 17.62 / 0.451);
-  --line-hairline: oklch(0.1813 0.005 17.62 / 0.149);
-  --line-frame-active: var(--sticker-ink);
+  --line-seam: oklch(0 0 0 / 0.102);
+  --line-hairline: oklch(0 0 0 / 0.102);
+  --line-frame-active: oklch(0 0 0 / 0);
+  /* Pill and chip outlines (Figma color/line/subtle). */
+  --line-subtle: oklch(0 0 0 / 0.051);
+  /* The floating pill (typing indicator) (Figma color/line/floating). */
+  --line-floating: var(--line-hairline);
+  /* Island outline, open-item marker (Figma color/line/frame). */
+  --line-frame: oklch(0.2228 0.0025 67.7);
+  /* The date divider line (Figma color/line/divider-faint). */
+  --line-divider-faint: oklch(0.8761 0 0);
   --ink-2: oklch(0.1813 0.005 17.62 / 0.02);
   --ink-4: oklch(0.1813 0.005 17.62 / 0.04);
   --ink-6: oklch(0.1813 0.005 17.62 / 0.06);
@@ -298,8 +311,8 @@
   --warning-active: var(--warning-hover);
   /* danger = the destructive sticker (red fill, ink type); danger-strong is the
      error ink for invalid fields and destructive menu items. */
-  --danger: oklch(0.711 0.1682 28.04);
-  --danger-foreground: var(--sticker-ink);
+  --danger: oklch(0.6256 0.1933 23.03);
+  --danger-foreground: oklch(1 0 0);
   --danger-strong: oklch(0.5154 0.1715 32.56);
   --danger-muted: var(--palette-red-200);
   --danger-soft: oklch(0.9259 0.0344 20);
@@ -314,7 +327,7 @@
   --task-status-in-progress: oklch(0.7833 0.1353 219.21);
   --task-status-in-progress-soft: oklch(0.9452 0.0326 226.3);
   --task-status-in-progress-strong: var(--palette-cyan-800);
-  --task-status-in-review: oklch(0.783 0.0783 294.53);
+  --task-status-in-review: oklch(0.8826 0.1648 92.22);
   --task-status-in-review-soft: oklch(0.9492 0.0176 296.63);
   --task-status-in-review-strong: var(--palette-lavender-800);
   --task-status-done: oklch(0.8272 0.1354 130.07);
@@ -451,9 +464,9 @@
   /* How far a timeline row's hover and selected highlight reaches above and
      below its text. Two rows of one turn sit two insets apart. */
   --timeline-row-inset: 4px;
-  --sticker-ink: oklch(0.1813 0.005 17.62);
+  --sticker-ink: oklch(0.2228 0.0025 67.7);
   --sticker-paper: oklch(1 0 0);
-  --sticker-edge: oklch(0.1813 0.005 17.62 / 0);
+  --sticker-edge: oklch(0 0 0 / 0);
   /* Hover tier medium on a colour sticker (primary, warning and danger buttons,
      colour badges, the selected segment on press): hover and press, 10% ink in
      both modes. */
@@ -462,16 +475,16 @@
      sidebar header): hover, press and open, 6% paper in both modes, since ink
      laid over ink doesn't show. */
   --sticker-ink-medium: oklch(1 0 0 / 0.06);
-  --presence-online: oklch(0.8272 0.1354 130.07);
+  --presence-online: oklch(0.6084 0.1336 152.59);
   /* Yellow for an agent at work, and for Status variant="primary". The value of
      brand in Raft Yellow, but its own, so a theme that grays the brand (Boring
      Gray) keeps a working agent yellow. */
-  --presence-busy: oklch(0.8829 0.1623 91.9);
+  --presence-busy: oklch(0.6231 0.188 259.81);
   /* The tint of the Working chip (Badge variant="busy"). The value of brand-soft
      in Raft Yellow, but its own, so Boring Gray keeps it yellow. */
-  --presence-busy-soft: oklch(0.9547 0.0674 93.62);
-  --presence-error: oklch(0.7855 0.1227 50.11);
-  --presence-offline: oklch(0.7892 0.0137 71.29);
+  --presence-busy-soft: oklch(0.6231 0.188 259.81 / 0.122);
+  --presence-error: oklch(0.7083 0.1503 53.08);
+  --presence-offline: oklch(0.7065 0.0093 84.58);
   --presence-external: oklch(0.7833 0.1353 219.21);
   /* The check after a mention once the agent mentioned has read the message
      (MessageReferenceReadMark). A bare check has no ink box around it, so it
@@ -486,38 +499,42 @@
 .dark {
   color-scheme: dark;
 
-  --foreground: oklch(0.9211 0.004 106.48);
-  --foreground-muted: oklch(0.8195 0.0041 106.49);
-  --foreground-hint: oklch(0.6984 0.0043 106.51);
+  --foreground: oklch(0.9611 0.0041 91.45);
+  --foreground-muted: oklch(0.7065 0.0093 84.58);
+  --foreground-hint: oklch(0.6236 0.0123 89.77);
   --foreground-disabled: oklch(0.4987 0.0047 106.57);
-  --foreground-inverse: oklch(0.2213 0.0038 106.71);
+  --foreground-inverse: oklch(0.2228 0.0025 67.7);
   --foreground-on-hud: oklch(0.9211 0.004 106.48);
   --foreground-on-hud-muted: var(--foreground-muted);
-  --foreground-on-frame: oklch(0.9211 0.004 106.48);
-  --foreground-on-frame-muted: oklch(0.6984 0.0043 106.51);
-  --foreground-link: oklch(0.717 0.1183 253.58);
-  --layer-canvas: oklch(0.2213 0.0038 106.71);
-  --layer-sidebar: oklch(0.1582 0.0041 106.86);
-  --layer-popover: oklch(0.2802 0.0036 106.63);
-  --layer-backdrop: oklch(0 0 0 / 0.6);
+  --foreground-on-frame: var(--accent-on-frame);
+  --foreground-on-frame-muted: oklch(0.2228 0.0025 67.7 / 0.702);
+  --foreground-link: oklch(0.7137 0.1434 254.62);
+  --foreground-faint: oklch(0.5184 0.0086 80.7);
+  --layer-canvas: oklch(0.2228 0.0025 67.7);
+  --layer-sidebar: oklch(0.2228 0.0025 67.7);
+  --layer-popover: oklch(0.2606 0.004 84.58);
+  --layer-backdrop: oklch(0 0 0 / 0.502);
   --layer-backdrop-nested: oklch(0 0 0 / 0.4);
   --layer-veil: oklch(0.2213 0.0038 106.71 / 0.8);
-  --layer-card: oklch(0.2596 0.0037 106.65);
+  --layer-card: oklch(0.2975 0.0038 84.58);
   --layer-hud: oklch(0.2802 0.0036 106.63);
-  --layer-frame: oklch(0.1582 0.0041 106.86);
-  --layer-frame-active: oklch(0.8829 0.1623 91.9);
-  --layer-code: oklch(0.154 0.0092 264.28);
-  --fill-muted: oklch(0.3161 0.0052 106.7);
+  --layer-frame: var(--accent-frame-dim);
+  --layer-frame-active: oklch(0.2228 0.0025 67.7);
+  --layer-code: oklch(0.2606 0.004 84.58);
+  --fill-muted: oklch(0.2606 0.004 84.58);
   --fill-strong: oklch(0.3474 0.0051 106.66);
-  --fill-subtle: oklch(0.9843 0.004 106.47 / 0.03);
-  --fill-medium: oklch(0.9843 0.004 106.47 / 0.065);
-  --fill-frame-medium: oklch(0.9843 0.004 106.47 / 0.06);
+  --fill-subtle: oklch(1 0 0 / 0.039);
+  --fill-medium: oklch(1 0 0 / 0.078);
+  --fill-frame-medium: oklch(0.2228 0.0025 67.7 / 0.078);
   --fill-cell-hover: oklch(0.9843 0.004 106.47 / 0.075);
   --fill-cell-press: oklch(0.9843 0.004 106.47 / 0.12);
   --fill-cell-selected: oklch(0.452 0.0862 225.67 / 0.38);
   --line-strong: oklch(0.9211 0.004 106.48);
-  --line-seam: oklch(0.9843 0.004 106.47 / 0.259);
-  --line-hairline: oklch(0.9843 0.004 106.47 / 0.102);
+  --line-seam: oklch(1 0 0 / 0.161);
+  --line-hairline: oklch(1 0 0 / 0.161);
+  --line-subtle: oklch(1 0 0 / 0.078);
+  --line-frame: oklch(0.2228 0.0025 67.7);
+  --line-divider-faint: oklch(0.3445 0.0053 91.54);
   --ink-2: oklch(0.9843 0.004 106.47 / 0.02);
   --ink-4: oklch(0.9843 0.004 106.47 / 0.04);
   --ink-6: oklch(0.9843 0.004 106.47 / 0.06);
@@ -542,6 +559,7 @@
   --warning-muted: oklch(0.55 0.13 50 / 0.28);
   --warning-soft: oklch(0.5204 0.1197 50.16 / 0.18);
   --warning-graphic: oklch(0.77 0.135 50);
+  --danger: oklch(0.6892 0.1656 20.67);
   --danger-strong: oklch(0.7996 0.1009 24.79);
   --danger-muted: oklch(0.58 0.19 29 / 0.3);
   --danger-soft: oklch(0.5509 0.1903 29.01 / 0.18);
@@ -551,7 +569,7 @@
   --task-status-todo-strong: oklch(0.82 0.12 55);
   --task-status-in-progress-soft: oklch(0.452 0.0862 225.67 / 0.18);
   --task-status-in-progress-strong: oklch(0.8 0.1 220);
-  --task-status-in-review: oklch(0.682 0.117 293.99);
+  --task-status-in-review: oklch(0.8826 0.1648 92.22);
   --task-status-in-review-soft: oklch(0.4995 0.1202 294.19 / 0.239);
   --task-status-in-review-strong: var(--palette-lavender-300);
   --task-status-done: oklch(0.714 0.176 153.03);
@@ -566,7 +584,11 @@
   --focus-ring: 0 0 0 2px oklch(0.2213 0.0038 106.71), 0 0 0 4px oklch(0.9211 0.004 106.48);
   --selection: color-mix(in oklch, var(--brand-400) 22%, transparent);
   --sticker-edge: oklch(0.9843 0.004 106.47 / 0.349);
-  --presence-busy-soft: oklch(0.5501 0.0999 91.5 / 0.2);
+  --presence-online: oklch(0.6837 0.1484 152.62);
+  --presence-busy: oklch(0.7137 0.1434 254.62);
+  --presence-busy-soft: oklch(0.7137 0.1434 254.62 / 0.2);
+  --presence-error: oklch(0.7603 0.1334 57.59);
+  --presence-offline: oklch(0.6236 0.0123 89.77);
   --read-mark: var(--presence-online);
 }
 
@@ -576,38 +598,42 @@
   :root:not(.light):not(.dark) {
     color-scheme: dark;
 
-    --foreground: oklch(0.9211 0.004 106.48);
-    --foreground-muted: oklch(0.8195 0.0041 106.49);
-    --foreground-hint: oklch(0.6984 0.0043 106.51);
+    --foreground: oklch(0.9611 0.0041 91.45);
+    --foreground-muted: oklch(0.7065 0.0093 84.58);
+    --foreground-hint: oklch(0.6236 0.0123 89.77);
     --foreground-disabled: oklch(0.4987 0.0047 106.57);
-    --foreground-inverse: oklch(0.2213 0.0038 106.71);
+    --foreground-inverse: oklch(0.2228 0.0025 67.7);
     --foreground-on-hud: oklch(0.9211 0.004 106.48);
     --foreground-on-hud-muted: var(--foreground-muted);
-    --foreground-on-frame: oklch(0.9211 0.004 106.48);
-    --foreground-on-frame-muted: oklch(0.6984 0.0043 106.51);
-    --foreground-link: oklch(0.717 0.1183 253.58);
-    --layer-canvas: oklch(0.2213 0.0038 106.71);
-    --layer-sidebar: oklch(0.1582 0.0041 106.86);
-    --layer-popover: oklch(0.2802 0.0036 106.63);
-    --layer-backdrop: oklch(0 0 0 / 0.6);
+    --foreground-on-frame: var(--accent-on-frame);
+    --foreground-on-frame-muted: oklch(0.2228 0.0025 67.7 / 0.702);
+    --foreground-link: oklch(0.7137 0.1434 254.62);
+    --foreground-faint: oklch(0.5184 0.0086 80.7);
+    --layer-canvas: oklch(0.2228 0.0025 67.7);
+    --layer-sidebar: oklch(0.2228 0.0025 67.7);
+    --layer-popover: oklch(0.2606 0.004 84.58);
+    --layer-backdrop: oklch(0 0 0 / 0.502);
     --layer-backdrop-nested: oklch(0 0 0 / 0.4);
     --layer-veil: oklch(0.2213 0.0038 106.71 / 0.8);
-    --layer-card: oklch(0.2596 0.0037 106.65);
+    --layer-card: oklch(0.2975 0.0038 84.58);
     --layer-hud: oklch(0.2802 0.0036 106.63);
-    --layer-frame: oklch(0.1582 0.0041 106.86);
-    --layer-frame-active: oklch(0.8829 0.1623 91.9);
-    --layer-code: oklch(0.154 0.0092 264.28);
-    --fill-muted: oklch(0.3161 0.0052 106.7);
+    --layer-frame: var(--accent-frame-dim);
+    --layer-frame-active: oklch(0.2228 0.0025 67.7);
+    --layer-code: oklch(0.2606 0.004 84.58);
+    --fill-muted: oklch(0.2606 0.004 84.58);
     --fill-strong: oklch(0.3474 0.0051 106.66);
-    --fill-subtle: oklch(0.9843 0.004 106.47 / 0.03);
-    --fill-medium: oklch(0.9843 0.004 106.47 / 0.065);
-    --fill-frame-medium: oklch(0.9843 0.004 106.47 / 0.06);
+    --fill-subtle: oklch(1 0 0 / 0.039);
+    --fill-medium: oklch(1 0 0 / 0.078);
+    --fill-frame-medium: oklch(0.2228 0.0025 67.7 / 0.078);
     --fill-cell-hover: oklch(0.9843 0.004 106.47 / 0.075);
     --fill-cell-press: oklch(0.9843 0.004 106.47 / 0.12);
     --fill-cell-selected: oklch(0.452 0.0862 225.67 / 0.38);
     --line-strong: oklch(0.9211 0.004 106.48);
-    --line-seam: oklch(0.9843 0.004 106.47 / 0.259);
-    --line-hairline: oklch(0.9843 0.004 106.47 / 0.102);
+    --line-seam: oklch(1 0 0 / 0.161);
+    --line-hairline: oklch(1 0 0 / 0.161);
+    --line-subtle: oklch(1 0 0 / 0.078);
+    --line-frame: oklch(0.2228 0.0025 67.7);
+    --line-divider-faint: oklch(0.3445 0.0053 91.54);
     --ink-2: oklch(0.9843 0.004 106.47 / 0.02);
     --ink-4: oklch(0.9843 0.004 106.47 / 0.04);
     --ink-6: oklch(0.9843 0.004 106.47 / 0.06);
@@ -632,6 +658,7 @@
     --warning-muted: oklch(0.55 0.13 50 / 0.28);
     --warning-soft: oklch(0.5204 0.1197 50.16 / 0.18);
     --warning-graphic: oklch(0.77 0.135 50);
+    --danger: oklch(0.6892 0.1656 20.67);
     --danger-strong: oklch(0.7996 0.1009 24.79);
     --danger-muted: oklch(0.58 0.19 29 / 0.3);
     --danger-soft: oklch(0.5509 0.1903 29.01 / 0.18);
@@ -641,7 +668,7 @@
     --task-status-todo-strong: oklch(0.82 0.12 55);
     --task-status-in-progress-soft: oklch(0.452 0.0862 225.67 / 0.18);
     --task-status-in-progress-strong: oklch(0.8 0.1 220);
-    --task-status-in-review: oklch(0.682 0.117 293.99);
+    --task-status-in-review: oklch(0.8826 0.1648 92.22);
     --task-status-in-review-soft: oklch(0.4995 0.1202 294.19 / 0.239);
     --task-status-in-review-strong: var(--palette-lavender-300);
     --task-status-done: oklch(0.714 0.176 153.03);
@@ -656,7 +683,11 @@
     --focus-ring: 0 0 0 2px oklch(0.2213 0.0038 106.71), 0 0 0 4px oklch(0.9211 0.004 106.48);
     --selection: color-mix(in oklch, var(--brand-400) 22%, transparent);
     --sticker-edge: oklch(0.9843 0.004 106.47 / 0.349);
-    --presence-busy-soft: oklch(0.5501 0.0999 91.5 / 0.2);
+    --presence-online: oklch(0.6837 0.1484 152.62);
+    --presence-busy: oklch(0.7137 0.1434 254.62);
+    --presence-busy-soft: oklch(0.7137 0.1434 254.62 / 0.2);
+    --presence-error: oklch(0.7603 0.1334 57.59);
+    --presence-offline: oklch(0.6236 0.0123 89.77);
     --read-mark: var(--presence-online);
   }
 }
@@ -670,8 +701,8 @@
 .dark {
   --foreground-active: var(--foreground);
   --foreground-hover: var(--foreground);
-  --line-field: var(--line-strong);
-  --line-field-hover: var(--line-strong);
+  --line-field: var(--line-hairline);
+  --line-field-hover: oklch(0.2228 0.0025 67.7 / 0.251);
 }
 
 /* Desktop: from 768px (Tailwind's `md`, where the desktop layout begins)
