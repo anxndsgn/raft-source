@@ -262,4 +262,3 @@ export const Zap = make("zap", "zap");
 export const CalendarDays = make("calendar-days", "calendar-days");
 export const ArrowUpDown = make("arrow-up-down", "arrow-up-down");
 export const LoaderCircle = make("loader-circle", "loader-circle");
-export const ThumbsUp = make("thumbs-up", "thumbs-up");
