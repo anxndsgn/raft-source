@@ -102,6 +102,7 @@
   --foreground-on-frame: oklch(0.96 0.01 90);
   --foreground-on-frame-muted: oklch(0.80 0.02 90);
   --layer-frame-active: var(--brand-400);
+  --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
   --layer-canvas: oklch(0.235 0.02 240);
   --layer-sidebar: oklch(0.205 0.022 240);
@@ -115,6 +116,7 @@
     --foreground-on-frame: oklch(0.96 0.01 90);
     --foreground-on-frame-muted: oklch(0.80 0.02 90);
     --layer-frame-active: var(--brand-400);
+    --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
     --layer-canvas: oklch(0.235 0.02 240);
     --layer-sidebar: oklch(0.205 0.022 240);
@@ -145,6 +147,7 @@
   --foreground-on-frame: oklch(0.96 0.01 90);
   --foreground-on-frame-muted: oklch(0.80 0.02 90);
   --layer-frame-active: var(--brand-400);
+  --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
   --layer-canvas: oklch(0.235 0.02 60);
   --layer-sidebar: oklch(0.205 0.022 60);
@@ -158,6 +161,7 @@
     --foreground-on-frame: oklch(0.96 0.01 90);
     --foreground-on-frame-muted: oklch(0.80 0.02 90);
     --layer-frame-active: var(--brand-400);
+    --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
     --layer-canvas: oklch(0.235 0.02 60);
     --layer-sidebar: oklch(0.205 0.022 60);
@@ -178,6 +182,7 @@
   --foreground-on-frame: oklch(0.96 0.01 90);
   --foreground-on-frame-muted: oklch(0.80 0.02 90);
   --layer-frame-active: var(--brand-400);
+  --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
   --layer-sidebar: oklch(0.985 0.012 293);
 }
@@ -187,6 +192,7 @@
   --foreground-on-frame: oklch(0.96 0.01 90);
   --foreground-on-frame-muted: oklch(0.80 0.02 90);
   --layer-frame-active: var(--brand-400);
+  --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
   --layer-canvas: oklch(0.235 0.035 293);
   --layer-sidebar: oklch(0.205 0.039 293);
@@ -200,6 +206,7 @@
     --foreground-on-frame: oklch(0.96 0.01 90);
     --foreground-on-frame-muted: oklch(0.80 0.02 90);
     --layer-frame-active: var(--brand-400);
+    --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
     --layer-canvas: oklch(0.235 0.035 293);
     --layer-sidebar: oklch(0.205 0.039 293);
@@ -230,6 +237,7 @@
   --foreground-on-frame: oklch(0.96 0.01 90);
   --foreground-on-frame-muted: oklch(0.80 0.02 90);
   --layer-frame-active: var(--brand-400);
+  --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
   --layer-canvas: oklch(0.235 0.02 75);
   --layer-sidebar: oklch(0.205 0.022 75);
@@ -243,6 +251,7 @@
     --foreground-on-frame: oklch(0.96 0.01 90);
     --foreground-on-frame-muted: oklch(0.80 0.02 90);
     --layer-frame-active: var(--brand-400);
+    --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
     --layer-canvas: oklch(0.235 0.02 75);
     --layer-sidebar: oklch(0.205 0.022 75);
@@ -273,6 +282,7 @@
   --foreground-on-frame: oklch(0.96 0.01 90);
   --foreground-on-frame-muted: oklch(0.80 0.02 90);
   --layer-frame-active: var(--brand-400);
+  --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
   --layer-canvas: oklch(0.235 0.025 355);
   --layer-sidebar: oklch(0.205 0.028 355);
@@ -286,6 +296,7 @@
     --foreground-on-frame: oklch(0.96 0.01 90);
     --foreground-on-frame-muted: oklch(0.80 0.02 90);
     --layer-frame-active: var(--brand-400);
+    --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
     --layer-canvas: oklch(0.235 0.025 355);
     --layer-sidebar: oklch(0.205 0.028 355);
@@ -306,6 +317,7 @@
   --foreground-on-frame: oklch(0.96 0.01 90);
   --foreground-on-frame-muted: oklch(0.80 0.02 90);
   --layer-frame-active: var(--brand-400);
+  --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
   --layer-sidebar: oklch(0.985 0.012 25);
 }
@@ -315,6 +327,7 @@
   --foreground-on-frame: oklch(0.96 0.01 90);
   --foreground-on-frame-muted: oklch(0.80 0.02 90);
   --layer-frame-active: var(--brand-400);
+  --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
   --layer-canvas: oklch(0.235 0.03 25);
   --layer-sidebar: oklch(0.205 0.033 25);
@@ -328,6 +341,7 @@
     --foreground-on-frame: oklch(0.96 0.01 90);
     --foreground-on-frame-muted: oklch(0.80 0.02 90);
     --layer-frame-active: var(--brand-400);
+    --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
     --layer-canvas: oklch(0.235 0.03 25);
     --layer-sidebar: oklch(0.205 0.033 25);
@@ -358,6 +372,7 @@
   --foreground-on-frame: oklch(0.96 0.01 90);
   --foreground-on-frame-muted: oklch(0.80 0.02 90);
   --layer-frame-active: var(--brand-400);
+  --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
   --layer-canvas: oklch(0.235 0.03 245);
   --layer-sidebar: oklch(0.205 0.033 245);
@@ -373,6 +388,7 @@
     --foreground-on-frame: oklch(0.96 0.01 90);
     --foreground-on-frame-muted: oklch(0.80 0.02 90);
     --layer-frame-active: var(--brand-400);
+    --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
     --layer-canvas: oklch(0.235 0.03 245);
     --layer-sidebar: oklch(0.205 0.033 245);
@@ -405,6 +421,7 @@
   --foreground-on-frame: oklch(0.96 0.01 90);
   --foreground-on-frame-muted: oklch(0.80 0.02 90);
   --layer-frame-active: var(--brand-400);
+  --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
   --layer-canvas: oklch(0.235 0.025 158);
   --layer-sidebar: oklch(0.205 0.028 158);
@@ -418,6 +435,7 @@
     --foreground-on-frame: oklch(0.96 0.01 90);
     --foreground-on-frame-muted: oklch(0.80 0.02 90);
     --layer-frame-active: var(--brand-400);
+    --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
     --layer-canvas: oklch(0.235 0.025 158);
     --layer-sidebar: oklch(0.205 0.028 158);
@@ -448,6 +466,7 @@
   --foreground-on-frame: oklch(0.96 0.01 90);
   --foreground-on-frame-muted: oklch(0.80 0.02 90);
   --layer-frame-active: var(--brand-400);
+  --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
   --layer-canvas: oklch(0.235 0.03 300);
   --layer-sidebar: oklch(0.205 0.033 300);
@@ -463,6 +482,7 @@
     --foreground-on-frame: oklch(0.96 0.01 90);
     --foreground-on-frame-muted: oklch(0.80 0.02 90);
     --layer-frame-active: var(--brand-400);
+    --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
     --layer-canvas: oklch(0.235 0.03 300);
     --layer-sidebar: oklch(0.205 0.033 300);
