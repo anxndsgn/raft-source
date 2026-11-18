@@ -197,8 +197,8 @@ export const messageItem = tv({
       "data-popup-open:bg-fill-medium data-active:text-foreground",
       "outline-none focus-visible:shadow-focus",
       "[&_svg]:size-4",
-      // Raft redesign: 28px round buttons, a 20px icon, the subtle fill on hover.
-      "md:pointer-fine:size-7 md:pointer-fine:rounded-full md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:[&_svg]:size-5",
+      // Raft redesign: 28px round buttons, a 16px icon (anxndsgn 11/18), the subtle fill on hover.
+      "md:pointer-fine:size-7 md:pointer-fine:rounded-full md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:[&_svg]:size-4",
     ],
   },
   variants: {
