@@ -21,6 +21,7 @@ function make(name: RIconName, lucideName: string) {
   return C;
 }
 
+export const Blocks = make("blocks", "blocks");
 export const CircleHelp = make("help", "circle-help");
 export const HelpCircle = make("help", "circle-help");
 export const PanelLeftClose = make("panel-left-close", "panel-left-close");
