@@ -2457,6 +2457,7 @@ export default function MainLayout() {
   // its chrome to this bar (topBarHostContext.ts) gets it at any width: the
   // row is then the window's title bar and drag region.
   const showTopBar = useShowsTopBar(isDesktop);
+  const headSidebarToggle = sidebarCollapsible && isDesktop && !hideSidebar && !mobileShowSidebarInline ? collapseColumn : null;
 
   return (
     <ShellFrame
@@ -2464,7 +2465,7 @@ export default function MainLayout() {
       showTopBar={showTopBar}
       topEdgeSurface={topEdgeSurface}
       sidebarCollapsible={sidebarCollapsible}
-      sidebarOpen={!sidebarHidden}
+      sidebarOpen={!sidebarHidden} sidebarToggle={headSidebarToggle}
       onSidebarOpenChange={handleSidebarOpenChange}
       topStrip={<OpenInAppOffers slot="top" />}
       bottomStrip={<OpenInAppOffers slot="bottom" />}
@@ -2575,7 +2576,7 @@ export default function MainLayout() {
             data-main-column=""
             data-otter-dock="conversation"
           >
-            <RowColumnSlotContext.Provider value={rowColumnSlot}><MainHeadSidebarToggleContext.Provider value={sidebarCollapsible && isDesktop && !hideSidebar && !mobileShowSidebarInline ? collapseColumn : null}>
+            <RowColumnSlotContext.Provider value={rowColumnSlot}><MainHeadSidebarToggleContext.Provider value={headSidebarToggle}>
             <Routes location={backgroundLocation ?? location}>
               <Route path="channel/:channelId" element={<ChannelRoute />} />
               <Route path="channel/:channelId/search" element={<ConversationSearchRoute kind="channel" />} />

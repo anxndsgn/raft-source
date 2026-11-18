@@ -4,6 +4,8 @@ import { DESKTOP_SHELL_QUERY } from "./desktopShell";
 import type { ReactNode } from "react";
 import { AppShellIsland, AppShellIslandRow, AppShellMainSlot, AppShellRailSlot, AppShellRoot } from "@botiverse/raft-ui";
 import { ShellWorkspaceIslandContext } from "./rowColumnSlot";
+import { ShellSidebarToggleContext } from "./sidebarToggle";
+import type { SidebarSlotColumn } from "./sidebarToggle";
 import { useArtifactViewerStore } from "../../apps/artifacts/artifactViewerStore";
 import { ShellTopBar } from "../topbar/ShellTopBar";
 import PwaInstallPrompt from "../pwa/PwaInstallPrompt";
@@ -62,6 +64,8 @@ export interface ShellFrameProps {
   topEdgeSurface: SystemBarSurface;
   sidebarCollapsible: boolean;
   sidebarOpen: boolean;
+  /** The sidebar column a head's collapse control toggles (SidebarToggleHeadAction), or null where there is none. */
+  sidebarToggle?: SidebarSlotColumn | null;
   onSidebarOpenChange?: (open: boolean) => void;
   /** The frame of a server still being resolved: drawn, not interactive, asks for nothing (ShellPendingContext). */
   pending?: boolean;
@@ -97,6 +101,7 @@ export function ShellFrame({
   topEdgeSurface,
   sidebarCollapsible,
   sidebarOpen,
+  sidebarToggle = null,
   onSidebarOpenChange,
   pending = false,
   busy = pending,
@@ -151,6 +156,7 @@ export function ShellFrame({
       aria-busy={busy || undefined}
     >
       <ShellPendingContext.Provider value={pending}>
+      <ShellSidebarToggleContext.Provider value={sidebarToggle}>
         {pending ? null : <PwaInstallPrompt />}
 
         {showTopBar === "md" ? (
@@ -195,6 +201,7 @@ export function ShellFrame({
         {bottomStrip}
 
         {after}
+      </ShellSidebarToggleContext.Provider>
       </ShellPendingContext.Provider>
     </AppShellRoot>
   );

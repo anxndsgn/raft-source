@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useContext, useMemo } from "react";
 import type { KeyboardEvent, MouseEvent } from "react";
 import { useIntl } from "react-intl";
 import { Maximize2, MessagesSquare, Minimize2, X } from "lucide-react";
@@ -8,6 +8,7 @@ import type { ArtifactId } from "@botiverse/raft-shared";
 
 import Tooltip from "../../components/ui/Tooltip";
 import { useArtifactViewerStore } from "./artifactViewerStore";
+import { ShellSidebarToggleContext, SidebarToggleHeadAction } from "../../components/layout/appPanelHead";
 
 /**
  * Layout redesign §5 (anxndsgn 11/15, A): the workspace's first row, always, as tall as the channel's head and on
@@ -19,6 +20,8 @@ export function WorkspaceTabStrip() {
   const tabs = useArtifactViewerStore((s) => s.tabs);
   const shownId = useArtifactViewerStore((s) => s.open?.id ?? null);
   const expanded = useArtifactViewerStore((s) => s.expanded);
+  // Expanded over the conversation, this row is the leftmost island's head: the sidebar's control leads it.
+  const sidebarToggle = useContext(ShellSidebarToggleContext);
   const { formatMessage } = useIntl();
   const ids = useMemo(() => tabs.map((t) => t.id as string), [tabs]);
   const select = useCallback((id: string) => useArtifactViewerStore.getState().activateTab(id as ArtifactId), []);
@@ -32,6 +35,7 @@ export function WorkspaceTabStrip() {
   return (
     // One line under it, this row's, the channel head's (raft-ui Tabs' own seam is off: border-b-0 below).
     <div className="flex h-12 shrink-0 items-center gap-1 border-b border-line-seam pr-2 md:pointer-fine:h-panel-header" data-testid="workspace-tab-strip">
+      {expanded && sidebarToggle ? <SidebarToggleHeadAction column={sidebarToggle} className="ml-(--column-margin) shrink-0" /> : null}
       <ConversationPanelTabs className="flex h-full min-w-0 flex-1 items-center border-b-0" render={<Tabs<string> value={shownId ?? ""} onValueChange={select} />}>
         <SortableTabsList<string> value={ids} onReorder={reorder} aria-label={formatMessage({ id: "workspace.tabs" })}>
           {tabs.map((tab) => <WorkspaceTab key={tab.id} id={tab.id} thread={!!tab.thread} shown={tab.id === shownId} />)}

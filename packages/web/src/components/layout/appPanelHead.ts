@@ -8,3 +8,5 @@ export { useRowExpand, useRowInRow } from "./rowPlanStore";
 export { HEAD_ACTION_GAP, HEAD_ACTION_WIDTH, shownOwnActions, useHeadWidth, useMergedRef } from "./headFit";
 export { PanelHeadChromeContext, PanelHeadLeadContext } from "./panelHeadChrome";
 export { RowRegionBody } from "./RowRegionBody";
+export { ShellSidebarToggleContext } from "./sidebarToggle";
+export { SidebarToggleHeadAction } from "./SidebarToggleHeadAction";

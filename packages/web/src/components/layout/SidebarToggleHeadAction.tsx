@@ -4,7 +4,7 @@ import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import Tooltip from "../ui/Tooltip";
 import { labelWithShortcut } from "../ui/LabelWithShortcut";
 import { useShortcutBinding } from "../../features/shortcuts/useShortcutBinding";
-import { SIDEBAR_TOGGLE_ID, useSidebarSlotHidden } from "./sidebarToggle";
+import { SIDEBAR_TOGGLE_ATTR, useSidebarSlotHidden } from "./sidebarToggle";
 import type { SidebarSlotColumn } from "./sidebarToggle";
 
 /**
@@ -15,7 +15,7 @@ import type { SidebarSlotColumn } from "./sidebarToggle";
  * built-in English label and native `title` give way to the catalog's words
  * and a tooltip that also shows the shortcut.
  */
-export function SidebarToggleHeadAction({ column }: { column: SidebarSlotColumn }) {
+export function SidebarToggleHeadAction({ column, className }: { column: SidebarSlotColumn; className?: string }) {
   const { formatMessage } = useIntl();
   const sidebarHidden = useSidebarSlotHidden(column);
   const label = formatMessage({ id: sidebarHidden ? "layout.leftRail.expandSidebar" : "layout.leftRail.collapseSidebar" });
@@ -24,7 +24,8 @@ export function SidebarToggleHeadAction({ column }: { column: SidebarSlotColumn 
   return (
     <Tooltip content={shortcut.combos[0] ? labelWithShortcut(label, shortcut.combos[0], formatMessage) : label}>
       <AppShellSidebarTrigger
-        id={SIDEBAR_TOGGLE_ID}
+        {...{ [SIDEBAR_TOGGLE_ATTR]: "" }}
+        className={className}
         aria-label={label}
         aria-keyshortcuts={shortcut.ariaKeyShortcuts || undefined}
         title={undefined}

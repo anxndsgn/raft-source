@@ -3,9 +3,11 @@ import { useUIStore } from "../../store/uiStore";
 
 // The desktop sidebar's collapse control (leading the main area's head) and the column it
 // controls (MainLayout's AppShellSidebarSlot) are in different components; the
-// ids tie them together for `aria-controls` and for the keyboard toggle below.
+// region's id ties them together for `aria-controls`, and the control's mark
+// lets the keyboard toggle below find the one on screen.
 export const SIDEBAR_REGION_ID = "app-sidebar";
-export const SIDEBAR_TOGGLE_ID = "app-sidebar-toggle";
+/** Marks a head's collapse control (SidebarToggleHeadAction): the channel head's, and the expanded workspace's. */
+export const SIDEBAR_TOGGLE_ATTR = "data-sidebar-toggle";
 
 /**
  * Which column sits in the sidebar slot and collapses: the chat sidebar, or the
@@ -22,6 +24,14 @@ export type SidebarSlotColumn = "sidebar" | "activityList";
  * column's head, a page portalled beside the conversation).
  */
 export const MainHeadSidebarToggleContext = createContext<SidebarSlotColumn | null>(null);
+
+/**
+ * The same column for the whole shell (ShellFrame): the control is always first
+ * in the head of the leftmost island beside the sidebar, so with the workspace
+ * expanded over the conversation it leads the workspace's tab row instead
+ * (WorkspaceTabStrip; Figmama 11/18).
+ */
+export const ShellSidebarToggleContext = createContext<SidebarSlotColumn | null>(null);
 
 export function isSidebarSlotHidden(column: SidebarSlotColumn): boolean {
   const state = useUIStore.getState();
@@ -50,14 +60,15 @@ export function toggleSidebarFromKeyboard(doc: Document = document, column: Side
 
 /**
  * Collapse or expand the column in the sidebar slot, first moving focus out of
- * a column about to collapse (to the rail's toggle). The sidebar's resize
+ * a column about to collapse (to the head's toggle on screen). The sidebar's resize
  * handle uses it for a drag past the minimum and for Enter.
  */
 export function setSidebarSlotHiddenKeepingFocus(column: SidebarSlotColumn, hidden: boolean, doc: Document = document): void {
   if (hidden) {
     const region = doc.getElementById(SIDEBAR_REGION_ID);
     if (region && region.contains(doc.activeElement)) {
-      doc.getElementById(SIDEBAR_TOGGLE_ID)?.focus();
+      // The channel head's stays mounted, hidden, under an expanded workspace: focus the one shown.
+      [...doc.querySelectorAll<HTMLElement>(`[${SIDEBAR_TOGGLE_ATTR}]`)].find((toggle) => toggle.getClientRects().length > 0)?.focus();
     }
   }
   setSidebarSlotHidden(column, hidden);
