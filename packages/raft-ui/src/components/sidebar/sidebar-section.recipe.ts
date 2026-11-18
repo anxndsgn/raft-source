@@ -96,6 +96,10 @@ export const sidebarSectionRecipe = tv({
       // tailwind-merge lets this one replace it.
       "[&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
       "[--icon-inset:calc((--spacing(6)-14px)/2)]",
+      // Raft redesign (anxndsgn 11/18): with a mouse a 16px icon in the 24px
+      // button (not the desktop buttons' 20), the subtle fill on hover.
+      "md:pointer-fine:[&_svg:not([class*='size-'])]:size-4 md:pointer-fine:[--icon-inset:calc((--spacing(6)-16px)/2)]",
+      "md:pointer-fine:hover:bg-fill-subtle",
       // A label's control, not a toolbar's: at rest in the title's hint
       // color, so the header reads as one label; the control under the
       // pointer, in keyboard focus or with its menu open turns body color on

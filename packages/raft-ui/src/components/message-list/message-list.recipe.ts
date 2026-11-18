@@ -72,6 +72,13 @@ export const messageListJump = tv({
     group: [
       "inline-flex shrink-0 items-stretch",
       "*:data-[slot=message-list-jump-pill]:rounded-e-none",
+      // Raft redesign (Figmama 11/18): on a desktop the group is one pill: one
+      // 1px floating line round the whole, the two buttons draw none, and the
+      // one under the pointer takes the subtle fill, its half of the pill's
+      // round ends with it.
+      "md:pointer-fine:overflow-clip md:pointer-fine:rounded-pill md:pointer-fine:border md:pointer-fine:border-line-floating md:pointer-fine:bg-layer-canvas",
+      "md:pointer-fine:*:data-[slot=message-list-jump-pill]:h-[27px] md:pointer-fine:*:data-[slot=message-list-jump-pill]:border-0",
+      "md:pointer-fine:*:data-[slot=message-list-jump-pill]:bg-transparent md:pointer-fine:*:data-[slot=message-list-jump-pill]:hover:bg-fill-subtle",
     ],
     // Raft redesign (Figma Typing pill, the floating pill): on a desktop a
     // 29px canvas pill with a 1px floating line, no ink edge or shadow.
@@ -80,8 +87,11 @@ export const messageListJump = tv({
       "md:pointer-fine:bg-layer-canvas md:pointer-fine:shadow-none md:pointer-fine:ring-0 md:pointer-fine:pr-3 md:pointer-fine:pl-2",
     ],
     dismiss: [
-      "md:pointer-fine:h-[29px] md:pointer-fine:w-[29px] md:pointer-fine:rounded-e-pill md:pointer-fine:border md:pointer-fine:border-line-floating",
-      "md:pointer-fine:bg-layer-canvas md:pointer-fine:shadow-none md:pointer-fine:ring-0",
+      // On a desktop it draws no border of its own (the group's pill does):
+      // one 1px floating line before it, 6px short of the top and bottom.
+      "md:pointer-fine:h-[27px] md:pointer-fine:w-[29px] md:pointer-fine:rounded-e-pill md:pointer-fine:border-0",
+      "md:pointer-fine:bg-transparent md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:shadow-none md:pointer-fine:ring-0",
+      "md:pointer-fine:before:absolute md:pointer-fine:before:inset-y-1.5 md:pointer-fine:before:left-0 md:pointer-fine:before:w-px md:pointer-fine:before:bg-line-floating md:pointer-fine:before:content-['']",
       "rounded-s-none border-s-0",
       "text-foreground-muted hover:text-foreground",
       "[&_svg:not([class*='size-'])]:size-4",
