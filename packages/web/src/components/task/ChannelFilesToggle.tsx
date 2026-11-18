@@ -1,5 +1,6 @@
 import { useIntl } from "react-intl";
 import { PanelToggleAction } from "@botiverse/raft-ui";
+import { ArtifactIcon } from "@botiverse/ricons";
 import { Paperclip } from "lucide-react";
 import { useIsDesktopShell } from "../layout/ShellFrame";
 
@@ -13,7 +14,8 @@ export default function ChannelFilesToggle({ open, onToggle }: { open: boolean; 
   return (
     <Tooltip content={label}>
       <PanelToggleAction pressed={open} onPressedChange={onToggle} aria-label={label} data-testid="channel-files-toggle">
-        {desktop ? formatMessage({ id: "channelHead.files" }) : <Paperclip />}
+        {/* Raft redesign (Figma Channel Header): the artifact icon on a desktop; a phone keeps its own. */}
+        {desktop ? <ArtifactIcon /> : <Paperclip />}
       </PanelToggleAction>
     </Tooltip>
   );

@@ -396,7 +396,9 @@ export default function ChannelOverflowMenu({
   return (
     <>
       {lead && !leadItem ? lead.node : null}
-      {shown > 0 ? (
+      {/* Raft redesign (Figma Channel Header): on a desktop, search is the rail's (⌘K, the whole team), the head has
+          none; its slot still counts in the fit, so the head folds a little early rather than late. */}
+      {shown > 0 && !desktopShell ? (
         <OverflowMenuTrigger
           labelId="message.chatPanel.searchChannel"
           onClick={handleSearch}
@@ -409,14 +411,17 @@ export default function ChannelOverflowMenu({
         /* Layout redesign: Members opens the members page of the channel's side panel; the gear after it (and the
            channel's name) its info (Figmama 11/15). */
         <>
+        <Tooltip content={membersLabel}>
         <PanelToggleAction
           pressed={open && view === "members" && !person?.profileOnly}
           onPressedChange={toggleMembers}
           aria-label={formatMessage({ id: "channelHead.members" })}
           data-testid="channel-members-toggle"
         >
-          {desktopShell ? formatMessage({ id: "channelHead.members" }) : <Users />}
+          {/* Raft redesign (Figma Channel Header): an icon button, as Tasks and Files are. */}
+          <Users />
         </PanelToggleAction>
+        </Tooltip>
         <Tooltip content={formatMessage({ id: "channelHead.infoAndSettings" })}>
           <PanelToggleAction
             ref={gearRef}

@@ -27,7 +27,7 @@ const PHONE = {
 const DESKTOP = {
   "--control-height": "34px",
   "--control-height-cta": "40px",
-  "--control-icon-size": "18px",
+  "--control-icon-size": "20px",
   "--control-hit-inset": "5px",
 };
 
@@ -45,7 +45,7 @@ test("a phone keeps 44px controls with 22px icons", () => {
   }
 });
 
-test("from 768px a control is 34px with an 18px icon, and its hit area reaches 44px", () => {
+test("from 768px a control is 34px with a 20px icon (the grid Raft's icons are drawn on), and its hit area reaches 44px", () => {
   expect(desktopStart).toBeGreaterThan(-1);
   for (const [name, value] of Object.entries(DESKTOP)) {
     expect(declared(desktop, name), name).toBe(value);
@@ -57,6 +57,8 @@ test("from 768px a control is 34px with an 18px icon, and its hit area reaches 4
   expect(declared(desktop, "--header-air")).toBe("5px");
   expect(declared(desktop, "--row-height")).toBe("32px");
   expect(declared(desktop, "--option-height")).toBe("var(--control-height)");
+  // A bar's icon button is 32 (Figma Icon Button).
+  expect(declared(desktop, "--bar-button-size")).toBe("32px");
 });
 
 test("the control utilities read the tokens", () => {

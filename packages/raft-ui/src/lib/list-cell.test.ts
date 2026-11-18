@@ -226,5 +226,5 @@ test("dark row states step up, rows only: the global tiers keep their values", (
   expect(css).toContain("--fill-cell-hover: var(--fill-subtle);");
   expect(css).toContain("--fill-cell-press: var(--fill-medium);");
   expect(css).toContain("--fill-cell-selected: var(--info-soft);");
-  expect(css).toContain("--fill-subtle: oklch(0.9843 0.004 106.47 / 0.03);");
+  expect(css).toContain("--fill-subtle: oklch(0.2228 0.0025 67.7 / 0.031);");
 });

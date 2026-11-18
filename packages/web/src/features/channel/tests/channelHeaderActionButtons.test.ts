@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import "../../../../tests/helpers/domSetup";
 import { createElement } from "react";
-import { cleanup, fireEvent, render as rtlRender, screen } from "@testing-library/react";
+import { cleanup, render as rtlRender, screen } from "@testing-library/react";
 import { TestIntlProvider } from "../../../../tests/helpers/intl";
 const render: typeof rtlRender = (ui, options) => rtlRender(ui, { wrapper: TestIntlProvider, ...options });
 import { MemoryRouter, useLocation } from "react-router-dom";
@@ -154,18 +154,11 @@ test("search navigation preserves query and channel filter params", () => {
   );
 });
 
-test("clicking regular channel header search navigates with the current channel filter", () => {
+test("a desktop channel head has no search of its own: search is the rail's (Raft redesign, Figma Channel Header)", () => {
   const channel = makeChannel({ id: "channel-search-123" });
-  let currentPath = "";
-  renderSearchHeaderPanel(channel, (path) => {
-    currentPath = path;
-  });
+  renderSearchHeaderPanel(channel, () => {});
 
-  fireEvent.click(screen.getByLabelText("Search this channel"));
-
-  assert.equal(
-    currentPath,
-    "/s/dev/search?channelId=channel-search-123&defer=1",
-  );
+  assert.ok(screen.queryByLabelText("Search this channel") === null, "no search button in the head");
+  assert.ok(screen.getByTestId("channel-tasks-toggle"));
 });
 

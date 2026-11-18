@@ -166,6 +166,10 @@
   --text-mono-meta--line-height: 16px;
   --text-mono-code: 13px;
   --text-mono-code--line-height: 20px;
+  /* A head's title on a desktop: Inter Semi Bold 15/18 (Figma Channel Header). */
+  --text-head-title: 15px;
+  --text-head-title--line-height: 18px;
+  --text-head-title--font-weight: 600;
   /* The label of a 32px control: a Button at `md`, a panel action, a filter
      trigger. Its own style, because on a phone it is footnote's 13px and on a
      desktop it is 14px, where footnote drops to 12. */

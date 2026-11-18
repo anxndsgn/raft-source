@@ -20,6 +20,9 @@ export const panelHeadEdges = headEdges;
 export const panelHeadActions = [
   "flex shrink-0 items-center gap-0.5 md:pointer-fine:gap-1",
   barIconInset,
+  // Raft redesign (Figma Channel Header): on a desktop the last button's box,
+  // not its icon, sits on the head's 14px margin.
+  "md:pointer-fine:[--icon-inset:0px]",
 ];
 
 /**
@@ -37,6 +40,10 @@ export const panelHeader = tv({
       "md:pointer-fine:size-(--bar-button-size) md:pointer-fine:rounded-(--bar-button-radius)",
       "rounded-sticker border-[1.5px] border-sticker-ink bg-brand text-sticker-ink ring-[1.5px] ring-sticker-edge",
       "not-data-[icon-kind=avatar]:[&_svg]:size-3.5 not-data-[icon-kind=avatar]:[&_svg]:stroke-2",
+      // Raft redesign (Figma Channel Header): on a desktop a plain 20px glyph
+      // in the title's colour, no sticker, 2px from the title.
+      "md:pointer-fine:size-auto md:pointer-fine:border-0 md:pointer-fine:bg-transparent md:pointer-fine:text-foreground md:pointer-fine:ring-0",
+      "md:pointer-fine:not-data-[icon-kind=avatar]:[&_svg]:size-5",
       "data-[icon-kind=avatar]:size-auto data-[icon-kind=avatar]:border-transparent data-[icon-kind=avatar]:bg-transparent",
     ],
     // From 768px a head is one line, with a mouse or by touch: a subtitle
@@ -47,7 +54,8 @@ export const panelHeader = tv({
       "md:flex-row md:items-baseline md:justify-start md:gap-2",
     ],
     heading: "flex min-w-0 items-center gap-2",
-    title: "truncate font-sans text-headline font-bold text-foreground",
+    // Raft redesign: Inter Semi Bold 15/18 on a desktop (Figma Channel Header).
+    title: "truncate font-sans text-headline font-bold text-foreground md:pointer-fine:text-head-title md:pointer-fine:font-semibold",
     meta: [
       "min-w-0 truncate font-sans text-caption text-foreground-hint",
       "md:flex-1 md:shrink-1000",
@@ -77,6 +85,9 @@ export const panelHeader = tv({
       class: [
         "flex h-(--shell-header-height,var(--header-height)) shrink-0 items-center gap-3 max-md:gap-2",
         panelHeadEdges,
+        // Raft redesign (Figma Channel Header): 14px sides and 2px between
+        // its parts on a desktop.
+        "md:pointer-fine:gap-0.5 md:pointer-fine:px-3.5",
         "border-b border-line-seam bg-layer-canvas text-foreground",
         "max-md:sticky max-md:top-0 max-md:z-chrome",
       ],

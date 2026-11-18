@@ -368,7 +368,8 @@
   /* The full-width call to action across a sign-in, sign-up or setup form
      (Button xl). */
   --control-height-cta: 52px;
-  /* The icon in a control-height icon button. */
+  /* The icon in a control-height icon button: 20px on a desktop, the grid Raft's
+     icons are drawn on. */
   --control-icon-size: 22px;
   /* How far a control-height button's hit area reaches past its top and bottom,
      to keep 44px. */
@@ -399,9 +400,8 @@
      one air above and below (28 + 12 = 40). */
   --header-height-short: 48px;
   /* An icon button in a bar: a head's actions and its x, the composer's icons, a
-     row's actions. The control height on a phone and a touch screen; 28px on a
-     desktop, the size of the header's icon tile, so a head's tile and buttons
-     share one size and one centre line. Its hit area still reaches 44px. */
+     row's actions. The control height on a phone and a touch screen; 32px on a
+     desktop (Figma Icon Button, Raft redesign). Its hit area still reaches 44px. */
   --bar-button-size: var(--control-height);
   /* The corner of a bar button, about a quarter of its height: 10px at 44 on a
      phone and a touch screen, 6px at the 28px bar button with a mouse on a
@@ -525,7 +525,7 @@
   --layer-popover: oklch(0.2606 0.004 84.58);
   --layer-backdrop: oklch(0 0 0 / 0.502);
   --layer-backdrop-nested: oklch(0 0 0 / 0.4);
-  --layer-veil: oklch(0.2213 0.0038 106.71 / 0.8);
+  --layer-veil: oklch(0.2228 0.0025 67.7 / 0.8);
   --layer-card: oklch(0.2975 0.0038 84.58);
   --layer-hud: oklch(0.2802 0.0036 106.63);
   --layer-frame: var(--accent-frame);
@@ -623,7 +623,7 @@
     --layer-popover: oklch(0.2606 0.004 84.58);
     --layer-backdrop: oklch(0 0 0 / 0.502);
     --layer-backdrop-nested: oklch(0 0 0 / 0.4);
-    --layer-veil: oklch(0.2213 0.0038 106.71 / 0.8);
+    --layer-veil: oklch(0.2228 0.0025 67.7 / 0.8);
     --layer-card: oklch(0.2975 0.0038 84.58);
     --layer-hud: oklch(0.2802 0.0036 106.63);
     --layer-frame: var(--accent-frame);
@@ -726,13 +726,13 @@
     --card-title-line-height: 22px;
     --control-height: 34px;
     --control-height-cta: 40px;
-    --control-icon-size: 18px;
+    --control-icon-size: 20px;
     --control-hit-inset: 5px;
     --control-embedded-size: 22px;
     --control-radius: 8px;
     --header-air: 5px;
     --header-height-short: calc(var(--bar-button-size) + 2 * var(--control-air));
-    --bar-button-size: 28px;
+    --bar-button-size: 32px;
     --bar-button-radius: 6px;
     --frame-item-height: var(--control-height);
     --switch-width: 38px;

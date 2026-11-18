@@ -34,6 +34,9 @@ export const panelAction = tv({
     "disabled:bg-transparent disabled:text-foreground-disabled disabled:opacity-100",
     "aria-pressed:border-sticker-ink aria-pressed:bg-selected aria-pressed:text-sticker-ink aria-pressed:ring-[1.5px] aria-pressed:ring-sticker-edge",
     "aria-pressed:active:overlay-sticker-medium",
+    // Raft redesign (Figma Icon Button, Selected): on a desktop a pressed
+    // action is the medium fill, no sticker.
+    "md:pointer-fine:aria-pressed:border-transparent md:pointer-fine:aria-pressed:bg-fill-medium md:pointer-fine:aria-pressed:text-foreground md:pointer-fine:aria-pressed:ring-0",
   ],
 });
 
@@ -45,5 +48,8 @@ export const panelToggleAction = tv({
     "data-disabled:bg-transparent data-disabled:text-foreground-disabled data-disabled:opacity-100",
     "data-pressed:border-sticker-ink data-pressed:bg-selected data-pressed:text-sticker-ink data-pressed:ring-[1.5px] data-pressed:ring-sticker-edge",
     "data-pressed:active:overlay-sticker-medium",
+    // Raft redesign (Figma Icon Button, Selected): on a desktop a pressed
+    // action is the medium fill, no sticker.
+    "md:pointer-fine:data-pressed:border-transparent md:pointer-fine:data-pressed:bg-fill-medium md:pointer-fine:data-pressed:text-foreground md:pointer-fine:data-pressed:ring-0",
   ],
 });
