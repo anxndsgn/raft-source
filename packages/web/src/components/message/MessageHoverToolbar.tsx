@@ -6,6 +6,7 @@ import { useIntl } from "react-intl";
 import { Bookmark, Ellipsis, BookmarkMinus, CornerUpLeft } from "lucide-react";
 import { ForwardIcon } from "./messageForwardIcon";
 import ReactionGlyph from "./ReactionGlyph";
+import { RIcon } from "../../icons/raftIcons";
 import { DEFAULT_FAVORITE_REACTION } from "./reactionFavorite";
 import { QUICK_REACTION_HINT_DELAY_MS, REACTION_HOVER_OPEN_DELAY_MS } from "./reactionConstants";
 import Tooltip from "../ui/Tooltip";
@@ -64,6 +65,8 @@ export type MessageHoverToolbarAction = "reaction" | "reply" | "thread" | "forwa
  */
 const QUICK_REACTION_HINT_TRIGGER_PROPS = { delay: QUICK_REACTION_HINT_DELAY_MS };
 // Raft redesign (Figmama 11/18): on a desktop the reaction you added is the medium fill, not yellow.
+// The thumbs-up you added says so by its filled icon alone: no fill on the button, the subtle one on hover.
+const THUMBS_UP_REACTED_CLASS = "bg-attention-soft hover:bg-attention-soft hover:overlay-medium data-popup-open:bg-attention-soft md:pointer-fine:bg-transparent md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:data-popup-open:bg-fill-subtle";
 const QUICK_REACTED_CLASS = "bg-attention-soft hover:bg-attention-soft hover:overlay-medium data-popup-open:bg-attention-soft md:pointer-fine:bg-fill-medium md:pointer-fine:hover:bg-fill-medium md:pointer-fine:data-popup-open:bg-fill-medium";
 
 export function messageHoverToolbarActions({
@@ -151,6 +154,8 @@ export function MessageHoverToolbar({
     else onQuickReact(event);
   }, [cancelHoverOpen, onQuickReact, onReactionClick]);
   const isLike = quickReaction === DEFAULT_FAVORITE_REACTION;
+  // The toolbar shows with a mouse only, so 👍 is always the icon here.
+  const thumbsUp = isLike;
   const quickReactionLabel = isLike
     ? formatMessage({ id: quickReacted ? "message.messageItem.quickReaction.unlike" : "message.messageItem.quickReaction.like" })
     : formatMessage({ id: quickReacted ? "message.messageItem.quickReaction.remove" : "message.messageItem.quickReaction.react" }, { emoji: quickReaction });
@@ -195,12 +200,13 @@ export function MessageHoverToolbar({
                   aria-label={quickReactionLabel}
                   aria-pressed={quickReacted}
                   // Pressed reads as the chip of a reaction you added (attention-soft).
-                  className={quickReacted ? QUICK_REACTED_CLASS : undefined}
+                  className={quickReacted ? (thumbsUp ? THUMBS_UP_REACTED_CLASS : QUICK_REACTED_CLASS) : undefined}
                   data-popup-open={reactionActive ? "" : undefined}
                   data-message-affordance="reaction"
                   data-quick-reaction={quickReaction}
                 >
-                  <ReactionGlyph emoji={quickReaction} size={16} className="block" />
+                  {/* Raft redesign: 👍 is Raft's own thumbs-up, filled once you've added it. */}
+                  {thumbsUp ? <RIcon name="thumbs-up" filled={quickReacted} className={quickReacted ? "text-foreground" : undefined} /> : <ReactionGlyph emoji={quickReaction} size={16} className="block" />}
                 </MessageItemToolbarButton>
               </Tooltip>
             );
