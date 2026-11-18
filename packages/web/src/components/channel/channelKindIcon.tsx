@@ -1,5 +1,6 @@
 import { LeaveChannelIcon, LeaveJointChannelIcon, LeavePrivateChannelIcon } from "@botiverse/ricons";
 import type { ReactNode, SVGProps } from "react";
+import { RIcon } from "../../icons/raftIcons";
 import { useIntl } from "react-intl";
 import type { Channel } from "../../store/channelStore";
 import { useServerStore } from "../../store/serverStore";
@@ -62,20 +63,20 @@ export function ChannelKindIcon({
   external?: boolean;
 }) {
   if (external && (type === "channel" || type === "private" || type === "joint")) return <ExternalChannelGlyph size={size} className={className} />;
-  if (type === "private") return <SinglePathIcon name="lock" d={LOCK_PATH} size={size} className={className} />;
+  if (type === "private") return <KindGlyph name="lock" size={size} className={className} />;
   if (type === "channel" && onPublicPage) return <PublicChannelGlyph size={size} className={className} />;
-  if (type === "joint") return <SinglePathIcon name="git-branch" d={GIT_BRANCH_PATH} size={size} className={className} />;
-  if (type === "channel") return <SinglePathIcon name="hash" d={HASH_PATH} size={size} className={className} />;
+  if (type === "joint") return <KindGlyph name="git-branch" size={size} className={className} />;
+  if (type === "channel") return <KindGlyph name="hash" size={size} className={className} />;
   return null;
 }
 
-// lucide's #, lock and git-branch (lucide-react 1.55), each drawn as one path:
-// the same strokes on the same 24-unit grid, but an <svg> with one child
-// instead of lucide's 3–5 (lines, rect, circles). The sidebar draws one per
-// channel row, a few hundred on a large server (#proj-frontend:#8).
-const HASH_PATH = "M4 9h16M4 15h16M10 3 8 21M16 3l-2 18";
-const LOCK_PATH = "M5 11h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2ZM7 11V7a5 5 0 0 1 10 0v4";
-const GIT_BRANCH_PATH = "M15 6a9 9 0 0 0-9 9V3M21 6a3 3 0 1 1-6 0a3 3 0 1 1 6 0M9 18a3 3 0 1 1-6 0a3 3 0 1 1 6 0";
+/**
+ * The #, lock and branch of a channel's kind in Raft's own icons (Raft
+ * redesign); it keeps lucide's classes, which tests and styles select.
+ */
+function KindGlyph({ name, size, className }: { name: "hash" | "lock" | "git-branch"; size: number; className?: string }) {
+  return <RIcon name={name} width={size} height={size} className={`lucide lucide-${name}${className ? ` ${className}` : ""}`} />;
+}
 
 /**
  * An external channel: one with Guests, guest servers or pending external
