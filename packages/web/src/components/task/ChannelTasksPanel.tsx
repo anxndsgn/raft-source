@@ -81,16 +81,16 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   const newTaskLabel = formatMessage({ id: "task.board.newTask" });
   const newTaskAction = useMemo(() => [{ id: "new-task", label: newTaskLabel, icon: <Plus />, onSelect: openCreate, testId: "channel-tasks-panel-new" }], [newTaskLabel, openCreate]);
 
-  // raft-ui Tabs, underline (tasks.md): each with its number of open tasks in Space Mono.
+  // raft-ui Tabs, pills (Raft redesign, Figma Filter Pill): each with its number of open tasks.
   const tab = (value: ChannelTasksFilter, labelId: "task.filter.tabAll" | "taskSection.tab.assigned" | "taskSection.tab.created", list: Task[]) => (
     <TabsTab value={value} data-testid={`channel-tasks-filter-${value}`}>
       <TabsLabel>{formatMessage({ id: labelId })}</TabsLabel>
-      <span className="font-mono text-mono-meta text-foreground-hint">{openCount(list)}</span>
+      <span className="tabular-nums">{openCount(list)}</span>
     </TabsTab>
   );
   const tasksFilter = (
     <Tabs<ChannelTasksFilter> value={filter} onValueChange={handleFilterChange}>
-      <TabsList variant="underline" className="w-full" aria-label={formatMessage({ id: "task.sidePanel.filterAria" })}>
+      <TabsList variant="pill" aria-label={formatMessage({ id: "task.sidePanel.filterAria" })}>
         {tab("all", "task.filter.tabAll", tasks)}
         {tab("mine", "taskSection.tab.assigned", mine)}
         {tab("created", "taskSection.tab.created", created)}
@@ -111,7 +111,7 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
       // Layout redesign (anxndsgn, 11/15): no seam under the head; All / Mine right under the title.
       seamless
     >
-      {detailTaskId ? null : <div className="shrink-0 px-(--column-margin)" data-testid="channel-tasks-toolbar">{tasksFilter}</div>}
+      {detailTaskId ? null : <div className="shrink-0 px-(--column-margin) py-1.5" data-testid="channel-tasks-toolbar">{tasksFilter}</div>}
       {detailTask ? (
         <ChannelTaskDetail task={detailTask} />
       ) : detailMissing ? (

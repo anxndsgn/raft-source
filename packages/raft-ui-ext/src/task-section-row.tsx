@@ -29,7 +29,7 @@ export function TaskSectionRow({ status, title, openLabel, onOpen, selected = fa
     <div
       {...props}
       data-selected={selected ? "" : undefined}
-      className="group/task-row relative flex gap-2.5 px-(--column-margin,16px) py-2 hover:overlay-subtle has-[>button:active]:overlay-medium data-selected:bg-fill-cell-selected"
+      className="group/task-row relative flex gap-2.5 px-(--column-margin,16px) py-2.5 hover:overlay-subtle has-[>button:active]:overlay-medium data-selected:bg-fill-cell-selected"
     >
       <button type="button" aria-label={openLabel} aria-current={selected ? "true" : undefined} onClick={onOpen} className="absolute inset-0 z-0 cursor-pointer outline-none focus-visible:inset-ring-2 focus-visible:inset-ring-ink" />
       <span className="pointer-events-none mt-[0.45em] flex size-2.5 shrink-0 items-center justify-center">{status}</span>
@@ -45,7 +45,7 @@ export function TaskSectionRow({ status, title, openLabel, onOpen, selected = fa
       </div>
       {time || action ? (
         <div className="flex shrink-0 flex-col items-end gap-1">
-          {time ? <span className="pointer-events-none font-mono text-caption text-foreground-hint">{time}</span> : null}
+          {time ? <span className="pointer-events-none text-caption text-foreground-hint tabular-nums">{time}</span> : null}
           {action ? <span className="relative z-raised" onClick={stop}>{action}</span> : null}
         </div>
       ) : null}

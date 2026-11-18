@@ -81,7 +81,7 @@ function SectionHeading({ group, count, collapsed, first, onToggle }: { group: S
         {/* For review asks something of the person: the primary yellow square, not its status pixel. */}
         {group === "in_review" ? <span aria-hidden className="size-2.5 shrink-0 rounded-[2px] bg-primary" /> : <TaskStatusIcon status={toRuiTaskStatus(group)} className="size-2.5 shrink-0" />}
         <span>{label}</span>
-        <span className="font-mono text-mono-meta text-foreground-hint">{count}</span>
+        <span className="text-foreground-hint tabular-nums">{count}</span>
         {collapsed ? <ChevronRight className="size-3.5 text-foreground-hint group-hover:text-foreground" /> : <ChevronDown className="size-3.5 text-foreground-hint group-hover:text-foreground" />}
       </span>
     </button>
@@ -97,7 +97,7 @@ function SectionTaskRow({ task, viewerId, selected, onOpen, resetsAtByAgent }: {
   const stale = !!movedAt && currentTimeMs() - Date.parse(movedAt) > STALE_MS && task.status !== "done" && task.status !== "closed";
   const live = useLiveState(task, resetsAtByAgent);
   const state = useMemo(() => [
-    <span key="n" className="font-mono text-foreground-hint">{formatMessage({ id: "taskDetail.number" }, { number: task.taskNumber })}</span>,
+    <span key="n" className="text-foreground-hint tabular-nums">{formatMessage({ id: "taskDetail.number" }, { number: task.taskNumber })}</span>,
     task.claimedById ? <TaskAssigneeLabel key="a" task={task} identity={identity} viewerId={viewerId} /> : (
       <span key="u">{formatMessage({ id: "taskSection.unclaimed" }, { name: task.createdByName ?? "" })}</span>
     ),

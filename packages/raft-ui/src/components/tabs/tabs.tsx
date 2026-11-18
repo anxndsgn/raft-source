@@ -71,6 +71,18 @@ const tabs = tv({
           "data-disabled:bg-transparent",
         ],
       },
+      // Raft redesign (Figma Filter Pill): a short row of filters over a list,
+      // each a 25px pill with a subtle line; the chosen one the medium fill.
+      pill: {
+        list: ["gap-2"],
+        tab: [
+          "h-[25px] justify-center gap-1 rounded-pill border border-line-subtle bg-layer-canvas px-2.5",
+          "font-normal text-foreground",
+          "after:inset-x-0 after:-inset-y-2.5",
+          "hover:bg-fill-subtle active:bg-fill-medium",
+          "data-active:bg-fill-medium data-active:font-semibold",
+        ],
+      },
       underline: {
         list: ["gap-5"],
         tab: [
@@ -171,7 +183,7 @@ type TabsReorderContextValue = {
 
 const TabsReorderContext = createContext<TabsReorderContextValue>({ enabled: false });
 const TabsValueContext = createContext<string | undefined>(undefined);
-type TabsListVariant = "default" | "underline";
+type TabsListVariant = "default" | "underline" | "pill";
 
 const TabsListVariantContext = createContext<TabsListVariant>("default");
 
