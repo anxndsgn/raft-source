@@ -63,7 +63,8 @@ export type MessageHoverToolbarAction = "reaction" | "reply" | "thread" | "forwa
  * (reaction row, Reply in Thread, Forward, Save), and More opens that menu.
  */
 const QUICK_REACTION_HINT_TRIGGER_PROPS = { delay: QUICK_REACTION_HINT_DELAY_MS };
-const QUICK_REACTED_CLASS = "bg-attention-soft hover:bg-attention-soft hover:overlay-medium data-popup-open:bg-attention-soft";
+// Raft redesign (Figmama 11/18): on a desktop the reaction you added is the medium fill, not yellow.
+const QUICK_REACTED_CLASS = "bg-attention-soft hover:bg-attention-soft hover:overlay-medium data-popup-open:bg-attention-soft md:pointer-fine:bg-fill-medium md:pointer-fine:hover:bg-fill-medium md:pointer-fine:data-popup-open:bg-fill-medium";
 
 export function messageHoverToolbarActions({
   hideThreadActions,
@@ -160,7 +161,7 @@ export function MessageHoverToolbar({
     <MessageItemToolbar
       data-message-affordance="toolbar"
       // Clear of the conversation outline's rail, while it shows (ConversationOutline).
-      className="!right-[calc((--spacing(3))+var(--message-rail-inset,0px))]"
+      className="!right-[calc((--spacing(3))+var(--message-rail-inset,0px))] md:pointer-fine:!right-[calc(14px+var(--message-rail-inset,0px))]"
       // No pointer-events override: raft-ui's recipe gates them with the
       // opacity. The row turns both on the moment it is hovered or holds
       // focus, or a popup inside it is open (the reaction and More buttons

@@ -183,6 +183,11 @@ export const messageItem = tv({
       // 42px (the control height) with a mouse on a desktop.
       "top-[-18px] md:pointer-fine:top-[calc(-1*(var(--control-height)+8px)/2)] right-3 gap-1 overflow-visible rounded-container p-1",
       "bg-layer-popover ring-1 ring-line-seam ring-inset shadow-float",
+      // Raft redesign (Figmama 11/18, “what floats is a canvas pill”): on a
+      // desktop the canvas with a 1px floating line, round, no shadow, 2px
+      // inside, its 28px buttons touching; its top 14px above the row.
+      "md:pointer-fine:top-[-14px] md:pointer-fine:gap-0 md:pointer-fine:rounded-pill md:pointer-fine:p-0.5",
+      "md:pointer-fine:bg-layer-canvas md:pointer-fine:ring-line-floating md:pointer-fine:shadow-none",
     ],
     toolbarButton: [
       "inline-flex shrink-0 items-center justify-center",
@@ -192,6 +197,8 @@ export const messageItem = tv({
       "data-popup-open:bg-fill-medium data-active:text-foreground",
       "outline-none focus-visible:shadow-focus",
       "[&_svg]:size-4",
+      // Raft redesign: 28px round buttons, a 20px icon, the subtle fill on hover.
+      "md:pointer-fine:size-7 md:pointer-fine:rounded-full md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:[&_svg]:size-5",
     ],
   },
   variants: {
