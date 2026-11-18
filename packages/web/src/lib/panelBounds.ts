@@ -35,7 +35,8 @@ export const GROWS_TO_MAIN_MIN_SAFETY_MAX = 8192;
 export const COLUMN_BOUNDS = {
   /** Left sidebar: channels, Members, Computers, Settings, and the public server page's sidebars. */
   sidebar: {
-    defaultWidth: 240,
+    // Raft redesign (Figma 精修 · 组件化 Sidebar): 232.
+    defaultWidth: 232,
     min: 200,
     max: 400,
     storageKey: "slock:sidebarWidth",

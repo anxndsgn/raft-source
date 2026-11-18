@@ -419,13 +419,12 @@
   --switch-width: 50px;
   /* The switch's track height. */
   --switch-height: 30px;
-  /* A sidebar row from 768px, 2px apart; its highlight fills the row. On a
-     desktop the control height (34px): one size for a sidebar item, a menu
-     option, a compact list row, a field, a select, a Button, a tab and a
-     selected segment (stdrc, 2026-11-04). A phone list of places keeps 44px. */
+  /* A sidebar row from 768px, 2px apart; its highlight fills the row. 32px on a
+     desktop (Raft redesign, Figma 精修 · 组件化 Sidebar Item; the control height,
+     34px, before), also a compact list row. A phone list of places keeps 44px. */
   --row-height: 38px;
   /* An option of a popup list or a menu item with one line: 36px on a phone and
-     a touch screen, the row height (34px, the control height) on a desktop. */
+     a touch screen, the control height (34px) on a desktop. */
   --option-height: 2.25rem;
   /* Above and below the tallest part of a settings row (ListRow plain): two
      airs. */
@@ -738,8 +737,8 @@
     --frame-item-height: var(--control-height);
     --switch-width: 38px;
     --switch-height: 22px;
-    --row-height: var(--control-height);
-    --option-height: var(--row-height);
+    --row-height: 32px;
+    --option-height: var(--control-height);
     --section-gap: calc(2 * var(--field-gap));
     --page-top: 12px;
     --page-inset: 16px;

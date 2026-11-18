@@ -52,10 +52,11 @@ test("from 768px a control is 34px with an 18px icon, and its hit area reaches 4
   }
   const height = Number.parseFloat(DESKTOP["--control-height"]);
   expect(height + 2 * Number.parseFloat(DESKTOP["--control-hit-inset"])).toBe(44);
-  // A head is the control and its air: 34 + 2 x 5 = 44; a row and an option are the control height.
+  // A head is the control and its air: 34 + 2 x 5 = 44; an option is the control height. A sidebar row is
+  // 32 (Raft redesign, Figma 精修 · 组件化 Sidebar Item).
   expect(declared(desktop, "--header-air")).toBe("5px");
-  expect(declared(desktop, "--row-height")).toBe("var(--control-height)");
-  expect(declared(desktop, "--option-height")).toBe("var(--row-height)");
+  expect(declared(desktop, "--row-height")).toBe("32px");
+  expect(declared(desktop, "--option-height")).toBe("var(--control-height)");
 });
 
 test("the control utilities read the tokens", () => {

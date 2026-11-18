@@ -6,7 +6,7 @@ export const sidebarItemRecipe = tv({
     // The tone sets the name's ink, which the title inherits: muted is ink-2,
     // away (offline, not joined) ink-3. The yellow sticker keeps its own ink.
     // The row is a list cell (lib/list-cell.ts): it runs the sidebar's full
-    // width, `row-height` tall (38px), and its states are drawn on the inset shape, as tall
+    // width, `row-height` tall (32px with a mouse, 38px on a touch screen), and its states are drawn on the inset shape, as tall
     // as the row. SidebarList spaces the rows 2px apart and pads its ends by 8px.
     // The content sits 12px inside the shape on both sides (--cell-pad-x,
     // 20px from the row's edges): the icon or avatar and the count, @ sticker

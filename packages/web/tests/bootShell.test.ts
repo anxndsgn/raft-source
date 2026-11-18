@@ -306,7 +306,7 @@ test("boot hints: the columns open at their remembered widths, clamped; none sto
   assert.equal(clamped.style["--boot-sidebar-width"], "400px", "the sidebar's maximum");
   assert.equal(clamped.style["--boot-thread-width"], "160px", "an earlier build's key, at the thread's minimum (160, #189)");
   assert.deepEqual(runHints("/s/acme/channel/c1", { slock_access_token: "t", "slock:sidebarWidth": "abc" }).style, {});
-  assert.ok(BOOT_SHELL_CSS.includes("var(--boot-sidebar-width,240px)"));
+  assert.ok(BOOT_SHELL_CSS.includes("var(--boot-sidebar-width,232px)"));
   assert.ok(BOOT_SHELL_CSS.includes("var(--boot-thread-width,400px)"));
 });
 

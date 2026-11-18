@@ -14,7 +14,7 @@ test("the agreed bounds table (design lead, 2026-10-21; right-hand maxima task #
   // only the safety bound its stored width is clamped to.
   const toMainMin = GROWS_TO_MAIN_MIN_SAFETY_MAX;
   assert.deepEqual(table, {
-    sidebar: [240, 200, 400, "slock:sidebarWidth", null],
+    sidebar: [232, 200, 400, "slock:sidebarWidth", null], // 232: Raft redesign (Figma 精修 · 组件化 Sidebar)
     // Activity's list: 240 minimum so rail + list + conversation fit 768 (stdrc).
     list: [380, 240, 640, "slock:searchPanelWidth", null],
     // The layout row's columns go to 160; their content keeps its minimum and clips (#proj-raft-ui:#189, rule 2).
