@@ -145,23 +145,32 @@
 [data-slot="app-shell-sidebar-slot"] {
   padding-block: var(--rd-island-gap);
 }
+/* Outer frame of the island is a ring (box-shadow), not a border, so it takes
+   no layout space. Each half clips away the ring on the side where they meet. */
 [data-slot="app-shell-sidebar-slot"] > [data-testid="shell-sidebar-column"] {
   background: var(--layer-canvas);
-  border: 1px solid var(--rd-line-frame);
-  border-right: 0;
+  box-shadow: 0 0 0 1px var(--rd-line-frame);
+  clip-path: inset(-1px 0 -1px -1px);
 }
 [data-slot="sidebar-root"] {
   border-right: 1px solid var(--rd-hairline) !important;
 }
 [data-otter-dock="main"] {
   margin: var(--rd-island-gap) var(--rd-island-gap) var(--rd-island-gap) 0;
-  border: 1px solid var(--rd-line-frame);
-  border-left: 0;
+  box-shadow: 0 0 0 1px var(--rd-line-frame);
+  clip-path: inset(-1px -1px -1px 0);
   background: var(--layer-canvas);
   overflow: hidden;
 }
+/* Sidebar collapsed: the sidebar slot keeps its width (just fades out), and the
+   main slot normally slides left over it. Move the island itself left instead,
+   so its clipping no longer cuts the content. */
 [data-state="collapsed"] [data-otter-dock="main"] {
-  border-left: 1px solid var(--rd-line-frame);
+  clip-path: inset(-1px);
+  margin-left: calc(-1 * var(--app-shell-sidebar-width)) !important;
+}
+[data-state="collapsed"] [data-slot="app-shell-main-slot"] {
+  left: 0 !important;
 }
 
 /* ---------- Sidebar ---------- */
@@ -344,6 +353,22 @@
 }
 [data-slot="banner"] {
   border-radius: 0 !important;
+  border: 0 !important;
+  box-shadow: inset 0 0 0 1px rgb(28 27 26 / 0.1) !important;
+  padding: 12px 16px !important;
+  column-gap: 8px !important;
+}
+/* Actions sit on the right, centred across title + description. */
+/* Only when the banner is wide enough to keep the actions in their own column. */
+@container (min-width: 452px) {
+[data-slot="banner"]:has(> [data-slot="banner-action"]) > [data-slot="banner-title"] {
+  grid-column-end: span 1 !important;
+}
+[data-slot="banner"] > div:last-child:has(button) {
+  grid-row: 1 / span 2 !important;
+  align-self: center !important;
+  margin-top: 0 !important;
+}
 }
 
 /* ---------- Dark (Color: Dark, Accent: Yellow dim) ---------- */
@@ -468,20 +493,22 @@
 }
 
 /* Floating timeline controls (jump to unread / latest): white pill, 10% line. */
-[data-testid="chat-top-controls"] > *,
-[data-testid="chat-bottom-controls"] > *,
-[data-testid="thread-unread-jump-pill"] {
+/* Only the pills themselves (a lone pill, or a pill group with its × ) get the
+   white fill + ring — not the row that lays them out. */
+[data-slot="message-list-jump-pill-group"],
+[data-slot="message-list-jump-pill"]:not([data-slot="message-list-jump-pill-group"] > *) {
   border-radius: 999px !important;
-  border: 1px solid var(--rd-line-frame) !important;
-  box-shadow: 0 2px 8px rgb(28 27 26 / 0.08) !important;
+  border: 0 !important;
+  box-shadow: 0 0 0 1px var(--rd-line-frame), 0 2px 8px rgb(28 27 26 / 0.08) !important;
   background: var(--layer-canvas) !important;
   font-weight: 500 !important;
   font-size: 13px !important;
 }
-[data-testid="chat-top-controls"] button,
-[data-testid="chat-bottom-controls"] button {
+[data-slot="message-list-jump-pill-group"] > button {
   border: 0 !important;
   border-radius: 999px !important;
+  box-shadow: none !important;
+  background: transparent !important;
 }
 
 /* ---------- Pass 4 ---------- */
@@ -530,4 +557,39 @@
 
 [data-slot="app-rail-root"] [data-slot="app-rail-item"][data-selected="true"] {
   color: var(--foreground-on-frame-active) !important;
+}
+
+/* Task panel: room between the head divider and the filter pills. */
+[data-testid="channel-tasks-toolbar"] {
+  padding-top: 12px !important;
+  padding-bottom: 4px !important;
+}
+
+/* ---------- Islands: the workspace floats on its own ---------- */
+/* Desktop only. Follows the framework (Figma 界面框架): two areas besides the
+   nav — the conversation area (timeline + the channel's attached side bar:
+   tasks, files, members, channel info, a thread) and the workspace (artifacts
+   etc., not tied to the channel). With the workspace open, the one white island
+   splits in two: the conversation area (header included) and the workspace,
+   8px of frame between them, each with its own 1px ring. The channel's side bar
+   stays inside the conversation island, divided by a hairline. Expanded (the
+   workspace covering the row) there is one panel again. */
+@media (min-width: 768px) {
+  [data-testid="workspace-frame"]:not([data-workspace-expanded="true"]) > [data-testid="workspace-slot"] > [data-testid="channel-side-column"] {
+    margin-left: var(--rd-island-gap);
+    border-left: 0 !important;
+    background: var(--layer-canvas);
+    box-shadow: 0 0 0 1px var(--rd-line-frame);
+  }
+  [data-otter-dock="main"]:has([data-testid="workspace-frame"]:not([data-workspace-expanded="true"]) > [data-testid="workspace-slot"] > [data-testid="channel-side-column"]) {
+    background: transparent;
+    box-shadow: none;
+    /* Clip, but leave room for the islands' rings (drawn 1px outside them). */
+    overflow: clip;
+    overflow-clip-margin: 1px;
+    & [data-testid="conversation-frame"] {
+      background: var(--layer-canvas);
+      box-shadow: 0 0 0 1px var(--rd-line-frame);
+    }
+  }
 }
