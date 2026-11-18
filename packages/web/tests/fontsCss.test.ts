@@ -44,23 +44,20 @@ test("every face loads a bundled woff2 from this origin, with Google's subsets",
     assert.equal(bytes.subarray(0, 4).toString(), "wOF2", face.src);
   }
   // The families, weights and subsets raft-ui's Google Fonts request
-  // (Space Grotesk 300..700, Space Mono 400 / 700) resolves to.
+  // (Inter 100..900, IBM Plex Mono 400 / 500 / 700) resolves to.
   const subsets = (family: string, weight: string) =>
     faces.filter((face) => face.family === family && face.weight === weight).map((face) => face.src?.replace(/^.*\//, ""));
-  assert.deepEqual(subsets("Space Grotesk", "300 700"), [
-    "space-grotesk-vietnamese.woff2",
-    "space-grotesk-latin-ext.woff2",
-    "space-grotesk-latin.woff2",
+  assert.deepEqual(subsets("Inter", "100 900"), [
+    "inter-vietnamese.woff2",
+    "inter-latin-ext.woff2",
+    "inter-latin.woff2",
   ]);
-  for (const weight of ["400", "700"]) {
-    assert.deepEqual(subsets("Space Mono", weight), [
-      `space-mono-vietnamese-${weight}.woff2`,
-      `space-mono-latin-ext-${weight}.woff2`,
-      `space-mono-latin-${weight}.woff2`,
+  for (const weight of ["400", "500", "700"]) {
+    assert.deepEqual(subsets("IBM Plex Mono", weight), [
+      `ibm-plex-mono-vietnamese-${weight}.woff2`,
+      `ibm-plex-mono-latin-ext-${weight}.woff2`,
+      `ibm-plex-mono-latin-${weight}.woff2`,
     ]);
   }
-  assert.deepEqual(
-    faces.filter((face) => face.family === "Raft Quote Glyphs").map((face) => face.unicodeRange),
-    ["U+0022"],
-  );
+  assert.equal(faces.length, 12, "Inter's three subsets and IBM Plex Mono's three at three weights");
 });

@@ -43,14 +43,15 @@ test("the fonts are the web's files, byte for byte, with their hashes and OFL li
     assert.deepEqual(own, readFileSync(new URL(file, WEB_FONTS)), file);
     assert.equal(createHash("sha256").update(own).digest("hex"), sha256, file);
   }
-  for (const licence of ["spacegrotesk-OFL.txt", "spacemono-OFL.txt"]) {
+  for (const licence of ["inter-OFL.txt", "ibmplexmono-OFL.txt"]) {
     const text = readFileSync(new URL(licence, OWN_FONTS), "utf8");
     assert.match(text, /SIL Open Font License, Version 1\.1/, licence);
     assert.equal(text, readFileSync(new URL(licence, WEB_FONTS), "utf8"), licence);
   }
-  // Lean: latin and latin-ext only.
+  // Lean: latin and latin-ext only. Inter is larger than Space Grotesk was (its latin-ext alone is
+  // 85 KB), but a browser fetches a subset only when the page draws a character in it.
   const total = MARKDOWN_FONT_FACES.reduce((sum, { file }) => sum + readFileSync(new URL(file, OWN_FONTS)).byteLength, 0);
-  assert.ok(total < 100_000, `${total} bytes`);
+  assert.ok(total < 180_000, `${total} bytes`);
 });
 
 test("the page declares each face from its own origin, as the web does, by a path relative to the page", () => {

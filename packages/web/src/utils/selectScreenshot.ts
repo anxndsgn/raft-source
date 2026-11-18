@@ -405,7 +405,7 @@ function createContinuationMarker(direction: "previous" | "next"): HTMLElement {
   marker.style.display = "flex";
   marker.style.alignItems = "center";
   marker.style.justifyContent = "center";
-  marker.style.fontFamily = "'Space Mono', ui-monospace, monospace";
+  marker.style.fontFamily = "'IBM Plex Mono', ui-monospace, monospace";
   marker.style.fontSize = "11px";
   marker.style.fontWeight = "700";
   marker.style.color = "#141111";
@@ -760,7 +760,7 @@ async function captureSelectedMessagesUnsafe(
   headerBar.style.background = "#FFD440";
   headerBar.style.borderBottom = "2px solid #141111";
   headerBar.style.fontFamily =
-    "'Space Grotesk', 'Space Mono', ui-monospace, sans-serif";
+    "Inter, 'IBM Plex Mono', ui-monospace, sans-serif";
 
   const lockup = document.createElement("div");
   lockup.setAttribute("aria-label", "Raft");
@@ -783,7 +783,7 @@ async function captureSelectedMessagesUnsafe(
     ? `raft.build · ${options.pageNumber ?? 1}/${options.pageCount}`
     : "raft.build";
   domain.style.fontFamily =
-    "'Space Mono', ui-monospace, monospace";
+    "'IBM Plex Mono', ui-monospace, monospace";
   domain.style.fontSize = "12px";
   domain.style.fontWeight = "700";
   domain.style.color = "#141111";

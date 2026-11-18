@@ -469,8 +469,8 @@ test("a Markdown file and a PDF that aren't the entry open at the page made besi
   assert.match(page, /<h1 id="release-notes"/, "rendered by the Worker's renderer");
   assert.ok(page.includes("<em>text</em>") && !notes.body.includes("Raft page"), "the file's page, not the entry");
   assert.ok(page.includes("<title>release notes.md</title>"), "named after its file");
-  assert.ok(page.includes("url(./../_raft-fonts/space-grotesk-latin.woff2)"), "the fonts by a path relative to the page");
-  assert.equal((await app.contentFetch(`${notes.base}_raft-fonts/space-grotesk-latin.woff2`)).status, 200);
+  assert.ok(page.includes("url(./../_raft-fonts/inter-latin.woff2)"), "the fonts by a path relative to the page");
+  assert.equal((await app.contentFetch(`${notes.base}_raft-fonts/inter-latin.woff2`)).status, 200);
   assert.equal((await app.contentFetch(`${notes.base}docs/release%20notes.md`)).headers.get("content-type"), "text/markdown; charset=utf-8", "its source stays beside it");
 
   const report = await openSigned(app, published, signTicket(app.claimsFor(published, { page: "reports/q3.pdf.html" })));
@@ -495,7 +495,7 @@ test("a page made for a file that isn't the entry fills an empty path only: a ve
     "notes.md": "# Rendered heading",
     "notes.md.html": "<!doctype html><p>VERSION OWN PAGE</p>",
     "other.md": "# Other heading",
-    "_raft-fonts/space-grotesk-latin.woff2": "VERSION OWN FONT",
+    "_raft-fonts/inter-latin.woff2": "VERSION OWN FONT",
     "report.pdf": samplePdf(["One"]),
     "_raft-pdf/pdf.min.mjs": "window.versionOwnPdfjs = 1;",
   });
@@ -504,15 +504,15 @@ test("a page made for a file that isn't the entry fills an empty path only: a ve
   assert.ok(own.body.includes("VERSION OWN PAGE") && !carried(own.body).includes("Rendered heading"), "the version's own page at that path");
   const other = await openSigned(app, published, signTicket(app.claimsFor(published, { page: "other.md.html" })));
   assert.match(carried(other.body), /<h1 id="other-heading"/, "a Markdown file with no page of the version's own gets one");
-  assert.equal(await (await app.contentFetch(`${other.base}_raft-fonts/space-grotesk-latin.woff2`)).text(), "VERSION OWN FONT", "the version's own file at a font's path");
-  assert.equal((await app.contentFetch(`${other.base}_raft-fonts/space-mono-latin-400.woff2`)).status, 200, "Raft's font where the version has none");
+  assert.equal(await (await app.contentFetch(`${other.base}_raft-fonts/inter-latin.woff2`)).text(), "VERSION OWN FONT", "the version's own file at a font's path");
+  assert.equal((await app.contentFetch(`${other.base}_raft-fonts/ibm-plex-mono-latin-400.woff2`)).status, 200, "Raft's font where the version has none");
   assert.equal(await (await app.contentFetch(`${other.base}_raft-pdf/pdf.min.mjs`)).text(), "window.versionOwnPdfjs = 1;", "the version's own file at a viewer file's path");
   assert.equal((await app.contentFetch(`${other.base}_raft-pdf/pdf.worker.min.mjs`)).status, 200);
 
   // A version with no Markdown file or PDF beside its entry gets nothing new.
   const plain = await app.publish({ "index.html": HTML, "style.css": "h1{color:red}" });
   const opened = await openSigned(app, plain, signTicket(app.claimsFor(plain)));
-  for (const path of ["_raft-fonts/space-grotesk-latin.woff2", "_raft-pdf/pdf.min.mjs", "index.html.html", "style.css.html"]) {
+  for (const path of ["_raft-fonts/inter-latin.woff2", "_raft-pdf/pdf.min.mjs", "index.html.html", "style.css.html"]) {
     assert.equal((await app.contentFetch(`${opened.base}${path}`)).status, 404, path);
   }
 });

@@ -110,11 +110,11 @@ test("the outer page of a public, current Artifact: Raft's code only, framed by 
   assert.ok(!app.logs.some((line) => line.includes("utm=secret") || line.includes("/posts/1") || line.includes("www.blog")));
 });
 
-test("the outer page follows Raft's design system: Space Grotesk from the embed host itself, Raft's tokens light and dark, 44 px targets on touch, the focus ring", async (t) => {
+test("the outer page follows Raft's design system: Inter from the embed host itself, Raft's tokens light and dark, 44 px targets on touch, the focus ring", async (t) => {
   const app = await setup(t);
   const css = await (await app.contentFetch(`http://${app.embedDomain}/_embed/embed.css`)).text();
-  assert.match(css, /font-family:'Space Grotesk'.*src:url\(\/_embed\/fonts\/space-grotesk-latin\.woff2\) format\('woff2'\)/);
-  assert.match(css, /--sans-font:\s*"Space Grotesk", Arial/);
+  assert.match(css, /font-family:'Inter'.*src:url\(\/_embed\/fonts\/inter-latin\.woff2\) format\('woff2'\)/);
+  assert.match(css, /--sans-font:\s*Inter, Arial/);
   assert.match(css, /font:400 13px\/18px var\(--sans-font\)/);
   assert.ok(!/system-ui,-apple-system|#0969da|#f6f8fa|#0d1117/.test(css), "no system-ui-first stack, no Primer colours");
   // raft-ui foundation.css: foreground, foreground-link, layer-canvas (light only for now).
@@ -124,11 +124,11 @@ test("the outer page follows Raft's design system: Space Grotesk from the embed 
   assert.match(css, /\.bar a:focus-visible\{box-shadow:var\(--focus-ring\)\}/);
   assert.match(css, /@media \(pointer:coarse\)\{\.bar a\{min-height:44px;min-width:44px\}/);
   // The fonts, the Markdown page's own bytes, from the embed host; nothing else under /_embed/fonts/.
-  const font = await app.contentFetch(`http://${app.embedDomain}/_embed/fonts/space-grotesk-latin.woff2`);
+  const font = await app.contentFetch(`http://${app.embedDomain}/_embed/fonts/inter-latin.woff2`);
   assert.equal(font.status, 200);
   assert.equal(font.headers.get("content-type"), "font/woff2");
-  assert.ok(Buffer.from(await font.arrayBuffer()).equals(readFileSync(new URL("../src/fonts/space-grotesk-latin.woff2", import.meta.url))));
-  for (const other of ["space-mono-latin-400.woff2", "nope.woff2", "x/space-grotesk-latin.woff2"])
+  assert.ok(Buffer.from(await font.arrayBuffer()).equals(readFileSync(new URL("../src/fonts/inter-latin.woff2", import.meta.url))));
+  for (const other of ["ibm-plex-mono-latin-400.woff2", "nope.woff2", "x/inter-latin.woff2"])
     assert.equal((await app.contentFetch(`http://${app.embedDomain}/_embed/fonts/${other}`)).status, 404, other);
   // A CJK title: the page's lang follows it, so the CJK font stack picks the right glyphs.
   const published = await app.publish({ "index.html": HTML });

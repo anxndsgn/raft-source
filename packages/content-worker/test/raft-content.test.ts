@@ -603,7 +603,7 @@ test("a Markdown page sets its text in Raft's fonts, served beside it from its o
   assert.equal(served.status, 200, body);
   const page = body.replace(/\\u003c/gi, "<").replace(/\\u003e/gi, ">").replaceAll('\\"', '"');
   assert.ok(page.includes('<html lang="zh-CN">'), "lang from the words");
-  assert.ok(page.includes("src: url(./../_raft-fonts/space-grotesk-latin.woff2) format('woff2')"), "a face by a path relative to the page");
+  assert.ok(page.includes("src: url(./../_raft-fonts/inter-latin.woff2) format('woff2')"), "a face by a path relative to the page");
   assert.ok(page.includes("var(--sans-font)"));
   // font-src as Porthole serves every page with files: its origin's sealed files path (where the
   // fonts are), never 'self'; the same as an HTML page's, so nothing in it is new for the fonts.
@@ -624,18 +624,18 @@ test("a Markdown page sets its text in Raft's fonts, served beside it from its o
     assert.equal(font.headers.get("cross-origin-resource-policy"), "same-origin", file);
     assert.deepEqual(new Uint8Array(await font.arrayBuffer()), new Uint8Array(await readFile(`src/fonts/${file}`)), file);
   }
-  for (const path of ["_raft-fonts/nope.woff2", "_raft-fonts/space-grotesk-vietnamese.woff2", "_raft-fonts/spacegrotesk-OFL.txt", "docs/_raft-fonts/space-grotesk-latin.woff2"])
+  for (const path of ["_raft-fonts/nope.woff2", "_raft-fonts/space-grotesk-vietnamese.woff2", "_raft-fonts/spacegrotesk-OFL.txt", "docs/_raft-fonts/inter-latin.woff2"])
     assert.equal((await app.contentFetch(`${base}${path}`)).status, 404, path);
   // Behind the sealed path like every file of the version: not at the origin's root.
-  assert.notEqual((await app.contentFetch(`${location.origin}/_raft-fonts/space-grotesk-latin.woff2`)).status, 200);
+  assert.notEqual((await app.contentFetch(`${location.origin}/_raft-fonts/inter-latin.woff2`)).status, 200);
 });
 
 test("only a Markdown version carries the fonts; an HTML page's paths stay its own", async (t) => {
   const app = await setup(t);
-  const published = await app.publish({ "index.html": HTML, "_raft-fonts/space-grotesk-latin.woff2": "the version's own" });
+  const published = await app.publish({ "index.html": HTML, "_raft-fonts/inter-latin.woff2": "the version's own" });
   const { base } = await open(app, published);
-  assert.equal(await (await app.contentFetch(`${base}_raft-fonts/space-grotesk-latin.woff2`)).text(), "the version's own");
-  assert.equal((await app.contentFetch(`${base}_raft-fonts/space-mono-latin-400.woff2`)).status, 404);
+  assert.equal(await (await app.contentFetch(`${base}_raft-fonts/inter-latin.woff2`)).text(), "the version's own");
+  assert.equal((await app.contentFetch(`${base}_raft-fonts/ibm-plex-mono-latin-400.woff2`)).status, 404);
 });
 
 test("a PDF opens in the viewer page, with pdf.js served from the version's own path", async (t) => {
@@ -701,7 +701,7 @@ test("the made pages and pdf.js win over a version's own files at their paths", 
 
   // A Markdown version that carries its own `<entry>.html`: the entry is still the rendered page.
   const markdown = await app.publish(
-    { "notes.md": "# Rendered heading", "notes.md.html": "<!doctype html><p>VERSION OWN PAGE</p>", "_raft-fonts/space-grotesk-latin.woff2": "VERSION OWN FONT" },
+    { "notes.md": "# Rendered heading", "notes.md.html": "<!doctype html><p>VERSION OWN PAGE</p>", "_raft-fonts/inter-latin.woff2": "VERSION OWN FONT" },
     { kind: "markdown", entry: "notes.md" },
   );
   const page = await open(app, markdown);
@@ -709,8 +709,8 @@ test("the made pages and pdf.js win over a version's own files at their paths", 
   assert.equal(page.served.headers.get("content-type"), "text/html; charset=utf-8", "a page in the shell, never the raw .md");
   assert.ok(page.body.includes("Rendered heading") && !page.body.includes("VERSION OWN PAGE"));
   assert.ok(!(await (await app.contentFetch(`${page.base}notes.md.html`)).text()).includes("VERSION OWN PAGE"));
-  const font = await app.contentFetch(`${page.base}_raft-fonts/space-grotesk-latin.woff2`);
-  assert.deepEqual(new Uint8Array(await font.arrayBuffer()), new Uint8Array(await readFile("src/fonts/space-grotesk-latin.woff2")), "Raft's font, not the version's");
+  const font = await app.contentFetch(`${page.base}_raft-fonts/inter-latin.woff2`);
+  assert.deepEqual(new Uint8Array(await font.arrayBuffer()), new Uint8Array(await readFile("src/fonts/inter-latin.woff2")), "Raft's font, not the version's");
 });
 
 test("pdf.js's served files are the pinned pdfjs-dist's (scripts/pdfjs-assets.ts)", async () => {

@@ -175,9 +175,9 @@ const escapeHtml = (text: string): string =>
 
 /** Raft's website, where the logo goes (brand rules: a public page outside the app shows the mark, linked there). */
 export const RAFT_WEBSITE = "https://raft.build";
-/** The fonts the outer page serves itself (`/_embed/fonts/<file>`): Space Grotesk's faces of the Markdown page's set. */
+/** The fonts the outer page serves itself (`/_embed/fonts/<file>`): Inter's faces of the Markdown page's set. */
 export const EMBED_FONT_PREFIX = `${"/_embed/"}fonts/`;
-export const EMBED_FONT_FACES = MARKDOWN_FONT_FACES.filter((face) => face.family === "Space Grotesk");
+export const EMBED_FONT_FACES = MARKDOWN_FONT_FACES.filter((face) => face.family === "Inter");
 
 /**
  * The outer page (`GET /pt_<uuid>` on the embed host) for a public, current Artifact: its
@@ -259,7 +259,7 @@ const TOKENS = `:root{color-scheme:light;
   --logo-ink:#141111;--logo-paper:#FFFAEF}`;
 
 /**
- * The outer page's style: Space Grotesk from the embed host itself (the Markdown page's files, the
+ * The outer page's style: Inter from the embed host itself (the Markdown page's files, the
  * same @font-face ranges) with raft-ui's font variables (CJK stacks per `lang`), the DS's
  * `text-control` size (13/18 on a phone, 14/22 with a fine pointer at 48rem and up), the tokens
  * above, and links with at least a 24 px target (44 px on a coarse pointer) and the DS focus ring.

@@ -22,9 +22,8 @@ import { getPwaInstallPlatform } from "./pwaInstall";
  */
 
 export const SCREENSHOT_FONT_FAMILIES: ReadonlySet<string> = new Set([
-  "Space Grotesk",
-  "Space Mono",
-  "Raft Quote Glyphs",
+  "Inter",
+  "IBM Plex Mono",
 ]);
 
 const FONT_FETCH_TIMEOUT_MS = 1_500;
@@ -194,11 +193,10 @@ export function isWebKitFontWarmUpNeeded(userAgent: string): boolean {
 }
 
 const WARM_UP_RUNS: ReadonlyArray<readonly [family: string, weight: number, text: string]> = [
-  ["Space Grotesk", 400, "Aa ąẠ"],
-  ["Space Grotesk", 700, "Aa ąẠ"],
-  ["Space Mono", 400, "Aa ąẠ"],
-  ["Space Mono", 700, "Aa ąẠ"],
-  ["Raft Quote Glyphs", 400, "&quot;"],
+  ["Inter", 400, "Aa ąẠ"],
+  ["Inter", 700, "Aa ąẠ"],
+  ["IBM Plex Mono", 400, "Aa ąẠ"],
+  ["IBM Plex Mono", 700, "Aa ąẠ"],
 ];
 
 export function screenshotFontWarmUpSvg(css: string): string {

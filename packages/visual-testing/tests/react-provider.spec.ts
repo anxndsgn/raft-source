@@ -1760,11 +1760,10 @@ async function expandToFullLength(page: Page, selector: string, visualCase: Visu
 async function assertVisualFontsReady(page: Page, visualFonts: VisualFontRouteState) {
   const faces = await page.evaluate(async () => {
     const probes = [
-      { family: "Space Grotesk", descriptor: "400 16px 'Space Grotesk'", text: "Raft" },
-      { family: "Space Grotesk", descriptor: "700 16px 'Space Grotesk'", text: "Raft" },
-      { family: "Space Mono", descriptor: "400 16px 'Space Mono'", text: "Raft" },
-      { family: "Space Mono", descriptor: "700 16px 'Space Mono'", text: "Raft" },
-      { family: "Raft Quote Glyphs", descriptor: "400 16px 'Raft Quote Glyphs'", text: "\"" },
+      { family: "Inter", descriptor: "400 16px Inter", text: "Raft" },
+      { family: "Inter", descriptor: "700 16px Inter", text: "Raft" },
+      { family: "IBM Plex Mono", descriptor: "400 16px 'IBM Plex Mono'", text: "Raft" },
+      { family: "IBM Plex Mono", descriptor: "700 16px 'IBM Plex Mono'", text: "Raft" },
     ];
     const results = await Promise.all(probes.map(async (probe) => {
       const matchingFaces = [...document.fonts].filter((face) => face.family === probe.family);

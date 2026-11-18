@@ -60,7 +60,7 @@ const PRINT_COLORS = Object.entries(ARTIFACT_PAGE_THEME_VARIABLES)
  */
 export const MARKDOWN_FONTS_DIR = "_raft-fonts/";
 
-// Google Fonts' latin and latin-ext ranges, as the web's fonts.css has them.
+// Google Fonts' latin and latin-ext ranges as the web's fonts.css has them.
 const LATIN_EXT =
   "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF";
 const LATIN =
@@ -68,17 +68,17 @@ const LATIN =
 
 /**
  * The faces a Markdown page declares: the web's own files (packages/web/src/assets/fonts), the
- * latin and latin-ext subsets only (Space Grotesk variable 300..700, Space Mono 400 and 700), each
+ * latin and latin-ext subsets only (Inter variable 100..900, IBM Plex Mono 400 and 700), each
  * with its SHA-256 (its ETag; test/markdown-fonts.test.ts checks it against the bytes). A browser
  * fetches a file only when the page draws a character in its range.
  */
 export const MARKDOWN_FONT_FACES = [
-  { file: "space-grotesk-latin-ext.woff2", family: "Space Grotesk", weight: "300 700", range: LATIN_EXT, sha256: "054c266fbb441ee059365dba0885d206f67ca05b375de869b88e02ebfccc9b9d" },
-  { file: "space-grotesk-latin.woff2", family: "Space Grotesk", weight: "300 700", range: LATIN, sha256: "a0d054c4af557de20afd6ca59f47ab353bcaec49c63ff04b6c9d39d0f8910557" },
-  { file: "space-mono-latin-ext-400.woff2", family: "Space Mono", weight: "400", range: LATIN_EXT, sha256: "b4f90459adf4851575a46d9a492c17ee34c97fe40d56979521de67d1ee77d75a" },
-  { file: "space-mono-latin-400.woff2", family: "Space Mono", weight: "400", range: LATIN, sha256: "e0c8e616bda27642f4c3cebaecff6525d901e73afc8a227cbbb0f2af4810f300" },
-  { file: "space-mono-latin-ext-700.woff2", family: "Space Mono", weight: "700", range: LATIN_EXT, sha256: "512458b32bf452ac0e4b33fd6277bf4f07821acefb59db2d1498aa107679a1a6" },
-  { file: "space-mono-latin-700.woff2", family: "Space Mono", weight: "700", range: LATIN, sha256: "af7cf6d2b897ec453acdcdacde4e9bcc8410718af5914de865b453e09f10eebc" },
+  { file: "inter-latin-ext.woff2", family: "Inter", weight: "100 900", range: LATIN_EXT, sha256: "a28eb6d3ccb534ae0c94ca999371df024aab60b08c3c8a5720ee9e32fa0faaa2" },
+  { file: "inter-latin.woff2", family: "Inter", weight: "100 900", range: LATIN, sha256: "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4" },
+  { file: "ibm-plex-mono-latin-ext-400.woff2", family: "IBM Plex Mono", weight: "400", range: LATIN_EXT, sha256: "e2318e4993a9cd4a2aad0eb1798c41d8bddec6ee7850f627e44653c15712a2b6" },
+  { file: "ibm-plex-mono-latin-400.woff2", family: "IBM Plex Mono", weight: "400", range: LATIN, sha256: "52de70091213c9eab340e2a7ac59e7b6b2b94e089bf69ef38479b22cfde4274c" },
+  { file: "ibm-plex-mono-latin-ext-700.woff2", family: "IBM Plex Mono", weight: "700", range: LATIN_EXT, sha256: "e256042da3b821a99831ac4f333404490d74e4b02f87f8d6b14144af8fc52f76" },
+  { file: "ibm-plex-mono-latin-700.woff2", family: "IBM Plex Mono", weight: "700", range: LATIN, sha256: "2ad2a36f5c970b631ed726a97ae4eb5146a2bac9f6ecb2bfdcdc217677bbb5c2" },
 ] as const;
 
 /** The page's `@font-face` rules, each file by a relative address from the page's directory (`up`). */
@@ -96,35 +96,35 @@ function fontFaces(up: string): string {
  */
 export const FONT_VARIABLES = `  :where(:root) {
     --heading-font:
-      "Space Grotesk", Arial, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+      Inter, Arial, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
       "Noto Sans SC", "Noto Sans CJK SC", system-ui, sans-serif;
     --sans-font:
-      "Space Grotesk", Arial, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+      Inter, Arial, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
       "Noto Sans SC", "Noto Sans CJK SC", system-ui, sans-serif;
-    --mono-font: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --mono-font: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   }
   :where(:root:lang(zh-TW), :root:lang(zh-HK), :root:lang(zh-MO), :root:lang(zh-Hant)) {
     --heading-font:
-      "Space Grotesk", Arial, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei UI",
+      Inter, Arial, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei UI",
       "Microsoft JhengHei", "Noto Sans TC", "Noto Sans CJK TC", system-ui, sans-serif;
     --sans-font:
-      "Space Grotesk", Arial, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei UI",
+      Inter, Arial, "Helvetica Neue", "PingFang TC", "Microsoft JhengHei UI",
       "Microsoft JhengHei", "Noto Sans TC", "Noto Sans CJK TC", system-ui, sans-serif;
   }
   :where(:root:lang(ja)) {
     --heading-font:
-      "Space Grotesk", Arial, "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+      Inter, Arial, "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
       "Yu Gothic UI", Meiryo, "Noto Sans JP", "Noto Sans CJK JP", system-ui, sans-serif;
     --sans-font:
-      "Space Grotesk", Arial, "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+      Inter, Arial, "Helvetica Neue", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
       "Yu Gothic UI", Meiryo, "Noto Sans JP", "Noto Sans CJK JP", system-ui, sans-serif;
   }
   :where(:root:lang(ko)) {
     --heading-font:
-      "Space Grotesk", Arial, "Helvetica Neue", "Apple SD Gothic Neo", "Malgun Gothic",
+      Inter, Arial, "Helvetica Neue", "Apple SD Gothic Neo", "Malgun Gothic",
       "Noto Sans KR", "Noto Sans CJK KR", system-ui, sans-serif;
     --sans-font:
-      "Space Grotesk", Arial, "Helvetica Neue", "Apple SD Gothic Neo", "Malgun Gothic",
+      Inter, Arial, "Helvetica Neue", "Apple SD Gothic Neo", "Malgun Gothic",
       "Noto Sans KR", "Noto Sans CJK KR", system-ui, sans-serif;
   }`;
 
