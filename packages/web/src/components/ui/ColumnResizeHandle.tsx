@@ -37,6 +37,15 @@ const EDGE_CLASS = {
 
 // The column draws that border itself (`ownBorder`): the handle is placed from inside it, so it stands its 1px
 // further out and the line lies on the border, as everywhere else, rather than beside it (2px on hover).
+// Raft redesign (anxndsgn, Figmama 11/18): a column at the edge of an island is resized from the 8px gap beside it,
+// not from a line on its edge (the island's ring is that edge): the whole gap takes the drag, and a 4x32 pill in its
+// middle, the frame's ink at 40%, says so, at 100% while hovered or dragged.
+const GAP_CLASS = {
+  right: "-right-2 w-2",
+  left: "-left-2 w-2",
+} as const;
+const GAP_PILL_CLASS = "before:inset-y-0 before:left-0.5 before:my-auto before:h-8 before:w-1 before:rounded-full before:bg-foreground-on-frame/40 hover:before:bg-foreground-on-frame data-[dragging=true]:before:bg-foreground-on-frame data-[highlight]:before:bg-foreground-on-frame focus-visible:keyboard:before:bg-foreground-on-frame";
+
 const OWN_BORDER_EDGE_CLASS = {
   right: "-right-[13px] pointer-coarse:-right-[25px] before:-left-px",
   left: "-left-px before:left-0",
@@ -142,6 +151,8 @@ export interface ColumnResizeHandleProps {
    * handle is positioned from inside that border, so it is moved out by it, and the hover line covers the border.
    */
   ownBorder?: boolean;
+  /** The column stands at an island's edge: resized from the gap beside it, by a pill there (GAP_CLASS). */
+  gap?: boolean;
   /**
    * Dragging past the end changes the layout's state instead of stopping (DS Resizable, "Dragging past the end"):
    * `collapse` for a column left of the conversation (40px under its minimum: the sidebar collapses), `focus` for one
@@ -213,6 +224,7 @@ export default function ColumnResizeHandle({
   mainMin,
   highlight,
   ownBorder = false,
+  gap = false,
   snap,
   "data-testid": testId,
 }: ColumnResizeHandleProps) {
@@ -445,7 +457,9 @@ export default function ColumnResizeHandle({
         data-dragging={dragging ? "true" : undefined}
         data-highlight={highlight}
         data-testid={testId}
-        className={`absolute top-0 bottom-0 z-control w-3 cursor-col-resize touch-none select-none outline-none pointer-coarse:w-6 before:pointer-events-none before:absolute before:bg-transparent before:transition-colors before:content-[''] ${SEAM_CLASS} ${(ownBorder ? OWN_BORDER_EDGE_CLASS : EDGE_CLASS)[edge]} ${visibleFrom ? VISIBLE_FROM_CLASS[visibleFrom] : ""} ${className}`.trim()}
+        className={gap
+          ? `absolute top-0 bottom-0 z-control cursor-col-resize touch-none select-none outline-none before:pointer-events-none before:absolute before:transition-colors before:content-[''] ${GAP_PILL_CLASS} ${GAP_CLASS[edge]} ${visibleFrom ? VISIBLE_FROM_CLASS[visibleFrom] : ""} ${className}`.trim()
+          : `absolute top-0 bottom-0 z-control w-3 cursor-col-resize touch-none select-none outline-none pointer-coarse:w-6 before:pointer-events-none before:absolute before:bg-transparent before:transition-colors before:content-[''] ${SEAM_CLASS} ${(ownBorder ? OWN_BORDER_EDGE_CLASS : EDGE_CLASS)[edge]} ${visibleFrom ? VISIBLE_FROM_CLASS[visibleFrom] : ""} ${className}`.trim()}
         onPointerDown={onPointerDown}
         onLostPointerCapture={onLostPointerCapture}
         onKeyDown={onKeyDown}

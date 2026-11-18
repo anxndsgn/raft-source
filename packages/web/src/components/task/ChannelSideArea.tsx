@@ -1,6 +1,6 @@
 import { detailsTakeSidePanel, DRAWER_SECTIONS, drawerHost, inWorkspace, isSidePanelColumn, useOrWorkspaceExpanded, WORKSPACE_TIMELINE_MIN, workspaceMainColumn, sidePanelWidths, sidePanelWidthSource, threadTakesSidePanel, useWorkspaceDrawer } from "./sideAreaLayoutRedesign";
 import { WorkspaceDrawer, WorkspaceDrawerHandle } from "./WorkspaceDrawerScrim";
-import { Fragment, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useIntl } from "react-intl";
@@ -33,6 +33,8 @@ import { stackEndOf, useMarkStackEnd } from "./stackEnd";
 import { useSideHighlight, useStackCorner } from "./stackCornerDrag";
 import { StackCorners } from "./StackCorner";
 import { moveNodeInto } from "../ui/moveNode";
+import { ShellWorkspaceIslandContext } from "../layout/rowColumnSlot";
+import { columnClass } from "./sideColumnClass";
 import { focusLost } from "../../utils/focusGuard";
 
 /**
@@ -1128,6 +1130,9 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
   const stack = useStack(shown, measure);
   const beside = kind === "beside";
   const resizable = beside && widthColumn !== undefined, panel = isSidePanelColumn(sections);
+  // In the shell's workspace island (Raft redesign): the island's ring is its edge, the gap beside it its handle.
+  const workspaceIsland = useContext(ShellWorkspaceIslandContext);
+  const inIsland = beside && !panel && workspaceIsland !== undefined;
 
   const source = useMemo<ColumnWidthSource | undefined>(() => (resizable && panel ? sidePanelWidthSource(width, minWidth) : resizable ? {
     width: width ?? channelSideSectionWidth(sections[0] ?? "tasks"),
@@ -1173,7 +1178,7 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
       data-column={column}
       data-side-col={beside ? column : undefined}
       data-in-row={beside ? "true" : undefined}
-      className={columnClass(kind)}
+      className={columnClass(kind, inIsland)}
       style={{
         ...(beside ? { order: columnOrder(column ?? 0), width: `${width}px`, minWidth: `${Math.min(width ?? 0, minWidth ?? 0)}px` } : null),
         ...(kind === "float" ? { bottom: `${composerHeight + SIDE_CARDS_FLOAT_COMPOSER_GAP}px` } : null),
@@ -1187,8 +1192,9 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
           source={source}
           mainColumn={panel ? rowMainColumn : workspaceMainColumn} mainMin={panel ? undefined : WORKSPACE_TIMELINE_MIN}
           highlight={highlight}
-          // The column draws its left seam itself (columnClass "beside").
-          ownBorder
+          // The column draws its left seam itself (columnClass "beside"); in the island it is resized from the gap.
+          ownBorder={!inIsland}
+          gap={inIsland}
           data-testid="channel-side-column-resize"
         />
       ) : null}
@@ -1234,25 +1240,4 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
       </div>
     </div>
   );
-}
-
-/** The column's box: in the row, floating, or covering the panel. */
-function columnClass(kind: SideCardsMode): string {
-  switch (kind) {
-    case "overlay":
-      return "absolute inset-0 z-cover flex bg-layer-canvas";
-    case "float":
-      // Over the right of the messages, flat against the panel's top and
-      // right edges and stopping above the composer (bottom set inline).
-      // Flat like a column, raised by the shadow alone. At most 58% of the
-      // panel and 360px, so part of the messages stays readable. The column
-      // always draws its bottom edge; a folded head at the bottom draws no
-      // line of its own (data-stack-end), so the two don't double.
-      return "absolute top-0 right-0 z-float flex border-b border-l border-line-seam bg-layer-canvas shadow-float [width:min(360px,max(280px,58%),calc(100%-24px))]";
-    case "beside":
-      // Full height in the row, a seam on its left like the thread column's.
-      // Its width is its basis; it gives way to its minimum before the
-      // channel drops under 360px (index.css), and floats past that.
-      return "relative flex shrink border-l border-line-seam bg-layer-canvas";
-  }
 }

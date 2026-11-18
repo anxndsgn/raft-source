@@ -194,7 +194,8 @@ export function ShellFrame({
                 </AppShellMainSlot>
               </div>
             </AppShellIsland>
-            <AppShellIsland ref={setWorkspaceIsland} data-testid="workspace-island" className="flex-none empty:hidden" />
+            {/* Visible overflow: its column's resize handle stands in the gap before it (ColumnResizeHandle gap). */}
+            <AppShellIsland ref={setWorkspaceIsland} data-testid="workspace-island" className="flex-none empty:hidden md:overflow-visible" />
           </AppShellIslandRow>
         </div>
 
