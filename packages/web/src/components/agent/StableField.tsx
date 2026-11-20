@@ -328,7 +328,7 @@ export default function StableField({
             {message ?? " "}
           </span>
           {counter ? (
-            <span className="shrink-0 font-mono text-mono-meta tabular-nums text-foreground-hint">{counter}</span>
+            <span className="shrink-0 font-mono text-mono-meta tabular-nums text-foreground-hint md:pointer-fine:font-sans">{counter}</span>
           ) : null}
         </span>
       </div>

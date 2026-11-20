@@ -184,7 +184,8 @@ export function DialogActions({
  * padding of its own; it sits one gap of the card's content under it.
  */
 export function DialogCardFooter({ className, ...props }: Omit<ComponentProps<typeof DialogActions>, "as">) {
-  return <DialogActions as={DialogFooter} className={cn("px-0 pb-0 first:pt-0", className)} {...props} />;
+  // Raft redesign (Figmama 11/21): with a mouse the buttons stand 20px under what is above them.
+  return <DialogActions as={DialogFooter} className={cn("px-0 pb-0 first:pt-0 md:pointer-fine:mt-3", className)} {...props} />;
 }
 
 /**

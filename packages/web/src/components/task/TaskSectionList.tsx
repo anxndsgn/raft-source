@@ -112,7 +112,7 @@ function SectionTaskRow({ task, viewerId, selected, onOpen, resetsAtByAgent }: {
       selected={selected}
       state={state}
       step={live.step}
-      time={movedAt ? <span className={stale ? "text-warning-strong" : undefined} title={formatMediumDateTime(movedAt)}>{shortSpan(Date.parse(movedAt), formatMessage)}</span> : null}
+      time={movedAt ? <span className={stale ? "text-warning-strong md:pointer-fine:text-danger" : undefined} title={formatMediumDateTime(movedAt)}>{shortSpan(Date.parse(movedAt), formatMessage)}</span> : null}
       action={<RowAction task={task} viewerId={viewerId} />}
       data-testid={`channel-task-row-${task.taskNumber}`}
     />

@@ -74,7 +74,8 @@ const tabs = tv({
       // Raft redesign (Figma Filter Pill): a short row of filters over a list,
       // each a 25px pill with a subtle line; the chosen one the medium fill.
       pill: {
-        list: ["gap-2"],
+        // anxndsgn 11/21: pills 12px apart.
+        list: ["gap-3"],
         tab: [
           "h-[25px] justify-center gap-1 rounded-pill border border-line-subtle bg-layer-canvas px-2.5",
           "font-normal text-foreground-muted",

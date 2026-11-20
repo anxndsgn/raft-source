@@ -154,6 +154,9 @@ export const buttonVariants = tv({
       lg: {
         root: [
           "h-control gap-2 rounded-(--control-radius) px-4 py-0 text-subhead",
+          // Raft redesign (Figmama 11/21): with a mouse a large Button is the
+          // Button: 32px, the control corner, 12px sides, Semi Bold 14.
+          "md:pointer-fine:rounded-control md:pointer-fine:px-3 md:pointer-fine:text-[14px]",
           // Raft redesign: one height on a desktop, 32, 12px sides, 14px (Figmama 11/18).
           "md:pointer-fine:h-8 md:pointer-fine:px-3 md:pointer-fine:text-[14px]",
           "has-data-[icon=inline-start]:pl-3.5 has-data-[icon=inline-end]:pr-3.5",
@@ -175,6 +178,7 @@ export const buttonVariants = tv({
       "icon-lg": {
         root: [
           "size-control rounded-(--control-radius) p-0 [&_svg:not([class*='size-'])]:size-control-icon",
+          "md:pointer-fine:rounded-control",
           "md:pointer-fine:size-8",
           "after:absolute after:-inset-[calc(var(--spacing-control-hit)+1.5px)]",
         ],
