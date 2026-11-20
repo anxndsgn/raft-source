@@ -72,8 +72,8 @@ const textMd = [
   "md:pointer-fine:after:-inset-y-[calc(var(--control-hit-inset)+1.5px)]",
 ];
 const iconMd = [
-  // Raft redesign: 32 with a 20px icon with a mouse (the head's icon buttons).
-  "size-8 rounded-control p-0 [&_svg:not([class*='size-'])]:size-[18px] md:pointer-fine:[&_svg:not([class*='size-'])]:size-5",
+  // Raft redesign: 32 with a 16px icon with a mouse (anxndsgn 11/18: 24 in the rail, 16 everywhere else).
+  "size-8 rounded-control p-0 [&_svg:not([class*='size-'])]:size-[18px] md:pointer-fine:[&_svg:not([class*='size-'])]:size-4",
   "after:absolute after:-inset-[calc(--spacing(1.5)+1.5px)]",
   "md:pointer-fine:after:-inset-[calc(var(--control-hit-inset)+1.5px)]",
 ];
@@ -225,7 +225,7 @@ export const buttonVariants = tv({
       // Its icon box from its edge: 7px in a 32px button; with a mouse the
       // button is the 34px control height, so 8px.
       class: {
-        root: "[--icon-inset:calc((--spacing(8)-18px)/2)] md:pointer-fine:[--icon-inset:calc((--spacing(8)-20px)/2)]",
+        root: "[--icon-inset:calc((--spacing(8)-18px)/2)] md:pointer-fine:[--icon-inset:calc((--spacing(8)-16px)/2)]",
       },
     },
     // On the frame the controls are the frame item (`frame-item-height`: 36px, the 34px control height with a mouse) of the top bar

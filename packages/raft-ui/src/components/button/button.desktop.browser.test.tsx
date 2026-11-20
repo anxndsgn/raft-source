@@ -82,7 +82,7 @@ for (const mode of MODES) {
     expect(height(renderButton(mode, "xl"))).toBe(52);
   });
 
-  it(`${mode}: on a desktop they are 32px with a 20px icon (Raft redesign) and keep a 44px hit area`, async () => {
+  it(`${mode}: on a desktop they are 32px with a 16px icon (Raft redesign) and keep a 44px hit area`, async () => {
     await viewport(1280);
     const large = renderButton(mode, "lg");
     expect(height(large)).toBe(32);
@@ -91,7 +91,7 @@ for (const mode of MODES) {
     const icon = renderButton(mode, "icon-lg");
     expect(height(icon)).toBe(32);
     expect(hitHeight(icon)).toBeGreaterThanOrEqual(44);
-    expect(height(screen.getByTestId("icon"))).toBe(20);
+    expect(height(screen.getByTestId("icon"))).toBe(16);
     cleanup();
     expect(height(renderButton(mode, "xl"))).toBe(40);
   });

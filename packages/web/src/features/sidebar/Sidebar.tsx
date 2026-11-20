@@ -87,7 +87,7 @@ export const Sidebar = memo(function Sidebar({ mobileInline, hideTitle = false, 
       <SidebarRoot
         // `@container/sidebar`: an App row's badge shortens to "App" while the sidebar is narrower than 260px.
         // Stryker disable next-line StringLiteral: Tailwind composition is presentation-only and browser-smoke verified.
-        className={`@container/sidebar relative flex h-full w-full flex-col font-sans text-foreground select-none ${mobileInline ? "bg-layer-canvas" : "border-r border-line-seam bg-layer-sidebar"}`}
+        className={`@container/sidebar relative flex h-full w-full flex-col font-sans text-foreground select-none ${mobileInline ? "bg-layer-canvas" : "border-r border-line-seam bg-layer-sidebar md:pointer-fine:bg-layer-canvas"}`}
         data-testid="sidebar-root"
       >
         <SidebarTopBar mobileInline={mobileInline} hideTitle={hideTitle} data={data} view={view} sync={sync} home={home} />

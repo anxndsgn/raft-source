@@ -37,10 +37,10 @@ export const panelHeader = tv({
       "md:pointer-fine:size-(--bar-button-size) md:pointer-fine:rounded-(--bar-button-radius)",
       "rounded-sticker border-[1.5px] border-sticker-ink bg-brand text-sticker-ink ring-[1.5px] ring-sticker-edge",
       "not-data-[icon-kind=avatar]:[&_svg]:size-3.5 not-data-[icon-kind=avatar]:[&_svg]:stroke-2",
-      // Raft redesign (Figma Channel Header): on a desktop a plain 20px glyph
-      // in the title's colour, no sticker, 2px from the title.
+      // Raft redesign (Figma Channel Header): on a desktop a plain 16px glyph
+      // in the title's colour, no sticker, 2px from the title (anxndsgn 11/18).
       "md:pointer-fine:size-auto md:pointer-fine:border-0 md:pointer-fine:bg-transparent md:pointer-fine:text-foreground md:pointer-fine:ring-0",
-      "md:pointer-fine:not-data-[icon-kind=avatar]:[&_svg]:size-5",
+      "md:pointer-fine:not-data-[icon-kind=avatar]:[&_svg]:size-4",
       "data-[icon-kind=avatar]:size-auto data-[icon-kind=avatar]:border-transparent data-[icon-kind=avatar]:bg-transparent",
     ],
     // From 768px a head is one line, with a mouse or by touch: a subtitle

@@ -29,6 +29,8 @@ const banner = tv({
       // Raft redesign (anxndsgn's card rule, Figmama 11/18): on a desktop no
       // outline, the lines 2px apart.
       "md:pointer-fine:ring-0 md:pointer-fine:gap-y-0.5 md:pointer-fine:[--banner-title-span:auto]",
+      // A 16px icon on a desktop, every size (anxndsgn 11/18: 24 in the rail, 16 everywhere else).
+      "md:pointer-fine:[--banner-icon:16px] md:pointer-fine:[&>svg]:size-4 md:pointer-fine:[&>svg]:mt-[calc((1lh-16px)/2)]",
     ],
     title: [
       "min-w-0 wrap-break-word text-foreground",
@@ -78,8 +80,6 @@ const banner = tv({
           "gap-x-2 px-3 py-2",
           "[--banner-icon:16px]",
           "[&>svg]:mt-[calc((1lh-16px)/2)] [&>svg]:size-4",
-          // A 20px icon on a desktop, as the larger banners have.
-          "md:pointer-fine:[--banner-icon:20px] md:pointer-fine:[&>svg]:mt-[calc((1lh-20px)/2)] md:pointer-fine:[&>svg]:size-5",
         ],
       },
       md: { root: ["px-3.5 py-3"] },

@@ -7,12 +7,15 @@ export const sidebarRecipe = tv({
       "relative flex size-full min-h-0  select-none flex-col",
       listColumnMargin,
       "bg-layer-sidebar text-foreground max-md:bg-layer-canvas",
+      // Raft redesign: with a mouse the sidebar is part of the conversation's
+      // island, always the canvas: a server theme colours the frame, not the island.
+      "md:pointer-fine:bg-layer-canvas",
       "border-line-seam md:border-r",
     ],
     sidebarHeader: [
       "flex items-center",
       "h-(--shell-header-height,var(--header-height)) shrink-0 gap-2 border-b border-line-seam px-(--column-margin)",
-      "bg-layer-sidebar text-foreground",
+      "bg-layer-sidebar text-foreground md:pointer-fine:bg-layer-canvas",
       "max-md:bg-layer-frame max-md:text-foreground-on-frame",
       headEdgePull,
       "[@media(max-height:600px)]:h-(--header-height-short)",
@@ -29,7 +32,7 @@ export const sidebarRecipe = tv({
     ],
     sidebarBody: [
       "relative flex min-h-0 flex-1 overflow-hidden",
-      "bg-layer-sidebar max-md:bg-layer-canvas",
+      "bg-layer-sidebar max-md:bg-layer-canvas md:pointer-fine:bg-layer-canvas",
     ],
     sidebarContent: ["relative flex min-h-0 min-w-0 flex-1"],
     // Native on the phone path only, an allowed exception (scroll-area.md#native-scrolling);

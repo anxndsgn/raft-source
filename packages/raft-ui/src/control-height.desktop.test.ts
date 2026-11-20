@@ -27,7 +27,7 @@ const PHONE = {
 const DESKTOP = {
   "--control-height": "34px",
   "--control-height-cta": "40px",
-  "--control-icon-size": "20px",
+  "--control-icon-size": "16px",
   "--control-hit-inset": "5px",
 };
 
@@ -45,7 +45,7 @@ test("a phone keeps 44px controls with 22px icons", () => {
   }
 });
 
-test("from 768px a control is 34px with a 20px icon (the grid Raft's icons are drawn on), and its hit area reaches 44px", () => {
+test("from 768px a control is 34px with a 16px icon (Raft redesign), and its hit area reaches 44px", () => {
   expect(desktopStart).toBeGreaterThan(-1);
   for (const [name, value] of Object.entries(DESKTOP)) {
     expect(declared(desktop, name), name).toBe(value);

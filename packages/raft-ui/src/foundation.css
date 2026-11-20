@@ -368,8 +368,8 @@
   /* The full-width call to action across a sign-in, sign-up or setup form
      (Button xl). */
   --control-height-cta: 52px;
-  /* The icon in a control-height icon button: 20px on a desktop, the grid Raft's
-     icons are drawn on. */
+  /* The icon in a control-height icon button: 16px on a desktop (anxndsgn 11/18:
+     24 in the rail, 16 everywhere else). */
   --control-icon-size: 22px;
   /* How far a control-height button's hit area reaches past its top and bottom,
      to keep 44px. */
@@ -726,7 +726,7 @@
     --card-title-line-height: 22px;
     --control-height: 34px;
     --control-height-cta: 40px;
-    --control-icon-size: 20px;
+    --control-icon-size: 16px;
     --control-hit-inset: 5px;
     --control-embedded-size: 22px;
     --control-radius: 8px;

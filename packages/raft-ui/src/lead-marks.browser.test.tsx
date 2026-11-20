@@ -38,6 +38,8 @@ const BANNER = {
   md: { icon: 20, gap: 10 },
   sm: { icon: 16, gap: 8 },
 } as const;
+/** Raft redesign: with a mouse every Banner's icon is 16 (anxndsgn 11/18: 24 in the rail, 16 everywhere else). */
+const bannerIcon = (size: keyof typeof BANNER, touch: boolean) => (touch ? BANNER[size].icon : 16);
 const PANEL_NOTICE_GAP = 10;
 const TOAST_COLUMN = 20;
 const TOAST_ICON = 16;
@@ -144,7 +146,7 @@ for (const { name: deviceName, width: deviceWidth, touch } of DEVICES) {
           </Frame>,
         );
         expectLeads(screen.getByTestId("mark"), screen.getByTestId("text"), {
-          size: BANNER[size].icon,
+          size: bannerIcon(size, touch),
           gap: BANNER[size].gap,
           wraps,
         });
@@ -165,7 +167,7 @@ for (const { name: deviceName, width: deviceWidth, touch } of DEVICES) {
         const mark = document.querySelector("[data-slot=spinner] [data-spinner-grid]")!;
         expectLeads(mark, screen.getByTestId("text"), {
           size: SPINNER,
-          gap: BANNER[size].gap + (BANNER[size].icon - SPINNER) / 2,
+          gap: BANNER[size].gap + (bannerIcon(size, touch) - SPINNER) / 2,
           wraps,
         });
       });
@@ -187,7 +189,7 @@ for (const { name: deviceName, width: deviceWidth, touch } of DEVICES) {
         </Frame>,
       );
       expectLeads(screen.getByTestId("mark"), screen.getByTestId("text"), {
-        size: BANNER[size].icon,
+        size: bannerIcon(size, touch),
         gap: BANNER[size].gap,
         wraps: true,
       });

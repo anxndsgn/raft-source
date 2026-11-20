@@ -67,9 +67,9 @@ const it = test.skipIf(typeof window === "undefined");
 // Turning touch emulation off again leaves Chromium reporting `pointer: none`,
 // not `fine`, so every mouse screen runs first, before the first finger.
 const SCREENS = [
-  { name: "desktop 1280x800", width: 1280, height: 800, pointer: "fine", size: 28, icon: 18 },
-  { name: "desktop 1440x900", width: 1440, height: 900, pointer: "fine", size: 28, icon: 18 },
-  { name: "short desktop 1280x560", width: 1280, height: 560, pointer: "fine", size: 28, icon: 18 },
+  { name: "desktop 1280x800", width: 1280, height: 800, pointer: "fine", size: 32, icon: 20 },
+  { name: "desktop 1440x900", width: 1440, height: 900, pointer: "fine", size: 32, icon: 20 },
+  { name: "short desktop 1280x560", width: 1280, height: 560, pointer: "fine", size: 32, icon: 20 },
   {
     name: "touch tablet 768x1024",
     width: 768,
@@ -125,6 +125,9 @@ const Icon = ({ id }: { id: string }) => <svg data-testid={id} viewBox="0 0 24 2
 /** A phone column is 16px; from 768px (the desktop layout) 20px. */
 /** A column's margin: 16px on a phone and with a mouse on a desktop (the page inset, stdrc 2026-11-05), 20px on a touch screen from 768px. */
 const panelMargin = (s: Screen) => (s.width < 768 || s.pointer === "fine" ? 16 : 20);
+/** A panel's (or section's) 44px head with a mouse: its end icon buttons 6px from the edge, as from its top and
+ *  bottom (Raft redesign, barEdgePull), so a 20px icon in a 32px button sits 12px in; elsewhere the column margin. */
+const panelHeadMargin = (s: Screen) => (s.width >= 768 && s.pointer === "fine" ? 12 : panelMargin(s));
 /** A dialog's inline padding: 20px, 16px with a mouse on a desktop. */
 const dialogMargin = (s: Screen) => (s.width >= 768 && s.pointer === "fine" ? 16 : 20);
 
@@ -139,7 +142,7 @@ type Head = {
 const HEADS: Head[] = [
   {
     name: "panel header",
-    margin: panelMargin,
+    margin: panelHeadMargin,
     control: true,
     ui: () => (
       <PanelHeader data-testid="head">
@@ -185,7 +188,7 @@ const HEADS: Head[] = [
   },
   {
     name: "phone top bar (section header)",
-    margin: panelMargin,
+    margin: panelHeadMargin,
     control: true,
     ui: () => (
       <PanelSectionHeader data-testid="head">
@@ -354,7 +357,9 @@ for (const s of SCREENS) {
         </AppRailRoot>
       </ThemeProvider>,
     );
-    const heights = ["panel", "section", "sidebar", "rail"].map(
+    // Raft redesign: with a mouse the rail has no head row (the switcher is its first item).
+    const ids = s.pointer === "fine" ? ["panel", "section", "sidebar"] : ["panel", "section", "sidebar", "rail"];
+    const heights = ids.map(
       (id) => screen.getByTestId(id).getBoundingClientRect().height,
     );
     expect(new Set(heights).size, heights.join(" / ")).toBe(1);

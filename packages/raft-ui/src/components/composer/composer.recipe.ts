@@ -37,8 +37,8 @@ export const composer = tv({
       "disabled:border-transparent disabled:bg-transparent",
       "aria-disabled:border-transparent aria-disabled:bg-transparent",
       "[&_svg:not([class*='size-'])]:size-4.5",
-      // Raft redesign: 20px icons on a desktop, the grid they are drawn on.
-      "md:pointer-fine:[&_svg:not([class*='size-'])]:size-5",
+      // Raft redesign: 16px icons on a desktop (anxndsgn 11/18: 24 in the rail, 16 everywhere else).
+      "md:pointer-fine:[&_svg:not([class*='size-'])]:size-4",
     ],
     submit: [
       "rounded-chip",

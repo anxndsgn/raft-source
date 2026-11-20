@@ -23,7 +23,7 @@ export function ChannelHeadTitleButton({ name, icon, label, open, onOpen }: {
         type="button"
         onClick={onOpen}
         className={icon
-          ? "flex h-8 shrink-0 items-center gap-0.5 rounded-control px-1.5 text-left outline-none hover:bg-fill-subtle focus-visible:shadow-focus [&>svg:first-child]:size-5"
+          ? "flex h-8 shrink-0 items-center gap-0.5 rounded-control px-1.5 text-left outline-none hover:bg-fill-subtle focus-visible:shadow-focus [&>svg:first-child]:size-4"
           : "flex shrink-0 items-center gap-1 rounded-control px-1 -mx-1 text-left outline-none hover:bg-fill-medium focus-visible:shadow-focus"}
         aria-expanded={open}
         data-testid="channel-header-title-button"
