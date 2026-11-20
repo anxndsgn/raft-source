@@ -33,7 +33,8 @@ export interface AppProvidersProps {
   insideRouter?: ReactNode;
 }
 
-export const TOOLTIP_DELAY_MS = 600;
+// Raft redesign (Figmama 11/21): a tooltip shows after 500ms.
+export const TOOLTIP_DELAY_MS = 500;
 
 export function AppProviders({ children, router: Router = BrowserRouter, insideRouter = null }: AppProvidersProps) {
   return (

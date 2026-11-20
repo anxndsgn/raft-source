@@ -139,7 +139,8 @@ const InstalledAppRow = memo(function InstalledAppRow({ row, selected, canManage
     >
       <ListRowIcon className="relative">
         <ConnectedAppLogo name={app.name} logoUrl={app.logoUrl} seed={row.kind === "mcp" ? app.id : row.app.defaultLogoSeed} size="sm" />
-        {needsYou ? <Status variant="accent" size="sm" className="absolute -top-0.5 -right-0.5" aria-hidden /> : null}
+        {/* Raft redesign (Figmama 11/21): the rail's red dot, its 1px ring the canvas (it sits in the island). */}
+        {needsYou ? <Status variant="danger" size="sm" className="absolute -top-0.5 -right-0.5 md:pointer-fine:ring-1 md:pointer-fine:ring-layer-canvas" aria-hidden /> : null}
       </ListRowIcon>
       <ListRowBody>
         <span className="flex min-w-0 items-baseline gap-2">

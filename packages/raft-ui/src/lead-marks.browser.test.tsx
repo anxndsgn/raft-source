@@ -263,7 +263,8 @@ for (const { name: deviceName, width: deviceWidth, touch } of DEVICES) {
           <ToastProvider timeout={0} />
         </ThemeProvider>,
       );
-      toast.info("Copied the link to #25.", { description });
+      // A success toast: with a mouse a plain notice shows no icon (Raft redesign, Figmama 11/21).
+      toast.success("Copied the link to #25.", { description });
       const title = await screen.findByText("Copied the link to #25.");
       const content = title.closest<HTMLElement>('[data-slot="toast-content"]')!;
       const mark = content.querySelector('[data-slot="toast-icon"] > svg')!;

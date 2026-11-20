@@ -23,6 +23,10 @@ const tooltip = tv({
       "font-sans font-medium",
       "shadow-float",
       "has-data-[slot=kbd]:py-1 has-data-[slot=kbd]:pr-2.5",
+      // Raft redesign (Figmama 11/21): with a mouse the ink with the canvas's
+      // words, regular 12, 4/8 inside, the control corner, no edge or shadow,
+      // no arrow, no motion.
+      "md:pointer-fine:bg-foreground md:pointer-fine:text-layer-canvas md:pointer-fine:font-normal md:pointer-fine:px-2 md:pointer-fine:py-1 md:pointer-fine:rounded-control md:pointer-fine:shadow-none md:pointer-fine:transition-none",
     ],
     body: [
       "block min-w-0 text-footnote whitespace-normal wrap-break-word",
@@ -31,6 +35,7 @@ const tooltip = tv({
       "**:data-[slot=kbd]:h-4 **:data-[slot=kbd]:min-w-4 **:data-[slot=kbd]:px-1 **:data-[slot=kbd]:py-0",
       "[&_[data-slot=kbd][data-glyph=icon]]:px-0",
       "**:data-[slot=kbd]:text-[12px]/4 **:data-[slot=kbd]:font-normal",
+      "md:pointer-fine:text-[12px] md:pointer-fine:leading-4 md:pointer-fine:**:data-[slot=kbd]:ml-1.5 md:pointer-fine:**:data-[slot=kbd]:bg-transparent md:pointer-fine:**:data-[slot=kbd]:inset-ring-0 md:pointer-fine:**:data-[slot=kbd]:px-0 md:pointer-fine:**:data-[slot=kbd]:text-[color-mix(in_oklch,var(--layer-canvas)_60%,transparent)]",
     ],
     bodyIcon: ["shrink-0 [&>svg]:block [&>svg]:size-3.5 [&>svg]:shrink-0"],
     bodyText: ["min-w-0 flex-1"],
@@ -42,6 +47,7 @@ const tooltip = tv({
       "data-[side=right]:left-[-8px] data-[side=right]:rotate-90",
       "data-[side=inline-start]:right-[-8px] data-[side=inline-start]:-rotate-90",
       "data-[side=inline-end]:left-[-8px] data-[side=inline-end]:rotate-90",
+      "md:pointer-fine:hidden",
     ],
   },
   variants: {

@@ -25,6 +25,8 @@ const field = tv({
       "*:min-w-0",
       "*:data-[slot=checkbox]:mt-[calc((1lh-1.25rem)/2)]",
       "*:data-[slot=radio-group-item]:mt-[calc((1lh-1.25rem)/2)]",
+      // Raft redesign: 16px boxes with a mouse; the label 8px off, regular 14.
+      "md:pointer-fine:*:data-[slot=checkbox]:mt-[calc((1lh-1rem)/2)] md:pointer-fine:*:data-[slot=radio-group-item]:mt-[calc((1lh-1rem)/2)]",
       "*:data-[slot=switch]:mt-[calc((1lh-var(--switch-height))/2)]",
     ],
     label: [

@@ -10,7 +10,7 @@ const radioGroup = tv({
       "grid w-full gap-2",
       "data-disabled:[&>label]:cursor-not-allowed data-disabled:[&>label]:text-foreground-disabled",
       "data-disabled:[&>label_*]:text-foreground-disabled",
-      "font-sans [&>label]:font-semibold",
+      "font-sans [&>label]:font-semibold md:pointer-fine:[&>label]:font-normal md:pointer-fine:[&>label]:text-[14px]",
     ],
     item: [
       "relative inline-flex shrink-0 touch-manipulation items-center justify-center rounded-full outline-none",
@@ -18,13 +18,19 @@ const radioGroup = tv({
       "after:absolute after:-inset-x-3 after:-inset-y-2 after:content-['']",
       "pointer-coarse:after:-inset-y-[calc(--spacing(3)+1.5px)]",
       "[label>&]:my-[max(0px,calc((1lh-1.25rem)/2))]",
-      "[label>&]:after:-inset-y-[calc(max(0px,(1lh-1.25rem)/2)+5.5px)]",
+      "[label>&]:after:-inset-y-[calc(max(0px,(1lh-1.25rem)/2)+5.5px)] md:pointer-fine:[label>&]:after:-inset-y-[calc(max(0px,(1lh-1rem)/2)+5px)]",
       "size-5 border-[1.5px] border-line-strong bg-layer-card text-foreground",
       "focus-visible:shadow-focus",
       "data-disabled:border-foreground-disabled data-disabled:bg-fill-muted data-disabled:text-foreground-disabled",
+      // Raft redesign (Figmama 11/21): with a mouse a 16px circle, a 1px line
+      // of 25% ink on the canvas; chosen, an ink line round a 6px ink dot;
+      // disabled the same at 40%.
+      "md:pointer-fine:size-4 md:pointer-fine:border md:pointer-fine:border-[color-mix(in_oklch,var(--foreground)_25%,transparent)] md:pointer-fine:bg-layer-canvas",
+      "md:pointer-fine:data-checked:border-foreground md:pointer-fine:[label>&]:my-[max(0px,calc((1lh-1rem)/2))]",
+      "md:pointer-fine:data-disabled:bg-layer-canvas md:pointer-fine:data-disabled:text-foreground md:pointer-fine:data-disabled:opacity-40",
     ],
     indicator: ["pointer-events-none flex size-full items-center justify-center"],
-    dot: ["block rounded-full bg-current", "size-2"],
+    dot: ["block rounded-full bg-current", "size-2", "md:pointer-fine:size-1.5"],
   },
 });
 

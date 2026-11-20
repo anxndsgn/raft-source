@@ -110,8 +110,9 @@ const TEXTS = [
 ] as const;
 
 /** A switch is 50 x 30 on a touch screen and macOS's 38 x 22 with a mouse. */
+// Raft redesign (Figmama 11/20-21): with a mouse a switch is 32x18, a box or circle 16.
 const sizeOf = (control: { name: string; size: [number, number] }, touch: boolean) =>
-  control.name === "switch" && !touch ? ([32, 18] as [number, number]) : control.size; // Raft redesign: 32x18 with a mouse
+  touch ? control.size : control.name === "switch" ? ([32, 18] as [number, number]) : ([16, 16] as [number, number]);
 
 const CONTROLS: { name: string; size: [number, number]; el: () => ReactElement }[] = [
   { name: "switch", size: [50, 30], el: () => <Switch data-testid="control" aria-label="On" /> },
@@ -385,8 +386,9 @@ for (const { name: deviceName, width: deviceWidth, touch } of DEVICES) {
     // A box or a circle on its own: 44 tall on a touch screen. With a mouse
     // the hit area is as it was (checkbox 44 x 36, radio 41 x 33: its ::after
     // starts inside its 1.5px border).
-    const wide = control.name === "radio" ? 41 : 44;
-    const tall = touch ? 44 : control.name === "radio" ? 33 : 36;
+    // Raft redesign: with a mouse 16px boxes with a 1px edge: checkbox 40 x 32, radio 38 x 30.
+    const wide = touch ? (control.name === "radio" ? 41 : 44) : control.name === "radio" ? 38 : 40;
+    const tall = touch ? 44 : control.name === "radio" ? 30 : 32;
     it(`${deviceName}: a ${control.name} on its own has a hit area ${wide} wide and ${tall} tall`, async () => {
       await device(deviceWidth, touch);
       render(<div className="p-10">{wrap(control.name, control.el())}</div>);

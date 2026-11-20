@@ -51,6 +51,9 @@ const toastStyles = tv({
       "motion-reduce:transition-none",
       "rounded-container bg-layer-hud text-foreground-on-hud",
       "shadow-float",
+      // Raft redesign (Figmama 11/21): with a mouse the canvas with a 1px
+      // floating line and the popup shadow, the card corner, at most 360px.
+      "md:pointer-fine:bg-layer-canvas md:pointer-fine:text-foreground md:pointer-fine:ring-1 md:pointer-fine:ring-line-floating md:pointer-fine:max-w-[360px]",
       "focus-visible:keyboard:outline-2 focus-visible:keyboard:outline-foreground",
     ],
     content: [
@@ -74,22 +77,26 @@ const toastStyles = tv({
       "data-has-icon:grid-cols-[auto_minmax(0,1fr)]",
       "data-has-actions:grid-cols-[minmax(0,1fr)_auto]",
       "[&[data-has-icon][data-has-actions]]:grid-cols-[auto_minmax(0,1fr)_auto]",
+      "md:pointer-fine:px-3 md:pointer-fine:py-2.5",
     ],
     icon: [
       "flex h-lh w-5 shrink-0 items-center justify-center",
       "[&_svg]:shrink-0",
       "[&_svg]:size-4",
+      // Raft redesign: success idle green, an error the danger red, a warning
+      // stuck orange; a plain notice shows no icon.
+      "md:pointer-fine:data-[intent=success]:text-presence-online md:pointer-fine:data-[intent=error]:text-danger md:pointer-fine:data-[intent=warning]:text-presence-error md:pointer-fine:data-[intent=info]:hidden",
     ],
     body: ["min-w-0"],
-    title: ["m-0 truncate text-callout", "font-normal text-foreground-on-hud"],
-    description: ["m-0 text-callout", "text-foreground-on-hud/70"],
+    title: ["m-0 truncate text-callout", "font-normal text-foreground-on-hud", "md:pointer-fine:text-[14px] md:pointer-fine:font-semibold md:pointer-fine:text-foreground"],
+    description: ["m-0 text-callout", "text-foreground-on-hud/70", "md:pointer-fine:text-[13px] md:pointer-fine:text-foreground-muted"],
     actions: ["flex items-center justify-end", "gap-4"],
     progress: [
       "pointer-events-none absolute h-[3px] origin-left",
       "animate-[raft-toast-timeout-progress_var(--toast-progress-duration)_linear_forwards]",
       "group-hover/toast:[animation-play-state:paused] group-focus-within/toast:[animation-play-state:paused]",
       "motion-reduce:animate-none motion-reduce:scale-x-100",
-      "inset-x-4 bottom-1.5 rounded-[2px] bg-foreground-on-hud/40",
+      "inset-x-4 bottom-1.5 rounded-[2px] bg-foreground-on-hud/40 md:pointer-fine:bg-foreground/20",
     ],
     close: [
       "inline-flex items-center justify-center",
@@ -99,6 +106,7 @@ const toastStyles = tv({
       "relative inset-auto order-1 size-auto shrink-0 whitespace-nowrap",
       "border-0 bg-transparent p-0 shadow-none",
       "font-sans text-callout font-bold text-foreground-on-hud",
+      "md:pointer-fine:text-foreground-muted md:pointer-fine:hover:text-foreground",
       "decoration-[1.5px] underline-offset-[3px] not-disabled:hover:underline",
       "after:absolute after:-inset-x-2 after:-inset-y-3 after:rounded-control after:content-['']",
       "active:after:bg-foreground-on-hud/15",
@@ -853,7 +861,7 @@ function DefaultToastIcon({ toast: toastObject }: { toast: ToastObject<ToastData
   const Icon = TOAST_ICON[intent];
 
   return (
-    <ToastIcon>
+    <ToastIcon data-intent={intent}>
       <Icon aria-hidden />
     </ToastIcon>
   );

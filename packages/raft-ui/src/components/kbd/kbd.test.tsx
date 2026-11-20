@@ -51,6 +51,19 @@ const HINT_CLASSES = [
   "in-data-[slot=tooltip-content]:text-foreground-on-hud/70",
   "in-data-[slot=tooltip-content]:shadow-[inset_0_0_0_1px_color-mix(in_oklch,var(--foreground-on-hud)_70%,transparent)]",
   "rounded-[3px]",
+  // Raft redesign (Figmama 11/21): with a mouse no edge, 5% ink, Inter Medium 11.
+  "md:pointer-fine:inset-ring-0",
+  "md:pointer-fine:in-data-[slot=tooltip-content]:shadow-none",
+  "md:pointer-fine:bg-fill-medium",
+  "md:pointer-fine:h-[18px]",
+  "md:pointer-fine:min-w-[18px]",
+  "md:pointer-fine:px-1",
+  "md:pointer-fine:rounded-sticker",
+  "md:pointer-fine:font-sans",
+  "md:pointer-fine:text-[11px]",
+  "md:pointer-fine:leading-[14px]",
+  "md:pointer-fine:font-medium",
+  "md:pointer-fine:text-foreground-muted",
 ];
 
 describe("Kbd sizes", () => {

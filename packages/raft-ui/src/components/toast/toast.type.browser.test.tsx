@@ -72,7 +72,8 @@ for (const [name, setup, expected] of [
     await setup();
     const { title, description, icon } = await showToast();
     expect(type(title)).toBe(expected);
-    expect(type(description)).toBe(expected);
+    // Raft redesign (Figmama 11/21): with a mouse the description is 13px, under the 14px title.
+    expect(type(description)).toBe(name === "desktop" ? "13px/22px" : expected);
     const t = title.getBoundingClientRect();
     const i = icon.getBoundingClientRect();
     expect(i.height).toBe(t.height);

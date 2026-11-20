@@ -17,12 +17,12 @@ import type { StyledProps } from "../../lib/styled-props";
 const checkbox = tv({
   slots: {
     root: [
-      "relative inline-flex size-5 shrink-0 touch-manipulation items-center justify-center outline-none",
+      "relative inline-flex size-5 shrink-0 touch-manipulation items-center justify-center outline-none md:pointer-fine:size-4",
       "rounded-sticker focus-visible:shadow-focus",
       "data-disabled:cursor-not-allowed",
       "after:absolute after:-inset-x-3 after:-inset-y-2 after:content-[''] pointer-coarse:after:-inset-y-3",
-      "[label>&]:my-[max(0px,calc((1lh-1.25rem)/2))]",
-      "[label>&]:after:-inset-y-[calc(max(0px,(1lh-1.25rem)/2)+4px)]",
+      "[label>&]:my-[max(0px,calc((1lh-1.25rem)/2))] md:pointer-fine:[label>&]:my-[max(0px,calc((1lh-1rem)/2))]",
+      "[label>&]:after:-inset-y-[calc(max(0px,(1lh-1.25rem)/2)+4px)] md:pointer-fine:[label>&]:after:-inset-y-[calc(max(0px,(1lh-1rem)/2)+4px)]",
     ],
     indicator: "pointer-events-none",
   },

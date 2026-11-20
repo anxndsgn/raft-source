@@ -5,6 +5,8 @@
 // not read on the dark surface.
 export const hudTextAction = [
   "font-sans text-callout font-bold text-foreground-on-hud",
+  // Raft redesign: on the canvas toast (with a mouse) the ink, Semi Bold.
+  "md:pointer-fine:text-foreground md:pointer-fine:font-semibold",
   "decoration-[1.5px] underline-offset-[3px] not-disabled:not-aria-disabled:hover:underline",
   "after:absolute after:-inset-x-2 after:-inset-y-3 after:rounded-control after:content-['']",
   "active:after:bg-foreground-on-hud/15",

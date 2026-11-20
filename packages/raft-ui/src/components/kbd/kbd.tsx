@@ -10,8 +10,12 @@ const kbd = tv({
       "whitespace-nowrap select-none [&_svg]:pointer-events-none",
       "font-mono font-normal",
       "inset-ring inset-ring-line-hairline",
+      // Raft redesign (Figmama 11/21): with a mouse no edge, 5% ink, 18px tall,
+      // 4px sides, the badge corner, Inter Medium 11 muted.
+      "md:pointer-fine:inset-ring-0 md:pointer-fine:in-data-[slot=tooltip-content]:shadow-none md:pointer-fine:bg-fill-medium md:pointer-fine:h-[18px] md:pointer-fine:min-w-[18px] md:pointer-fine:px-1 md:pointer-fine:rounded-sticker",
+      "md:pointer-fine:font-sans md:pointer-fine:text-[11px] md:pointer-fine:leading-[14px] md:pointer-fine:font-medium md:pointer-fine:text-foreground-muted",
     ],
-    group: ["inline-flex items-center gap-1"],
+    group: ["inline-flex items-center gap-1", "md:pointer-fine:gap-0.5"],
   },
   variants: {
     size: {

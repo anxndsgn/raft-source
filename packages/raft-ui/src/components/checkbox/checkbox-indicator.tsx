@@ -11,6 +11,11 @@ const checkboxIndicator = tv({
       "inline-flex size-5 shrink-0 items-center justify-center",
       "rounded-sticker border-[1.5px] border-line-strong transition-colors",
       "[&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5 [&_svg]:stroke-2",
+      // Raft redesign (Figmama 11/21): with a mouse 16px at the badge corner;
+      // unchecked a 1px line of 25% ink on the canvas, checked the ink with a
+      // 12px canvas mark; disabled is the same at 40%.
+      "md:pointer-fine:size-4 md:pointer-fine:border md:pointer-fine:border-[color-mix(in_oklch,var(--foreground)_25%,transparent)] md:pointer-fine:transition-none",
+      "md:pointer-fine:[&_svg:not([class*='size-'])]:size-3",
     ],
   },
   variants: {
@@ -19,11 +24,11 @@ const checkboxIndicator = tv({
       circle: { root: "rounded-full" },
     },
     checked: {
-      true: { root: "border-foreground bg-foreground text-foreground-inverse" },
-      false: { root: "bg-layer-card text-transparent" },
+      true: { root: "border-foreground bg-foreground text-foreground-inverse md:pointer-fine:border-foreground md:pointer-fine:text-layer-canvas" },
+      false: { root: "bg-layer-card text-transparent md:pointer-fine:bg-layer-canvas" },
     },
     disabled: {
-      true: { root: "border-foreground-disabled bg-fill-muted" },
+      true: { root: "border-foreground-disabled bg-fill-muted md:pointer-fine:border-[color-mix(in_oklch,var(--foreground)_25%,transparent)] md:pointer-fine:bg-layer-canvas md:pointer-fine:opacity-40" },
       false: "",
     },
     // Shows a faint mark on an unchecked box while its group is hovered.
@@ -38,7 +43,7 @@ const checkboxIndicator = tv({
       previewOnHover: true,
       class: { root: "group-hover:text-foreground/20" },
     },
-    { checked: true, disabled: true, class: { root: "bg-foreground-disabled text-layer-card" } },
+    { checked: true, disabled: true, class: { root: "bg-foreground-disabled text-layer-card md:pointer-fine:border-foreground md:pointer-fine:bg-foreground md:pointer-fine:text-layer-canvas" } },
   ],
   defaultVariants: {
     shape: "square",
