@@ -38,6 +38,10 @@ import { UsageDataSettingsCard } from "../../../components/settings/UsageDataSet
 
 // Exported for the sub-batch-A i18n DOM smoke test: renders the Account section
 // in isolation.
+// Raft redesign (Figmama 11/21): with a mouse the email's state is written as a status, its 8px square
+// and the word in regular 12 ink, no chip fill or shield.
+const EMAIL_STATE_CLASS = "md:pointer-fine:h-auto md:pointer-fine:gap-1.5 md:pointer-fine:bg-transparent md:pointer-fine:px-0 md:pointer-fine:text-[12px] md:pointer-fine:leading-4 md:pointer-fine:font-normal md:pointer-fine:text-foreground md:pointer-fine:[&>svg]:hidden md:pointer-fine:before:size-2 md:pointer-fine:before:shrink-0 md:pointer-fine:before:content-['']";
+
 export function AccountSection({
   initialError,
   passwordChangeIntent = false,
@@ -383,11 +387,11 @@ export function AccountSection({
               <div className="flex items-center gap-2">
                 <span className="min-w-0 truncate font-mono text-mono-code text-foreground md:pointer-fine:font-sans md:pointer-fine:text-[14px] md:pointer-fine:leading-5">{user?.email}</span>
                 {user?.emailVerified ? (
-                  <Badge variant="success" appearance="soft">
+                  <Badge variant="success" appearance="soft" className={`${EMAIL_STATE_CLASS} md:pointer-fine:before:bg-success`}>
                     <Shield size={10} /> {formatMessage({ id: "settings.account.verified" })}
                   </Badge>
                 ) : (
-                  <Badge variant="warning" appearance="soft">
+                  <Badge variant="warning" appearance="soft" className={`${EMAIL_STATE_CLASS} md:pointer-fine:before:bg-warning`}>
                     {formatMessage({ id: "settings.account.unverified" })}
                   </Badge>
                 )}
