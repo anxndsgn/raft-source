@@ -264,7 +264,8 @@ const HEADS: Head[] = [
   },
   {
     name: "alert dialog header",
-    margin: dialogMargin,
+    // Raft redesign (C17): with a mouse an alert dialog is inset as a Dialog, 20.
+    margin: (s: Screen) => (s.width >= 768 && s.pointer === "fine" ? 20 : dialogMargin(s)),
     control: false,
     ui: () => (
       <AlertDialog open>
