@@ -21,7 +21,7 @@ import { useOverflowTitle } from "../../hooks/useOverflowTitle";
 import { ROW_SWIPE_ACTION_ATTR, ROW_SWIPE_BUTTON_WIDTH, useRowSwipe } from "../../hooks/useRowSwipe";
 import { ActivityRowTime } from "./ActivityRowTime";
 import { InboxRowDone } from "./InboxRowDone";
-import { SWIPE_DONE_BUTTON_CLASS, SWIPE_LAYER_CLASS, SWIPE_ROW_CLASS, UNREAD_BODY_CLASS, activityMentionsOnly, itemKey, useMergedRowRef } from "./inboxRowShared";
+import { SWIPE_DONE_BUTTON_CLASS, SWIPE_LAYER_CLASS, SWIPE_ROW_CLASS, UNREAD_BODY_CLASS, activityMentionsOnly, itemKey, useMergedRowRef, INBOX_SENDER_AVATAR_CLASS } from "./inboxRowShared";
 import type { RowSwipeProps } from "./inboxRowShared";
 
 // An object row's line (ObjectInboxRow), one flex line whose pieces truncate
@@ -229,7 +229,7 @@ export function ObjectInboxRow({ item, filter, onOpen, onDone, swipe: rowSwipe, 
               {...intent}
             >
               <span className="contents" data-testid="object-card-event">
-                <span className="relative top-0.5 mr-1 inline-flex shrink-0" data-testid="conversation-card-sender-avatar">
+                <span className={`relative top-0.5 mr-1 inline-flex shrink-0 ${INBOX_SENDER_AVATAR_CLASS}`} data-testid="conversation-card-sender-avatar">
                   {actorAvatar}
                 </span>
                 {excerpt ? (

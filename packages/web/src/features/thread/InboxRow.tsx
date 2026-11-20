@@ -40,7 +40,7 @@ import { useTaskConversationTask } from "../../components/task/useTaskConversati
 import { ActivityRowTime } from "./ActivityRowTime";
 import { inboxItemTime } from "./activityDayGroups";
 import { InboxRowDone } from "./InboxRowDone";
-import { SWIPE_DONE_BUTTON_CLASS, SWIPE_LAYER_CLASS, SWIPE_QUIET_BUTTON_CLASS, SWIPE_ROW_CLASS, SWIPE_START_BUTTON_CLASS, SWIPE_START_LABEL_CLASS, SWIPE_START_LAYER_CLASS, UNREAD_BODY_CLASS, activityMentionsOnly, asThreadItem, itemKey, itemUnreadCount, useMergedRowRef } from "./inboxRowShared";
+import { SWIPE_DONE_BUTTON_CLASS, SWIPE_LAYER_CLASS, SWIPE_QUIET_BUTTON_CLASS, SWIPE_ROW_CLASS, SWIPE_START_BUTTON_CLASS, SWIPE_START_LABEL_CLASS, SWIPE_START_LAYER_CLASS, UNREAD_BODY_CLASS, activityMentionsOnly, asThreadItem, itemKey, itemUnreadCount, useMergedRowRef, INBOX_SENDER_AVATAR_CLASS } from "./inboxRowShared";
 import type { RowSwipeProps } from "./inboxRowShared";
 
 // A row out of view is not laid out or painted (content-visibility: auto),
@@ -338,7 +338,7 @@ function InboxRowImpl({ item, filter, searchQuery, taskV2, onOpen, onDone, swipe
   const listBodyContent = (
     <>
       {senderAvatar && activitySenderLabel ? (
-        <span className="mr-1 inline-flex align-[-2px]" data-testid="conversation-card-sender-avatar">
+        <span className={`mr-1 inline-flex align-[-2px] ${INBOX_SENDER_AVATAR_CLASS}`} data-testid="conversation-card-sender-avatar">
           {senderAvatar}
         </span>
       ) : null}

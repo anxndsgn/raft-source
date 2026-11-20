@@ -577,7 +577,13 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
               )}
             >
               <AppRailItemIcon>
-                <AvatarSlot context="compact-row" type="human" humanAvatarUrl={selfAvatarUrl} />
+                {/* Raft redesign (Figmama 11/20): with a mouse a 32px circle with no edge, as in a message. */}
+                <AvatarSlot
+                  context="compact-row"
+                  type="human"
+                  humanAvatarUrl={selfAvatarUrl}
+                  className="md:pointer-fine:!size-8 md:pointer-fine:rounded-full md:pointer-fine:border-0 md:pointer-fine:shadow-none md:pointer-fine:[&_[data-slot=avatar-image]]:rounded-full md:pointer-fine:[&_[data-slot=avatar-fallback]]:rounded-full"
+                />
                 {showMobileAppBadge ? <AppRailItemAttention title={selfLabel} /> : null}
               </AppRailItemIcon>
             </PopoverTrigger>

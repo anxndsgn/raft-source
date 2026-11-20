@@ -12,4 +12,7 @@ export const searchHit = [
   "[font:inherit]",
   "rounded-sticker bg-you px-[2px] py-px box-decoration-clone",
   "text-sticker-ink",
+  // Raft redesign (Figmama 11/20): with a mouse a hit is marked as a mention
+  // of you is, on the frame's accent in its ink, so it follows the theme.
+  "md:pointer-fine:bg-layer-frame md:pointer-fine:text-foreground-on-frame",
 ];
