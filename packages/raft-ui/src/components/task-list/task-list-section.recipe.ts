@@ -35,6 +35,9 @@ export const taskListSection = tv({
       "flex min-h-16 items-center justify-center py-3",
       "rounded-container border border-dashed border-line-seam",
       "text-center text-footnote text-foreground-hint",
+      // C13: with a mouse an empty group is its line alone, Inter 12 hint, left
+      // on the rows' status square, as an empty board column.
+      "md:pointer-fine:min-h-0 md:pointer-fine:border-0 md:pointer-fine:justify-start md:pointer-fine:text-left md:pointer-fine:p-0 md:pointer-fine:pl-2 md:pointer-fine:pt-0.5 md:pointer-fine:text-[12px] md:pointer-fine:leading-4",
     ],
   },
 });
