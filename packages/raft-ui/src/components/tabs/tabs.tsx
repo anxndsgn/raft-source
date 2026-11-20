@@ -146,7 +146,7 @@ const tabs = tv({
       class: {
         list: "md:pointer-fine:gap-4",
         tab: [
-          "md:pointer-fine:h-11 md:pointer-fine:rounded-none md:pointer-fine:border-0 md:pointer-fine:px-0 md:pointer-fine:bg-transparent",
+          "md:pointer-fine:h-11 md:pointer-fine:gap-1 md:pointer-fine:rounded-none md:pointer-fine:border-0 md:pointer-fine:px-0 md:pointer-fine:bg-transparent",
           "md:pointer-fine:text-[14px] md:pointer-fine:font-normal md:pointer-fine:text-foreground-muted",
           "md:pointer-fine:hover:bg-transparent md:pointer-fine:hover:text-foreground md:pointer-fine:active:bg-transparent",
           "md:pointer-fine:data-active:border-0 md:pointer-fine:data-active:bg-transparent md:pointer-fine:data-active:ring-0 md:pointer-fine:data-active:font-semibold md:pointer-fine:data-active:text-foreground",

@@ -33,7 +33,7 @@ export function TeamHeader({ view, onMobileBack, mobileBackProps }: {
     if (serverSlug && next !== view) navigate(teamViewPath(serverSlug, next));
   }, [navigate, serverSlug, view]);
   const count = (value: number | null) => (value === null ? null : (
-    <span className="tabular-nums" data-slot="team-tab-count">{value}</span>
+    <span className="tabular-nums md:pointer-fine:text-[12px] md:pointer-fine:font-normal md:pointer-fine:text-foreground-muted" data-slot="team-tab-count">{value}</span>
   ));
   return (
     // The head's own 20px edge (the Members tab's), the same on every tab.
@@ -52,8 +52,8 @@ export function TeamHeader({ view, onMobileBack, mobileBackProps }: {
       />
       {/* With a mouse on a desktop the row is the conversation tab bar's height (44px), so its seam runs on with the
           one under the member column's tabs beside it (anxndsgn 11/16). */}
-      <div className="border-b border-line-seam px-(--column-margin) py-2 md:pointer-fine:py-[4.5px]">
-        <Tabs<TeamView> value={view} onValueChange={pick} className="min-w-0" data-testid="team-tabs">
+      <div className="border-b border-line-seam px-(--column-margin) py-2 md:pointer-fine:py-0">
+        <Tabs<TeamView> value={view} onValueChange={pick} className="min-w-0 md:pointer-fine:-mb-px" data-testid="team-tabs">
           <TabsList aria-label={formatMessage({ id: "team.page.title" })}>
             <TabsTab value="overview" data-testid="team-tab-overview">
               <TabsLabel>{formatMessage({ id: "team.page.overview" })}</TabsLabel>

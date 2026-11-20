@@ -146,7 +146,7 @@ export function SettingsSearch({
       <div
         role="search"
         aria-label={placeholder}
-        className={`sticky top-0 z-chrome select-text px-2 pt-2 pb-1 ${mobileInline ? "bg-layer-canvas" : "bg-layer-sidebar"}`}
+        className={`sticky top-0 z-chrome select-text px-2 pt-2 pb-1 md:pointer-fine:pb-2 ${mobileInline ? "bg-layer-canvas" : "bg-layer-sidebar md:pointer-fine:bg-layer-canvas"}`}
       >
         <InputGroup>
           <InputGroupAddon align="inline-start">
