@@ -10,7 +10,7 @@ import {
 } from "@botiverse/raft-ui";
 import { PROFILE_AVATAR_ACCEPT } from "../../utils/avatarUpload";
 import { HUMAN_AVATAR_BUILDER_FEATURE_FLAG_KEY, useServerFeatureFlag } from "../../store/serverFeatureFlags";
-import AvatarSlot from "../ui/AvatarSlot";
+import AvatarSlot, { PROFILE_HERO_AVATAR_CLASS } from "../ui/AvatarSlot";
 import type { AvatarContext } from "../ui/AvatarSlot";
 import AvatarEditVeil from "../ui/AvatarEditVeil";
 
@@ -52,6 +52,8 @@ export function HumanAvatarEditMenu({
   const [builderOpen, setBuilderOpen] = useState(false);
   const builderEnabled = useServerFeatureFlag(HUMAN_AVATAR_BUILDER_FEATURE_FLAG_KEY).enabled;
   const label = formatMessage({ id: "avatar.edit.trigger" });
+  // Raft redesign (Figmama 11/21): your own profile hero is 64 and round with a mouse, its veil too.
+  const heroRound = context === "profile-hero";
   // While a photo is saving the avatar says so (it is off until then).
   const triggerLabel = busy ? formatMessage({ id: "settings.common.uploadingAvatar" }) : label;
   const chooseFile = useCallback(() => inputRef.current?.click(), []);
@@ -83,12 +85,12 @@ export function HumanAvatarEditMenu({
           render={(
             <button
               type="button"
-              className="group/avatar-edit relative flex shrink-0 rounded-sticker outline-none focus-visible:shadow-focus disabled:cursor-wait"
+              className={`group/avatar-edit relative flex shrink-0 rounded-sticker outline-none focus-visible:shadow-focus disabled:cursor-wait ${heroRound ? "md:pointer-fine:rounded-full" : ""}`}
             />
           )}
         >
-          {avatar ?? <AvatarSlot context={context} type="human" humanAvatarUrl={avatarUrl} />}
-          <AvatarEditVeil icon={Pencil} busy={busy} />
+          {avatar ?? <AvatarSlot context={context} type="human" humanAvatarUrl={avatarUrl} className={heroRound ? PROFILE_HERO_AVATAR_CLASS : undefined} />}
+          <AvatarEditVeil icon={Pencil} busy={busy} className={heroRound ? "md:pointer-fine:rounded-full" : ""} />
         </DropdownMenuTrigger>
         <DropdownMenuContent side="bottom" align="start" sideOffset={6} aria-label={label} data-avatar-edit-menu="">
           <DropdownMenuItem onClick={chooseFile} data-avatar-edit-action="upload">

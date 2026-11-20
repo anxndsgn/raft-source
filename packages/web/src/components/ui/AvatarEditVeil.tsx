@@ -16,11 +16,14 @@ import { Upload } from "lucide-react";
 export default function AvatarEditVeil({
   icon: Icon = Upload,
   busy = false,
+  className = "",
 }: {
   /** What a click does: upload (default) or open the editor (Pencil). */
   icon?: LucideIcon;
   /** Keep the veil up while the change is in flight. */
   busy?: boolean;
+  /** The avatar's own shape where it differs (a profile hero is round with a mouse). */
+  className?: string;
 }) {
   return (
     <span
@@ -30,7 +33,7 @@ export default function AvatarEditVeil({
         busy
           ? "opacity-100"
           : "opacity-0 group-hover/avatar-edit:opacity-100 group-focus-visible/avatar-edit:opacity-100 peer-focus-visible/avatar-edit:opacity-100"
-      }`}
+      } ${className}`}
     >
       <Icon size={20} />
     </span>

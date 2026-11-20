@@ -309,7 +309,8 @@ export function MembersAgentGroup({ heading, entries, machinesById, showComputer
           ) : null}
         </div>
       ) : null}
-      <ListRowGroup className="mx-5 mt-2">
+      {/* C21: with a mouse the members table has no card around it. */}
+      <ListRowGroup className="mx-5 mt-2 md:pointer-fine:rounded-none md:pointer-fine:border-0">
         {entries.map((entry) => entry.kind === "agent" ? (
           <AgentRow
             key={entry.id}

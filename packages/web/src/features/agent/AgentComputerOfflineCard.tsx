@@ -46,12 +46,13 @@ export function AgentComputerOfflineCard({ agentId }: { agentId: string }) {
   const command = agentComputerRestartCommand(machine, serverSlug);
   const copyLabel = formatMessage({ id: "machine.detail.copyCommand" });
   return (
-    <Card className="stack-y-3 p-4" data-testid="agent-computer-offline-card">
-      <div className="flex items-center gap-2 text-callout font-semibold text-foreground">
+    // Raft redesign (Figmama 11/21): with a mouse it is a notice, by the banner rule: 5% ink, no edge.
+    <Card className="stack-y-3 p-4 md:pointer-fine:bg-fill-medium md:pointer-fine:border-0 md:pointer-fine:ring-0 md:pointer-fine:shadow-none" data-testid="agent-computer-offline-card">
+      <div className="flex items-center gap-2 text-callout font-semibold text-foreground md:pointer-fine:text-[13px] md:pointer-fine:leading-[18px]">
         <StatusDot presence="offline" className="shrink-0" />
         <span className="min-w-0">{title}</span>
       </div>
-      <ol className="list-decimal stack-y-2 pl-5 text-subhead text-foreground">
+      <ol className="list-decimal stack-y-2 pl-5 text-subhead text-foreground md:pointer-fine:text-[13px] md:pointer-fine:leading-5">
         <li data-testid="agent-computer-offline-step-power">{powerStep}</li>
         <li data-testid="agent-computer-offline-step-run">
           {formatMessage({ id: "agent.computerOffline.stepRun" })}

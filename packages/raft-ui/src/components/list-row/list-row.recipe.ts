@@ -134,6 +134,9 @@ export const listRow = tv({
           "transition-colors duration-100",
           "outline-none focus-visible:keyboard:inset-ring-2 focus-visible:keyboard:inset-ring-foreground",
           "data-selected:bg-info-soft",
+          // Raft redesign (Figmama 11/21): with a mouse a selected row reads as
+          // the sidebar's selected item, 5% ink (its title is Semi Bold already).
+          "md:pointer-fine:data-selected:bg-fill-medium",
         ],
       },
       true: {

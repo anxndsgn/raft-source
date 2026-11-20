@@ -289,7 +289,7 @@ export function MembersPage() {
           <section aria-busy="true" data-testid="members-loading" data-skeleton="rows">
             <div className="mx-5 border-x border-transparent pt-4">{headingLine}</div>
             <AfterSkeletonDelay>
-              <ListRowGroup className="mx-5 mt-2">
+              <ListRowGroup className="mx-5 mt-2 md:pointer-fine:rounded-none md:pointer-fine:border-0">
                 {Array.from({ length: 6 }, (_, index) => <AgentRowSkeleton key={index} />)}
               </ListRowGroup>
             </AfterSkeletonDelay>
