@@ -15,8 +15,10 @@ export const messageActionCard = tv({
       "[&>svg]:shrink-0",
       "size-[27px] rounded-chip bg-fill-muted text-foreground-muted",
       "[&>svg]:size-3.5",
+      // Raft redesign (B7): with a mouse the card's icon is a plain 16 muted glyph, no tile.
+      "md:pointer-fine:size-5 md:pointer-fine:bg-transparent md:pointer-fine:[&>svg]:size-4",
     ],
-    headerTitle: ["min-w-0 flex-1", "pt-[calc((27px-1lh)/2)]"],
+    headerTitle: ["min-w-0 flex-1", "pt-[calc((27px-1lh)/2)]", "md:pointer-fine:pt-[calc((20px-1lh)/2)]"],
     // What happened (Done, Declined) or why you cannot act (View only), shown
     // under the title so it stays visible while the card is folded.
     headerDescription: ["block", "mt-0.5 text-footnote font-normal text-foreground-muted"],
@@ -31,11 +33,14 @@ export const messageActionCard = tv({
     headerStatus: [
       "ml-auto shrink-0",
       "mt-[calc((27px-1lh)/2)] text-caption font-semibold text-foreground-muted",
+      "md:pointer-fine:mt-[calc((20px-1lh)/2)]",
     ],
     status: [
       "inline-flex h-auto items-center gap-1.5 rounded-none border-0 bg-transparent p-0 shadow-none",
       "text-caption font-semibold text-foreground-muted",
       "before:size-2.5 before:shrink-0 before:rounded-[2px] before:border-[1.5px] before:border-sticker-ink before:content-['']",
+      // B7: with a mouse the status is the 8px square of the task bar, no edge.
+      "md:pointer-fine:before:size-2 md:pointer-fine:before:rounded-none md:pointer-fine:before:border-0",
     ],
     collapseTrigger: [
       "flex shrink-0 cursor-pointer items-center justify-center",
@@ -43,6 +48,7 @@ export const messageActionCard = tv({
       "data-panel-open:[&>svg]:rotate-180",
       "focus-visible:keyboard:outline-2 focus-visible:keyboard:outline-offset-1",
       "my-0 -mr-1 size-[27px] rounded-chip text-foreground-muted",
+      "md:pointer-fine:size-6 md:pointer-fine:rounded-control md:pointer-fine:hover:bg-fill-subtle",
       "hover:bg-fill-medium hover:text-foreground active:bg-fill-medium",
       "focus-visible:outline-none focus-visible:shadow-focus",
       "[&>svg]:size-4",
@@ -50,7 +56,7 @@ export const messageActionCard = tv({
   },
   variants: {
     tone: {
-      neutral: { status: ["before:bg-inactive"] },
+      neutral: { status: ["before:bg-inactive", "md:pointer-fine:before:bg-foreground-hint"] },
       primary: { status: ["before:bg-presence-busy"] },
       information: { status: ["before:bg-info"] },
       accent: { status: ["before:bg-attention"] },

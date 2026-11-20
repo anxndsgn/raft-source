@@ -42,8 +42,12 @@ import type { ServerMember } from "../../store/serverStore";
 import type { ThreadReplyPreview } from "../../store/threadRepliesReadModel";
 import { resolveMessageSenderMember } from "../../utils/messageSenderMember";
 import { useTimeFormatter } from "../../hooks/useTimeFormatter";
+import { useMediaQuery } from "../../hooks/effectPrimitives";
 
 const MAX_INLINE_PREVIEWS = 3;
+// B6, desktop: the replies row; it hugs its content, 4 in, the control radius.
+const REPLIES_ROW_CLASS = "mt-1 mb-px h-6 w-fit max-w-full flex-row items-center gap-1.5 -ml-1 rounded-control px-1 py-0 md:pointer-fine:bg-transparent md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:hover:bg-none md:pointer-fine:active:bg-none [&_strong]:h-auto [&_strong]:min-w-0 [&_strong]:bg-transparent [&_strong]:px-0 [&_strong]:font-sans [&_strong]:text-[12px] [&_strong]:text-danger-strong [&_strong]:inset-ring-0 [&_strong]:ring-0";
+const REPLIER_AVATAR_CLASS = "-ml-1 flex size-4 overflow-hidden rounded-full ring-1 ring-layer-canvas first:ml-0 *:size-4! *:rounded-full!";
 
 export function hasInlineThreadReplySurface(
   replies: ThreadReplyPreview[],
@@ -145,6 +149,8 @@ export const InlineThreadReplies = memo(function InlineThreadReplies({
   const messageBodyFontSize = useAppearanceStore((s) => s.messageBodyFontSize);
   const previewSizeClass = getMessagePreviewSizeClass(messageBodyFontSize);
   const previewTimeSizeClass = getMessagePreviewTimeSizeClass(messageBodyFontSize);
+  // Raft redesign (B6): with a mouse the replies are one 24px row, not a block of previews.
+  const row = useMediaQuery("(width >= 48rem) and (pointer: fine)");
   if (!hasInlineThreadReplySurface(replies, replyCount)) return null;
 
   // The server may serve more than we show (or fewer, on an older payload);
@@ -164,7 +170,7 @@ export const InlineThreadReplies = memo(function InlineThreadReplies({
   const countLabel = (
     <MessageRepliesSummary
       data-message-affordance="inline-thread-replies-count"
-      className={unreadCount > 0 ? "shrink-0 text-foreground" : "shrink-0 text-foreground-muted"}
+      className={row ? "shrink-0 text-[13px] leading-[17px] font-semibold text-foreground" : unreadCount > 0 ? "shrink-0 text-foreground" : "shrink-0 text-foreground-muted"}
     >
       {countText}
       {unreadCount > 0 ? (
@@ -190,6 +196,41 @@ export const InlineThreadReplies = memo(function InlineThreadReplies({
       ) : null}
     </MessageRepliesSummary>
   );
+
+  if (row) {
+    // B6: who replied (three at most, 16 round, overlapping 4 on a canvas ring), "N replies" Semi Bold
+    // 13 ink, then when the last reply came, regular 12 muted, 6 apart; the whole row hovers fill-subtle.
+    const repliers = previews.filter((reply, index) => previews.findIndex((other) => other.senderId === reply.senderId) === index).slice(0, 3);
+    const latest = previews.reduce<ThreadReplyPreview | null>((last, reply) => (!last || reply.createdAt > last.createdAt ? reply : last), null);
+    return (
+      <MessageReplies
+        onClick={onOpenThread}
+        data-message-affordance="inline-thread-replies"
+        data-layout="row"
+        className={REPLIES_ROW_CLASS}
+      >
+        {repliers.length > 0 ? (
+          <span className="flex shrink-0 items-center" aria-hidden="true">
+            {repliers.map((reply) => (
+              <span key={reply.messageId} className={REPLIER_AVATAR_CLASS}>
+                <ReplyAvatar
+                  reply={reply}
+                  channelParticipantAgentsById={channelParticipantAgentsById}
+                  channelParticipantMembersById={channelParticipantMembersById}
+                />
+              </span>
+            ))}
+          </span>
+        ) : null}
+        {countLabel}
+        {latest ? (
+          <MessageRepliesItemTime dateTime={latest.createdAt} data-inline-thread-reply-time className="ml-0 text-[12px] leading-4 font-sans text-foreground-muted">
+            {formatMessageTime(latest.createdAt)}
+          </MessageRepliesItemTime>
+        ) : null}
+      </MessageReplies>
+    );
+  }
 
   return (
     <MessageReplies
