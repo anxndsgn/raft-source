@@ -61,8 +61,11 @@ export function ChannelSectionSelect({
   section: { item, pinnedRef, stalePinnedRefs, homeKey, homeLabelId },
   "aria-labelledby": ariaLabelledBy,
   testId = "channel-settings-section-select",
+  fit = false,
 }: {
   section: ConversationSidebarSection;
+  /** raft-ui's `SelectTrigger fit`: as wide as its longest option, for a select at a settings row's end. */
+  fit?: boolean;
   "aria-labelledby"?: string;
   testId?: string;
 }) {
@@ -149,7 +152,7 @@ export function ChannelSectionSelect({
   return (
     <>
       <Select value={value} onValueChange={handleChange} items={options}>
-        <SelectTrigger className="w-full max-w-sm" aria-labelledby={ariaLabelledBy} data-testid={testId}>
+        <SelectTrigger fit={fit} className={fit ? undefined : "w-full max-w-sm"} aria-labelledby={ariaLabelledBy} data-testid={testId}>
           <SelectValue />
           <SelectIcon />
         </SelectTrigger>

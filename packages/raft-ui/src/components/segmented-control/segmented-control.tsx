@@ -43,6 +43,9 @@ const segmentedControl = tv({
       // 3px padding and stays concentric. An icons-only segment is the same
       // square.
       "[--segment-size:2rem] md:pointer-fine:[--segment-size:var(--control-height)]",
+      // Raft redesign (Figmama 11/20): with a mouse a 32px track of 5% ink,
+      // the control corner, 2px inside, holding 28px segments.
+      "md:pointer-fine:[--segment-size:28px] md:pointer-fine:gap-0 md:pointer-fine:rounded-control md:pointer-fine:bg-fill-medium md:pointer-fine:p-0.5",
       // While it scrolls, it scrolls sideways only: a segment's tap area,
       // which reaches past the track by touch, must not scroll it up and down
       // (there the tap area stops at the track's edge).
@@ -69,9 +72,14 @@ const segmentedControl = tv({
       "data-checked:hover:bg-selected data-checked:active:bg-selected data-checked:active:overlay-sticker-medium",
       "focus-visible:shadow-focus",
       "data-disabled:cursor-not-allowed data-disabled:text-foreground-disabled data-disabled:hover:bg-transparent",
+      // Raft redesign: muted regular words, the ink on hover; the chosen one
+      // the canvas with a 1px floating line, Semi Bold ink. No yellow.
+      "md:pointer-fine:border-0 md:pointer-fine:font-normal md:pointer-fine:hover:bg-transparent md:pointer-fine:hover:text-foreground md:pointer-fine:active:bg-transparent",
+      "md:pointer-fine:data-checked:bg-layer-canvas md:pointer-fine:data-checked:ring-1 md:pointer-fine:data-checked:ring-line-floating md:pointer-fine:data-checked:font-semibold md:pointer-fine:data-checked:text-foreground",
+      "md:pointer-fine:data-checked:hover:bg-layer-canvas md:pointer-fine:data-checked:active:bg-layer-canvas md:pointer-fine:data-checked:active:bg-none",
     ],
     label: ["truncate"],
-    count: ["font-mono", "text-mono-meta font-normal"],
+    count: ["font-mono", "text-mono-meta font-normal", "md:pointer-fine:font-sans"],
   },
   variants: {
     variant: {
@@ -87,6 +95,21 @@ const segmentedControl = tv({
           "md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:border-line-subtle md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:bg-fill-medium md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:font-semibold md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:text-foreground md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:ring-0",
           "md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:hover:bg-fill-medium md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:active:bg-fill-medium",
           "md:pointer-fine:**:data-[slot=segmented-control-count]:font-sans",
+        ],
+      },
+      // Raft redesign (Figmama 11/20): with a mouse a switch between views is
+      // tabs with an underline, as the workspace's: muted regular 14, the ink
+      // on hover; the chosen one Semi Bold ink over a 2px ink line; tabs 16px
+      // apart, the first on the content's edge; a count 4px after its name in
+      // 12 muted sans.
+      underline: {
+        root: [
+          "md:pointer-fine:-my-1.5 md:pointer-fine:gap-4 md:pointer-fine:rounded-none md:pointer-fine:bg-transparent md:pointer-fine:p-0 md:pointer-fine:[--segment-size:44px]",
+          "md:pointer-fine:**:data-[slot=segmented-control-item]:rounded-none md:pointer-fine:**:data-[slot=segmented-control-item]:border-0 md:pointer-fine:**:data-[slot=segmented-control-item]:bg-transparent md:pointer-fine:**:data-[slot=segmented-control-item]:px-0 md:pointer-fine:**:data-[slot=segmented-control-item]:gap-1 md:pointer-fine:**:data-[slot=segmented-control-item]:text-[14px] md:pointer-fine:**:data-[slot=segmented-control-item]:font-normal md:pointer-fine:**:data-[slot=segmented-control-item]:text-foreground-muted",
+          "md:pointer-fine:**:data-[slot=segmented-control-item]:hover:bg-transparent md:pointer-fine:**:data-[slot=segmented-control-item]:hover:text-foreground md:pointer-fine:**:data-[slot=segmented-control-item]:active:bg-transparent",
+          "md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:bg-transparent md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:ring-0 md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:font-semibold md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:text-foreground md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:shadow-[inset_0_-2px_0_var(--foreground)]",
+          "md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:hover:bg-transparent md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:active:bg-transparent md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:active:bg-none",
+          "md:pointer-fine:**:data-[slot=segmented-control-count]:font-sans md:pointer-fine:**:data-[slot=segmented-control-count]:text-[12px] md:pointer-fine:**:data-[slot=segmented-control-count]:font-normal md:pointer-fine:**:data-[slot=segmented-control-count]:text-foreground-muted",
         ],
       },
       "on-frame": {
@@ -210,7 +233,7 @@ export type SegmentedControlProps<T extends string = string> = StyledProps<
    * frame, yellow on the dark one), since a yellow sticker on yellow would
    * not read as selected.
    */
-  variant?: "default" | "on-frame" | "pill";
+  variant?: "default" | "on-frame" | "pill" | "underline";
 };
 
 /**

@@ -244,7 +244,8 @@ export default function NotificationActivationBanner({
   // composer line and made the two sides read asymmetric in every theme.
   // Its sides are the composer frame's: ChatPanel's notice stack keeps the
   // composer's edge (COMPOSER_EDGE_CLASS), so no side margin here.
-  const placementClassName = placement === "desktop" ? "mb-0 mt-2" : "";
+  // Raft redesign (Figmama 11/20): with a mouse no strip above it: the conversation is cut at its top edge.
+  const placementClassName = placement === "desktop" ? "mb-0 mt-2 md:pointer-fine:mt-0" : "";
   if (confirmingDismissal) {
     return (
       <Banner

@@ -93,8 +93,8 @@ export function ChannelPreferencesSection({
         label={<span id="channel-settings-preferences-heading">{formatMessage({ id: "channel.details.yourSettings" })}</span>}
         action={<SettingsScopeTag labelId="channel.details.affectsOnlyYou" />}
       />
-      {/* Settings rows like the Settings pages' (DS Forms, "A setting's row"): a select of phrases sits under
-          the row's text, a switch ends its row. */}
+      {/* Settings rows like the Settings pages' (DS Forms, "A setting's row"). Raft redesign (Figmama 11/20):
+          one line each, the title at the start and its select or switch at the end. */}
       <ListRowGroup>
         {isPanel && levelTarget && (
           <ListRow variant="plain" interactive={false} data-testid="channel-settings-notification-level">
@@ -102,15 +102,15 @@ export function ChannelPreferencesSection({
               <ListRowTitle id="channel-settings-notification-level-label">
                 {formatMessage({ id: "notifications.level.menuLabel" })}
               </ListRowTitle>
-              <div className="pt-2">
-                <NotificationLevelSelect
-                  target={levelTarget}
-                  disabled={activityMute?.busy === true}
-                  aria-labelledby="channel-settings-notification-level-label"
-                  testId="channel-settings-notification-level-select"
-                />
-              </div>
             </ListRowBody>
+            <NotificationLevelSelect
+              fit
+              className=""
+              target={levelTarget}
+              disabled={activityMute?.busy === true}
+              aria-labelledby="channel-settings-notification-level-label"
+              testId="channel-settings-notification-level-select"
+            />
           </ListRow>
         )}
         {isPanel && activityMute && !levelTarget && (
@@ -139,10 +139,8 @@ export function ChannelPreferencesSection({
               <ListRowTitle id="channel-settings-section-label">
                 {formatMessage({ id: "channel.details.sidebarSection" })}
               </ListRowTitle>
-              <div className="pt-2">
-                <ChannelSectionSelect section={sidebarSection} aria-labelledby="channel-settings-section-label" />
-              </div>
             </ListRowBody>
+            <ChannelSectionSelect fit section={sidebarSection} aria-labelledby="channel-settings-section-label" />
           </ListRow>
         )}
         {collapseLongMessages && (

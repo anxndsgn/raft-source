@@ -70,7 +70,8 @@ const DESKTOP_LONG_NOTE =
 const LONG_COMMIT = "Add Members and Send Invites";
 const FOOTNOTE_LINE = 18;
 /** The dialog's inline padding: 20px, and the 16px page inset with a mouse on a desktop (stdrc, 2026-11-05). */
-const margin = () => (matchMedia("(width >= 48rem) and (pointer: fine)").matches ? 16 : 20);
+// Raft redesign (Figmama 11/20): a dialog is 20px inside with a mouse too.
+const margin = () => 20;
 
 /** Whether Cancel draws a frame: an ink border and the card fill (Button, `in-data-stacked:`). */
 function framed(button: HTMLElement) {

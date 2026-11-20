@@ -42,6 +42,11 @@ const select = tv({
       "data-invalid:focus-visible:border-danger-strong data-invalid:focus-visible:ring-0",
       "[&_[data-slot='select-trigger-content']_svg:not([class*='size-'])]:size-4",
       "[&_[data-slot='select-trigger-content']_svg:not([class*='stroke-'])]:stroke-2",
+      // Raft redesign (Figmama 11/20): with a mouse the secondary Button: 5%
+      // ink, no edge, the control corner, 10px in; the chevron 16 muted.
+      "md:pointer-fine:border-0 md:pointer-fine:bg-fill-medium md:pointer-fine:rounded-control md:pointer-fine:pl-2.5 md:pointer-fine:pr-2 md:pointer-fine:text-[14px]",
+      "md:pointer-fine:hover:overlay-subtle md:pointer-fine:data-invalid:inset-ring md:pointer-fine:data-invalid:inset-ring-danger",
+      "md:pointer-fine:**:data-[slot='select-icon']:text-foreground-muted",
     ],
     icon: [
       "ml-auto flex shrink-0 items-center justify-center transition-transform",
@@ -150,7 +155,7 @@ const select = tv({
     // gives the trigger its width, so the width never follows the value.
     fit: {
       true: {
-        trigger: ["w-auto min-w-44 max-w-80"],
+        trigger: ["w-auto min-w-44 max-w-80 md:pointer-fine:min-w-[140px]"],
       },
     },
   },

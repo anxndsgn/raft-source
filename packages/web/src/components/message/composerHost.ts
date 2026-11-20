@@ -36,7 +36,10 @@ export const COMPOSER_EDGE_CLASS = "px-(--surface-inset)";
  * safe area, 16px. The composer's placeholder (bootSkeletons ComposerBox)
  * takes the same, so its card is where the loaded one is.
  */
-export const COMPOSER_FULL_EDGE_CLASS = `${COMPOSER_EDGE_CLASS} pt-2 safe-bottom`;
+// Raft redesign (Figmama 11/20): with a mouse no 8px strip above the card, where
+// the conversation would vanish before it: the list runs to the card's top edge
+// and keeps the 16px under its last line inside itself (TIMELINE_END_ABOVE_COMPOSER).
+export const COMPOSER_FULL_EDGE_CLASS = `${COMPOSER_EDGE_CLASS} pt-2 md:pointer-fine:pt-0 safe-bottom`;
 
 // A compact composer docked under content that scrolls (attachment comments,
 // the forward dialog, its phone page): one seam above it — the line between

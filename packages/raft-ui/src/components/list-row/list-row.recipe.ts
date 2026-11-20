@@ -31,6 +31,8 @@ export const listRow = tv({
     group: [
       "flex min-w-0 flex-col overflow-hidden",
       "rounded-container border border-line-hairline bg-layer-card text-foreground",
+      // Raft redesign (Figmama 11/20): with a mouse a settings card is the canvas, not grey.
+      "md:pointer-fine:bg-layer-canvas",
     ],
     // The row owns its three inks and the parts read them, so the tone and the
     // disabled state are decided once, on the row: a tone never applies to a

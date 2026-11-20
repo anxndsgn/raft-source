@@ -31,6 +31,8 @@ const field = tv({
       "block wrap-anywhere",
       "group-data-disabled/field:text-foreground-disabled",
       "font-sans font-semibold text-foreground-muted",
+      // Raft redesign (Figmama 11/20): with a mouse Semi Bold 13 in the ink, 6px over its control.
+      "md:pointer-fine:text-[13px] md:pointer-fine:text-foreground",
     ],
     description: [
       "wrap-anywhere",

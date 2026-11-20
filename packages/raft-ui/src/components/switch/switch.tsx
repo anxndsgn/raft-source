@@ -18,6 +18,12 @@ const switchRecipe = tv({
       "focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:shadow-focus",
       "data-disabled:border-foreground-disabled data-disabled:bg-fill-muted",
       "data-checked:data-disabled:border-foreground-disabled data-checked:data-disabled:bg-fill-muted",
+      // Raft redesign (Figmama 11/20): with a mouse a 32x18 round track with no
+      // edge or shadow, fill-medium off and the ink on; the thumb 14, the
+      // canvas, 2px in; only the thumb's position moves (150ms).
+      "md:pointer-fine:[--switch-width:32px] md:pointer-fine:[--switch-height:18px] md:pointer-fine:transition-none",
+      "md:pointer-fine:border-0 md:pointer-fine:p-0.5 md:pointer-fine:bg-fill-medium md:pointer-fine:data-checked:bg-foreground md:pointer-fine:data-checked:ring-0",
+      "md:pointer-fine:data-disabled:bg-fill-medium md:pointer-fine:data-disabled:opacity-40 md:pointer-fine:data-checked:data-disabled:bg-foreground",
     ],
     thumb: [
       "pointer-events-none block",
@@ -28,6 +34,9 @@ const switchRecipe = tv({
       "data-checked:bg-sticker-paper data-checked:shadow-[0_0_0_1.5px_var(--sticker-ink)]",
       "data-disabled:bg-fill-muted data-disabled:shadow-[0_0_0_1.5px_var(--foreground-disabled)]",
       "data-checked:data-disabled:bg-fill-muted data-checked:data-disabled:shadow-[0_0_0_1.5px_var(--foreground-disabled)]",
+      "md:pointer-fine:size-3.5 md:pointer-fine:bg-layer-canvas md:pointer-fine:shadow-none md:pointer-fine:duration-150 md:pointer-fine:ease-out",
+      "md:pointer-fine:data-checked:bg-layer-canvas md:pointer-fine:data-checked:shadow-none md:pointer-fine:data-disabled:bg-layer-canvas md:pointer-fine:data-disabled:shadow-none",
+      "md:pointer-fine:data-checked:data-disabled:bg-layer-canvas md:pointer-fine:data-checked:data-disabled:shadow-none",
     ],
   },
 });

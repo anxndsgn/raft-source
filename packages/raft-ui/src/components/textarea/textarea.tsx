@@ -1,5 +1,6 @@
 import type { ComponentPropsWithRef } from "react";
 import type { DataAttributes } from "../../lib/data-attributes";
+import { fieldLookDesktop } from "../../lib/field-look";
 import { tv } from "../../lib/tv";
 import type { WithoutChildren } from "../../lib/without-children";
 
@@ -15,6 +16,9 @@ const textarea = tv({
       "shadow-none transition-shadow duration-90 ease-out focus-visible:shadow-focus",
       "data-invalid:border-danger-strong",
       "disabled:cursor-not-allowed disabled:resize-none disabled:border-line-hairline disabled:bg-fill-muted disabled:text-foreground-disabled disabled:placeholder:text-foreground-disabled",
+      ...fieldLookDesktop,
+      // Raft redesign: 8/10 inside, at least three lines, no resize grip.
+      "md:pointer-fine:py-2 md:pointer-fine:pr-2.5 md:pointer-fine:resize-none md:pointer-fine:min-h-[calc(var(--field-line-height)*3+--spacing(4))]",
     ],
   },
 });

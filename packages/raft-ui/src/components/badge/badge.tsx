@@ -81,7 +81,18 @@ export const badge = tv({
     { appearance: "solid", variant: "warning", class: { root: "bg-warning" } },
     { appearance: "solid", variant: "danger", class: { root: "bg-danger" } },
     { appearance: "soft", variant: "default", class: { root: "bg-fill-muted" } },
-    { appearance: "soft", variant: "muted", class: { root: "bg-inactive-soft" } },
+    {
+      appearance: "soft",
+      variant: "muted",
+      class: {
+        root: [
+          "bg-inactive-soft",
+          // Raft redesign (Figmama 11/20): with a mouse a muted tag is the role
+          // tag: 16px, 4px sides, Medium 11/14 muted on 5% ink.
+          "md:pointer-fine:h-4 md:pointer-fine:px-1 md:pointer-fine:bg-fill-medium md:pointer-fine:text-[11px] md:pointer-fine:leading-[14px] md:pointer-fine:font-medium md:pointer-fine:text-foreground-muted",
+        ],
+      },
+    },
     { appearance: "soft", variant: "primary", class: { root: "bg-brand-soft" } },
     { appearance: "soft", variant: "busy", class: { root: "bg-presence-busy-soft" } },
     { appearance: "soft", variant: "information", class: { root: "bg-info-soft" } },

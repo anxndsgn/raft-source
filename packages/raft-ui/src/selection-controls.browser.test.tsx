@@ -111,7 +111,7 @@ const TEXTS = [
 
 /** A switch is 50 x 30 on a touch screen and macOS's 38 x 22 with a mouse. */
 const sizeOf = (control: { name: string; size: [number, number] }, touch: boolean) =>
-  control.name === "switch" && !touch ? ([38, 22] as [number, number]) : control.size;
+  control.name === "switch" && !touch ? ([32, 18] as [number, number]) : control.size; // Raft redesign: 32x18 with a mouse
 
 const CONTROLS: { name: string; size: [number, number]; el: () => ReactElement }[] = [
   { name: "switch", size: [50, 30], el: () => <Switch data-testid="control" aria-label="On" /> },

@@ -22,7 +22,8 @@ const it = test.skipIf(typeof window === "undefined");
 // Turning touch emulation off again leaves Chromium reporting `pointer: none`,
 // so the mouse screen runs first.
 const SCREENS = [
-  { name: "mouse 1280", width: 1280, height: 800, touch: false, segment: 32, hit: 32 },
+  // Raft redesign (Figmama 11/20): 28px segments in a 32px track, side by side.
+  { name: "mouse 1280", width: 1280, height: 800, touch: false, segment: 28, hit: 28 },
   { name: "touch 1024", width: 1024, height: 768, touch: true, segment: 32, hit: 44 },
   { name: "phone 390", width: 390, height: 844, touch: true, segment: 32, hit: 44 },
 ] as const;
@@ -155,7 +156,13 @@ for (const s of SCREENS) {
     const [first, second] = screen.getAllByRole("radio");
     const a = first!.getBoundingClientRect();
     const b = second!.getBoundingClientRect();
-    expect(b.left - a.right).toBe(3);
+    const touching = !s.touch;
+    expect(b.left - a.right).toBe(touching ? 0 : 3);
+    if (touching) {
+      // With a mouse the segments touch and take no taps past their boxes.
+      expect(tapArea(first!).right).toBeLessThanOrEqual(tapArea(second!).left);
+      return;
+    }
     expect(tapArea(first!).right).toBeLessThan(tapArea(second!).left);
     // The 3px between two segments, in the box and in the overhang.
     const gap = (a.right + b.left) / 2;

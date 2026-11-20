@@ -245,7 +245,9 @@ const HEADS: Head[] = [
   },
   {
     name: "dialog header",
-    margin: dialogMargin,
+    // Raft redesign (Figmama 11/20): with a mouse the close button 14px from
+    // the corner, its 16px icon 22px in.
+    margin: (s: Screen) => (s.width >= 768 && s.pointer === "fine" ? 22 : dialogMargin(s)),
     control: false,
     ui: () => (
       <Dialog open>

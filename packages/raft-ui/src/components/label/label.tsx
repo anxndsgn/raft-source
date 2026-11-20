@@ -13,6 +13,8 @@ const label = tv({
       "text-sm leading-none",
       "data-disabled:cursor-not-allowed data-disabled:text-foreground-disabled",
       "font-sans font-semibold text-foreground-muted",
+      // Raft redesign (Figmama 11/20): with a mouse a field's title is Semi Bold 13 in the ink.
+      "md:pointer-fine:text-[13px] md:pointer-fine:text-foreground md:pointer-fine:leading-[18px]",
     ],
     asterisk: ["group-data-disabled/label:text-foreground-disabled", "text-foreground-hint"],
     sub: [

@@ -43,11 +43,17 @@ const dialog = tv({
       "max-h-[calc(100dvh-2rem)] outline-none",
       "overflow-clip rounded-dialog bg-layer-popover text-foreground",
       "shadow-float ring-1 ring-line-seam",
+      // Raft redesign (Figmama 11/20): with a mouse the canvas, the island
+      // corner and a 1px floating line, the shadow kept; 20px inside.
+      "md:pointer-fine:bg-layer-canvas md:pointer-fine:rounded-island md:pointer-fine:ring-line-floating md:pointer-fine:[--surface-inset:20px]",
     ],
     header: [
       "grid shrink-0 grid-cols-[minmax(0,1fr)_max-content] items-center min-w-0",
       "gap-2 px-(--surface-inset) pt-(--surface-inset)",
       headEdgePull,
+      // Raft redesign (Figmama 11/20): with a mouse the 32px close button sits
+      // 14px from the corner, so its 16px icon 22px in.
+      "md:pointer-fine:pe-[22px]",
     ],
     body: [
       // Native scroll, an allowed exception (scroll-area.md#native-scrolling): callers
@@ -79,7 +85,7 @@ const dialog = tv({
       ...stackedActions,
       "data-stacked:ms-0 data-stacked:w-full",
     ],
-    title: ["m-0 min-w-0 text-foreground", "font-sans text-headline font-bold"],
+    title: ["m-0 min-w-0 text-foreground", "font-sans text-headline font-bold", "md:pointer-fine:text-[16px] md:pointer-fine:leading-6 md:pointer-fine:font-semibold"],
     description: ["m-0", "font-sans text-subhead text-foreground-muted"],
   },
   variants: {

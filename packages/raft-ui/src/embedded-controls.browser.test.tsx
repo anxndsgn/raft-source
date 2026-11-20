@@ -360,7 +360,9 @@ for (const s of SCREENS) {
     const gap = (a: string, b: string) =>
       screen.getByTestId(b).getBoundingClientRect().left -
       screen.getByTestId(a).getBoundingClientRect().right;
-    near(gap("seg-a", "seg-b"), 3);
+    // Raft redesign (Figmama 11/20): with a mouse a segmented track's
+    // segments touch, 2px inside it; a toggle group keeps 3px.
+    near(gap("seg-a", "seg-b"), s.touch ? 3 : 0);
     near(gap("tog-a", "tog-b"), 3);
   });
 
