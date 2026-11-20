@@ -92,7 +92,7 @@ function SelectionPopoverOptionRow({
   // of its own; the trailing check plus bold marks it.
   const rowTone = disabled
     ? "cursor-not-allowed text-foreground-disabled"
-    : `text-foreground hover:bg-fill-subtle focus-visible:bg-fill-subtle${checked ? " font-bold" : " font-medium"}`;
+    : `text-foreground hover:bg-fill-subtle focus-visible:bg-fill-subtle ${checked ? "font-bold" : "font-medium"}`;
 
   return (
     <button

@@ -75,7 +75,8 @@ const taskChip = tv({
           "[&>svg]:size-3.5 [&>svg]:self-center [&>svg:not([data-slot=task-status-icon])]:mx-0",
           // Raft redesign: in a message, the pixel 4px before "#19", Semi Bold
           // at the sentence's size, no sides; underlined on hover.
-          "px-0 has-[>svg,>[data-slot=spinner],>[data-slot=message-reference-icon]]:px-0 [font-size:1em] leading-[inherit] [&>svg[data-slot=task-status-icon]]:size-2.5",
+          // Important: it must beat the inline chip's sides for a leading mark (a :has() rule).
+          "px-0! [font-size:1em] leading-[inherit] [&>svg[data-slot=task-status-icon]]:size-2.5",
           "[a,button]:hover:bg-none [a,button]:active:bg-none [a,button]:hover:underline decoration-foreground decoration-[1.5px] underline-offset-[3px]",
         ],
       },

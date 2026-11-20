@@ -196,7 +196,7 @@ test("selected cells use the cell's selected tint on the shape", () => {
   );
   expect(classesOf(cells["list-row"])).toContain("data-selected:before:bg-fill-cell-selected");
   expect(classesOf(cells["search-entity-result"])).toContain(
-    "data-[selected=true]:before:bg-brand-soft",
+    "data-[selected=true]:before:bg-fill-subtle",
   );
   expect(classesOf(cells["sidebar-item"])).toContain("data-active:before:bg-selected");
 });

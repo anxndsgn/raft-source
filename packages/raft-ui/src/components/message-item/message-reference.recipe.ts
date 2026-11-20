@@ -27,7 +27,8 @@ const chip = (fill: string) => [
 // sentence's size, Semi Bold in the foreground, underlined on hover; a leading
 // icon is 16px, 4px from the label.
 const PLAIN_ON_DESKTOP = [
-  "md:pointer-fine:bg-transparent md:pointer-fine:px-0 md:pointer-fine:has-[>svg,>[data-slot=spinner],>[data-slot=message-reference-icon]]:px-0",
+  // Important: it must beat the inline chip's sides for a leading mark (a :has() rule).
+  "md:pointer-fine:bg-transparent md:pointer-fine:px-0!",
   "md:pointer-fine:[font-size:1em] md:pointer-fine:leading-[inherit] md:pointer-fine:rounded-none",
   "md:pointer-fine:[&_svg]:size-4",
 ];

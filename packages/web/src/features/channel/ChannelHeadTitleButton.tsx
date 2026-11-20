@@ -30,7 +30,7 @@ export function ChannelHeadTitleButton({ name, icon, label, open, onOpen }: {
       >
         {icon}
         <span className="whitespace-nowrap">{name}</span>
-        <ChevronDown size={14} aria-hidden className={`shrink-0 text-foreground-hint${icon ? " ml-0.5" : ""}`} />
+        <ChevronDown size={14} aria-hidden className={`shrink-0 text-foreground-hint ${icon ? "ml-0.5" : ""}`} />
       </button>
     </Tooltip>
   );
