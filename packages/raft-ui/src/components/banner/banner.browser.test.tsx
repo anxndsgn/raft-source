@@ -549,12 +549,15 @@ for (const [name, width, pointer] of [
       const label = fontSize(screen.getByTestId("main"));
       for (const id of ["desc", "title"]) {
         const text = fontSize(screen.getByTestId(id));
-        expect(text).toBeGreaterThanOrEqual(label);
-        expect(text).toBe(fontSize(screen.getByTestId("md-desc")));
-        expect(lineHeight(screen.getByTestId(id))).toBe(lineHeight(screen.getByTestId("md-desc")));
+        // Raft redesign: with a mouse the description is 13px, below the 14px title.
+        if (pointer !== "fine" || id === "title") expect(text).toBeGreaterThanOrEqual(label);
+        if (pointer !== "fine" || id === "desc") {
+          expect(text).toBe(fontSize(screen.getByTestId("md-desc")));
+          expect(lineHeight(screen.getByTestId(id))).toBe(lineHeight(screen.getByTestId("md-desc")));
+        }
       }
-      // On a desktop the label is 14px, the size of the text beside it.
-      if (pointer === "fine") expect(fontSize(screen.getByTestId("desc"))).toBe(label);
+      // On a desktop the label is 14px, the size of the title beside it.
+      if (pointer === "fine") expect(fontSize(screen.getByTestId("title"))).toBe(label);
     });
   }
 

@@ -275,8 +275,10 @@ it("the activity selection toolbar is one 44px row while it fits, and wraps in a
   expect(rect(row).height).toBe(44);
   const button = rect(screen.getByRole("button", { name: "Mark as Read" }));
   const desktop = matchMedia("(width >= 48rem) and (pointer: fine)").matches;
-  expect(button.top - rect(row).top).toBe(desktop ? 4 : 6);
-  expect(rect(row).bottom - button.bottom).toBe(6);
+  // Raft redesign: with a mouse the buttons are 32px too: 5px from the top,
+  // 6px of air above the hairline (7px from the row's bottom edge).
+  expect(button.top - rect(row).top).toBe(desktop ? 5 : 6);
+  expect(rect(row).bottom - button.bottom).toBe(desktop ? 7 : 6);
   cleanup();
   render(
     <Region width={320}>

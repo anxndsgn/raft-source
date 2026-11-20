@@ -135,6 +135,20 @@ for (const [name, setup, type] of [
       await setup();
       render(<Family mode={mode} />);
       const m = measure();
+      const desktop = matchMedia("(width >= 48rem) and (pointer: fine)").matches;
+      if (desktop) {
+        // Raft redesign (Figmama 11/18): with a mouse the jump pill and the
+        // hover toolbar are canvas pills on a 1px floating line, no shadow; the
+        // pill 29px, the toolbar 32px of 28px buttons. Every icon is 16px.
+        expect(m.pill).toMatchObject({ outer: 29, edge: "border 1px", shadow: false, radius: "999px/999px" });
+        expect(m.pill.type).toBe(m.save.type);
+        expect(m.hover).toMatchObject({ outer: 32, item: 28, shadow: false });
+        expect(m.hover.radius.startsWith("999px/")).toBe(true);
+        expect(m.selection.outer).toBe(40); // 32px buttons, 4px inside the frame
+        expect(m.selection.shadow).toBe(true);
+        for (const control of Object.values(m)) expect(control.icon).toBe("16");
+        return;
+      }
 
       // A jump pill is the Save button: one action, one Button size.
       expect(m.pill).toEqual(m.save);
@@ -143,7 +157,6 @@ for (const [name, setup, type] of [
       expect(m.selection.type).toBe(type);
       // A single action is the 34px control height and a toolbar 42px; every icon is 16px.
       // (Touch keeps 32 and 36.)
-      const desktop = matchMedia("(width >= 48rem) and (pointer: fine)").matches;
       expect(m.save.outer).toBe(desktop ? 34 : 32);
       expect(m.pill.outer).toBe(desktop ? 34 : 32);
       expect(m.selection.outer).toBe(desktop ? 42 : 36);

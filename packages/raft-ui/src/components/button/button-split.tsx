@@ -38,7 +38,13 @@ export const buttonSplitMain = tv({
 // 36px wide. The hit area reaches past the part's end to 44px wide (measured
 // from inside its 1.5px border); its height comes from the Button size.
 export const buttonSplitMenu = tv({
-  base: ["min-w-0 rounded-s-none px-0", "ring-0 focus-visible:z-raised", "after:inset-s-0"],
+  base: [
+    "min-w-0 rounded-s-none px-0", "ring-0 focus-visible:z-raised", "after:inset-s-0",
+    // Raft redesign: with a mouse a Button has no border, so the divider is a
+    // 1px start line in the part's own ink at 25%: light on the ink primary,
+    // dark on the 5% secondary.
+    "md:pointer-fine:border-s md:pointer-fine:border-s-[color-mix(in_oklch,currentColor_25%,transparent)]",
+  ],
   variants: {
     variant: {
       primary: "data-popup-open:overlay-sticker-medium",

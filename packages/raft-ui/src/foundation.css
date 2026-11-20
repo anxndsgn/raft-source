@@ -324,21 +324,7 @@
   --inactive: oklch(0.7892 0.0137 71.29);
   --inactive-foreground: var(--sticker-ink);
   --inactive-soft: oklch(0.8962 0.0081 73.74);
-  --task-status-todo: oklch(0.7855 0.1227 50.11);
-  --task-status-todo-soft: oklch(0.9413 0.0275 40.2);
-  --task-status-todo-strong: var(--palette-orange-800);
-  --task-status-in-progress: oklch(0.7833 0.1353 219.21);
-  --task-status-in-progress-soft: oklch(0.9452 0.0326 226.3);
-  --task-status-in-progress-strong: var(--palette-cyan-800);
   --task-status-in-review: oklch(0.8826 0.1648 92.22);
-  --task-status-in-review-soft: oklch(0.9492 0.0176 296.63);
-  --task-status-in-review-strong: var(--palette-lavender-800);
-  --task-status-done: oklch(0.8272 0.1354 130.07);
-  --task-status-done-soft: oklch(0.9492 0.0809 130.43);
-  --task-status-done-strong: var(--palette-lime-800);
-  --task-status-closed: oklch(0.7892 0.0137 71.29);
-  --task-status-closed-soft: oklch(0.8962 0.0081 73.74);
-  --task-status-closed-strong: var(--palette-stone-800);
   /* Controls never cast a shadow; only overlays float. */
   --elevation-float:
     0 1px 0 oklch(0.1813 0.005 17.62 / 0.039), 0 12px 32px -12px oklch(0.1813 0.005 17.62 / 0.322);
@@ -361,9 +347,10 @@
   --card-title-font-weight: 600;
   --card-title-line-height: 24px;
   /* A default control: a field, a select, a Button, a tab, a selected segment, a
-     menu option, a sidebar row. A finger's 44px on a phone; 34px on a desktop,
-     the one desktop size for all of them (stdrc, 2026-11-04; Feishu's 32px
-     before). */
+     menu option, a sidebar row. A finger's 44px on a phone; 32px on a desktop,
+     the one desktop size for all of them (Raft redesign, Figmama 11/20: Buttons,
+     fields, selects, toggle groups; was 34 from stdrc 2026-11-04). Menu options
+     keep 34. */
   --control-height: 44px;
   /* The full-width call to action across a sign-in, sign-up or setup form
      (Button xl). */
@@ -393,8 +380,8 @@
      below, so the seams of a screen line up. */
   --header-height: calc(var(--control-height) + 2 * var(--header-air));
   /* The air above and below the control in a header: one control air on a phone
-     and a touch screen (44 + 12 = 56); 5px on a desktop, so a 34px control and
-     its head make 44 (34 + 10). */
+     and a touch screen (44 + 12 = 56); 6px on a desktop, so a 32px control and
+     its head make 44 (32 + 12; Raft redesign). */
   --header-air: var(--control-air);
   /* Every header in a window shorter than 600px. On a desktop, a bar button with
      one air above and below (28 + 12 = 40). */
@@ -574,20 +561,7 @@
   --danger-muted: oklch(0.58 0.19 29 / 0.3);
   --danger-soft: oklch(0.5509 0.1903 29.01 / 0.18);
   --inactive-soft: oklch(0.3161 0.0052 106.7);
-  --task-status-todo: oklch(0.6996 0.202 44.44);
-  --task-status-todo-soft: oklch(0.5204 0.1197 50.16 / 0.18);
-  --task-status-todo-strong: oklch(0.82 0.12 55);
-  --task-status-in-progress-soft: oklch(0.452 0.0862 225.67 / 0.18);
-  --task-status-in-progress-strong: oklch(0.8 0.1 220);
   --task-status-in-review: oklch(0.8826 0.1648 92.22);
-  --task-status-in-review-soft: oklch(0.4995 0.1202 294.19 / 0.239);
-  --task-status-in-review-strong: var(--palette-lavender-300);
-  --task-status-done: oklch(0.714 0.176 153.03);
-  --task-status-done-soft: oklch(0.4997 0.1193 153.22 / 0.18);
-  --task-status-done-strong: oklch(0.8 0.14 153);
-  --task-status-closed: oklch(0.6494 0.0029 106.48);
-  --task-status-closed-soft: oklch(0.3161 0.0052 106.7);
-  --task-status-closed-strong: oklch(0.6984 0.0043 106.51);
   --elevation-float:
     0 0 0 1px oklch(0.9843 0.004 106.47 / 0.078), 0 16px 40px -12px oklch(0 0 0 / 0.8);
   --elevation-sticker: 4px 4px 0 oklch(0 0 0);
@@ -672,20 +646,7 @@
     --danger-muted: oklch(0.58 0.19 29 / 0.3);
     --danger-soft: oklch(0.5509 0.1903 29.01 / 0.18);
     --inactive-soft: oklch(0.3161 0.0052 106.7);
-    --task-status-todo: oklch(0.6996 0.202 44.44);
-    --task-status-todo-soft: oklch(0.5204 0.1197 50.16 / 0.18);
-    --task-status-todo-strong: oklch(0.82 0.12 55);
-    --task-status-in-progress-soft: oklch(0.452 0.0862 225.67 / 0.18);
-    --task-status-in-progress-strong: oklch(0.8 0.1 220);
     --task-status-in-review: oklch(0.8826 0.1648 92.22);
-    --task-status-in-review-soft: oklch(0.4995 0.1202 294.19 / 0.239);
-    --task-status-in-review-strong: var(--palette-lavender-300);
-    --task-status-done: oklch(0.714 0.176 153.03);
-    --task-status-done-soft: oklch(0.4997 0.1193 153.22 / 0.18);
-    --task-status-done-strong: oklch(0.8 0.14 153);
-    --task-status-closed: oklch(0.6494 0.0029 106.48);
-    --task-status-closed-soft: oklch(0.3161 0.0052 106.7);
-    --task-status-closed-strong: oklch(0.6984 0.0043 106.51);
     --elevation-float:
       0 0 0 1px oklch(0.9843 0.004 106.47 / 0.078), 0 16px 40px -12px oklch(0 0 0 / 0.8);
     --elevation-sticker: 4px 4px 0 oklch(0 0 0);
@@ -711,6 +672,24 @@
   --foreground-hover: var(--foreground);
   --line-field: var(--line-hairline);
   --line-field-hover: oklch(0.2228 0.0025 67.7 / 0.251);
+  --task-status-todo: var(--foreground);
+  --task-status-todo-soft: color-mix(in oklch, var(--task-status-todo) 12%, transparent);
+  --task-status-todo-strong: color-mix(in oklch, var(--task-status-todo) 72%, var(--foreground));
+  --task-status-in-progress: var(--presence-busy);
+  --task-status-in-progress-soft:
+    color-mix(in oklch, var(--task-status-in-progress) 12%, transparent);
+  --task-status-in-progress-strong:
+    color-mix(in oklch, var(--task-status-in-progress) 72%, var(--foreground));
+  --task-status-in-review-soft: color-mix(in oklch, var(--task-status-in-review) 12%, transparent);
+  --task-status-in-review-strong:
+    color-mix(in oklch, var(--task-status-in-review) 72%, var(--foreground));
+  --task-status-done: var(--presence-online);
+  --task-status-done-soft: color-mix(in oklch, var(--task-status-done) 12%, transparent);
+  --task-status-done-strong: color-mix(in oklch, var(--task-status-done) 72%, var(--foreground));
+  --task-status-closed: var(--foreground-hint);
+  --task-status-closed-soft: color-mix(in oklch, var(--task-status-closed) 12%, transparent);
+  --task-status-closed-strong:
+    color-mix(in oklch, var(--task-status-closed) 72%, var(--foreground));
 }
 
 /* Desktop: from 768px (Tailwind's `md`, where the desktop layout begins)
@@ -724,13 +703,13 @@
     --field-line-height: 22px;
     --card-title-font-size: 14px;
     --card-title-line-height: 22px;
-    --control-height: 34px;
+    --control-height: 32px;
     --control-height-cta: 40px;
     --control-icon-size: 16px;
-    --control-hit-inset: 5px;
+    --control-hit-inset: 6px;
     --control-embedded-size: 22px;
     --control-radius: 8px;
-    --header-air: 5px;
+    --header-air: 6px;
     --header-height-short: calc(var(--bar-button-size) + 2 * var(--control-air));
     --bar-button-size: 32px;
     --bar-button-radius: 6px;
@@ -738,7 +717,7 @@
     --switch-width: 38px;
     --switch-height: 22px;
     --row-height: 32px;
-    --option-height: var(--control-height);
+    --option-height: 34px;
     --section-gap: calc(2 * var(--field-gap));
     --page-top: 12px;
     --page-inset: 16px;

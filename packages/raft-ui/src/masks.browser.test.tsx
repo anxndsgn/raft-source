@@ -103,9 +103,9 @@ it("the veil is the page at 80% in both modes, under the busy covers", () => {
   const fill = (id: string) => getComputedStyle(screen.getByTestId(id)).backgroundColor;
   expect(fill("light-uploading")).toBe("oklch(1 0 0 / 0.8)");
   expect(fill("light-failed")).toBe("oklch(1 0 0 / 0.8)");
-  expect(fill("dark-uploading")).toBe("oklch(0.2213 0.0038 106.71 / 0.8)");
-  expect(fill("dark-failed")).toBe("oklch(0.2213 0.0038 106.71 / 0.8)");
-  expect(fill("dark-overlay")).toBe("oklch(0.2213 0.0038 106.71 / 0.8)");
+  expect(fill("dark-uploading")).toBe("oklch(0.2228 0.0025 67.7 / 0.8)");
+  expect(fill("dark-failed")).toBe("oklch(0.2228 0.0025 67.7 / 0.8)");
+  expect(fill("dark-overlay")).toBe("oklch(0.2228 0.0025 67.7 / 0.8)");
   // The pending image is veiled, no longer faded as a whole.
   expect(getComputedStyle(screen.getByTestId("dark-pending")).opacity).toBe("1");
 });

@@ -18,7 +18,8 @@ const it = test.skipIf(typeof window === "undefined");
 // Turning touch emulation off again leaves Chromium reporting `pointer: none`,
 // so the mouse screen runs first.
 const SCREENS = [
-  { name: "desktop 1280", width: 1280, height: 800, touch: false, row: 34, field: 34 },
+  // Raft redesign: with a mouse every control is 32px (Figmama 11/20).
+  { name: "desktop 1280", width: 1280, height: 800, touch: false, row: 32, field: 32 },
   { name: "tablet 1024", width: 1024, height: 768, touch: true, row: 32, field: 44 },
   { name: "phone 390", width: 390, height: 844, touch: true, row: 32, field: 44 },
 ] as const;

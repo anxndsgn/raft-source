@@ -125,7 +125,10 @@ for (const width of [390, 1280]) {
       </ThemeProvider>,
     );
     const column = left("column");
-    expect(textLeft(screen.getByTestId("title")) - column, "title").toBeCloseTo(EDGE, 0);
+    // Raft redesign: with a mouse a 44px head's text sits 14px in (Figmama's bar
+    // rule); the column's content keeps its margin.
+    const titleEdge = width < 768 ? EDGE : 14;
+    expect(textLeft(screen.getByTestId("title")) - column, "title").toBeCloseTo(titleEdge, 0);
     expect(left("filter") - column, "Filter button's edge").toBe(EDGE);
     expect(left("leading") - column, "row leading").toBe(EDGE);
   });

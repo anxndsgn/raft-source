@@ -69,9 +69,9 @@ for (const width of WIDTHS) {
       const remove = box(screen.getByRole("button", { name: "Clear Filter" }));
       const icon = box(screen.getByTestId("icon"));
 
-      // Desktop with a mouse uses the 34px control height; touch keeps 32.
+      // Desktop with a mouse uses the 32px control height (Raft redesign); touch keeps 32.
       expect(chip.height).toBe(
-        matchMedia("(width >= 48rem) and (pointer: fine)").matches ? 34 : 32,
+        32,
       );
       expect(chip.height).toBe(button.height);
       expect(chip.top).toBe(button.top);

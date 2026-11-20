@@ -56,7 +56,9 @@ const banner = tv({
       // Raft redesign (Figmama 11/18): on a desktop, beside the text, the
       // buttons are centred on the title and description together.
       "md:pointer-fine:@min-[452px]:not-data-wrap:row-start-1 md:pointer-fine:@min-[452px]:not-data-wrap:row-end-[calc(var(--banner-last-row,1)+1)]",
-      "md:pointer-fine:@min-[452px]:not-data-wrap:h-auto md:pointer-fine:@min-[452px]:not-data-wrap:self-center",
+      // The box stays one line tall (the button overflows it evenly), so a
+      // 32px button never makes a one-line row taller than its text.
+      "md:pointer-fine:@min-[452px]:not-data-wrap:self-center",
     ],
     close: [
       "col-start-[calc(var(--banner-text-col,1)+1)] row-start-1 self-start",
@@ -93,9 +95,10 @@ const banner = tv({
     {
       size: "sm",
       class: {
-        // The button beside the line is 32px, the control height (34px) with a mouse.
+        // The button beside the line is 32px.
         root: [
-          "[--banner-button:--spacing(8)] md:pointer-fine:[--banner-button:var(--control-height)]",
+          // Raft redesign: Buttons are 32px with a mouse too.
+          "[--banner-button:--spacing(8)]",
           "has-[>[data-slot=banner-action],>[data-banner-close]]:py-[calc((var(--banner-button)-1lh)/2+(--spacing(1)))]",
         ],
       },

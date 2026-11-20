@@ -36,6 +36,9 @@ export const webTopBar = tv({
       "flex items-center justify-start pe-2",
       "ps-[calc(var(--raft-frame-inset-start,0px)+(var(--rail-width)-1px-var(--rail-item))/2)]",
       "[@media(max-height:600px)]:ps-[calc(var(--raft-frame-inset-start,0px)+(var(--rail-width-short)-1px-var(--rail-item-short))/2)]",
+      // Raft redesign: with a mouse the rail draws no seam, so no 1px to take off.
+      "md:pointer-fine:ps-[calc(var(--raft-frame-inset-start,0px)+(var(--rail-width)-var(--rail-item))/2)]",
+      "md:pointer-fine:[@media(max-height:600px)]:ps-[calc(var(--raft-frame-inset-start,0px)+(var(--rail-width-short)-var(--rail-item-short))/2)]",
     ],
     center: ["flex min-w-40 items-center justify-center"],
     end: [

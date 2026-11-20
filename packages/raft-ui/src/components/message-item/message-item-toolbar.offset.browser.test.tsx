@@ -37,7 +37,13 @@ for (const width of [600, 1280]) {
     await viewport(width);
     const toolbar = renderToolbar();
     const desktop = matchMedia("(width >= 48rem) and (pointer: fine)").matches;
-    const h = desktop ? 42 : 36;
+    if (desktop) {
+      // Raft redesign (Figmama 11/18): with a mouse a 32px canvas pill whose
+      // top edge sits 14px above the message.
+      expect(toolbar).toEqual({ height: 32, top: "-14px" });
+      return;
+    }
+    const h = 36;
     expect(toolbar).toEqual({ height: h, top: `-${h / 2}px` });
   });
 }

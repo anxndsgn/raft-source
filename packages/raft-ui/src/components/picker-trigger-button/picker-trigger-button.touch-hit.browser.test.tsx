@@ -2,7 +2,7 @@ import "../button/button.test.css";
 /**
  * By touch a filter trigger looks 32px and keeps a 44px tap area, as a
  * Button at `md` does: its ::after overhangs 6px above and below, never
- * sideways. With a mouse it is the control height (34px) and takes no taps
+ * sideways. With a mouse it is the control height (32px, Raft redesign) and takes no taps
  * past its box (design/foundations/spacing.md#heights). Real layout and hit
  * testing: browser only.
  *
@@ -18,7 +18,7 @@ const it = test.skipIf(typeof window === "undefined");
 // Turning touch emulation off again leaves Chromium reporting `pointer: none`,
 // so the mouse screen runs first.
 const SCREENS = [
-  { name: "mouse 1280", width: 1280, height: 800, touch: false, box: 34, hit: 34 },
+  { name: "mouse 1280", width: 1280, height: 800, touch: false, box: 32, hit: 32 },
   { name: "touch 1024", width: 1024, height: 768, touch: true, box: 32, hit: 44 },
   { name: "phone 390", width: 390, height: 844, touch: true, box: 32, hit: 44 },
 ] as const;

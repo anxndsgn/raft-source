@@ -25,8 +25,8 @@ const HUE_ANCHORS: Record<
   { hue?: number; maxChroma?: number }
 > = {
   todo: { hue: 45 },
-  "in-progress": { hue: 220 },
-  "in-review": { hue: 294 },
+  "in-progress": { hue: 255 }, // Raft redesign: the working blue (presence-busy), Figmama 11/18
+  "in-review": { hue: 92 }, // Raft redesign: the review yellow, Figmama 11/18
   done: { hue: 153 },
   closed: { maxChroma: 0.05 },
 };
@@ -185,9 +185,9 @@ it("each status renders its own pixel — a swap cannot pass", () => {
     expect(icon.getAttribute("data-status")).toBe(status);
     const pixel = icon.querySelector("rect");
     expect(pixel, `${status} has no pixel`).not.toBeNull();
-    expect(pixel!.style.fill, `${status} pixel is not its own token`).toBe(
-      `var(--task-status-${status})`,
-    );
+    // Raft redesign: To do is hollow, its edge in its token.
+    const paint = status === "todo" ? pixel!.style.stroke : pixel!.style.fill;
+    expect(paint, `${status} pixel is not its own token`).toBe(`var(--task-status-${status})`);
   }
 });
 

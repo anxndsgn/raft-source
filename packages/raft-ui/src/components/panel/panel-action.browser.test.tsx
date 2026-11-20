@@ -96,7 +96,8 @@ const edgeInset = (head: HTMLElement, icon: Element) =>
   head.getBoundingClientRect().right - icon.getBoundingClientRect().right;
 
 const SCREENS = [
-  { name: "a desktop", width: 1280, pointer: "fine", size: 28, hit: 44, icon: 18, edge: 16 },
+  // Raft redesign: with a mouse 32px with a 16px icon, 6px from the 44px head's edge (so the icon 14px).
+  { name: "a desktop", width: 1280, pointer: "fine", size: 32, hit: 44, icon: 16, edge: 14 },
   { name: "a phone", width: 390, pointer: "coarse", size: 44, hit: 44, icon: 22, edge: 16 },
   { name: "a touch tablet", width: 1024, pointer: "coarse", size: 44, hit: 44, icon: 22, edge: 20 },
 ] as const;

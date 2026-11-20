@@ -76,7 +76,9 @@ export const messageListJump = tv({
       // 1px floating line round the whole, the two buttons draw none, and the
       // one under the pointer takes the subtle fill, its half of the pill's
       // round ends with it.
-      "md:pointer-fine:overflow-clip md:pointer-fine:rounded-pill md:pointer-fine:border md:pointer-fine:border-line-floating md:pointer-fine:bg-layer-canvas",
+      // No overflow clip: it would cut the 44px hit areas. The parts round
+      // their own outer ends instead.
+      "md:pointer-fine:rounded-pill md:pointer-fine:border md:pointer-fine:border-line-floating md:pointer-fine:bg-layer-canvas",
       "md:pointer-fine:*:data-[slot=message-list-jump-pill]:h-[27px] md:pointer-fine:*:data-[slot=message-list-jump-pill]:border-0",
       "md:pointer-fine:*:data-[slot=message-list-jump-pill]:bg-transparent md:pointer-fine:*:data-[slot=message-list-jump-pill]:hover:bg-fill-subtle",
     ],
@@ -85,6 +87,8 @@ export const messageListJump = tv({
     pill: [
       "md:pointer-fine:h-[29px] md:pointer-fine:rounded-pill md:pointer-fine:border md:pointer-fine:border-line-floating",
       "md:pointer-fine:bg-layer-canvas md:pointer-fine:shadow-none md:pointer-fine:ring-0 md:pointer-fine:pr-3 md:pointer-fine:pl-2",
+      // A 29px pill (27px inside the group) still keeps a 44px hit area.
+      "md:pointer-fine:after:-inset-y-[9px]",
     ],
     dismiss: [
       // On a desktop it draws no border of its own (the group's pill does):
@@ -97,8 +101,9 @@ export const messageListJump = tv({
       "[&_svg:not([class*='size-'])]:size-4",
       "after:-inset-y-[calc(--spacing(1.5)+1.5px)] after:right-[calc(-0.75rem-1.5px)] after:left-0",
       // Desktop with a mouse: 34px controls, so 5px reaches 44.
-      "md:pointer-fine:after:-inset-y-[calc(var(--control-hit-inset)+1.5px)]",
-      "md:pointer-fine:after:right-[calc(-2*var(--control-hit-inset)-1.5px)] md:pointer-fine:after:left-0",
+      // The redesign's 27px dismiss reaches 9px up and down, 17px past its end.
+      "md:pointer-fine:after:-inset-y-[9px]",
+      "md:pointer-fine:after:-right-[17px] md:pointer-fine:after:left-0",
     ],
   },
   variants: {

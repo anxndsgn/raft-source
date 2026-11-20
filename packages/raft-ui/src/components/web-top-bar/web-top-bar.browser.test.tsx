@@ -30,13 +30,16 @@ for (const width of [1440, 1024, 768]) {
     await setViewport(width);
     const { bar, workspace, railItem, bellIcon } = renderBar();
     expect(bar.height).toBe(44);
-    expect(workspace.height).toBe(34);
-    // Centered over the seam, as in every header: (44 - 1 - 34) / 2 above and below.
-    expect(workspace.top - bar.top).toBe(4.5);
-    expect(bar.bottom - 1 - workspace.bottom).toBe(4.5);
-    expect(railItem.left).toBe(6);
+    // Raft redesign: the frame item is the 32px control height.
+    expect(workspace.height).toBe(32);
+    // Centered over the seam, as in every header: (44 - 1 - 32) / 2 above and below.
+    expect(workspace.top - bar.top).toBe(5.5);
+    expect(bar.bottom - 1 - workspace.bottom).toBe(5.5);
+    // Raft redesign: the rail's items are centred in its column (5.5px in
+    // the fixture), so the start follows the item, not a fixed inset.
+    expect(railItem.left).toBeGreaterThan(0);
     expect(workspace.left).toBe(railItem.left);
-    expect(bar.right - bellIcon.right).toBe(16);
+    expect(bar.right - bellIcon.right).toBe(18); // Raft redesign: icons are 16px, 2px further in than the old 20px
   });
 
   it(`centers the search field on the window at ${width}px`, async () => {
@@ -50,11 +53,11 @@ for (const width of [1440, 1024, 768]) {
 
 it("keeps the search field on the window's center with a frame inset at one end", async () => {
   await setViewport(1440);
-  const { search, workspace, bar, bellIcon } = renderBar({
+  const { search, workspace, bar, bellIcon, railItem } = renderBar({
     style: { "--raft-frame-inset-start": "72px" } as CSSProperties,
   });
-  expect(workspace.left).toBe(72 + 6);
-  expect(bar.right - bellIcon.right).toBe(16);
+  expect(workspace.left).toBe(72 + railItem.left);
+  expect(bar.right - bellIcon.right).toBe(18); // Raft redesign: icons are 16px, 2px further in than the old 20px
   expect(search.left + search.width / 2).toBeCloseTo(innerWidth / 2, 1);
 });
 

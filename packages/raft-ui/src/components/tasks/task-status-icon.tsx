@@ -14,11 +14,12 @@ import type { TaskStatusId } from "./task-status.recipe";
 const HAIRLINE = "var(--line-hairline)";
 const TASK_STATUS_PIXEL_STYLE: Record<TaskStatusId, CSSProperties> = {
   backlog: { fill: "none", stroke: "var(--foreground-hint)" },
-  todo: { fill: "none", stroke: "var(--foreground)" },
-  "in-progress": { fill: "var(--presence-busy)", stroke: HAIRLINE },
+  // Each from its own task-status token, which points at the status/* colour.
+  todo: { fill: "none", stroke: "var(--task-status-todo)" },
+  "in-progress": { fill: "var(--task-status-in-progress)", stroke: HAIRLINE },
   "in-review": { fill: "var(--task-status-in-review)", stroke: HAIRLINE },
-  done: { fill: "var(--presence-online)", stroke: HAIRLINE },
-  closed: { fill: "var(--foreground-hint)", stroke: HAIRLINE },
+  done: { fill: "var(--task-status-done)", stroke: HAIRLINE },
+  closed: { fill: "var(--task-status-closed)", stroke: HAIRLINE },
 };
 
 function TaskStatusPixel({

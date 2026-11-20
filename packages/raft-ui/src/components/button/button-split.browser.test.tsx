@@ -100,8 +100,13 @@ function hitWidth(element: Element) {
   return right - left;
 }
 
-/** A Button hovers by laying an overlay over its fill: a background image. */
-const overlay = (element: Element) => style(element).backgroundImage;
+/** A Button hovers by laying an overlay over its fill (a background image) or,
+ *  the redesign's primary with a mouse, at 90% opacity. "none" at rest. */
+const overlay = (element: Element) => {
+  const own = style(element);
+  if (own.backgroundImage !== "none") return own.backgroundImage;
+  return own.opacity === "1" ? "none" : `opacity ${own.opacity}`;
+};
 
 async function hover(testId: string) {
   const { page } = await import("vite-plus/test/browser/context");
@@ -123,8 +128,9 @@ for (const mode of MODES) {
 
       const mainStyle = style(main);
       const menuStyle = style(menu);
+      // Raft redesign: Raft's square shape draws a 0 radius; the outer corners still match.
       const radius = Number.parseFloat(mainStyle.borderTopLeftRadius);
-      expect(radius).toBeGreaterThan(0);
+      expect(radius).toBeGreaterThanOrEqual(0);
       expect(Number.parseFloat(mainStyle.borderBottomLeftRadius)).toBe(radius);
       expect(mainStyle.borderTopRightRadius).toBe("0px");
       expect(mainStyle.borderBottomRightRadius).toBe("0px");
@@ -139,10 +145,10 @@ for (const mode of MODES) {
       const mainStyle = style(main);
       const menuStyle = style(menu);
 
+      // Raft redesign: with a mouse a Button has no border; the menu part's
+      // start border alone is the divider.
       expect(mainStyle.borderRightWidth).toBe("0px");
-      expect(menuStyle.borderLeftWidth).toBe(menuStyle.borderRightWidth);
       expect(Number.parseFloat(menuStyle.borderLeftWidth)).toBeGreaterThan(0);
-      expect(menuStyle.borderLeftColor).toBe(mainStyle.borderTopColor);
       expect(menuStyle.borderLeftColor).not.toBe(menuStyle.backgroundColor);
     });
 
@@ -165,11 +171,12 @@ for (const mode of MODES) {
   }
 
   if (mode === "dark") {
-    it(`${mode}: the primary split's die-cut edge goes around the group, not each part`, () => {
-      const { group, main, menu } = renderSplit(mode, "primary");
+    // Raft redesign: dark mode has no die-cut edge (--sticker-edge is transparent);
+    // still no part draws its own, which would show as a seam beside the divider.
+    it(`${mode}: no part of the primary split draws its own die-cut edge`, () => {
+      const { main, menu } = renderSplit(mode, "primary");
       expect(drawsShadow(style(main).boxShadow)).toBe(false);
       expect(drawsShadow(style(menu).boxShadow)).toBe(false);
-      expect(drawsShadow(style(group).boxShadow)).toBe(true);
     });
   }
 }

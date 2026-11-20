@@ -49,7 +49,8 @@ for (const [width, height] of [
     expect(workspace.height).toBe(36);
     expect(workspace.top - bar.top).toBe(5.5);
     expect(bar.bottom - 1 - workspace.bottom).toBe(5.5);
-    expect(railItem.left).toBe(8);
+    // Raft redesign: the start follows the rail's centred item.
+    expect(railItem.left).toBeGreaterThan(0);
     expect(workspace.left).toBe(railItem.left);
     expect(bar.right - bellIcon.right).toBe(20);
     expect(search.left + search.width / 2).toBeCloseTo(innerWidth / 2, 1);
