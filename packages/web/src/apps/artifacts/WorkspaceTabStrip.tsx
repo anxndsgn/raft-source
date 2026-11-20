@@ -9,6 +9,7 @@ import type { ArtifactId } from "@botiverse/raft-shared";
 import Tooltip from "../../components/ui/Tooltip";
 import { useArtifactViewerStore } from "./artifactViewerStore";
 import { ShellSidebarToggleContext, SidebarToggleHeadAction } from "../../components/layout/appPanelHead";
+import { ShellWorkspaceIslandContext } from "../../components/layout/rowColumnSlot";
 import { useIsDesktopShell } from "../../components/layout/ShellFrame";
 
 /**
@@ -23,6 +24,8 @@ export function WorkspaceTabStrip() {
   const expanded = useArtifactViewerStore((s) => s.expanded);
   // Expanded over the conversation, this row is the leftmost island's head: the sidebar's control leads it.
   const sidebarToggle = useContext(ShellSidebarToggleContext);
+  // In the shell's islands (ShellFrame provides the workspace island) the conversation keeps its head.
+  const inShellIslands = useContext(ShellWorkspaceIslandContext) !== undefined;
   const { formatMessage } = useIntl();
   const desktop = useIsDesktopShell();
   const ids = useMemo(() => tabs.map((t) => t.id as string), [tabs]);
@@ -38,7 +41,9 @@ export function WorkspaceTabStrip() {
     // One line under it, this row's, the channel head's (raft-ui Tabs' own seam is off: border-b-0 below). On a
     // desktop its end buttons sit 6px from the island's edge, as far as from its top and bottom (anxndsgn 11/18).
     <div className="flex h-12 shrink-0 items-center gap-1 border-b border-line-seam pr-2 md:pointer-fine:h-panel-header md:pointer-fine:pr-1.5" data-testid="workspace-tab-strip">
-      {expanded && sidebarToggle ? <SidebarToggleHeadAction column={sidebarToggle} className="ml-(--column-margin) shrink-0 md:pointer-fine:ml-1.5" /> : null}
+      {/* Raft redesign (Figmama 11/21): the conversation stays beside an expanded workspace in the shell, and its
+          head's toggle is the only one; this one is for a frame where the conversation hides (no shell toggle). */}
+      {expanded && sidebarToggle && !inShellIslands ? <SidebarToggleHeadAction column={sidebarToggle} className="ml-(--column-margin) shrink-0 md:pointer-fine:ml-1.5" /> : null}
       <ConversationPanelTabs className="flex h-full min-w-0 flex-1 items-center border-b-0 md:pointer-fine:*:data-[slot=tabs-list]:px-2" render={<Tabs<string> value={shownId ?? ""} onValueChange={select} />}>
         {/* Raft redesign (Figma Workspace, Tab): on a desktop underlined tabs, 44 high, 10px each side, the shown one's
             2px ink line on the row's bottom edge. */}

@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { isSidebarSlotHidden, setSidebarSlotHidden } from "./sidebarToggle";
 
 /** Whether an element has child elements now, kept current as they come and go. */
 export function useHasChildElements(element: HTMLElement | null): boolean {
@@ -61,11 +62,13 @@ export function useWorkspaceExpandLayout({
     observer.observe(island);
     return () => observer.disconnect();
   }, [conversationMain, expanded]);
-  const latest = useRef({ sidebarOpen, onSidebarOpenChange });
-  latest.current = { sidebarOpen, onSidebarOpenChange };
+  void onSidebarOpenChange;
 
   useLayoutEffect(() => {
-    const { sidebarOpen: open, onSidebarOpenChange: setOpen } = latest.current;
+    // Always the channel list ("sidebar"), whatever page is showing: leaving for the inbox, whose own list is
+    // in that slot, must still give the channel list back (Figmama 11/21).
+    const open = !isSidebarSlotHidden("sidebar");
+    const setOpen = (next: boolean) => setSidebarSlotHidden("sidebar", !next);
     if (expanded) {
       if (sidebarWasOpen.current !== null) return;
       sidebarWasOpen.current = open;
@@ -73,14 +76,14 @@ export function useWorkspaceExpandLayout({
       // Open: the conversation keeps its width and the sidebar's room goes to
       // the workspace. Already folded: the workspace grows by a sidebar's width.
       setConversationWidth(Math.max(CONVERSATION_MIN, open ? main : island - SIDEBAR_DEFAULT));
-      if (open) setOpen?.(false);
+      if (open) setOpen(false);
       return;
     }
     if (sidebarWasOpen.current === null) return;
     const reopen = sidebarWasOpen.current;
     sidebarWasOpen.current = null;
     setConversationWidth(null);
-    if (reopen) setOpen?.(true);
+    if (reopen) setOpen(true);
   }, [expanded, conversationMain]);
 
   // Opening the sidebar by hand while expanded ends the expansion's hold on it:

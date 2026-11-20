@@ -392,7 +392,8 @@
   --bar-button-size: var(--control-height);
   /* The corner of a bar button, about a quarter of its height: 10px at 44 on a
      phone and a touch screen, with a mouse on a desktop the control corner (Raft
-     redesign, Figmama 11/21: 0 in the square shape). */
+     redesign, Figmama 11/21): 0 in the default square shape; the rounded shape
+     sets its own (styles.css). */
   --bar-button-radius: 10px;
   /* An item on the frame: the top bar's and the title bar's buttons, the
      workspace button and the search box. 36px on a phone and a touch screen; the
@@ -698,7 +699,7 @@
     --header-air: 6px;
     --header-height-short: calc(var(--bar-button-size) + 2 * var(--control-air));
     --bar-button-size: 32px;
-    --bar-button-radius: var(--radius-control);
+    --bar-button-radius: 0px;
     --frame-item-height: var(--control-height);
     --switch-width: 38px;
     --switch-height: 22px;

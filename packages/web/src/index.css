@@ -1549,7 +1549,9 @@ html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [d
   flex: 1 1 auto;
 }
 [data-workspace-expanded="true"] > [data-testid="conversation-island"] {
-  flex: 0 0 var(--ws-conversation-width, auto);
+  /* It gives way as the window narrows (Betty 11/21), down to its 360. */
+  flex: 0 1 var(--ws-conversation-width, auto);
+  min-width: 360px;
 }
 
 /* Migration log chart: failure marks are non-text graphics, so they use the
