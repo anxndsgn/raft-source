@@ -66,6 +66,7 @@ function takenAgentNames(): string[] {
 
 
 const MAX_AGENT_DESCRIPTION_LENGTH = 3000;
+const isDesktopFine = () => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(width >= 48rem) and (pointer: fine)").matches;
 /** The computer picker's value for "hosted by Raft": no computer, the agent runs on the provider. */
 const HOSTED_COMPUTER_CHOICE = "__hosted_runtime__";
 
@@ -1407,6 +1408,9 @@ export function CreateAgentDialog({
             <Input
               id="create-agent-name"
               type="text"
+              // Figmama dd53c123: with a mouse the dialog opens on its name field (a phone keeps the
+              // dialog's own focus, so no keyboard springs up over it).
+              autoFocus={!nameLocked && isDesktopFine()}
               value={name}
               onChange={handleNameChange}
               className={`w-full ${nameLocked ? lockedFieldClass : ""}`}
@@ -1480,7 +1484,7 @@ export function CreateAgentDialog({
             </>
           )}
 
-          <DialogCardFooter>
+          <DialogCardFooter className="md:pointer-fine:mt-[18px]">
             <Button
               type="button"
               onClick={onClose}

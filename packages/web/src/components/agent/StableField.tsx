@@ -313,7 +313,8 @@ export default function StableField({
       <div
         id={messageId}
         data-slot="field-description"
-        className={`text-caption ${message || counter ? "" : reserveMessage ? "[&:has(+[data-slot=field-below-description]:not(:empty))]:hidden" : "hidden"}`}
+        // Raft redesign (Figmama dd53c123): with a mouse a counter sits 4 under its control (the field's gap is 6).
+        className={`text-caption ${counter ? "md:pointer-fine:-mt-0.5" : ""} ${message || counter ? "" : reserveMessage ? "[&:has(+[data-slot=field-below-description]:not(:empty))]:hidden" : "hidden"}`}
       >
         {/* One line reserved, not two. Per cindyz: reserve a single line and let
             the dialog grow when a message genuinely wraps, rather than paying two
@@ -328,7 +329,7 @@ export default function StableField({
             {message ?? " "}
           </span>
           {counter ? (
-            <span className="shrink-0 font-mono text-mono-meta tabular-nums text-foreground-hint md:pointer-fine:font-sans">{counter}</span>
+            <span className="shrink-0 font-mono text-mono-meta tabular-nums text-foreground-hint md:pointer-fine:font-sans md:pointer-fine:text-[12px] md:pointer-fine:leading-4">{counter}</span>
           ) : null}
         </span>
       </div>
