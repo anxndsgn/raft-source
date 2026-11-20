@@ -320,8 +320,7 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
       tabs.push(tab("apps", appsLabel, ({ dragProps, guardClick }) => (
         <RailTabButton
           {...dragProps}
-          // anxndsgn 11/20: the store's blocks are 20, not the rail's 24 (the button stays 36).
-          icon={<Blocks size={18} className="!size-5" />}
+          icon={<Blocks size={18} />}
           label={appsLabel}
           active={railMode === "apps"}
           showDot={appsAttention.lit}
@@ -502,7 +501,7 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
                   // image, and the other-workspace unread dot sits on the
                   // button's corner. `group` lets the avatar read the item's
                   // selected state.
-                  className="group size-(--rail-item) p-0 md:[@media(max-height:600px)]:size-9"
+                  className="group size-(--rail-item) p-0 md:[@media(max-height:600px)]:size-9 md:pointer-fine:hover:bg-transparent md:pointer-fine:active:bg-transparent md:pointer-fine:data-[selected=true]:bg-transparent md:pointer-fine:cursor-pointer"
                 />
               )}
             >
@@ -572,13 +571,14 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
                   aria-expanded={showHelpMenu}
                   onClick={closeServerMenu}
                   data-testid="left-rail-self"
+                  // Raft redesign (Figmama 11/21): a face shows no fill on hover or while its menu is open; the tooltip and the hand cursor say it is a button.
                   id={HELP_MENU_TRIGGER_ID}
-                  className="size-(--rail-item) p-0 [@media(max-height:600px)]:h-9 [@media(max-height:600px)]:w-9"
+                  className="size-(--rail-item) p-0 [@media(max-height:600px)]:h-9 [@media(max-height:600px)]:w-9 md:pointer-fine:hover:bg-transparent md:pointer-fine:active:bg-transparent md:pointer-fine:data-[selected=true]:bg-transparent md:pointer-fine:cursor-pointer"
                 />
               )}
             >
-              {/* On the round avatar the dot sits on its top right, 45° round, over its edge, with a 1px canvas ring (Figmama 11/20). */}
-              <AppRailItemIcon className="md:pointer-fine:[&_[data-slot=app-rail-item-indicator]]:top-px md:pointer-fine:[&_[data-slot=app-rail-item-indicator]]:right-px md:pointer-fine:[&_[data-slot=app-rail-item-indicator]]:ring-1 md:pointer-fine:[&_[data-slot=app-rail-item-indicator]]:ring-layer-canvas">
+              {/* On the round avatar the dot sits on its top right, 45° round, over its edge, with a 1px ring of the frame (Figmama 11/21). */}
+              <AppRailItemIcon className="md:pointer-fine:[&_[data-slot=app-rail-item-indicator]]:top-px md:pointer-fine:[&_[data-slot=app-rail-item-indicator]]:right-px md:pointer-fine:[&_[data-slot=app-rail-item-indicator]]:ring-1 md:pointer-fine:[&_[data-slot=app-rail-item-indicator]]:ring-layer-frame">
                 {/* Raft redesign (Figmama 11/20): with a mouse a 32px circle with no edge, as in a message. */}
                 <AvatarSlot
                   context="compact-row"

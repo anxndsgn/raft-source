@@ -34,6 +34,8 @@ const textareaCounter = tv({
     root: [
       "font-mono tabular-nums",
       "text-mono-meta text-foreground-hint",
+      // Raft redesign (Figmama 11/21): with a mouse Inter 12, not the mono.
+      "md:pointer-fine:font-sans md:pointer-fine:text-[12px] md:pointer-fine:leading-4",
       "group-data-[invalid]/field:font-bold group-data-invalid/field:text-danger-strong",
     ],
   },

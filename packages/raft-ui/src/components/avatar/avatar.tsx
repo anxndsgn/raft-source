@@ -49,15 +49,20 @@ const avatar = tv({
       "group/avatar relative flex shrink-0 items-center justify-center select-none",
       "rounded-sticker border-[1.5px] border-sticker-ink",
       "text-sticker-ink shadow-[0_0_0_1.5px_var(--sticker-edge)]",
+      // Raft redesign (Figmama 11/21): with a mouse a person or an agent is a
+      // circle with no edge; an app keeps a square at the control corner; the
+      // workspace tile is left as it is.
+      "md:pointer-fine:not-data-[avatar-type=server]:rounded-full md:pointer-fine:not-data-[avatar-type=server]:border-0 md:pointer-fine:not-data-[avatar-type=server]:shadow-none",
+      "md:pointer-fine:data-[avatar-type=app]:rounded-control",
     ],
-    image: ["size-full object-cover", "rounded-[2px]"],
+    image: ["size-full object-cover", "rounded-[2px]", "md:pointer-fine:rounded-[inherit]"],
     fallback: [
       "flex size-full items-center justify-center",
       "[&>svg]:size-4",
       "[[data-size='lg']>&]:[&>svg]:size-6",
       "[[data-size='md']>&]:[&>svg]:size-4.5",
       "[[data-size='xs']>&]:[&>svg]:size-3",
-      "overflow-hidden rounded-[2px]",
+      "overflow-hidden rounded-[2px] md:pointer-fine:rounded-[inherit]",
       "font-sans text-[15px] leading-none font-bold tracking-[-0.01em] text-sticker-ink",
       "[[data-type='server']>&]:text-brand",
       "[[data-size='xl']>&]:text-[40px]",

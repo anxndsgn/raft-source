@@ -1031,7 +1031,10 @@ it("a FitToolbarPicker sets a count in Space Mono and any other value in the lab
     getComputedStyle(el(id).querySelector(`[data-slot=${slot}]`)!).fontFamily;
   expect(font("word", "fit-toolbar-picker-value")).toBe(font("word", "fit-toolbar-picker-label"));
   expect(font("word", "fit-toolbar-picker-value")).not.toMatch(/mono/i);
-  expect(font("count", "fit-toolbar-picker-value")).toMatch(/mono/i);
+  // Raft redesign (Figmama 11/21): with a mouse a count is Inter too.
+  const desktop = matchMedia("(width >= 48rem) and (pointer: fine)").matches;
+  if (desktop) expect(font("count", "fit-toolbar-picker-value")).not.toMatch(/mono/i);
+  else expect(font("count", "fit-toolbar-picker-value")).toMatch(/mono/i);
   expect(screen.getByRole("button", { name: "Status In progress" })).toBe(el("word"));
 });
 

@@ -137,6 +137,23 @@ const tabs = tv({
     placement: "top",
   },
   compoundVariants: [
+    // Raft redesign (Figmama 11/21): with a mouse a row of tabs switches the
+    // view, so the default tabs are underlined: muted regular 14, the ink on
+    // hover; the chosen one Semi Bold ink over a 2px ink line; 16px apart.
+    {
+      variant: "default",
+      placement: "top",
+      class: {
+        list: "md:pointer-fine:gap-4",
+        tab: [
+          "md:pointer-fine:h-11 md:pointer-fine:rounded-none md:pointer-fine:border-0 md:pointer-fine:px-0 md:pointer-fine:bg-transparent",
+          "md:pointer-fine:text-[14px] md:pointer-fine:font-normal md:pointer-fine:text-foreground-muted",
+          "md:pointer-fine:hover:bg-transparent md:pointer-fine:hover:text-foreground md:pointer-fine:active:bg-transparent",
+          "md:pointer-fine:data-active:border-0 md:pointer-fine:data-active:bg-transparent md:pointer-fine:data-active:ring-0 md:pointer-fine:data-active:font-semibold md:pointer-fine:data-active:text-foreground",
+          "md:pointer-fine:data-active:shadow-[inset_0_-2px_0_var(--foreground)] md:pointer-fine:data-active:active:bg-none",
+        ],
+      },
+    },
     {
       variant: "underline",
       placement: "top",

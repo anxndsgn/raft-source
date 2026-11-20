@@ -36,7 +36,7 @@ function Section({ title, count, testId, children }: { title: string; count: num
       {/* The Members page's group heading (title, then the count in Space Mono). */}
       <h3 className="flex min-w-0 items-baseline gap-2 text-footnote font-bold text-foreground-hint">
         <span className="truncate">{title}</span>
-        <span className="font-mono font-normal">{count}</span>
+        <span className="font-mono font-normal md:pointer-fine:font-sans">{count}</span>
       </h3>
       {children}
     </section>

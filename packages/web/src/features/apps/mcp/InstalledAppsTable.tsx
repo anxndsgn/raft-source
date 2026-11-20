@@ -37,22 +37,29 @@ function rowKey(row: InstalledRow) {
   return `${row.kind}:${row.app.id}`;
 }
 
+/** Raft redesign (Figmama 11/21): a state is its 8px status square and its words, 6px apart, regular 12 in the ink; no tinted chip. */
+function StateLabel({ tone, children }: { tone: "error" | "stuck" | "idle"; children: ReactNode }) {
+  const square = tone === "error" ? "bg-danger" : tone === "stuck" ? "bg-presence-error" : "bg-presence-online";
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[12px] leading-4 text-foreground" data-testid="apps-row-state" data-tone={tone}>
+      <span aria-hidden="true" className={`size-2 shrink-0 rounded-sticker ${square}`} />
+      {children}
+    </span>
+  );
+}
+
 function StateCell({ row }: { row: InstalledRow }) {
   const { formatMessage } = useIntl();
   if (row.kind === "mcp" && row.app.state !== "ok") {
     const id = row.app.state === "unreachable"
       ? "apps.cap.state.unreachable"
       : row.app.authKind === "headers" ? "apps.cap.state.needsKey" : "apps.cap.state.needsSignIn";
-    return (
-      <Badge appearance="soft" variant={row.app.state === "unreachable" ? "danger" : "warning"} data-testid="apps-row-state">
-        {formatMessage({ id })}
-      </Badge>
-    );
+    return <StateLabel tone="error">{formatMessage({ id })}</StateLabel>;
   }
   if (row.kind === "oauth" && installedRowNeedsYou(row)) {
-    return <Badge appearance="soft" variant="warning" data-testid="apps-row-state">{formatMessage({ id: "apps.cap.state.needsReview" })}</Badge>;
+    return <StateLabel tone="stuck">{formatMessage({ id: "apps.cap.state.needsReview" })}</StateLabel>;
   }
-  return <span className="text-caption text-foreground-muted" data-testid="apps-row-state">{formatMessage({ id: "apps.cap.state.ok" })}</span>;
+  return <StateLabel tone="idle">{formatMessage({ id: "apps.cap.state.ok" })}</StateLabel>;
 }
 
 function agentsText(formatMessage: ReturnType<typeof useIntl>["formatMessage"], count: number, total: number | null) {
@@ -138,7 +145,7 @@ const InstalledAppRow = memo(function InstalledAppRow({ row, selected, canManage
         <span className="flex min-w-0 items-baseline gap-2">
           <ListRowTitle className="min-w-[3ch] flex-none">{app.name}</ListRowTitle>
           {row.kind === "mcp" ? <span className="self-center"><McpTag /></span> : (
-            <Badge appearance="outline" variant="muted" className="shrink-0 self-center font-mono">{formatMessage({ id: "apps.cap.tag.raftApp" })}</Badge>
+            <Badge appearance="outline" variant="muted" className="shrink-0 self-center">{formatMessage({ id: "apps.cap.tag.raftApp" })}</Badge>
           )}
         </span>
         <ListRowSubtitle title={subtitle}>{subtitle}</ListRowSubtitle>

@@ -1042,3 +1042,13 @@ textarea:-webkit-autofill:disabled {
     border-color: --value(--color-*, [color]);
   }
 }
+
+/* Raft redesign (Figmama 11/21): with a mouse, data and times are Inter, not
+   the mono: the machine-meta type (`font-mono text-mono-meta`, counts, sizes,
+   runtimes, models, times) takes the sans. Code keeps the mono
+   (`text-mono-code`). */
+@media (width >= 48rem) and (pointer: fine) {
+  .font-mono.text-mono-meta {
+    font-family: var(--font-sans);
+  }
+}

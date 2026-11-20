@@ -44,6 +44,10 @@ export const badge = tv({
           "font-mono text-mono-meta font-normal",
           "bg-transparent text-foreground-muted inset-ring inset-ring-line-hairline",
           "enabled:hover:bg-fill-medium enabled:active:bg-fill-medium",
+          // Raft redesign (Figmama 11/21): with a mouse the role tag: 16px,
+          // 4px sides, Inter Medium 11/14 muted on 5% ink, no edge; an icon 12, 4px off.
+          "md:pointer-fine:h-4 md:pointer-fine:px-1 md:pointer-fine:gap-1 md:pointer-fine:bg-fill-medium md:pointer-fine:inset-ring-0",
+          "md:pointer-fine:font-sans md:pointer-fine:text-[11px] md:pointer-fine:leading-[14px] md:pointer-fine:font-medium md:pointer-fine:[&_svg]:size-3",
         ],
       },
     },

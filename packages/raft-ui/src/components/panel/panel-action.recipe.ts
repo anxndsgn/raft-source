@@ -19,6 +19,8 @@ const panelActionBase = tv({
     barButtonHit,
     "text-foreground",
     "hover:bg-fill-medium active:bg-fill-medium",
+    // A trigger whose menu is open keeps its hover fill (anxndsgn 11/21).
+    "data-popup-open:bg-fill-medium",
     "focus-visible:shadow-focus",
     "[&>svg]:size-control-icon",
     barIconInset,

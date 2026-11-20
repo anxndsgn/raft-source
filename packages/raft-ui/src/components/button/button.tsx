@@ -31,11 +31,11 @@ const outline = (ink: string) => [
 // states its colours again for both disabled paths.
 // Written out in full, not built, so Tailwind's scanner sees every class.
 const primaryDesktop = [
-  "md:pointer-fine:bg-foreground md:pointer-fine:text-foreground-inverse md:pointer-fine:ring-0 md:pointer-fine:hover:bg-none md:pointer-fine:active:bg-none md:pointer-fine:hover:opacity-90 md:pointer-fine:active:opacity-90",
+  "md:pointer-fine:bg-foreground md:pointer-fine:text-foreground-inverse md:pointer-fine:ring-0 md:pointer-fine:hover:bg-none md:pointer-fine:active:bg-none md:pointer-fine:hover:opacity-90 md:pointer-fine:active:opacity-90 md:pointer-fine:data-popup-open:opacity-90",
   "md:pointer-fine:disabled:bg-foreground md:pointer-fine:aria-disabled:bg-foreground md:pointer-fine:disabled:text-foreground-inverse md:pointer-fine:aria-disabled:text-foreground-inverse",
 ];
 const secondaryDesktop = [
-  "md:pointer-fine:bg-fill-medium md:pointer-fine:ring-0 md:pointer-fine:text-foreground",
+  "md:pointer-fine:bg-fill-medium md:pointer-fine:ring-0 md:pointer-fine:text-foreground md:pointer-fine:data-popup-open:overlay-subtle",
   "md:pointer-fine:disabled:bg-fill-medium md:pointer-fine:aria-disabled:bg-fill-medium md:pointer-fine:disabled:text-foreground md:pointer-fine:aria-disabled:text-foreground",
 ];
 const dangerSecondaryDesktop = [
@@ -47,7 +47,9 @@ const dangerDesktop = [
   "md:pointer-fine:disabled:bg-danger md:pointer-fine:aria-disabled:bg-danger md:pointer-fine:disabled:text-sticker-paper md:pointer-fine:aria-disabled:text-sticker-paper",
 ];
 const warningDesktop = ["md:pointer-fine:ring-0", "md:pointer-fine:disabled:bg-warning md:pointer-fine:aria-disabled:bg-warning md:pointer-fine:disabled:text-sticker-ink md:pointer-fine:aria-disabled:text-sticker-ink"];
-const ghostDesktop = ["md:pointer-fine:hover:bg-fill-subtle", "md:pointer-fine:disabled:bg-transparent md:pointer-fine:aria-disabled:bg-transparent md:pointer-fine:disabled:text-foreground md:pointer-fine:aria-disabled:text-foreground"];
+// A trigger whose menu is open keeps its hover look (anxndsgn 11/21), so you see which button opened it;
+// only a popup (data-popup-open), not an expanded panel such as the sidebar (aria-expanded).
+const ghostDesktop = ["md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:data-popup-open:bg-fill-subtle", "md:pointer-fine:disabled:bg-transparent md:pointer-fine:aria-disabled:bg-transparent md:pointer-fine:disabled:text-foreground md:pointer-fine:aria-disabled:text-foreground"];
 
 // Three text sizes and two icon sizes, nothing in between, so a button reads
 // the same wherever it sits; the 32px ones (34px with a mouse on a desktop)

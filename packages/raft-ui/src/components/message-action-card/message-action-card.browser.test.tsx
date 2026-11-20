@@ -323,7 +323,10 @@ it("the header's time is its own mono line under the title, or ends the descript
   expect(aloneBox.top).toBeGreaterThanOrEqual(titleLine.bottom - 1);
   for (const meta of [alone, screen.getByTestId("inline")]) {
     const style = getComputedStyle(meta);
-    expect(style.fontFamily).toBe(mono);
+    // Raft redesign (Figmama 11/21): with a mouse a time is Inter, not the mono.
+    const desktop = matchMedia("(width >= 48rem) and (pointer: fine)").matches;
+    if (desktop) expect(style.fontFamily).not.toBe(mono);
+    else expect(style.fontFamily).toBe(mono);
     expect(style.fontWeight).toBe("400");
     expect(style.color).toBe(hint);
   }

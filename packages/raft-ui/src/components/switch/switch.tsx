@@ -19,11 +19,11 @@ const switchRecipe = tv({
       "data-disabled:border-foreground-disabled data-disabled:bg-fill-muted",
       "data-checked:data-disabled:border-foreground-disabled data-checked:data-disabled:bg-fill-muted",
       // Raft redesign (Figmama 11/20): with a mouse a 32x18 round track with no
-      // edge or shadow, fill-medium off and the ink on; the thumb 14, the
+      // edge or shadow, 15% ink off (Figmama 11/21: fill-medium was too faint) and the ink on; the thumb 14, the
       // canvas, 2px in; only the thumb's position moves (150ms).
       "md:pointer-fine:[--switch-width:32px] md:pointer-fine:[--switch-height:18px] md:pointer-fine:transition-none",
-      "md:pointer-fine:border-0 md:pointer-fine:p-0.5 md:pointer-fine:bg-fill-medium md:pointer-fine:data-checked:bg-foreground md:pointer-fine:data-checked:ring-0",
-      "md:pointer-fine:data-disabled:bg-fill-medium md:pointer-fine:data-disabled:opacity-40 md:pointer-fine:data-checked:data-disabled:bg-foreground",
+      "md:pointer-fine:border-0 md:pointer-fine:p-0.5 md:pointer-fine:bg-[color-mix(in_oklch,var(--foreground)_15%,transparent)] md:pointer-fine:data-checked:bg-foreground md:pointer-fine:data-checked:ring-0",
+      "md:pointer-fine:data-disabled:bg-[color-mix(in_oklch,var(--foreground)_15%,transparent)] md:pointer-fine:data-disabled:opacity-40 md:pointer-fine:data-checked:data-disabled:bg-foreground",
     ],
     thumb: [
       "pointer-events-none block",

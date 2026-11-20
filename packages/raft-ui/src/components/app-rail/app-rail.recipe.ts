@@ -49,12 +49,17 @@ export const appRail = tv({
       "disabled:pointer-events-none disabled:opacity-45",
       "[&_svg]:shrink-0",
       "size-(--rail-item) rounded-control border-[1.5px] border-transparent",
-      // Icons 24 in the rail (Figma size/icon-rail), 20 everywhere else.
-      "text-foreground-on-frame [&_svg]:size-5 md:pointer-fine:[&_svg]:size-6",
+      // Icons 20 in the rail (anxndsgn 11/21; were 24), in the 36px item.
+      "text-foreground-on-frame [&_svg]:size-5",
       "hover:bg-fill-frame-medium active:bg-fill-frame-medium",
       // "You are here": the canvas square behind the icon (Raft redesign), no edge.
       "data-[selected=true]:border-line-frame-active data-[selected=true]:bg-layer-frame-active",
       "data-[selected=true]:text-foreground-on-frame-active",
+      // Raft redesign (Figmama 11/21): with a mouse only the frame's colours
+      // and the canvas, in every theme: hover 10% of the frame's ink; selected
+      // the canvas, as if the island reached out, in the ink.
+      "md:pointer-fine:hover:bg-[color-mix(in_oklch,var(--foreground-on-frame)_10%,transparent)] md:pointer-fine:active:bg-[color-mix(in_oklch,var(--foreground-on-frame)_10%,transparent)]",
+      "md:pointer-fine:data-[selected=true]:border-transparent md:pointer-fine:data-[selected=true]:bg-layer-canvas md:pointer-fine:data-[selected=true]:text-foreground",
       "focus-visible:shadow-focus",
       "[@media(max-height:600px)]:size-(--rail-item-short)",
     ],
@@ -68,6 +73,7 @@ export const appRail = tv({
     ],
     // The attention dot (Raft redesign, Figma 精修 · 组件化 Rail): 8px of the
     // unread colour, no edge, at the icon's top right corner.
-    itemIndicator: ["pointer-events-none absolute", "top-0 -right-0.5", "border-0 rounded-sticker"],
+    // With a mouse the danger colour with a 1px ring of the frame (Figmama 11/21).
+    itemIndicator: ["pointer-events-none absolute", "top-0 -right-0.5", "border-0 rounded-sticker", "md:pointer-fine:ring-1 md:pointer-fine:ring-layer-frame"],
   },
 });

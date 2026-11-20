@@ -235,19 +235,21 @@ function AvatarSlotFrame({
   // A workspace tile is the ink square with yellow initials ("your
   // workspace", the same tile as the rail and the phone's Home pill); an app
   // without a logo keeps the default identity sticker.
+  // Raft redesign (Figmama 11/21): with a mouse the tile is the frame's ink
+  // with the initial in the frame's colour, so it follows every theme.
   const workspaceTile = type === "server";
   return (
     <Avatar
       size={size}
       type={type === "agent" ? "agent" : "human"}
-      className={`${workspaceTile ? "bg-sticker-ink" : ""} ${className}`.trim()}
+      className={`${workspaceTile ? "bg-sticker-ink md:pointer-fine:bg-foreground-on-frame" : ""} ${className}`.trim()}
       data-avatar-context={context}
       data-avatar-type={type}
     >
       {/* The workspace tile paints its ink + yellow on the fallback layer too,
           so the raft recipe's ink initials do not win inside it. Loaded
           images still cover this background. */}
-      <AvatarFallback className={`relative overflow-hidden ${workspaceTile ? "bg-sticker-ink text-brand" : ""}`.trim()}>
+      <AvatarFallback className={`relative overflow-hidden ${workspaceTile ? "bg-sticker-ink text-brand md:pointer-fine:bg-foreground-on-frame md:pointer-fine:text-layer-frame" : ""}`.trim()}>
         {content}
       </AvatarFallback>
       {badge ? (

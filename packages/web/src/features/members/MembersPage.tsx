@@ -255,7 +255,7 @@ export function MembersPage() {
       <span className="truncate">{"id" in group.label ? formatMessage({ id: group.label.id }) : group.label.text}</span>
       {group.self ? <span className="shrink-0 font-normal [text-spacing-trim:trim-start]">{formatMessage({ id: "layout.sidebar.youSuffix" })}</span> : null}
       {group.agentCreator ? <span className="shrink-0 font-normal">{formatMessage({ id: "members.page.group.agentCreator" })}</span> : null}
-      <span className="font-mono font-normal">{group.entries.length}</span>
+      <span className="font-mono font-normal md:pointer-fine:font-sans">{group.entries.length}</span>
     </h3>
   ) : null, [formatMessage]);
 
