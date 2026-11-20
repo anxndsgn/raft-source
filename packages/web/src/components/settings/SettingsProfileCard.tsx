@@ -43,7 +43,7 @@ export default function SettingsProfileCard({
           </div>
           </Tooltip>
           <Tooltip content={subtitle}>
-          <div className="mt-0.5 truncate font-mono text-mono-code text-foreground-muted">
+          <div className="mt-0.5 truncate font-mono text-mono-code text-foreground-muted md:pointer-fine:font-sans md:pointer-fine:text-[13px] md:pointer-fine:leading-[18px]">
             {subtitle}
           </div>
           </Tooltip>

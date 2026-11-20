@@ -381,7 +381,7 @@ export function AccountSection({
             </FormField>
             <FormField id="email" label={formatMessage({ id: "settings.account.emailLabel" })} size="compact">
               <div className="flex items-center gap-2">
-                <span className="min-w-0 truncate font-mono text-mono-code text-foreground">{user?.email}</span>
+                <span className="min-w-0 truncate font-mono text-mono-code text-foreground md:pointer-fine:font-sans md:pointer-fine:text-[14px] md:pointer-fine:leading-5">{user?.email}</span>
                 {user?.emailVerified ? (
                   <Badge variant="success" appearance="soft">
                     <Shield size={10} /> {formatMessage({ id: "settings.account.verified" })}

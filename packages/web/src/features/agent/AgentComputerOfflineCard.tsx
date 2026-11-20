@@ -57,8 +57,9 @@ export function AgentComputerOfflineCard({ agentId }: { agentId: string }) {
         <li data-testid="agent-computer-offline-step-run">
           {formatMessage({ id: "agent.computerOffline.stepRun" })}
           {command && (
-            // Uncontrolled, as SsoCopyValue: the root keeps its own Copied state.
-            <CopyableCodeRoot className="mt-1.5">
+            // Uncontrolled, as SsoCopyValue: the root keeps its own Copied state. On this 5% notice
+            // the code block takes the canvas, so it still reads as a block (Figmama 11/21).
+            <CopyableCodeRoot className="mt-1.5 md:pointer-fine:**:data-[slot=copyable-code]:bg-layer-canvas">
               <CopyableCode data-testid="agent-computer-offline-command">{command}</CopyableCode>
               <Tooltip content={copyLabel}>
                 <CopyableCodeAction aria-label={copyLabel} className="shrink-0" />

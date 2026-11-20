@@ -11,17 +11,27 @@ import type { ButtonProps } from "../button/index";
 
 const copyableCode = tv({
   slots: {
-    root: ["group/copyable-code flex w-full min-w-0 items-center gap-2"],
+    root: [
+      "group/copyable-code flex w-full min-w-0 items-center gap-2",
+      // Raft redesign (B10): with a mouse the copy button sits inside the block.
+      "md:pointer-fine:relative md:pointer-fine:gap-0",
+    ],
     code: [
       "min-w-0 flex-1 font-mono",
       "rounded-control border border-line-hairline bg-layer-code",
       "text-mono-code text-foreground",
+      // B10: 5% ink, no edge, the card radius, 12 in (the right side clears the button).
+      "md:pointer-fine:border-0 md:pointer-fine:bg-fill-medium md:pointer-fine:rounded-container md:pointer-fine:text-[13px]",
     ],
     codeInner: ["block w-full min-w-0 max-w-full break-all"],
     action: [
       "shrink-0",
       "**:data-[slot=button]:transition-[color,background-color,box-shadow]",
       "**:data-[slot=button]:duration-150 [&_[data-slot=button]]:ease-out",
+      // B10: a 24 button, 6 in from the block's top-right corner, shown on hover or focus.
+      "md:pointer-fine:absolute md:pointer-fine:top-1.5 md:pointer-fine:right-1.5",
+      "md:pointer-fine:opacity-0 md:pointer-fine:group-hover/copyable-code:opacity-100 md:pointer-fine:focus-within:opacity-100 md:pointer-fine:group-data-[state=copied]/copyable-code:opacity-100",
+      "md:pointer-fine:**:data-[slot=button]:size-6 md:pointer-fine:**:data-[slot=button]:min-h-0 md:pointer-fine:**:data-[slot=button]:p-0",
     ],
     iconSwap: [
       "relative inline-grid",
@@ -43,10 +53,10 @@ const copyableCode = tv({
   variants: {
     size: {
       sm: {
-        code: ["px-3 leading-5", "py-[5px]"],
+        code: ["px-3 leading-5", "py-[5px]", "md:pointer-fine:pr-10"],
       },
       md: {
-        code: ["px-3 leading-5", "min-h-10 py-[9px]"],
+        code: ["px-3 leading-5", "min-h-10 py-[9px]", "md:pointer-fine:py-3 md:pointer-fine:pr-10"],
       },
     },
   },

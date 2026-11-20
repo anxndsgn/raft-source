@@ -46,7 +46,8 @@ export const card = tv({
   variants: {
     variant: {
       default: {
-        root: ["rounded-container border border-line-hairline bg-layer-card", "shadow-none"],
+        // Raft redesign (C19): with a mouse a card is the canvas with its hairline, not grey.
+        root: ["rounded-container border border-line-hairline bg-layer-card", "shadow-none", "md:pointer-fine:bg-layer-canvas"],
         header: ["p-4 has-[+[data-slot=card-content]]:pb-0"],
         content: ["p-4"],
         footer: ["border-t border-line-hairline px-4 py-3"],
@@ -62,7 +63,8 @@ export const card = tv({
         description: ["font-sans text-footnote text-foreground-muted"],
       },
       inset: {
-        root: ["rounded-container border border-line-hairline bg-layer-card", "shadow-none"],
+        // Raft redesign (C19): with a mouse a card is the canvas with its hairline, not grey.
+        root: ["rounded-container border border-line-hairline bg-layer-card", "shadow-none", "md:pointer-fine:bg-layer-canvas"],
         header: ["px-4 py-3"],
         content: ["border-t border-line-hairline p-4 first:border-t-0"],
         footer: ["border-t border-line-hairline px-4 py-3"],
