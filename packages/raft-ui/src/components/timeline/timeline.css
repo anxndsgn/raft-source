@@ -265,3 +265,35 @@
     padding-inline-end: var(--r-timeline-horizontal-item-gap);
   }
 }
+
+/* Raft redesign (C14): with a mouse a marker is the task bar's 8px status
+   square with no edge (an item with no status: a hollow hint square, 1px),
+   strung on the hairline; the event in regular 13, its note and time in
+   Inter 12 muted, no machine type. */
+@media (width >= 48rem) and (pointer: fine) {
+  .r-timeline {
+    --r-timeline-icon-size: var(--r-timeline-custom-icon-size, 8px);
+    --r-timeline-marker-border-width: 0px;
+    --r-timeline-marker-radius: 0px;
+    --r-timeline-title-font-size: 13px;
+    --r-timeline-line-height: 20px;
+    --r-timeline-content-font-size: 12px;
+    --r-timeline-time-font-size: 12px;
+  }
+  .r-timeline-item--default:not(.r-timeline-item--color) {
+    --r-timeline-marker-fill: 0%;
+    --r-timeline-marker-border-width: 1px;
+    --r-timeline-marker-border-color: var(--foreground-hint);
+  }
+  .r-timeline-content,
+  .r-timeline-time {
+    color: var(--foreground-muted);
+    font-family: var(--font-sans);
+    line-height: 16px;
+  }
+  /* The time shares the title's first line: its line box, so they share a baseline. */
+  .r-timeline-time {
+    line-height: var(--r-timeline-line-height);
+    margin-top: 0;
+  }
+}

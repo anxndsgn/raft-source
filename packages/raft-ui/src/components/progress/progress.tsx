@@ -42,14 +42,17 @@ const progress = tv({
       "[--progress-track:var(--fill-muted)]",
       "font-sans",
       "data-complete:[--progress-indicator:var(--success)]",
+      // Raft redesign (C18): with a mouse a 4px track of 5% ink, the fill in ink.
+      "md:pointer-fine:[--progress-track:var(--fill-medium)]",
     ],
     header: ["flex min-w-0 items-center justify-between gap-3"],
     label: ["min-w-0 truncate", "text-footnote font-semibold text-foreground"],
-    value: ["shrink-0 tabular-nums", "font-mono text-mono-meta text-foreground-hint"],
+    value: ["shrink-0 tabular-nums", "font-mono text-mono-meta text-foreground-hint", "md:pointer-fine:font-sans md:pointer-fine:text-[12px] md:pointer-fine:leading-4 md:pointer-fine:text-foreground-muted"],
     track: [
       "relative w-full overflow-hidden bg-(--progress-track)",
       "h-2 group-data-[size=sm]/progress:h-1.5 group-data-[size=lg]/progress:h-2.5",
       "rounded-sticker",
+      "md:pointer-fine:h-1 md:pointer-fine:group-data-[size=sm]/progress:h-1 md:pointer-fine:group-data-[size=lg]/progress:h-1",
     ],
     indicator: [
       "block h-full bg-(--progress-indicator)",
@@ -57,18 +60,19 @@ const progress = tv({
       "data-indeterminate:absolute data-[indeterminate]:inset-y-0 data-indeterminate:w-1/2",
       "data-indeterminate:origin-left data-indeterminate:animate-[raft-progress-indeterminate_1.4s_ease-in-out_infinite]",
       "rounded-[inherit] inset-ring-[1.5px] inset-ring-sticker-ink",
+      "md:pointer-fine:inset-ring-0",
     ],
   },
   variants: {
     variant: {
       primary: {
-        root: ["[--progress-color:var(--info)]"],
+        root: ["[--progress-color:var(--info)]", "md:pointer-fine:[--progress-color:var(--foreground)]"],
       },
       information: {
-        root: ["[--progress-color:var(--info)]"],
+        root: ["[--progress-color:var(--info)]", "md:pointer-fine:[--progress-color:var(--foreground)]"],
       },
       accent: {
-        root: ["[--progress-color:var(--info)]"],
+        root: ["[--progress-color:var(--info)]", "md:pointer-fine:[--progress-color:var(--foreground)]"],
       },
       success: {
         root: ["[--progress-color:var(--success)]"],
@@ -77,7 +81,8 @@ const progress = tv({
         root: ["[--progress-color:var(--warning)]"],
       },
       danger: {
-        root: ["[--progress-color:var(--danger)]"],
+        // An overrun stays the danger colour when full (C18), not success's.
+        root: ["[--progress-color:var(--danger)]", "data-complete:[--progress-indicator:var(--progress-color)]"],
       },
     },
     size: {

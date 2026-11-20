@@ -373,3 +373,49 @@
     transition: none;
   }
 }
+
+/* Raft redesign (C18): with a mouse each step is an 8px square, no number:
+   done is solid ink, the current one hollow ink, one ahead hollow hint (an
+   error the danger colour); its title regular 13, muted, the current one Semi
+   Bold ink; hairline connectors. */
+@media (width >= 48rem) and (pointer: fine) {
+  .r-steps {
+    --r-steps-indicator-size: 8px;
+    --r-steps-indicator-radius: 0px;
+    --r-steps-indicator-border-width: 1px;
+    --r-steps-indicator-color-wait: transparent;
+    --r-steps-indicator-border-color-wait: var(--foreground-hint);
+    --r-steps-indicator-color-process: transparent;
+    --r-steps-indicator-border-color-process: var(--foreground);
+    --r-steps-indicator-color-finish: var(--foreground);
+    --r-steps-indicator-border-color-finish: var(--foreground);
+    --r-steps-indicator-color-error: var(--danger);
+    --r-steps-indicator-border-color-error: var(--danger);
+    --r-steps-indicator-border-color-hover: var(--foreground-muted);
+    --r-steps-title-font-size: 13px;
+    --r-steps-title-font-weight: 400;
+    --r-steps-title-color-wait: var(--foreground-muted);
+    --r-steps-title-color-finish: var(--foreground-muted);
+    --r-steps-connector-color: var(--line-hairline);
+    --r-steps-connector-color-finish: var(--line-hairline);
+  }
+  .r-step--process .r-step__title {
+    font-weight: 600;
+  }
+  /* The small square is centred on the title's first line by its own margin
+     (the content's offset would go negative). */
+  .r-step__indicator {
+    font-size: 0;
+    margin-block: calc((var(--r-steps-line-height) - var(--r-steps-indicator-size)) / 2);
+  }
+  .r-step__content {
+    padding-top: 0;
+  }
+  .r-steps--vertical > .r-step > .r-step__connector {
+    inset-inline-start: calc((var(--r-steps-indicator-size) - var(--r-steps-connector-width)) / 2);
+    top: calc((var(--r-steps-line-height) + var(--r-steps-indicator-size)) / 2 + 4px);
+  }
+  .r-step__indicator > * {
+    display: none;
+  }
+}
