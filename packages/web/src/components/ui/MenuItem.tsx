@@ -43,7 +43,7 @@ export type MenuItemProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 const MENU_ITEM_CLASS = [
   "flex min-h-option w-full items-center gap-2.5 rounded-chip px-2.5 py-option-inset text-left [@media(max-height:600px)]:min-h-8 [@media(max-height:600px)]:py-1",
   "font-sans text-callout font-medium text-foreground",
-  "outline-none transition-colors enabled:hover:bg-brand-soft enabled:focus-visible:bg-brand-soft",
+  "outline-none enabled:hover:bg-fill-subtle enabled:focus-visible:bg-fill-subtle",
   // The leading icon is 16px whatever size a caller passes: a menu's icons are
   // 16px (raft-design iconography.md, Sizes), so callers can't drift to 14px.
   "[&>svg]:shrink-0 [&>svg:first-child]:size-4 [&>svg:first-child]:text-foreground-muted",

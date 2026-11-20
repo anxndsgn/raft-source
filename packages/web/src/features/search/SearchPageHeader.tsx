@@ -29,7 +29,10 @@ export function SearchPageHeader({
        bar with the search icon inline — no PanelHeader, mobile-back, or icon
        badge. With a mouse on a desktop it is a 44px head like every other
        (the 32px field and the seam), not 12px above and below the field. */
-    <div className="flex shrink-0 items-center border-b border-line-seam px-3 py-3 md:pointer-fine:h-(--header-height) md:pointer-fine:py-0">
+    // Raft redesign (anxndsgn 11/20, Figmama): with a mouse the field is the
+    // dialog's top, flat: 48px, no fill, edge or corner, its 16px icon 14px
+    // in, a hairline under it.
+    <div className="flex shrink-0 items-center border-b border-line-seam px-3 py-3 md:pointer-fine:h-12 md:pointer-fine:border-line-hairline md:pointer-fine:px-0 md:pointer-fine:py-0 md:pointer-fine:[&_[data-slot=input-group]]:h-12 md:pointer-fine:[&_[data-slot=input-group]]:rounded-none md:pointer-fine:[&_[data-slot=input-group]]:border-0 md:pointer-fine:[&_[data-slot=input-group]]:bg-transparent md:pointer-fine:[&_[data-slot=input-group]]:shadow-none md:pointer-fine:[&_[data-slot=input-group-addon]:first-child]:ps-3.5 md:pointer-fine:[&_[data-slot=input-group-addon]:last-child]:pe-3.5 md:pointer-fine:[&_[data-slot=input-group-addon]>svg]:size-4">
       {field}
     </div>
   ) : scoped ? (

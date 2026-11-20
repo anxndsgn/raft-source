@@ -542,12 +542,22 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
         <SortableRailTabs tabs={railTabs} />
       </AppRailNav>
 
-      {/* Raft redesign (Figma 精修 · 组件化): the footer is your own avatar.
-          Its menu holds Settings and Help; the sidebar's collapse control
-          leads the main area's head (SidebarToggleHeadAction). */}
+      {/* Raft redesign (Figma 精修 · 组件化): the footer is Settings, then your
+          own avatar, whose menu holds Help (anxndsgn 11/20: Settings is a rail
+          button above the avatar); the sidebar's collapse control leads the
+          main area's head (SidebarToggleHeadAction). */}
       <AppRailFooter>
       {/* Layout redesign: the bell is part of the inbox (its head), not a rail button. */}
       {topBar || !pending ? null : <PendingNotificationTrigger flavor="rail-bottom" />}
+      <RailTabButton
+        icon={<Settings size={18} />}
+        label={formatMessage({ id: "layout.leftRail.tabSettings" })}
+        active={railMode === "settings"}
+        onClick={railModeSelectors.settings}
+        showDot={feedbackUnread > 0}
+        dotTooltip={feedbackUnread > 0 ? formatMessage({ id: "layout.systemNotifications.feedbackRepliesTitle" }) : undefined}
+        testId="left-rail-settings"
+      />
 
       <Popover open={showHelpMenu} onOpenChange={setShowHelpMenu}>
         <div className="relative flex w-full justify-center">
@@ -568,9 +578,7 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
             >
               <AppRailItemIcon>
                 <AvatarSlot context="compact-row" type="human" humanAvatarUrl={selfAvatarUrl} />
-                {showMobileAppBadge || feedbackUnread > 0 ? (
-                  <AppRailItemAttention title={feedbackUnread > 0 ? formatMessage({ id: "layout.systemNotifications.feedbackRepliesTitle" }) : selfLabel} />
-                ) : null}
+                {showMobileAppBadge ? <AppRailItemAttention title={selfLabel} /> : null}
               </AppRailItemIcon>
             </PopoverTrigger>
           </Tooltip>
@@ -580,9 +588,6 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
             showMobileAppBadge={showMobileAppBadge}
             onMobileAppOpened={dismissMobileAppBadge}
             keyboardShortcuts={!pending}
-            onOpenSettings={railModeSelectors.settings}
-            settingsActive={railMode === "settings"}
-            settingsDot={feedbackUnread > 0}
           />
         </div>
       </Popover>

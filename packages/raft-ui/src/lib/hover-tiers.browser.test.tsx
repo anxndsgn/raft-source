@@ -321,9 +321,9 @@ for (const mode of ["light", "dark"] as const) {
     );
   });
 
-  // The current item in a popup is the yellow highlight, not a grey; in dark
-  // mode at 20% so it outweighs a button hover beside it.
-  it(`${mode}: a menu item under the pointer takes brand-soft`, async () => {
+  // Raft redesign (Figmama 11/20): the current item in a popup is the subtle
+  // fill, as a hover everywhere else, not the yellow.
+  it(`${mode}: a menu item under the pointer takes fill-subtle`, async () => {
     const { getByTestId } = render(
       <ThemeProvider>
         <div className={mode} data-testid="scope">
@@ -341,8 +341,7 @@ for (const mode of ["light", "dark"] as const) {
     await page.getByTestId("item").hover();
     const el = getByTestId("item");
     const fill = await settled(() => getComputedStyle(el).backgroundColor);
-    expect(fill).toBe(token(getByTestId("scope"), "brand-soft"));
-    expect(alphaOf(fill), `${mode} brand-soft (${fill})`).toBeCloseTo(mode === "dark" ? 0.2 : 1, 3);
+    expect(fill).toBe(token(getByTestId("scope"), "fill-subtle"));
   });
 }
 

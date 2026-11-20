@@ -39,12 +39,13 @@ const EDGE_CLASS = {
 // further out and the line lies on the border, as everywhere else, rather than beside it (2px on hover).
 // Raft redesign (anxndsgn, Figmama 11/18): a column at the edge of an island is resized from the 8px gap beside it,
 // not from a line on its edge (the island's ring is that edge): the whole gap takes the drag, and a 4x32 pill in its
-// middle, the frame's ink at 40%, says so, at 100% while hovered or dragged.
+// middle, in the frame's ink, says so while hovered or dragged (hidden at rest).
 const GAP_CLASS = {
   right: "-right-2 w-2",
   left: "-left-2 w-2",
 } as const;
-const GAP_PILL_CLASS = "before:inset-y-0 before:left-0.5 before:my-auto before:h-8 before:w-1 before:rounded-full before:bg-foreground-on-frame/40 hover:before:bg-foreground-on-frame data-[dragging=true]:before:bg-foreground-on-frame data-[highlight]:before:bg-foreground-on-frame focus-visible:keyboard:before:bg-foreground-on-frame";
+// anxndsgn 11/20: hidden at rest; it shows while the gap is hovered or dragged, and fades out after.
+const GAP_PILL_CLASS = "before:inset-y-0 before:left-0.5 before:my-auto before:h-8 before:w-1 before:rounded-full before:bg-foreground-on-frame before:opacity-0 before:transition-opacity before:duration-150 hover:before:opacity-100 data-[dragging=true]:before:opacity-100 data-[highlight]:before:opacity-100 focus-visible:keyboard:before:opacity-100";
 
 const OWN_BORDER_EDGE_CLASS = {
   right: "-right-[13px] pointer-coarse:-right-[25px] before:-left-px",
@@ -458,7 +459,7 @@ export default function ColumnResizeHandle({
         data-highlight={highlight}
         data-testid={testId}
         className={gap
-          ? `absolute top-0 bottom-0 z-control cursor-col-resize touch-none select-none outline-none before:pointer-events-none before:absolute before:transition-colors before:content-[''] ${GAP_PILL_CLASS} ${GAP_CLASS[edge]} ${visibleFrom ? VISIBLE_FROM_CLASS[visibleFrom] : ""} ${className}`.trim()
+          ? `absolute top-0 bottom-0 z-control cursor-col-resize touch-none select-none outline-none before:pointer-events-none before:absolute before:content-[''] ${GAP_PILL_CLASS} ${GAP_CLASS[edge]} ${visibleFrom ? VISIBLE_FROM_CLASS[visibleFrom] : ""} ${className}`.trim()
           : `absolute top-0 bottom-0 z-control w-3 cursor-col-resize touch-none select-none outline-none pointer-coarse:w-6 before:pointer-events-none before:absolute before:bg-transparent before:transition-colors before:content-[''] ${SEAM_CLASS} ${(ownBorder ? OWN_BORDER_EDGE_CLASS : EDGE_CLASS)[edge]} ${visibleFrom ? VISIBLE_FROM_CLASS[visibleFrom] : ""} ${className}`.trim()}
         onPointerDown={onPointerDown}
         onLostPointerCapture={onLostPointerCapture}

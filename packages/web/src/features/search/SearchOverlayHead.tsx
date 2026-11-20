@@ -12,7 +12,7 @@ import {
   SearchEntityResultTitle,
   SearchResultsList,
 } from "@botiverse/raft-ui";
-import { RETURN_KEY_GLYPH } from "./searchConstants";
+import { RETURN_KEY_GLYPH, SEARCH_KEY_HINT_CLASS } from "./searchConstants";
 
 /**
  * Overlay head (task #102, Slack): exact destination first when the query
@@ -58,7 +58,7 @@ export function SearchOverlayHead({
             {formatMessage({ id: "search.overlay.viewAllResultsHint" })}
           </SearchEntityResultDescription>
         </SearchEntityResultContent>
-        <Kbd aria-hidden="true">{RETURN_KEY_GLYPH}</Kbd>
+        <Kbd aria-hidden="true" className={SEARCH_KEY_HINT_CLASS}>{RETURN_KEY_GLYPH}</Kbd>
       </SearchEntityResult>
     </SearchResultsList>
   );

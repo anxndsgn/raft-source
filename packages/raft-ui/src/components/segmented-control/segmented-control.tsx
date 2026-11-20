@@ -76,6 +76,19 @@ const segmentedControl = tv({
   variants: {
     variant: {
       default: {},
+      // Raft redesign (anxndsgn 11/20, Figmama): with a mouse the choices are
+      // filter pills, as the task panel's: 25px, a subtle line on the canvas,
+      // muted regular words; the chosen one the medium fill, Semi Bold ink.
+      pill: {
+        root: [
+          "md:pointer-fine:gap-2 md:pointer-fine:rounded-none md:pointer-fine:bg-transparent md:pointer-fine:p-0",
+          "md:pointer-fine:**:data-[slot=segmented-control-item]:h-[25px] md:pointer-fine:**:data-[slot=segmented-control-item]:rounded-pill md:pointer-fine:**:data-[slot=segmented-control-item]:border md:pointer-fine:**:data-[slot=segmented-control-item]:border-line-subtle md:pointer-fine:**:data-[slot=segmented-control-item]:bg-layer-canvas md:pointer-fine:**:data-[slot=segmented-control-item]:px-2.5 md:pointer-fine:**:data-[slot=segmented-control-item]:gap-1",
+          "md:pointer-fine:**:data-[slot=segmented-control-item]:font-normal md:pointer-fine:**:data-[slot=segmented-control-item]:text-foreground-muted md:pointer-fine:**:data-[slot=segmented-control-item]:hover:bg-fill-subtle md:pointer-fine:**:data-[slot=segmented-control-item]:hover:text-foreground",
+          "md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:border-line-subtle md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:bg-fill-medium md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:font-semibold md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:text-foreground md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:ring-0",
+          "md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:hover:bg-fill-medium md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:active:bg-fill-medium",
+          "md:pointer-fine:**:data-[slot=segmented-control-count]:font-sans",
+        ],
+      },
       "on-frame": {
         root: [
           "bg-fill-frame-medium",
@@ -197,7 +210,7 @@ export type SegmentedControlProps<T extends string = string> = StyledProps<
    * frame, yellow on the dark one), since a yellow sticker on yellow would
    * not read as selected.
    */
-  variant?: "default" | "on-frame";
+  variant?: "default" | "on-frame" | "pill";
 };
 
 /**

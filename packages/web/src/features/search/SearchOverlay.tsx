@@ -7,6 +7,7 @@ import { SEARCH_ANCHOR_FIELD_SELECTOR, searchOverlayCardStyle, searchOverlayColu
 import type { SearchOverlayColumn } from "./searchOverlayAnchor";
 import { isFromForeignLayer } from "../../components/ui/useOverlayLayer";
 import { useShortcutLayer } from "../../features/shortcuts/useShortcutLayer";
+import { SEARCH_KEY_HINT_CLASS } from "./searchConstants";
 
 type OpenChangeDetails = Parameters<NonNullable<ComponentProps<typeof Dialog>["onOpenChange"]>>[1];
 
@@ -136,12 +137,12 @@ export function SearchOverlay({ onClose, contentColumnRef }: {
           className="flex shrink-0 items-center gap-4 border-t border-line-seam px-3 py-2 text-caption text-foreground-hint"
         >
           <span className="flex items-center gap-1">
-            <Kbd aria-hidden="true">{ARROW_UP_GLYPH}</Kbd>
-            <Kbd aria-hidden="true">{ARROW_DOWN_GLYPH}</Kbd>
+            <Kbd aria-hidden="true" className={SEARCH_KEY_HINT_CLASS}>{ARROW_UP_GLYPH}</Kbd>
+            <Kbd aria-hidden="true" className={SEARCH_KEY_HINT_CLASS}>{ARROW_DOWN_GLYPH}</Kbd>
             <span>{formatMessage({ id: "search.overlay.footerSelect" })}</span>
           </span>
           <span className="flex items-center gap-1">
-            <Kbd aria-hidden="true">{RETURN_KEY_GLYPH}</Kbd>
+            <Kbd aria-hidden="true" className={SEARCH_KEY_HINT_CLASS}>{RETURN_KEY_GLYPH}</Kbd>
             <span>{formatMessage({ id: "search.overlay.footerOpen" })}</span>
           </span>
         </div>

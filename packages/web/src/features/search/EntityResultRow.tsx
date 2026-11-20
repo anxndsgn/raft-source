@@ -22,7 +22,7 @@ import { ChannelIcon } from "../../components/channel/channelKindIcon";
 import type { SearchEntityResult as SearchEntityRecord } from "./searchEntities";
 import { appBotEntitySubtitle, searchEntitySubtitleForQuery } from "./searchEntities";
 import { formatEntitySubtitle } from "./searchLabels";
-import { RETURN_KEY_GLYPH } from "./searchConstants";
+import { RETURN_KEY_GLYPH, SEARCH_KIND_TAG_CLASS, SEARCH_KEY_HINT_CLASS } from "./searchConstants";
 import { SearchHighlight } from "./SearchHighlight";
 import type { SearchSenderMember } from "./searchResultTypes";
 
@@ -131,9 +131,9 @@ export function EntityResultRow({
                 coloured chip: identity comes from the tile/avatar. An App
                 bot's kind is the App badge, in the same outline look. */}
             {appBot ? (
-              <AppBadge appearance="outline" className="shrink-0" appName={appBot.managedByApp?.name} botName={result.title} />
+              <AppBadge appearance="outline" className={`shrink-0 ${SEARCH_KIND_TAG_CLASS}`} appName={appBot.managedByApp?.name} botName={result.title} />
             ) : (
-              <Badge appearance="outline">
+              <Badge appearance="outline" className={SEARCH_KIND_TAG_CLASS}>
                 {result.type === "channel" ? formatMessage({ id: "search.channel" }) : result.type === "computer" ? formatMessage({ id: "search.badgeComputer" }) : result.type === "agentDm" ? formatMessage({ id: "search.badgeAgent" }) : formatMessage({ id: "search.badgeHuman" })}
               </Badge>
             )}
@@ -153,7 +153,7 @@ export function EntityResultRow({
               : formatEntitySubtitle(subtitle, formatMessage)}
           </SearchEntityResultDescription>
         </SearchEntityResultContent>
-        {returnHint && selected ? <Kbd aria-hidden="true">{RETURN_KEY_GLYPH}</Kbd> : null}
+        {returnHint && selected ? <Kbd aria-hidden="true" className={SEARCH_KEY_HINT_CLASS}>{RETURN_KEY_GLYPH}</Kbd> : null}
       </SearchEntityResult>
     </div>
   );

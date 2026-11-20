@@ -52,7 +52,7 @@ export const messageReaction = tv({
       // control height, with the control radius.
       "size-9 rounded-chip p-0 text-xl leading-none text-foreground-muted",
       "md:pointer-fine:size-control md:pointer-fine:rounded-control",
-      "hover:bg-brand-soft data-highlighted:bg-brand-soft active:bg-brand-soft",
+      "hover:bg-fill-subtle data-highlighted:bg-fill-subtle active:bg-fill-subtle",
       "outline-none focus-visible:shadow-focus",
     ],
     pickerContent: [

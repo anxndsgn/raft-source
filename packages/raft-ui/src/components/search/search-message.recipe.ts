@@ -12,7 +12,7 @@ export const searchMessage = tv({
       listCell,
       listCellStates,
       "disabled:cursor-default",
-      "data-[selected=true]:before:bg-brand-soft",
+      "data-[selected=true]:before:bg-fill-subtle", // Raft redesign (Figmama 11/20): no yellow
       listCellFocus,
     ],
     messageHeader: [

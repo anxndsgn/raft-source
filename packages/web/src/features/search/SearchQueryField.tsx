@@ -2,6 +2,7 @@ import type { ChangeEvent as ReactChangeEvent, CompositionEvent as ReactComposit
 import { useIntl } from "react-intl";
 import { Search, X } from "lucide-react";
 import { Button, InputGroup, InputGroupAddon, InputGroupInput, Kbd } from "@botiverse/raft-ui";
+import { SEARCH_KEY_HINT_CLASS } from "./searchConstants";
 
 /**
  * DS Search field (`rf-search`): one 44px ink-bordered control with the
@@ -45,7 +46,7 @@ export function SearchQueryField({
       {/* The Esc hint comes before the clear button: on a phone the hint is
           hidden, and the button, last in the field, sits 6px from its end. */}
       <InputGroupAddon align="inline-end">
-        <Kbd className="hidden sm:inline-flex">
+        <Kbd className={`hidden sm:inline-flex ${SEARCH_KEY_HINT_CLASS}`}>
           Esc
         </Kbd>
         {query ? (

@@ -50,7 +50,7 @@ export default function SidebarSectionEmojiPicker({
                 onChange("");
                 setOpen(false);
               }}
-              className="flex h-option w-full items-center justify-center gap-2 border-b border-line-hairline bg-layer-popover px-3 font-sans text-callout font-medium text-foreground outline-none transition-colors hover:bg-brand-soft focus-visible:bg-brand-soft"
+              className="flex h-option w-full items-center justify-center gap-2 border-b border-line-hairline bg-layer-popover px-3 font-sans text-callout font-medium text-foreground outline-none hover:bg-fill-subtle focus-visible:bg-fill-subtle"
             >
               <X size={14} aria-hidden />
               {formatMessage({ id: "layout.sidebar.removeEmoji" })}

@@ -283,9 +283,12 @@ function OkCard({ card, preview = false }: { card: ArtifactCard; preview?: boole
           </div>
           {/* Layout redesign (4.2): where it opens — the workspace — under the title. */}
           <p className={parts.meta({ className: "md:pointer-fine:text-[12px] md:pointer-fine:leading-4 md:pointer-fine:text-foreground-hint" })} data-testid="artifact-card-facts">
-            {facts
-              ? formatMessage({ id: "artifacts.card.factsOpensInWorkspace" }, { facts: <>{facts}<span className="hidden md:pointer-fine:inline before:content-['_·_'] before:whitespace-pre">{versionText}</span></> })
-              : <>{versionInFacts}{formatMessage({ id: "artifacts.card.opensInWorkspace" })}</>}
+            {/* One run of text: the meta row is a flex row with a gap, which would widen the space after the dot. */}
+            <span>
+              {facts
+                ? formatMessage({ id: "artifacts.card.factsOpensInWorkspace" }, { facts: <>{facts}<span className="hidden md:pointer-fine:inline before:content-['_·_'] before:whitespace-pre">{versionText}</span></> })
+                : <>{versionInFacts}{formatMessage({ id: "artifacts.card.opensInWorkspace" })}</>}
+            </span>
           </p>
           {card.description ? (
             <p className={`${facts ? "line-clamp-1" : "line-clamp-2"} text-callout break-words text-foreground-muted`}>{card.description}</p>

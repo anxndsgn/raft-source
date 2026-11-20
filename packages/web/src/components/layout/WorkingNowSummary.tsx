@@ -136,7 +136,7 @@ function WorkingNowList({ items, typingAgentIds, onNavigate }: {
                 type="button"
                 data-agent-id={item.agentId}
                 onClick={openAgent}
-                className="flex w-full items-start gap-3 px-4 py-2 text-left outline-none hover:bg-brand-soft focus-visible:bg-brand-soft"
+                className="flex w-full items-start gap-3 px-4 py-2 text-left outline-none hover:bg-fill-subtle focus-visible:bg-fill-subtle"
               >
                 <AvatarSlot
                   context="compact-row"

@@ -548,6 +548,7 @@ export function ThreadsInbox() {
       <div className="flex min-w-0 items-center gap-2">
         {/* Layout redesign (F4): two lists, what is waiting on me (replies to me, @me) and everything. */}
         <SegmentedControl<"mine" | "all">
+          variant="pill"
           value={activeFilter === "mentions" ? "mine" : "all"}
           onValueChange={handleTabChange}
           aria-label={formatMessage({ id: "thread.filter.ariaLabel" })}

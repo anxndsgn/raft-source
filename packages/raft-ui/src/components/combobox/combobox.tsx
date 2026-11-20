@@ -79,10 +79,10 @@ const combobox = tv({
     list: ["max-h-64 min-h-0", "flex flex-col p-1 scroll-py-1"],
     item: [
       "flex w-full shrink-0 cursor-default select-none items-center justify-between overflow-hidden",
-      "text-left outline-none transition-colors",
+      "text-left outline-none",
       "min-h-option gap-2.5 rounded-chip px-2.5 py-option-inset",
       "font-sans text-callout font-medium text-foreground wrap-anywhere",
-      "bg-transparent hover:bg-brand-soft data-highlighted:bg-brand-soft",
+      "bg-transparent hover:bg-fill-subtle data-highlighted:bg-fill-subtle",
       "data-selected:font-bold",
       "data-disabled:pointer-events-none data-disabled:text-foreground-disabled",
       "[&_svg]:pointer-events-none [&_svg]:shrink-0",

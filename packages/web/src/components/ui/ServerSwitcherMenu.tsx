@@ -113,7 +113,7 @@ function SortableServerRow({
       ref={setNodeRef}
       style={style}
       onAuxClick={handleAuxClick}
-      className="group/server-row relative flex h-12 md:pointer-fine:h-10 w-full items-stretch rounded-chip text-callout font-medium text-foreground transition-colors hover:bg-brand-soft has-[:focus-visible]:bg-brand-soft"
+      className="group/server-row relative flex h-12 md:pointer-fine:h-10 w-full items-stretch rounded-chip text-callout font-medium text-foreground hover:bg-fill-subtle has-[:focus-visible]:bg-fill-subtle"
     >
       <ServerSwitcherRowLink server={server} isCurrent={isCurrent} unreadSummary={unreadSummary} targetHref={targetHref} onSelect={onSelect} />
       <button
@@ -131,7 +131,7 @@ function SortableServerRow({
 
 // The footer actions are DS menu items: 36 tall, 14/20 500 ink, a 16px ink-2
 // icon, the yellow-soft highlight on hover and keyboard focus.
-const SWITCHER_ACTION_CLASS = "flex min-h-option w-full items-center justify-start gap-2.5 rounded-chip px-2.5 py-option-inset [@media(max-height:600px)]:min-h-8 [@media(max-height:600px)]:py-1 text-left text-callout font-medium text-foreground outline-none transition-colors hover:bg-brand-soft focus-visible:bg-brand-soft [&>svg]:text-foreground-muted";
+const SWITCHER_ACTION_CLASS = "flex min-h-option w-full items-center justify-start gap-2.5 rounded-chip px-2.5 py-option-inset [@media(max-height:600px)]:min-h-8 [@media(max-height:600px)]:py-1 text-left text-callout font-medium text-foreground outline-none hover:bg-fill-subtle focus-visible:bg-fill-subtle [&>svg]:text-foreground-muted";
 
 function handleAuxSelectServer(event: ReactMouseEvent, selected: Server, targetHref: string) {
   openServerSwitcherAuxClickTarget(event, selected.slug, { targetHref });

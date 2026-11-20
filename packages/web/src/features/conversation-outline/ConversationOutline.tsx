@@ -305,7 +305,7 @@ function OutlineCard({
               aria-label={labelOf(item)}
               aria-current={current ? "true" : undefined}
               onClick={handleRowClick}
-              className="mr-1.5 flex h-[30px] items-center gap-2.5 rounded-control pr-[3px] pl-2.5 text-callout text-foreground-muted no-underline outline-none hover:bg-brand-soft hover:text-foreground focus-visible:bg-brand-soft focus-visible:text-foreground aria-[current=true]:font-semibold aria-[current=true]:text-foreground"
+              className="mr-1.5 flex h-[30px] items-center gap-2.5 rounded-control pr-[3px] pl-2.5 text-callout text-foreground-muted no-underline outline-none hover:bg-fill-subtle hover:text-foreground focus-visible:bg-fill-subtle focus-visible:text-foreground aria-[current=true]:font-semibold aria-[current=true]:text-foreground"
             >
               <span className="min-w-0 flex-1 truncate">{textOf(item)}</span>
               <OutlineTick own={item.senderId === currentUserId} current={current} />
@@ -676,7 +676,7 @@ function OutlineListRows({
             aria-label={labelOf(item)}
             aria-current={current ? "true" : undefined}
             onClick={handleRowClick}
-            className="group/row flex min-h-11 items-center gap-3 rounded-control py-2 pr-1.5 pl-3 text-foreground-muted no-underline outline-none hover:bg-brand-soft hover:text-foreground focus-visible:bg-brand-soft focus-visible:text-foreground active:bg-brand-soft aria-[current=true]:text-foreground"
+            className="group/row flex min-h-11 items-center gap-3 rounded-control py-2 pr-1.5 pl-3 text-foreground-muted no-underline outline-none hover:bg-fill-subtle hover:text-foreground focus-visible:bg-fill-subtle focus-visible:text-foreground active:bg-fill-subtle aria-[current=true]:text-foreground"
           >
             <span className="min-w-0 flex-1">
               <span className="line-clamp-2 text-callout group-aria-[current=true]/row:font-semibold">{textOf(item)}</span>

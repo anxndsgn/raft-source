@@ -11,13 +11,15 @@ export const composer = tv({
       // Raft redesign (Figma Composer): on a desktop the canvas with a 1px
       // hairline, 10px top and bottom, 12px sides, 10px between its rows.
       "md:pointer-fine:gap-2.5 md:pointer-fine:border md:pointer-fine:border-line-hairline md:pointer-fine:bg-layer-canvas",
-      "md:pointer-fine:px-3 md:pointer-fine:py-2.5",
+      // anxndsgn 11/20 (Figmama): the buttons 8px from the left, right and
+      // bottom edges (inside the 1px line: 7px), the text 14px in.
+      "md:pointer-fine:px-[7px] md:pointer-fine:pt-2.5 md:pointer-fine:pb-[7px]",
     ],
     inputFrame: ["w-full min-w-0", "[--r-scroll-area-resize-grip-size:0px]"],
     input: [
       "max-h-32 w-full resize-none bg-transparent outline-none",
       "field-sizing-content",
-      "min-h-6 px-0.5",
+      "min-h-6 px-0.5 md:pointer-fine:px-1.5",
       // The DS composer input is `text-body` regular wherever it is hosted:
       // it states its weight rather than inheriting one (a thread footer's
       // caption type at 500 made its text and placeholder medium).
@@ -27,7 +29,7 @@ export const composer = tv({
     toolbar: [
       "flex items-center justify-between",
       "mx-[calc(var(--control-embedded-inset)-0.75rem-1px)] gap-embedded-inset",
-      "md:pointer-fine:mx-[calc((var(--control-icon-size)-var(--bar-button-size))/2)]",
+      "md:pointer-fine:mx-0",
     ],
     actions: ["flex items-center gap-embedded-inset"],
     meta: ["flex items-center", "gap-embedded-inset"],

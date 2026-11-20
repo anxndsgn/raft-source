@@ -21,3 +21,9 @@ export const SEARCH_TAB_HEAD_PROPS = { "data-testid": "search-tab-head" };
 export const SCOPED_SEARCH_BACK_PROPS = { "data-testid": "scoped-search-back" };
 
 export const EMPTY_SEARCH_ENTITY_USAGE = {};
+
+/** Raft redesign (Figmama 11/20): with a mouse a key hint or a kind tag in
+ *  search has no edge, on the 5% fill. */
+export const SEARCH_KEY_HINT_CLASS = "md:pointer-fine:inset-ring-0 md:pointer-fine:bg-fill-medium";
+export const SEARCH_KIND_TAG_CLASS =
+  "md:pointer-fine:inset-ring-0 md:pointer-fine:bg-fill-medium md:pointer-fine:font-sans md:pointer-fine:text-[11px] md:pointer-fine:font-medium";

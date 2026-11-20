@@ -212,18 +212,16 @@
   line-height: var(--text-callout--line-height);
   font-weight: 500;
   outline: 0;
-  transition:
-    background-color 120ms ease,
-    color 120ms ease;
+  /* Raft redesign (Figmama 11/20): a highlight switches at once. */
 }
 @media (hover: hover) {
   .r-combobox-select__option:hover {
-    background: var(--brand-soft);
+    background: var(--fill-subtle);
     color: var(--foreground);
   }
 }
 .r-combobox-select__option[data-highlighted] {
-  background: var(--brand-soft);
+  background: var(--fill-subtle);
   color: var(--foreground);
 }
 .r-combobox-select__option[data-selected] {
