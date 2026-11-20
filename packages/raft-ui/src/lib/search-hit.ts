@@ -15,4 +15,6 @@ export const searchHit = [
   // Raft redesign (Figmama 11/20): with a mouse a hit is marked as a mention
   // of you is, on the frame's accent in its ink, so it follows the theme.
   "md:pointer-fine:bg-layer-frame md:pointer-fine:text-foreground-on-frame",
+  // No sides with a mouse: inside a word they would open a gap in it.
+  "md:pointer-fine:px-0",
 ];

@@ -30,6 +30,13 @@ const pickerTriggerButton = tv({
     "**:data-picker-trigger-indicator:text-foreground-hint **:data-picker-trigger-indicator:opacity-100",
     "disabled:**:data-picker-trigger-indicator:text-foreground-disabled data-disabled:**:data-picker-trigger-indicator:text-foreground-disabled",
     "[&_[data-picker-trigger-indicator]>svg]:size-3.5 [&_[data-picker-trigger-indicator]>svg]:stroke-2 [&_[data-picker-trigger-indicator]>svg_*]:stroke-2",
+    // Raft redesign (Figmama 11/20): with a mouse a secondary Button, 5% ink
+    // with no edge; muted regular words until a value is chosen, then Semi
+    // Bold ink; icons 16, the chevron 16 muted.
+    "md:pointer-fine:bg-fill-medium md:pointer-fine:inset-ring-0 md:pointer-fine:font-normal",
+    "md:pointer-fine:hover:bg-fill-medium md:pointer-fine:hover:overlay-subtle md:pointer-fine:active:overlay-medium",
+    "md:pointer-fine:data-has-value:bg-fill-medium md:pointer-fine:data-has-value:font-semibold md:pointer-fine:data-has-value:hover:bg-fill-medium",
+    "md:pointer-fine:[&_svg:not([class*='size-'])]:size-4 md:pointer-fine:[&_[data-picker-trigger-indicator]>svg]:size-4 md:pointer-fine:**:data-picker-trigger-indicator:text-foreground-muted",
   ],
 });
 

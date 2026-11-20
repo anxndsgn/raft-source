@@ -1035,7 +1035,7 @@ it("a FitToolbarPicker sets a count in Space Mono and any other value in the lab
   expect(screen.getByRole("button", { name: "Status In progress" })).toBe(el("word"));
 });
 
-it("a FitToolbarPicker with a value is filled as an applied filter; one without stays outlined", async () => {
+it("a FitToolbarPicker with a value shows it in Semi Bold; with or without, the 5% fill", async () => {
   await wide();
   inRegion(
     1000,
@@ -1066,8 +1066,13 @@ it("a FitToolbarPicker with a value is filled as an applied filter; one without 
   const fill = (id: string) => getComputedStyle(el(id)).backgroundColor;
   expect(el("applied").hasAttribute("data-has-value")).toBe(true);
   expect(el("empty").hasAttribute("data-has-value")).toBe(false);
-  expect(fill("empty")).toBe("rgba(0, 0, 0, 0)");
-  expect(fill("applied")).not.toBe("rgba(0, 0, 0, 0)");
+  // Raft redesign (Figmama 11/20): with a mouse both are the secondary
+  // Button's 5% fill; a chosen value shows in Semi Bold ink.
+  expect(fill("empty")).toBe(fill("applied"));
+  expect(fill("empty")).not.toBe("rgba(0, 0, 0, 0)");
+  const weight = (id: string) => getComputedStyle(el(id)).fontWeight;
+  expect(weight("applied")).toBe("600");
+  expect(weight("empty")).toBe("400");
 });
 
 /** Six 90px filters scrolling in 300px; `active` are applied. */
