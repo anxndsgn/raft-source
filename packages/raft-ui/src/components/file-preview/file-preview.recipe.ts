@@ -48,7 +48,14 @@ export const filePreview = tv({
     placement: {
       corner: { badge: "absolute -right-1.5 bottom-0.5 z-raised" },
       inline: {
-        badge: "inline-flex h-3.5 w-7 shrink-0 items-center justify-center px-0 py-0",
+        badge: [
+          "inline-flex h-3.5 w-7 shrink-0 items-center justify-center px-0 py-0",
+          // Raft redesign (Figmama 11/20): with a mouse a role tag: 16px, 4px
+          // sides, Medium 11/14 muted on 5% ink, no edge (its ring was cut
+          // off at the card's clip), as wide as its letters.
+          "md:pointer-fine:h-4 md:pointer-fine:w-auto md:pointer-fine:px-1 md:pointer-fine:ring-0 md:pointer-fine:bg-fill-medium",
+          "md:pointer-fine:font-sans md:pointer-fine:text-[11px] md:pointer-fine:leading-[14px] md:pointer-fine:font-medium",
+        ],
       },
     },
   },

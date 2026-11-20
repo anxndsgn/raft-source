@@ -81,6 +81,9 @@ export const messageReference = tv({
       "relative shrink-0",
       SUFFIX_LIFT,
       "font-mono text-label leading-none font-normal text-foreground-hint",
+      // Raft redesign (Figmama 11/20): with a mouse no note; the leading icon
+      // already says what the reference is.
+      "md:pointer-fine:hidden",
     ],
     // A 14px box for a leading icon that is not a plain svg, such as an app's
     // image or a 3xs Avatar: a leading mark of the inline chip, which gives it

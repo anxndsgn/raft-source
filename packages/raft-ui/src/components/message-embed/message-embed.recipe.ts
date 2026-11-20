@@ -10,6 +10,9 @@ export const messageEmbed = tv({
     root: [
       "group block min-w-0 text-left",
       "rounded-container border border-line-hairline bg-layer-card",
+      // Raft redesign (conversation spec): with a mouse a card in a message is
+      // 5% ink with no edge (the border stays, transparent, so nothing moves).
+      "md:pointer-fine:border-transparent md:pointer-fine:bg-fill-medium",
       "outline-none focus-visible:shadow-focus",
       "data-[interactive=true]:hover:overlay-subtle data-[interactive=true]:active:overlay-medium",
       // The content runs to the frame's edges (a cover, an excerpt), so where
@@ -23,7 +26,7 @@ export const messageEmbed = tv({
       "not-data-[frame=bar]:*:data-[slot=message-embed-content]:first:rounded-t-[calc(var(--radius-container)-1px)] not-data-[frame=bar]:*:data-[slot=message-embed-content]:first:overflow-clip",
       "not-data-[frame=bar]:*:data-[slot=message-embed-content]:last:rounded-b-[calc(var(--radius-container)-1px)] not-data-[frame=bar]:*:data-[slot=message-embed-content]:last:overflow-clip",
     ],
-    header: ["min-w-0", "px-3 py-2"],
+    header: ["min-w-0", "px-3 py-2 md:pointer-fine:py-2.5"],
     content: ["min-w-0"],
     footer: ["min-w-0", "px-3 py-2"],
   },

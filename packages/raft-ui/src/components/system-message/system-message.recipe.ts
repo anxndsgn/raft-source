@@ -14,10 +14,12 @@ export const messageSystem = tv({
       "flex min-w-0 items-center justify-center",
       "gap-2 px-4 pt-timeline-lead pb-timeline-row in-data-[slot=system-message-group-panel]:py-1.5",
       "font-mono text-mono-meta text-foreground-hint",
+      // Raft redesign (conversation spec): with a mouse the sans, 12/16.
+      "md:pointer-fine:font-sans md:pointer-fine:text-[12px] md:pointer-fine:leading-4",
       "before:min-w-3 before:flex-1 before:border-t before:border-line-hairline",
       "after:min-w-3 after:flex-1 after:border-t after:border-line-hairline",
     ],
-    systemTime: ["shrink-0 whitespace-nowrap", "font-mono text-mono-meta text-foreground-hint"],
+    systemTime: ["shrink-0 whitespace-nowrap", "font-mono text-mono-meta text-foreground-hint", "md:pointer-fine:font-sans md:pointer-fine:text-[12px] md:pointer-fine:leading-4"],
     systemContent: ["min-w-0 truncate", "text-foreground-hint"],
     systemGroup: ["group/system-group"],
     // The disclosure is a 28px button (`h-7` below) around a line of mono
@@ -29,6 +31,8 @@ export const messageSystem = tv({
       "items-center gap-2 px-4",
       "pt-[calc(var(--spacing-timeline-lead)-(--spacing(7)-var(--text-mono-meta--line-height))/2)]",
       "mb-[calc(var(--spacing-timeline-row)-(--spacing(7)-var(--text-mono-meta--line-height))/2)] group-data-open/system-group:mb-0 group-data-open/system-group:pb-1.5",
+      // With a mouse the line is the sans 12/16 (Raft redesign).
+      "md:pointer-fine:pt-[calc(var(--spacing-timeline-lead)-(--spacing(7)-16px)/2)] md:pointer-fine:mb-[calc(var(--spacing-timeline-row)-(--spacing(7)-16px)/2)] md:pointer-fine:group-data-open/system-group:mb-0",
       "before:min-w-3 before:flex-1 before:border-t before:border-line-hairline",
       "after:min-w-3 after:flex-1 after:border-t after:border-line-hairline",
     ],
@@ -37,6 +41,7 @@ export const messageSystem = tv({
       "[&[data-panel-open]_[data-slot=system-message-group-chevron]]:-rotate-90",
       "h-7 gap-1 rounded-control px-2 py-0",
       "font-mono text-mono-meta text-foreground-hint",
+      "md:pointer-fine:font-sans md:pointer-fine:text-[12px] md:pointer-fine:leading-4",
       "hover:bg-fill-medium hover:text-foreground active:bg-fill-medium",
       "outline-none focus-visible:shadow-focus",
     ],

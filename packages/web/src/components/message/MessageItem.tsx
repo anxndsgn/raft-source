@@ -4237,7 +4237,7 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
               {formatMessage({ id: "message.profilePreview.fromServers" }, { servers: originServerNames(senderOrigin) })}
             </span>
           ) : null}
-          <span data-testid={`message-sender-tail-${message.id}`} className="flex min-w-0 items-baseline gap-1.5 overflow-hidden">
+          <span data-testid={`message-sender-tail-${message.id}`} className="flex min-w-0 items-baseline gap-1.5 overflow-hidden md:pointer-fine:gap-2">
           {(isAppBotSender || (!readOnlyProjection && isExternal && message.externalAuthor?.actorKind === "bot")) && (
             <AppBadge truncateLabel={isExternal} className={isExternal ? "max-w-24 sm:max-w-52 min-w-12 shrink overflow-hidden" : "shrink-0"} appName={isAppBotSender ? senderAgent?.managedByApp?.name : message.externalAuthor?.appName} botName={senderDisplayName} />
           )}

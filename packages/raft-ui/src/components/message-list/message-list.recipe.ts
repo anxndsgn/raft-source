@@ -31,6 +31,9 @@ export const messageList = tv({
       "pointer-events-none absolute inset-x-0 bottom-0 z-raised",
       "h-timeline-section",
       "bg-linear-to-t from-layer-canvas to-transparent",
+      // Raft redesign (anxndsgn 11/20): with a mouse no fade; the banner and
+      // the composer cut the conversation off.
+      "md:pointer-fine:hidden",
     ],
     notice: ["text-center", "pt-timeline-lead pb-timeline-row font-mono text-mono-meta"],
     historyLimited: [

@@ -20,7 +20,7 @@ import {
   Skeleton,
   messageCard,
 } from "@botiverse/raft-ui";
-import { CommentIcon } from "@botiverse/ricons";
+import { ArtifactIcon, CommentIcon } from "@botiverse/ricons";
 import { parseArtifactRef } from "@botiverse/raft-shared";
 import type { ArtifactCard, ArtifactReference } from "@botiverse/raft-shared";
 
@@ -215,7 +215,12 @@ function OkCard({ card, preview = false }: { card: ArtifactCard; preview?: boole
   const meta = formatArtifactUpdated(card, intl);
   const marks = unseenMarks(card, preview);
   const parts = messageCard();
-  const titleClass = parts.title({ className: "min-w-0 flex-[1_1_8rem] break-words" });
+  // Raft redesign (conversation spec): with a mouse the title is Semi Bold 13/17.
+  const titleClass = parts.title({ className: "min-w-0 flex-[1_1_8rem] break-words md:pointer-fine:text-[13px] md:pointer-fine:leading-[17px] md:pointer-fine:font-semibold" });
+  const versionText = formatMessage({ id: "artifacts.card.version" }, { version: card.version });
+  // With a mouse the version joins the facts line ("Markdown · v3 · Opens in the workspace") and the tag goes.
+  // The separator is drawn by CSS (" · "), the same one the facts message uses.
+  const versionInFacts = <span className="hidden md:pointer-fine:inline after:content-['_·_'] after:whitespace-pre">{versionText}</span>;
   return (
     // A preview is inert as a whole: where it lives (a chip that explains itself) takes no focus there either.
     // Pressable as a whole (the title's ::after), so it shows hover and press as a file card
@@ -243,7 +248,11 @@ function OkCard({ card, preview = false }: { card: ArtifactCard; preview?: boole
         </MessageEmbedContent>
       ) : null}
       <MessageEmbedHeader className="flex min-w-0 items-start gap-2.5">
-        <KindGlyph card={card} timelineArtifactBadge="ART" />
+        {/* Raft redesign: with a mouse Eva's 24px artifact icon, no ART tag and no tile. */}
+        <span className="contents md:pointer-fine:hidden">
+          <KindGlyph card={card} timelineArtifactBadge="ART" />
+        </span>
+        <ArtifactIcon aria-hidden className="hidden size-6 shrink-0 text-foreground md:pointer-fine:block" />
         <div className="grid min-w-0 flex-1 gap-0.5">
           {/* The title keeps at least 8rem: the version and the sticker wrap under it before it shrinks further (Kirby, #12873). */}
           <div className="flex min-w-0 flex-wrap items-start gap-x-1.5 gap-y-1">
@@ -266,13 +275,17 @@ function OkCard({ card, preview = false }: { card: ArtifactCard; preview?: boole
               </p>
             )}
             <span className="flex min-w-0 max-w-full items-center gap-1 pt-px">
-              <ArtifactVersionBadge version={card.version} latest={card.pinned ? card.latestVersion : undefined} />
+              <span className="contents md:pointer-fine:hidden">
+                <ArtifactVersionBadge version={card.version} latest={card.pinned ? card.latestVersion : undefined} />
+              </span>
               <NewSticker newerVersion={marks.newerVersion} newComments={marks.newComments} />
             </span>
           </div>
           {/* Layout redesign (4.2): where it opens — the workspace — under the title. */}
-          <p className={parts.meta()} data-testid="artifact-card-facts">
-            {facts ? formatMessage({ id: "artifacts.card.factsOpensInWorkspace" }, { facts }) : formatMessage({ id: "artifacts.card.opensInWorkspace" })}
+          <p className={parts.meta({ className: "md:pointer-fine:text-[12px] md:pointer-fine:leading-4 md:pointer-fine:text-foreground-hint" })} data-testid="artifact-card-facts">
+            {facts
+              ? formatMessage({ id: "artifacts.card.factsOpensInWorkspace" }, { facts: <>{facts}<span className="hidden md:pointer-fine:inline before:content-['_·_'] before:whitespace-pre">{versionText}</span></> })
+              : <>{versionInFacts}{formatMessage({ id: "artifacts.card.opensInWorkspace" })}</>}
           </p>
           {card.description ? (
             <p className={`${facts ? "line-clamp-1" : "line-clamp-2"} text-callout break-words text-foreground-muted`}>{card.description}</p>
@@ -280,7 +293,8 @@ function OkCard({ card, preview = false }: { card: ArtifactCard; preview?: boole
         </div>
         {preview ? null : (
           <PanelAction
-            className="relative z-raised -mt-1 -mr-1"
+            // Raft redesign: with a mouse it shows only while the card is hovered or it has focus.
+            className="relative z-raised -mt-1 -mr-1 md:pointer-fine:opacity-0 md:pointer-fine:group-hover:opacity-100 md:pointer-fine:focus-visible:opacity-100"
             nativeButton={false}
             // Layout redesign (4.2): opens in the workspace (the viewer's head still opens a new page).
             render={<a href={url} onClick={handleOpen} aria-label={formatMessage({ id: "artifacts.card.opensInWorkspace" })} data-testid="artifact-card-open-in-workspace" />}
@@ -289,9 +303,12 @@ function OkCard({ card, preview = false }: { card: ArtifactCard; preview?: boole
           </PanelAction>
         )}
       </MessageEmbedHeader>
-      <MessageEmbedFooter className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
-        <ArtifactScopeLabel home={card.home} fromAnotherServer={card.fromAnotherServer} onCard />
-        {meta ? <span className="min-w-0 truncate font-mono text-mono-meta text-foreground-hint">{meta}</span> : null}
+      {/* Raft redesign: with a mouse no source line (where it lives, when it changed); only a comment count keeps the footer. */}
+      <MessageEmbedFooter className={card.commentCount > 0 ? "flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1" : "flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 md:pointer-fine:hidden"}>
+        <span className="contents md:pointer-fine:hidden">
+          <ArtifactScopeLabel home={card.home} fromAnotherServer={card.fromAnotherServer} onCard />
+          {meta ? <span className="min-w-0 truncate font-mono text-mono-meta text-foreground-hint">{meta}</span> : null}
+        </span>
         {card.commentCount > 0 ? (
           // Over the title's ::after: the count opens the Artifact on its comments (a preview opens nothing); its focus ring is the app's fallback one (index.css).
           <button

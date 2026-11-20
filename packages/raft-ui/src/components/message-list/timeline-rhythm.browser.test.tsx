@@ -227,8 +227,13 @@ it("in a conversation panel, the composer's frame sits 24px under the last line"
   const frame = screen.getByTestId("panel-composer").getBoundingClientRect().top;
   expectGap("last line -> composer frame", frame - lineBox("bottom-p").bottom, 24);
   // The end fade lies over the list's bottom edge, a section step tall, and
-  // takes no pointer events.
+  // takes no pointer events. Raft redesign (anxndsgn 11/20): with a mouse
+  // there is none.
   const fade = screen.getByTestId("panel-fade");
+  if (matchMedia("(width >= 48rem) and (pointer: fine)").matches) {
+    expect(getComputedStyle(fade).display).toBe("none");
+    return;
+  }
   const fadeBox = fade.getBoundingClientRect();
   const listBox = fade.parentElement!.getBoundingClientRect();
   expectGap("end fade bottom -> list bottom", listBox.bottom - fadeBox.bottom, 0);

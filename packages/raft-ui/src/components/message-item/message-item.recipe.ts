@@ -4,7 +4,7 @@ import type { VariantProps } from "../../lib/tv";
 
 const sender = [
   "min-w-0 truncate",
-  "text-subhead font-bold text-foreground",
+  "text-subhead font-bold text-foreground md:pointer-fine:font-semibold",
   "rounded-[2px] outline-none focus-visible:shadow-focus",
 ];
 
@@ -58,16 +58,22 @@ export const messageItem = tv({
       // input. Never the browser's own outline.
       "outline-none focus-visible:keyboard:inset-ring-2 focus-visible:keyboard:inset-ring-foreground",
     ],
-    gutter: ["relative shrink-0 self-stretch", "w-[35px]"],
+    gutter: ["relative shrink-0 self-stretch", "w-[35px] md:pointer-fine:w-8"],
     avatarSlot: [
       "relative shrink-0 self-start",
       "flex w-[35px] justify-center",
       "[&_[data-slot=avatar][data-size=md]]:size-(--mi-avatar,35px)",
+      // Raft redesign (conversation spec): with a mouse a 32px circle with no
+      // edge; an initial in Semi Bold 13.
+      "md:pointer-fine:w-8 md:pointer-fine:[&_[data-slot=avatar][data-size=md]]:size-8",
+      "md:pointer-fine:[&_[data-slot=avatar]]:rounded-full md:pointer-fine:[&_[data-slot=avatar]]:border-0 md:pointer-fine:[&_[data-slot=avatar]]:shadow-none",
+      "md:pointer-fine:[&_[data-slot=avatar-image]]:rounded-full md:pointer-fine:[&_[data-slot=avatar-fallback]]:rounded-full",
+      "md:pointer-fine:[&_[data-slot=avatar-fallback]]:text-[13px] md:pointer-fine:[&_[data-slot=avatar-fallback]]:font-semibold md:pointer-fine:[&_[data-slot=avatar-fallback]]:tracking-normal",
     ],
     continuationTime: [
       "absolute right-0 select-none whitespace-nowrap tabular-nums",
       "top-[calc((var(--text-body--line-height)-var(--text-mono-meta--line-height))/2)]",
-      "font-mono text-mono-meta",
+      "font-mono text-mono-meta md:pointer-fine:font-sans",
       "text-(--mi-ct-color,transparent)",
     ],
     content: ["min-w-0 flex-1", "text-body text-foreground"],
@@ -90,7 +96,7 @@ export const messageItem = tv({
     // Space Mono and Space Grotesk share a cap height (0.7em), so on one
     // baseline the time's digits stand as tall as the role's capitals.
     header: [
-      "mb-px flex min-w-0 items-baseline gap-1.5 overflow-hidden",
+      "mb-px flex min-w-0 items-baseline gap-1.5 overflow-hidden md:pointer-fine:gap-2",
       "mask-(--mi-header-mask,none)",
       "has-data-[slot=message-item-delegated-by]:[--mi-owner-basis:3rem] has-data-[slot=message-item-delegated-by]:[--mi-owner-flex:1_0]",
     ],
@@ -98,8 +104,14 @@ export const messageItem = tv({
     // basis of its own), so it gives way first; the name shrinks only once
     // the role is gone. Badges never shrink.
     senderGroup: [
-      "flex min-w-0 items-baseline gap-1.5 overflow-hidden",
+      "flex min-w-0 items-baseline gap-1.5 overflow-hidden md:pointer-fine:gap-2",
       "flex-[var(--mi-owner-flex,0_1)_var(--mi-owner-basis,auto)] max-w-max",
+      // Raft redesign (conversation spec): with a mouse a role tag (agent,
+      // Archived, Removed) is 16px, 1/4 inside, Medium 11/14 muted on 5% ink,
+      // no edge.
+      "md:pointer-fine:[&_[data-slot=badge]]:h-4 md:pointer-fine:[&_[data-slot=badge]]:px-1 md:pointer-fine:[&_[data-slot=badge]]:py-px md:pointer-fine:[&_[data-slot=badge]]:self-center",
+      "md:pointer-fine:[&_[data-slot=badge]]:text-[11px] md:pointer-fine:[&_[data-slot=badge]]:leading-[14px] md:pointer-fine:[&_[data-slot=badge]]:font-medium",
+      "md:pointer-fine:[&_[data-slot=badge]]:bg-fill-medium md:pointer-fine:[&_[data-slot=badge]]:text-foreground-muted md:pointer-fine:[&_[data-slot=badge]]:rounded-sticker md:pointer-fine:[&_[data-slot=badge]]:inset-ring-0 md:pointer-fine:[&_[data-slot=badge]]:ring-0",
       "*:data-[slot=message-item-meta]:basis-0 *:data-[slot=message-item-meta]:grow",
       // The gap before the role lives inside it (a 6px spacer that is cut off
       // with it), so a role squeezed to nothing leaves no dead gap after the
@@ -119,6 +131,8 @@ export const messageItem = tv({
     time: [
       "shrink-0 whitespace-nowrap",
       "font-mono text-mono-meta tabular-nums text-foreground-hint",
+      // Raft redesign: with a mouse the time is the sans, not the mono.
+      "md:pointer-fine:font-sans",
     ],
     inlineStatus: ["shrink-0", "text-caption text-foreground-hint"],
     // "sent by Friday": one step stronger than the role, so it is seen at a

@@ -175,11 +175,11 @@ test("every property fact follows one flow: capped at 24rem, no fact with its ow
 // slot, the library's hang still equals the shapes' padding, and slock adds no
 // local hang on top.
 test("a shaped property value is a raft-ui hang target whose hang equals its padding", () => {
-  // TaskChip (and TaskStatusBadge, which renders it) is 7px on both ends
-  // since raft-ui 0.21.1; Badge keeps 6px. raft-ui 0.21.2 hangs each by its own.
-  const chipPad = /const taskChip = tv(?:\$\d+)?\([\s\S]*?default: \{ root: \["[^"]*\bpx-\[(\d+(?:\.\d+)?)px\]/.exec(raftUiDist)?.[1];
+  // Raft redesign (Figmama 11/20): TaskChip (and TaskStatusBadge, which
+  // renders it) has no sides, so it needs no hang; Badge keeps 6px.
+  const chipPad = /const taskChip = tv(?:\$\d+)?\([\s\S]*?default: \{ root: \["[^"]*\b(px-0)\b/.exec(raftUiDist)?.[1];
   const badgePad = /const badge = tv(?:\$\d+)?\(\{\s*slots: \{ root: \[\s*"[^"]*\bpx-(\d+(?:\.\d+)?)\b/.exec(raftUiDist)?.[1];
-  assert.ok(chipPad, "raft-ui's TaskStatusBadge still sets its padding in px on both ends");
+  assert.ok(chipPad, "raft-ui's TaskStatusBadge has no sides");
   assert.ok(badgePad, "raft-ui's Badge still sets its horizontal padding on the spacing scale");
 
   const list = propertiesList(renderProperties());
@@ -189,8 +189,7 @@ test("a shaped property value is a raft-ui hang target whose hang equals its pad
   assert.ok(dl.includes(`${details}[data-slot=badge]:first-child]:-ml-${badgePad}`), `raft-ui's inline row should hang a first-child Badge by its ${badgePx}px padding`);
   assert.ok(dl.includes(`${details}[data-slot=badge]:first-child]:max-w-[calc(100%+${badgePx}px)]`), "the Badge hang must widen its max-width cap by the same amount");
   const chipSlots = ":is([data-slot=task-chip],[data-slot=task-status-badge]):first-child]";
-  assert.ok(dl.includes(`${details}${chipSlots}:ml-[-${chipPad}px]`), `raft-ui's inline row should hang a first-child task chip by its ${chipPad}px padding`);
-  assert.ok(dl.includes(`${details}${chipSlots}:max-w-[calc(100%+${chipPad}px)]`), "the task chip hang must widen its max-width cap by the same amount");
+  assert.ok(!dl.some((c) => c.startsWith(`${details}${chipSlots}:ml-`)), "a task chip with no sides takes no hang");
 
   const [status = "", assignee = "", createdBy = ""] = firstValueTags(list);
   assert.match(status, /data-testid="task-properties-status"/);
