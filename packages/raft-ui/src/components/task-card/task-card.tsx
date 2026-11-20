@@ -2,7 +2,6 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cn } from "../../lib/cn";
 import type { SlotElementProps } from "../../lib/data-attributes";
-import { taskStatusSoft } from "../tasks/task-status.recipe";
 import type { TaskStatusId } from "../tasks/task-status.recipe";
 import { TaskStatusIcon } from "../tasks/task-status-icon";
 import { taskCardStatus } from "./task-card-status.recipe";
@@ -166,9 +165,10 @@ export function TaskCardStatus({
   const defaultProps: SlotElementProps<"button"> = {
     type: "button",
     "data-slot": "task-card-status",
+    "data-status": status,
     "data-busy": busy ? "true" : undefined,
     "aria-busy": busy || undefined,
-    className: cn(styles, taskStatusSoft({ status }), className),
+    className: cn(styles, className),
   };
   return useRender({
     defaultTagName: "button",

@@ -38,7 +38,6 @@ tasks/compositions/task-status
   - `TasksPanelViewport`: the scrolling content: a [TaskBoard](../task-board/task-board.md) or a [TaskList](../task-list/task-list.md).
   - `TasksPanelEmpty`: holds an [EmptyState](../empty-state/empty-state.md) when there are no tasks.
 - `TaskLoadingList`, `TaskLoadingRow`: placeholder rows while tasks load.
-- `taskStatusSoft`, `taskStatusStrong` and `TASK_STATUS_IDS`: the recipes for building another status surface from the same `task-status-*` tokens.
 
 ```example
 tasks/compositions/tasks-panel
@@ -109,6 +108,5 @@ None of these parts wraps a Base UI primitive; `TaskChip` renders a `<span>` unl
 
 ## Rules
 
-- Build any new surface that shows a task status from `taskStatusSoft` and `taskStatusStrong`, so a status has one color everywhere.
 - Don't give a chip a border: the tint is a highlight, not a sticker ([Status](../status/status.md#rules)). Backlog's chip, which has no tint, is the exception ([Color](../../../../../design/foundations/color.md#statuses)).
 - A chip splits its padding evenly between its two ends: 7px each, 5px when `sm`, 4.5px inline, the same total as before. The status pixel is drawn to its edges, so the space before it is all padding; with 2px less on that end, the pixel sat 6px from the edge and the last letter 8.5px ([Alignment](../../../../../design/foundations/alignment.md#chips)). An inline chip keeps the status pixel in its own 10px box, 4px from the text ([Chips in running text](../message-item/message-item.md#chips-in-running-text)).

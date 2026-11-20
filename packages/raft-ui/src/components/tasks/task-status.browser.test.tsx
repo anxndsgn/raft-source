@@ -24,7 +24,7 @@ const HUE_ANCHORS: Record<
   Exclude<TaskStatusId, "backlog">,
   { hue?: number; maxChroma?: number }
 > = {
-  todo: { hue: 45 },
+  todo: { maxChroma: 0.05 }, // Raft redesign: To do is the ink, hollow (Figmama 11/18)
   "in-progress": { hue: 255 }, // Raft redesign: the working blue (presence-busy), Figmama 11/18
   "in-review": { hue: 92 }, // Raft redesign: the review yellow, Figmama 11/18
   done: { hue: 153 },
@@ -41,6 +41,12 @@ const COLORED_STATUS_IDS = TASK_STATUS_IDS.filter(
  *  light↔dark pairs (the widest is green: lime 130 in light vs 153 in dark)
  *  while rejecting a swapped status (60°+). */
 const HUE_TOLERANCE = 30;
+
+/** A status pixel's paint: its fill, or the edge of a hollow one (To do). */
+const paint = (rect: Element) => {
+  const style = getComputedStyle(rect);
+  return style.fill === "none" ? style.stroke : style.fill;
+};
 
 // ── colour math ─────────────────────────────────────────────────────────────
 
@@ -215,17 +221,16 @@ for (const mode of MODES) {
     // component that differs only in what it shows. Before, the badge drew its
     // own shape (a 12px pill with a 1px border next to a 13px chip with a
     // hairline).
+    // Raft redesign: the badge's words are muted regular, the chip's Semi Bold
+    // ink; everything else is the chip's.
     const PROPERTIES = [
       "fontSize",
-      "fontWeight",
       "lineHeight",
       "paddingLeft",
       "paddingRight",
       "borderTopWidth",
-      "borderTopColor",
       "borderTopLeftRadius",
       "backgroundColor",
-      "color",
       "columnGap",
     ] as const;
     for (const status of TASK_STATUS_IDS) {
@@ -258,10 +263,10 @@ for (const mode of MODES) {
     const scopeBg = scopeBackground(scope);
     for (const status of COLORED_STATUS_IDS) {
       const anchor = HUE_ANCHORS[status];
-      // Read the ACTUAL rendered badge fill (composited over the scope), not the
-      // raw token string — soft fills are translucent in dark.
-      const badge = screen.getByTestId(`badge-${status}`);
-      const fill = composite(parseColor(getComputedStyle(badge).backgroundColor), scopeBg);
+      // Raft redesign: a badge has no tint, so its status pixel carries the
+      // hue. Read the rendered pixel fill (composited over the scope).
+      const badgePixel = screen.getByTestId(`badge-${status}`).querySelector("rect")!;
+      const fill = composite(parseColor(paint(badgePixel)), scopeBg);
       const { hue, chroma } = oklabOf(fill);
       if (anchor.hue !== undefined) {
         expect(
@@ -296,8 +301,8 @@ for (const mode of MODES) {
 
       // Badge fill must equal the token (composited the same way). This is the
       // equality the acceptance criterion asks for — not token-vs-itself.
-      const badge = screen.getByTestId(`badge-${status}`);
-      const badgeFill = composite(parseColor(getComputedStyle(badge).backgroundColor), scopeBg);
+      const badgePixel = screen.getByTestId(`badge-${status}`).querySelector("rect")!;
+      const badgeFill = composite(parseColor(paint(badgePixel)), scopeBg);
       expect(
         hueDistance(oklabOf(badgeFill).hue, tokenHue),
         `${key}/${status}: badge fill hue != token hue`,
@@ -318,7 +323,7 @@ for (const mode of MODES) {
       // status token itself, so a wrong-status icon assignment fails here.
       const pixel = screen.getByTestId(`icon-${status}`).querySelector("rect");
       expect(pixel).not.toBeNull();
-      const pixelFill = composite(parseColor(getComputedStyle(pixel!).fill), scopeBg);
+      const pixelFill = composite(parseColor(paint(pixel!)), scopeBg);
       expect(
         hueDistance(oklabOf(pixelFill).hue, tokenHue),
         `${key}/${status}: icon pixel hue drifted from the token`,
@@ -402,12 +407,11 @@ for (const mode of MODES) {
       `${key}: the hollow pixel's edge stands out from the canvas`,
     ).toBeGreaterThanOrEqual(1.5);
 
-    // The chip: no tint, a hairline outline, words in foreground.
+    // The chip: no tint and, in the redesign, no outline; words muted.
     const badge = screen.getByTestId("backlog-badge");
     const badgeStyle = getComputedStyle(badge);
     expect(parseColor(badgeStyle.backgroundColor).alpha, `${key}: no tint`).toBe(0);
-    expect(badgeStyle.boxShadow, `${key}: an outline in place of the tint`).toContain("inset");
-    expect(badgeStyle.color).toBe(getComputedStyle(scope).color);
+    expect(badgeStyle.boxShadow, `${key}: no outline`).toBe("none");
     // Unlike the outlined chip of a task that isn't loaded yet, it has a pixel.
     expect(badge.querySelector("[data-slot=task-status-icon]")).not.toBeNull();
 

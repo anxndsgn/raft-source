@@ -37,9 +37,9 @@ it("an sm task chip is the compact chip, and an sm status badge has the same box
   expect(height("chip-sm")).toBe(20);
   expect(height("chip-default")).toBe(22);
   expect(height("status-sm")).toBe(height("chip-sm"));
+  // Raft redesign: the status badge's words are regular; the box is the chip's.
   for (const prop of [
     "fontSize",
-    "fontWeight",
     "letterSpacing",
     "lineHeight",
     "paddingLeft",

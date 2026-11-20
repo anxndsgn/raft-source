@@ -34,8 +34,6 @@ export {
   TaskTodoIcon,
 } from "./task-status-icon";
 export {
-  taskStatusSoft,
-  taskStatusStrong,
   TASK_STATUS_IDS,
   type TaskStatusId,
 } from "./task-status.recipe";

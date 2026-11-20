@@ -48,7 +48,7 @@ const COLOR_FAMILY: readonly TokenSwatch[] = [
   { name: "pink", token: "--attention-400", utility: "bg-attention", note: "Do it: the one primary button per screen, unread counts, attention dots.", soft: { token: "--attention-soft", utility: "bg-attention-soft" } },
   { name: "cyan", token: "--info", utility: "bg-info", note: "Info: In Progress, runtime tags, external agents; cyan-soft is the selected item in a content list.", soft: { token: "--info-soft", utility: "bg-info-soft" } },
   { name: "lime", token: "--success", utility: "bg-success", note: "Success: online, Done, saved.", soft: { token: "--success-soft", utility: "bg-success-soft" } },
-  { name: "lavender", token: "--task-status-in-review", utility: "bg-task-status-in-review", note: "In Review; the fallback behind a person without a photo.", soft: { token: "--task-status-in-review-soft", utility: "bg-task-status-in-review-soft" } },
+  { name: "lavender", token: "--task-status-in-review", utility: "bg-task-status-in-review", note: "In Review; the fallback behind a person without a photo." },
   { name: "orange", token: "--warning", utility: "bg-warning", note: "Problems: Todo, an agent error, a warning that can be recovered.", soft: { token: "--warning-soft", utility: "bg-warning-soft" } },
   { name: "red", token: "--danger", utility: "bg-danger", note: "Only irreversible consequences: the destructive button. Field errors use danger-strong ink.", soft: { token: "--danger-soft", utility: "bg-danger-soft" } },
   { name: "stone", token: "--inactive", utility: "bg-inactive", note: "Neutral, exited: Closed, offline, neutral tags.", soft: { token: "--inactive-soft", utility: "bg-inactive-soft" } },
@@ -265,7 +265,7 @@ function realComponentsFor(
           </Sample>
 
           <Sample source="Message — task reference, In Progress">
-            <span className="inline-flex h-[22px] items-center gap-1.5 rounded-chip bg-task-status-in-progress-soft pl-1.5 pr-2 text-caption font-semibold text-foreground">
+            <span className="inline-flex h-[22px] items-center gap-1.5 text-caption font-semibold text-foreground">
               <Status variant="information" aria-hidden="true" />
               <span className="font-mono font-normal">task #92</span>
             </span>

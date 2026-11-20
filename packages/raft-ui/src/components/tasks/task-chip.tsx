@@ -25,17 +25,15 @@ const taskChip = tv({
     ],
   },
   variants: {
+    // Raft redesign (Figmama 11/20): a task is its status pixel and its words,
+    // no tint and no outline; the pixel alone carries the status.
     status: {
-      // Backlog has no tint, since it has no colour: the outline stands in for
-      // it, around the hollow pixel and the words in `foreground`. The
-      // outlined chip of a task that isn't loaded yet has no pixel and
-      // `foreground-muted` words (design/foundations/color.md#statuses).
-      backlog: { root: ["bg-transparent inset-ring inset-ring-line-hairline"] },
-      todo: { root: ["bg-task-status-todo-soft"] },
-      "in-progress": { root: ["bg-task-status-in-progress-soft"] },
-      "in-review": { root: ["bg-task-status-in-review-soft"] },
-      done: { root: ["bg-task-status-done-soft"] },
-      closed: { root: ["bg-task-status-closed-soft"] },
+      backlog: {},
+      todo: {},
+      "in-progress": {},
+      "in-review": {},
+      done: {},
+      closed: {},
     },
     variant: {
       // The chip's baseline is its text's, so it sits on the line of text
@@ -46,7 +44,7 @@ const taskChip = tv({
       // bottom edge is not the text's baseline.
       default: {
         root: [
-          "h-[22px] items-baseline gap-1.5 rounded-chip px-[7px] py-[3px] [&>svg]:self-center",
+          "h-[22px] items-baseline gap-1.5 rounded-chip px-0 py-[3px] [&>svg]:self-center",
           "text-[12px] leading-4",
         ],
       },
@@ -75,13 +73,17 @@ const taskChip = tv({
         root: [
           ...inlineChip,
           "[&>svg]:size-3.5 [&>svg]:self-center [&>svg:not([data-slot=task-status-icon])]:mx-0",
+          // Raft redesign: in a message, the pixel 4px before "#19", Semi Bold
+          // at the sentence's size, no sides; underlined on hover.
+          "px-0 has-[>svg,>[data-slot=spinner],>[data-slot=message-reference-icon]]:px-0 [font-size:1em] leading-[inherit] [&>svg[data-slot=task-status-icon]]:size-2.5",
+          "[a,button]:hover:bg-none [a,button]:active:bg-none [a,button]:hover:underline decoration-foreground decoration-[1.5px] underline-offset-[3px]",
         ],
       },
     },
     {
       variant: "default",
       size: "sm",
-      class: { root: ["h-5 gap-1 px-[5px] py-0.5"] },
+      class: { root: ["h-5 gap-1 px-0 py-0.5"] },
     },
   ],
   defaultVariants: {

@@ -102,8 +102,7 @@ it("inline: every term and value sits on one baseline", () => {
 it("inline: a shaped value's text starts as far from its label as plain text", () => {
   renderInline();
   // A shape's first mark is its text, or its icon when it leads with one.
-  // The task chip hang is 7px, the default size's padding: an `sm` (5px) or
-  // `inline` (4.5px) chip leading a value would sit 2px left; none does yet.
+  // A task chip has no sides (Raft redesign), so its pixel needs no hang.
   const firstMark = (fact: (typeof facts)[number]) =>
     fact === "task"
       ? screen

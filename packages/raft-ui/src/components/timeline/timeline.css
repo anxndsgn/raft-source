@@ -69,9 +69,11 @@
     --r-timeline-item-color: var(--danger-strong);
     --r-timeline-item-fill: var(--danger);
   }
-  /* Accent: the emphasis tone for review-type states, e.g. "in review". */
+  /* Accent: the emphasis tone for review-type states, e.g. "in review".
+     Raft redesign (Figmama 11/20): muted words like every task event; only
+     the mark takes the review yellow. */
   &.r-timeline-item--accent {
-    --r-timeline-item-color: var(--task-status-in-review-strong);
+    --r-timeline-item-color: var(--foreground-muted);
     --r-timeline-item-fill: var(--task-status-in-review);
   }
   &.r-timeline-item--color {

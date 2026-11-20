@@ -43,7 +43,9 @@ for (const mode of ["light", "dark"] as const) {
   // The inline chip's fill and border are the task chip's too. Before, the
   // inline chip sat on one neutral grey fill with no visible border, whatever
   // the status.
-  it(`${mode}: the inline chip's fill and border are the task chip's`, () => {
+  // Raft redesign (Figmama 11/20): no chip has a tint or an outline; the
+  // status pixel alone carries the status.
+  it(`${mode}: the inline chip and the task chip draw no fill or border`, () => {
     render(
       <ThemeProvider mode={mode}>
         {STATUSES.map((status) => (
@@ -60,17 +62,11 @@ for (const mode of ["light", "dark"] as const) {
     );
     const style = (id: string) => getComputedStyle(screen.getByTestId(id));
     for (const status of STATUSES) {
-      expect(style(`inline-${status}`).backgroundColor, status).toBe(
-        style(`badge-${status}`).backgroundColor,
-      );
-      expect(style(`inline-${status}`).borderTopColor, status).toBe(
-        style(`badge-${status}`).borderTopColor,
-      );
+      for (const id of [`inline-${status}`, `badge-${status}`]) {
+        expect(style(id).backgroundColor, id).toBe("rgba(0, 0, 0, 0)");
+        expect(style(id).borderTopWidth, id).toBe("0px");
+        expect(style(id).boxShadow, id).toBe("none");
+      }
     }
-    // The fills differ from each other, so matching the chip means following
-    // the status rather than one shared neutral.
-    expect(style("inline-in-progress").backgroundColor).not.toBe(
-      style("inline-done").backgroundColor,
-    );
   });
 }

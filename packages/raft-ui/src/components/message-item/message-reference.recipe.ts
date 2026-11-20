@@ -22,9 +22,21 @@ const chip = (fill: string) => [
   "[&_svg]:size-3.5 [&_svg]:text-foreground-muted",
   fill,
 ];
+// Raft redesign (conversation spec, Figmama 11/18): with a mouse a reference
+// in a message is plain text in the sentence: no fill, no sides, the
+// sentence's size, Semi Bold in the foreground, underlined on hover; a leading
+// icon is 16px, 4px from the label.
+const PLAIN_ON_DESKTOP = [
+  "md:pointer-fine:bg-transparent md:pointer-fine:px-0 md:pointer-fine:has-[>svg,>[data-slot=spinner],>[data-slot=message-reference-icon]]:px-0",
+  "md:pointer-fine:[font-size:1em] md:pointer-fine:leading-[inherit] md:pointer-fine:rounded-none",
+  "md:pointer-fine:[&_svg]:size-4",
+];
 const linkChip = (fill: string) => [
   ...chip(fill),
   "text-foreground cursor-pointer hover:overlay-medium active:overlay-medium",
+  ...PLAIN_ON_DESKTOP,
+  "md:pointer-fine:hover:bg-none md:pointer-fine:active:bg-none",
+  "md:pointer-fine:decoration-foreground md:pointer-fine:decoration-[1.5px] md:pointer-fine:underline-offset-[3px] md:pointer-fine:hover:underline",
 ];
 
 // Where a note after the label (`msg`) is drawn. "x-height" puts the middle of
@@ -110,12 +122,16 @@ export const messageReference = tv({
           "text-sticker-ink no-underline",
           "bg-you inset-ring-[1.5px] inset-ring-sticker-ink",
           "hover:overlay-sticker-medium active:overlay-sticker-medium",
+          // Raft redesign: with a mouse the frame's accent, in its ink, 2px
+          // each side, the badge corner, no ink edge; the sentence's size.
+          "md:pointer-fine:bg-layer-frame md:pointer-fine:text-foreground-on-frame md:pointer-fine:inset-ring-0",
+          "md:pointer-fine:px-0.5 md:pointer-fine:rounded-sticker md:pointer-fine:[font-size:1em]",
         ],
       },
       // Someone else: bold ink, underlined in ink on hover.
       secondary: {
         root: [
-          "inline cursor-pointer font-bold text-foreground",
+          "inline cursor-pointer font-bold text-foreground md:pointer-fine:font-semibold",
           "decoration-foreground decoration-[1.5px] underline-offset-[3px] hover:underline",
         ],
       },
@@ -124,8 +140,8 @@ export const messageReference = tv({
       muted: { root: linkChip("bg-inactive-soft") },
       info: { root: linkChip("bg-info-soft") },
       link: { root: linkChip("bg-info-soft") },
-      pending: { root: chip("cursor-wait bg-inactive-soft text-foreground-muted") },
-      unavailable: { root: chip("cursor-default bg-inactive-soft text-foreground-hint") },
+      pending: { root: [...chip("cursor-wait bg-inactive-soft text-foreground-muted"), ...PLAIN_ON_DESKTOP] },
+      unavailable: { root: [...chip("cursor-default bg-inactive-soft text-foreground-hint"), ...PLAIN_ON_DESKTOP] },
     },
     // A chip whose words come from outside Raft (an app's title) stops at
     // 24em, about 294px on a desktop and 336px on a phone, or the line.

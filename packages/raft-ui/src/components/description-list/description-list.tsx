@@ -64,8 +64,7 @@ const descriptionList = tv({
           "[&>[data-slot=description-item]>[data-slot=description-term]]:shrink-0",
           "[&>[data-slot=description-item]>[data-slot=description-details]>[data-slot=badge]:first-child]:-ml-1.5",
           "[&>[data-slot=description-item]>[data-slot=description-details]>[data-slot=badge]:first-child]:max-w-[calc(100%+6px)]",
-          "[&>[data-slot=description-item]>[data-slot=description-details]>:is([data-slot=task-chip],[data-slot=task-status-badge]):first-child]:ml-[-7px]",
-          "[&>[data-slot=description-item]>[data-slot=description-details]>:is([data-slot=task-chip],[data-slot=task-status-badge]):first-child]:max-w-[calc(100%+7px)]",
+          // A task chip has no sides now (Raft redesign), so it needs no hang.
           "[&>[data-slot=description-item]>[data-slot=description-details]>[data-slot=button]:first-child]:ml-[-7.5px]",
           "[&>[data-slot=description-item]>[data-slot=description-details]>[data-slot=button]:first-child]:px-1.5",
         ],

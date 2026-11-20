@@ -673,23 +673,9 @@
   --line-field: var(--line-hairline);
   --line-field-hover: oklch(0.2228 0.0025 67.7 / 0.251);
   --task-status-todo: var(--foreground);
-  --task-status-todo-soft: color-mix(in oklch, var(--task-status-todo) 12%, transparent);
-  --task-status-todo-strong: color-mix(in oklch, var(--task-status-todo) 72%, var(--foreground));
   --task-status-in-progress: var(--presence-busy);
-  --task-status-in-progress-soft:
-    color-mix(in oklch, var(--task-status-in-progress) 12%, transparent);
-  --task-status-in-progress-strong:
-    color-mix(in oklch, var(--task-status-in-progress) 72%, var(--foreground));
-  --task-status-in-review-soft: color-mix(in oklch, var(--task-status-in-review) 12%, transparent);
-  --task-status-in-review-strong:
-    color-mix(in oklch, var(--task-status-in-review) 72%, var(--foreground));
   --task-status-done: var(--presence-online);
-  --task-status-done-soft: color-mix(in oklch, var(--task-status-done) 12%, transparent);
-  --task-status-done-strong: color-mix(in oklch, var(--task-status-done) 72%, var(--foreground));
   --task-status-closed: var(--foreground-hint);
-  --task-status-closed-soft: color-mix(in oklch, var(--task-status-closed) 12%, transparent);
-  --task-status-closed-strong:
-    color-mix(in oklch, var(--task-status-closed) 72%, var(--foreground));
 }
 
 /* Desktop: from 768px (Tailwind's `md`, where the desktop layout begins)
