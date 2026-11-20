@@ -313,8 +313,9 @@ export default function StableField({
       <div
         id={messageId}
         data-slot="field-description"
-        // Raft redesign (Figmama dd53c123): with a mouse a counter sits 4 under its control (the field's gap is 6).
-        className={`text-caption ${counter ? "md:pointer-fine:-mt-0.5" : ""} ${message || counter ? "" : reserveMessage ? "[&:has(+[data-slot=field-below-description]:not(:empty))]:hidden" : "hidden"}`}
+        // Raft redesign (Figmama dd53c123, forms spec: fields 16 apart): with a mouse a counter sits 4 under its
+        // control (the field's gap is 6), and an empty reserved row is dropped, the form's own gap spacing the fields.
+        className={`text-caption ${counter ? "md:pointer-fine:-mt-0.5" : ""} ${message || counter ? "" : reserveMessage ? "[&:has(+[data-slot=field-below-description]:not(:empty))]:hidden md:pointer-fine:hidden" : "hidden"}`}
       >
         {/* One line reserved, not two. Per cindyz: reserve a single line and let
             the dialog grow when a message genuinely wraps, rather than paying two

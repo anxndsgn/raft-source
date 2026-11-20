@@ -1251,7 +1251,7 @@ export function CreateAgentDialog({
             RuntimeConfigFields renders its fields as direct children of this form,
             so one class governs the whole rhythm; Agent Details has its own
             container and is untouched. */}
-        <form ref={createAgentSelectPortalRef} noValidate onSubmit={handleSubmit} className="stack-y-1">
+        <form ref={createAgentSelectPortalRef} noValidate onSubmit={handleSubmit} className="stack-y-1 md:pointer-fine:stack-y-4">
           {/* The add-members entry promised "joins #channel after creation";
               that promise must not vanish once this dialog covers the entry
               (task #584). Plain persistent line, not a Banner — it is context,
