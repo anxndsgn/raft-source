@@ -23,6 +23,9 @@ const alertDialog = tv({
       decisionWidth,
       "overflow-clip rounded-dialog bg-layer-popover text-foreground",
       "shadow-float ring-1 ring-line-seam",
+      // Raft redesign (C17): with a mouse it looks as a Dialog (canvas, island
+      // radius, the floating ring, its shadow, 20 in); decisionWidth keeps it 400.
+      "md:pointer-fine:bg-layer-canvas md:pointer-fine:rounded-island md:pointer-fine:ring-line-floating md:pointer-fine:[--surface-inset:20px]",
     ],
     header: [
       "grid grid-cols-[minmax(0,1fr)_max-content] items-center min-w-0",
@@ -41,7 +44,7 @@ const alertDialog = tv({
       ...stackedActions,
       "gap-2 px-(--surface-inset) pb-(--surface-inset) first:pt-(--surface-inset) [[data-slot=alert-dialog-header]+&]:pt-(--surface-inset)",
     ],
-    title: ["m-0 min-w-0 text-foreground", "font-sans text-headline font-bold"],
+    title: ["m-0 min-w-0 text-foreground", "font-sans text-headline font-bold", "md:pointer-fine:text-[16px] md:pointer-fine:leading-6 md:pointer-fine:font-semibold"],
     description: ["m-0", "font-sans text-subhead text-foreground-muted"],
   },
   variants: {

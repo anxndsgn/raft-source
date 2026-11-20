@@ -33,36 +33,45 @@ const notificationCenter = tv({
       "flex flex-col overflow-hidden",
       "rounded-container bg-layer-popover text-foreground",
       "shadow-float ring-1 ring-line-seam",
+      // Raft redesign (C15): with a mouse a menu's surface: canvas, the floating ring, its shadow.
+      "md:pointer-fine:bg-layer-canvas md:pointer-fine:ring-line-floating",
     ],
     header: [
       "flex items-center px-4",
       "min-h-13 gap-2 border-b border-line-seam py-0",
       headEdgePull,
+      "md:pointer-fine:min-h-11 md:pointer-fine:border-line-hairline",
     ],
-    title: ["font-sans text-headline text-foreground"],
-    count: ["ml-auto", "font-mono text-mono-meta text-foreground-hint"],
+    title: ["font-sans text-headline text-foreground", "md:pointer-fine:text-[14px] md:pointer-fine:leading-5 md:pointer-fine:font-semibold"],
+    count: ["ml-auto", "font-mono text-mono-meta text-foreground-hint", "md:pointer-fine:font-sans md:pointer-fine:text-[12px] md:pointer-fine:text-foreground-muted"],
     scroller: ["min-h-0 flex-1"],
     list: [],
     item: [
       "group/notification-center-item relative px-4 py-3",
       "before:pointer-events-none before:absolute before:top-0 before:right-0 before:left-4 before:hidden before:border-t before:border-line-hairline",
       "not-first:before:block has-data-[slot=notification-center-item-icon]:before:left-[63px]",
+      // C15: rows without rules, 10 in, the subtle fill under the pointer.
+      "md:pointer-fine:py-2.5 md:pointer-fine:before:hidden md:pointer-fine:not-first:before:hidden md:pointer-fine:hover:bg-fill-subtle",
     ],
     itemRow: ["flex items-start", "gap-3"],
     itemIcon: [
       "flex shrink-0 items-center justify-center",
       "mt-0 size-[35px] rounded-control bg-fill-muted text-foreground-muted",
       "[&_svg]:size-[18px]",
+      // C15: the avatar's place, 24 round.
+      "md:pointer-fine:size-6 md:pointer-fine:rounded-full md:pointer-fine:bg-fill-medium md:pointer-fine:[&_svg]:size-3.5",
     ],
     itemContent: ["min-w-0 flex-1"],
     itemTitle: [
       "wrap-break-word",
       "font-sans text-subhead font-bold text-foreground",
       "group-data-read/notification-center-item:font-semibold group-data-read/notification-center-item:text-foreground-muted",
+      "md:pointer-fine:text-[13px] md:pointer-fine:leading-[18px] md:pointer-fine:font-normal md:pointer-fine:group-data-read/notification-center-item:font-normal",
     ],
     itemBody: [
       "mt-0.5 wrap-break-word",
       "line-clamp-2 font-sans text-callout text-foreground-muted",
+      "md:pointer-fine:text-[12px] md:pointer-fine:leading-4",
     ],
     itemActions: ["flex items-center", "mt-2 ml-0 flex-wrap justify-start gap-2"],
     actionButton: [],
@@ -70,7 +79,7 @@ const notificationCenter = tv({
   variants: {
     viewport: {
       desktop: {
-        popup: "w-[380px]",
+        popup: "w-[380px] md:pointer-fine:w-[360px]",
       },
       mobile: {
         popup: "w-[min(var(--available-width,calc(100vw-16px)),480px)]",
@@ -96,6 +105,8 @@ const notificationCenter = tv({
           "pr-[37px]",
           "after:pointer-events-none after:absolute after:top-[calc(--spacing(3)+(var(--text-subhead--line-height)-10px)/2)] after:right-4 after:size-2.5",
           "after:rounded-[2px] after:border-[1.5px] after:border-sticker-ink after:bg-attention-400",
+          // C15: unread is a 6px dot in the frame's accent at the row's start.
+          "md:pointer-fine:pr-4 md:pointer-fine:after:right-auto md:pointer-fine:after:left-1.5 md:pointer-fine:after:top-[calc(10px+(18px-6px)/2)] md:pointer-fine:after:size-1.5 md:pointer-fine:after:rounded-full md:pointer-fine:after:border-0 md:pointer-fine:after:bg-layer-frame",
         ],
       },
     },

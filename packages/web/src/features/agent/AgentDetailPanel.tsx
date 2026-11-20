@@ -39,7 +39,7 @@ import { useImageLightboxStore } from "../../store/imageLightboxStore";
 import { PROFILE_HANDLE_FONT_CLASS } from "../../components/ui/PanelHeader";
 import { RowRegionBody } from "../../components/layout/RowRegionBody";
 import SectionEyebrow from "../../components/ui/SectionEyebrow";
-import AvatarSlot from "../../components/ui/AvatarSlot";
+import AvatarSlot, { PROFILE_HERO_AVATAR_CLASS } from "../../components/ui/AvatarSlot";
 import AvatarEditVeil from "../../components/ui/AvatarEditVeil";
 import AppBadge from "../../components/agent/AppBadge";
 import AgentProfileEditDialog from "../../components/agent/AgentProfileEditDialog";
@@ -760,7 +760,7 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
               // avatar follows the app icon, changeable only via app config).
               // A personal assistant is always Ottie (fixed name and avatar).
               // Neither is editable here.
-              <AvatarSlot context="profile-hero" type="agent" agentAvatarUrl={agent.avatarUrl} />
+              <AvatarSlot context="profile-hero" className={PROFILE_HERO_AVATAR_CLASS} type="agent" agentAvatarUrl={agent.avatarUrl} />
             ) : canManageAgent ? (
               <Tooltip content={formatMessage({ id: "agent.detail.changeAvatar" })}>
               <button
@@ -770,7 +770,7 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
                 onClick={editAvatar}
                 className={PROFILE_AVATAR_BUTTON_CLASS}
               >
-                <AvatarSlot context="profile-hero" type="agent" agentAvatarUrl={agent.avatarUrl} />
+                <AvatarSlot context="profile-hero" className={PROFILE_HERO_AVATAR_CLASS} type="agent" agentAvatarUrl={agent.avatarUrl} />
                 <AvatarEditVeil icon={Pencil} />
               </button>
               </Tooltip>
@@ -782,7 +782,7 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
                 className={PROFILE_AVATAR_BUTTON_CLASS}
                 aria-label={formatMessage({ id: "agent.detail.viewAvatar" })}
               >
-                <AvatarSlot context="profile-hero" type="agent" agentAvatarUrl={agent.avatarUrl} />
+                <AvatarSlot context="profile-hero" className={PROFILE_HERO_AVATAR_CLASS} type="agent" agentAvatarUrl={agent.avatarUrl} />
               </button>
               </Tooltip>
             ) : (
@@ -790,7 +790,7 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
                 context="profile-hero"
                 type="agent"
                 agentAvatarUrl={agent.avatarUrl}
-                className={agent.deletedAt ? "grayscale opacity-dimmed" : undefined}
+                className={agent.deletedAt ? `grayscale opacity-dimmed ${PROFILE_HERO_AVATAR_CLASS}` : PROFILE_HERO_AVATAR_CLASS}
               />
             )}
             <div className="min-w-0 flex-1 pt-1">

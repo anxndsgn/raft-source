@@ -154,17 +154,22 @@ export const drawer = tv({
         swipeHandle: ["order-last", "before:bottom-3"],
       },
       left: {
-        popup: ["left-(--drawer-inset)"],
+        popup: ["left-(--drawer-inset)", "md:pointer-fine:border-r md:pointer-fine:border-line-hairline"],
         swipeHandle: ["order-last", "before:right-3"],
       },
       right: {
-        popup: ["right-(--drawer-inset)"],
+        popup: ["right-(--drawer-inset)", "md:pointer-fine:border-l md:pointer-fine:border-line-hairline"],
         swipeHandle: ["before:left-3"],
       },
     },
     axis: {
       x: {
-        popup: ["flex-row", "inset-y-0 w-full max-w-[420px] [--drawer-inset:0px]"],
+        popup: [
+          "flex-row", "inset-y-0 w-full max-w-[420px] [--drawer-inset:0px]",
+          // Raft redesign (C17): with a mouse a side drawer is the canvas with a
+          // hairline on its open edge, no shadow or ring.
+          "md:pointer-fine:bg-layer-canvas md:pointer-fine:shadow-none md:pointer-fine:ring-0",
+        ],
         swipeHandle: [
           "my-auto h-16 w-11",
           "before:top-1/2 before:-translate-y-1/2",
@@ -174,6 +179,8 @@ export const drawer = tv({
           "min-h-(--header-height) shrink-0 flex-row items-center justify-between gap-2 py-0 text-left",
           "border-b border-line-seam",
           panelHeadEdges,
+          // C17: a 44 head on a hairline.
+          "md:pointer-fine:min-h-11 md:pointer-fine:border-line-hairline",
         ],
         body: [
           "items-stretch text-left",
@@ -182,7 +189,7 @@ export const drawer = tv({
           "min-h-0 overflow-y-auto px-(--surface-inset) pt-(--page-top) pb-(--page-inset)",
         ],
         footer: ["border-t border-line-seam px-(--surface-inset) py-3"],
-        title: ["min-w-0 max-w-none flex-1 text-left"],
+        title: ["min-w-0 max-w-none flex-1 text-left", "md:pointer-fine:text-[14px] md:pointer-fine:leading-5 md:pointer-fine:font-semibold"],
         description: ["max-w-none text-left"],
         actions: ["flex-row flex-wrap justify-end", "**:data-[slot=button]:w-auto"],
       },

@@ -14,6 +14,10 @@ export const comment = tv({
       "rounded-container border border-line-hairline p-3",
       "bg-layer-card text-foreground shadow-none outline-none",
       "data-active:border-[1.5px] data-active:border-line-strong data-active:p-[11.5px] data-active:shadow-float",
+      // Raft redesign (C16): with a mouse a comment reads as a message, no card
+      // fill or edge; the one in focus takes the subtle fill instead of a frame.
+      "md:pointer-fine:border-transparent md:pointer-fine:bg-transparent",
+      "md:pointer-fine:data-active:border md:pointer-fine:data-active:border-transparent md:pointer-fine:data-active:p-3 md:pointer-fine:data-active:shadow-none md:pointer-fine:data-active:bg-fill-subtle",
     ],
     cardTrigger: [
       "absolute -inset-px z-raised cursor-pointer",
@@ -30,16 +34,18 @@ export const comment = tv({
       "[button&]:decoration-[1.5px] [button&]:underline-offset-[3px] [button&]:enabled:hover:underline",
       "[button&]:rounded-chip [button&]:outline-none [button&]:focus-visible:shadow-focus",
     ],
-    entry: ["flex min-w-0 flex-col gap-1", "[[data-slot=comment-entry]+&]:mt-1"],
+    entry: ["flex min-w-0 flex-col gap-1", "[[data-slot=comment-entry]+&]:mt-1", "md:pointer-fine:[[data-slot=comment-entry]+&]:mt-4"],
     entryHeader: ["flex min-w-0 items-center gap-1.5", "*:data-[slot=avatar]:me-0.5"],
-    entryAuthor: ["min-w-0 truncate", "text-subhead font-bold text-foreground"],
+    entryAuthor: ["min-w-0 truncate", "text-subhead font-bold text-foreground", "md:pointer-fine:text-[13px] md:pointer-fine:leading-[17px] md:pointer-fine:font-semibold"],
     entryTime: [
       "shrink-0 whitespace-nowrap",
       "font-mono text-mono-meta tabular-nums text-foreground-hint",
+      "md:pointer-fine:font-sans md:pointer-fine:text-[12px] md:pointer-fine:leading-4 md:pointer-fine:text-foreground-muted",
     ],
     entryBody: [
       "wrap-break-word select-text",
       "text-callout text-foreground",
+      "md:pointer-fine:text-[14px] md:pointer-fine:leading-5",
       "selection:bg-selection",
     ],
     marker: [

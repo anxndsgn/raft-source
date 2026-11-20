@@ -3,7 +3,7 @@ import { PanelAction, ProfilePanelBody, Separator, ScrollArea } from "@botiverse
 import { X } from "lucide-react";
 import { useMemo } from "react";
 import { useIntl } from "react-intl";
-import AvatarSlot from "../ui/AvatarSlot";
+import AvatarSlot, { PROFILE_HERO_AVATAR_CLASS } from "../ui/AvatarSlot";
 import PanelHeader from "../ui/PanelHeader";
 import SectionEyebrow from "../ui/SectionEyebrow";
 import {
@@ -110,7 +110,7 @@ export default function ExternalIdentityDetailPanel({
 
         <div className="flex items-start gap-4 px-(--surface-inset) py-5">
           <AvatarSlot
-            context="profile-hero"
+            context="profile-hero" className={PROFILE_HERO_AVATAR_CLASS}
             type="app"
             appAvatarUrl={avatarUrl}
             appInitials={displayName}

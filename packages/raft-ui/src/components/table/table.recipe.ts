@@ -46,11 +46,14 @@ export const table = tv({
       "text-left whitespace-nowrap",
       "border-b border-line-hairline px-3 py-2",
       "text-footnote font-bold normal-case tracking-normal text-foreground-hint",
+      // Raft redesign (C21): with a mouse the heading is regular 12 muted on no fill.
+      "md:pointer-fine:text-[12px] md:pointer-fine:leading-4 md:pointer-fine:font-normal md:pointer-fine:text-foreground-muted",
     ],
     // `wrap-anywhere` (not `wrap-break-word`): break-word does not reduce the
     // min-content width of an auto-layout column, so token-like names with no
     // spaces would push the table past its container (verified at 390px).
-    cell: ["align-top wrap-anywhere", "border-b border-line-hairline px-3 py-2"],
+    // C21: with a mouse a row is 48 (a 20px line, 14 above and below), its text centred.
+    cell: ["align-top wrap-anywhere", "border-b border-line-hairline px-3 py-2", "md:pointer-fine:py-3.5 md:pointer-fine:align-middle"],
     colgroup: [],
     column: [],
     caption: ["pt-2 text-caption text-foreground-hint"],

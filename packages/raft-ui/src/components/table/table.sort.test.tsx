@@ -234,11 +234,12 @@ describe("align", () => {
 // TableSortableHead's classes as they were before TableSortButton was split
 // out of it: the cell drops its padding (`p-0`) and the button carries it, so
 // the heading keeps TableHead's geometry. Pinned, so moving the button into
-// its own part can't change a heading that already ships.
+// its own part can't change a heading that already ships. (Raft redesign C21
+// added the desktop heading type, regular 12 muted.)
 const HEAD_LEFT =
-  "text-left whitespace-nowrap border-b border-line-hairline text-footnote font-bold normal-case tracking-normal text-foreground-hint p-0";
+  "text-left whitespace-nowrap border-b border-line-hairline text-footnote font-bold normal-case tracking-normal text-foreground-hint md:pointer-fine:text-[12px] md:pointer-fine:leading-4 md:pointer-fine:font-normal md:pointer-fine:text-foreground-muted p-0";
 const HEAD_RIGHT =
-  "whitespace-nowrap border-b border-line-hairline text-footnote font-bold normal-case tracking-normal text-foreground-hint text-right p-0";
+  "whitespace-nowrap border-b border-line-hairline text-footnote font-bold normal-case tracking-normal text-foreground-hint md:pointer-fine:text-[12px] md:pointer-fine:leading-4 md:pointer-fine:font-normal md:pointer-fine:text-foreground-muted text-right p-0";
 const BUTTON_TOUCH =
   "pointer-coarse:after:absolute pointer-coarse:after:inset-x-0 pointer-coarse:after:bottom-0 pointer-coarse:after:content-[''] pointer-coarse:after:-top-[calc(--spacing(11)-100%)]";
 const HEAD_BUTTON = `relative flex w-full items-center gap-1 border-0 bg-transparent px-3 py-2 [font:inherit] cursor-pointer rounded-sticker hover:text-foreground outline-none focus-visible:shadow-focus ${BUTTON_TOUCH}`;

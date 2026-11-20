@@ -26,7 +26,7 @@ import { useServerPermissions } from "../../hooks/useServerPermissions";
 import { useAppNavigate, useMobileBack } from "../../hooks/useAppNavigate";
 import { hasToastManager, showToast } from "../toastBridge";
 import InlineBadgeEditor from "../InlineBadgeEditor";
-import AvatarSlot from "../ui/AvatarSlot";
+import AvatarSlot, { PROFILE_HERO_AVATAR_CLASS } from "../ui/AvatarSlot";
 import { DeploymentUserLimitText } from "../ui/DeploymentUserLimitText";
 import { isDeploymentUserLimitRefusal } from "../../utils/deploymentUserLimit";
 import { HumanAvatarEditMenu } from "./HumanAvatarEditMenu";
@@ -667,7 +667,7 @@ export default function HumanDetailPanel({
               aria-label={formatMessage({ id: "member.detail.viewAvatar" })}
             >
               <AvatarSlot
-                context="profile-hero"
+                context="profile-hero" className={PROFILE_HERO_AVATAR_CLASS}
                 type="human"
                 humanAvatarUrl={avatarUrl}
               />
@@ -675,7 +675,7 @@ export default function HumanDetailPanel({
             </Tooltip>
           ) : (
             <AvatarSlot
-              context="profile-hero"
+              context="profile-hero" className={PROFILE_HERO_AVATAR_CLASS}
               type="human"
               humanAvatarUrl={avatarUrl}
             />

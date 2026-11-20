@@ -32,8 +32,8 @@ afterAll(async () => {
   await page.viewport(1280, 720);
 });
 
-/** The dialog's inline padding: 20px, and the 16px page inset with a mouse on a desktop (stdrc, 2026-11-05). */
-const margin = () => (matchMedia("(width >= 48rem) and (pointer: fine)").matches ? 16 : 20);
+/** The dialog's inline padding: 20px, with a mouse too (Raft redesign C17: an AlertDialog is inset as a Dialog, 20). */
+const margin = () => 20;
 
 /** Whether Cancel draws a frame: an ink border and the card fill (Button, `in-data-stacked:`). */
 function framed(button: HTMLElement) {
