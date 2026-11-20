@@ -576,7 +576,8 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
                 />
               )}
             >
-              <AppRailItemIcon>
+              {/* On the round avatar the dot sits on its top right, 45° round, over its edge, with a 1px canvas ring (Figmama 11/20). */}
+              <AppRailItemIcon className="md:pointer-fine:[&_[data-slot=app-rail-item-indicator]]:top-px md:pointer-fine:[&_[data-slot=app-rail-item-indicator]]:right-px md:pointer-fine:[&_[data-slot=app-rail-item-indicator]]:ring-1 md:pointer-fine:[&_[data-slot=app-rail-item-indicator]]:ring-layer-canvas">
                 {/* Raft redesign (Figmama 11/20): with a mouse a 32px circle with no edge, as in a message. */}
                 <AvatarSlot
                   context="compact-row"
