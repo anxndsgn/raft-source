@@ -1,8 +1,7 @@
 import type { ChangeEvent as ReactChangeEvent, CompositionEvent as ReactCompositionEvent, RefObject } from "react";
 import { useIntl } from "react-intl";
 import { Search, X } from "lucide-react";
-import { Button, InputGroup, InputGroupAddon, InputGroupInput, Kbd } from "@botiverse/raft-ui";
-import { SEARCH_KEY_HINT_CLASS } from "./searchConstants";
+import { Button, InputGroup, InputGroupAddon, InputGroupInput } from "@botiverse/raft-ui";
 
 /**
  * DS Search field (`rf-search`): one 44px ink-bordered control with the
@@ -43,12 +42,8 @@ export function SearchQueryField({
         aria-label={placeholder}
         data-testid="message-search-input"
       />
-      {/* The Esc hint comes before the clear button: on a phone the hint is
-          hidden, and the button, last in the field, sits 6px from its end. */}
+      {/* Raft redesign (Figmama 11/20): no Esc hint; the clear button does the same. */}
       <InputGroupAddon align="inline-end">
-        <Kbd className={`hidden sm:inline-flex ${SEARCH_KEY_HINT_CLASS}`}>
-          Esc
-        </Kbd>
         {query ? (
           <Button
             type="button"

@@ -184,14 +184,6 @@
     "reason": "Protocol @ prefix before agent/human handles in the profile preview card."
   },
   {
-    "path": "src/features/search/SearchQueryField.tsx",
-    "rule": "formatjs/no-literal-string-in-jsx",
-    "source": "Esc",
-    "count": 1,
-    "classification": "protocol",
-    "reason": "Production search-rail keyboard-cap hint for Esc; same keycap protocol as ⌘K/Ctrl+K."
-  },
-  {
     "path": "src/components/settings/AppNotificationsControls.tsx",
     "rule": "formatjs/no-literal-string-in-jsx",
     "source": "placeholder=\"https://example.com/raft/events\"",
