@@ -37,6 +37,8 @@ interface InlineBadgeEditorProps {
   onRequestClose?: () => void;
   badgeClassName: string;
   badgeVariant?: BadgeProps["variant"];
+  /** A status trigger drawn as its square alone (a task list row, C13): the label is for screen readers, no chevron. */
+  iconOnly?: boolean;
   /**
    * When set, the trigger renders raft-ui's `TaskStatusBadge` for this status,
    * so the icon + colours come from the single task-status source instead of a
@@ -94,6 +96,7 @@ export default function InlineBadgeEditor({
   badgeClassName,
   badgeVariant = "muted",
   badgeStatus,
+  iconOnly = false,
   capitalize,
   dropdownMinWidth = "min-w-[120px]",
   dropdownAlign,
@@ -237,8 +240,12 @@ export default function InlineBadgeEditor({
       aria-expanded={open}
       className={`mt-0.5 ${buttonClassName ?? ""}`.trim()}
     >
-      {displayValue}
-      <ChevronDown size={12} aria-hidden="true" />
+      {iconOnly ? <span className="sr-only">{displayValue}</span> : (
+        <>
+          {displayValue}
+          <ChevronDown size={12} aria-hidden="true" />
+        </>
+      )}
     </TaskStatusBadge>
   ) : (
     <Badge

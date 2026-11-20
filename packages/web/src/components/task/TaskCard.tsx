@@ -32,7 +32,10 @@ import { STATUS_STYLES, canEditTaskStatus, getTaskStatusOptions, toRuiTaskStatus
 // the foot under it with the status chip.
 const TASK_CARD_OPEN_CLASS = "inline-block w-full rounded-control text-left outline-none focus-visible:shadow-focus";
 const TASK_CARD_FOOT_CLASS = "mt-2 flex min-w-0 items-center gap-2";
-const TASK_ROW_CLASS = "flex h-10 w-full items-center gap-3 rounded-none border-0 border-b border-line-hairline bg-transparent px-3 py-0 hover:bg-fill-subtle! hover:bg-none!";
+const TASK_ROW_CLASS = "flex h-10 w-full items-center gap-3 rounded-none border-0 border-b border-line-hairline bg-transparent px-3 py-0 hover:bg-fill-subtle hover:bg-none! data-current:hover:bg-fill-cell-selected data-selected:hover:bg-fill-cell-selected";
+// The row's status: the 8px square alone in a 20px target, 6px into the row's 12px inset so the square
+// sits 12 in, under the group head's; pointed at, a fill-subtle tile says it can be clicked.
+const TASK_ROW_STATUS_CLASS = "-ml-1.5 mt-0 size-5 justify-center gap-0 rounded-control bg-transparent px-0 hover:bg-fill-subtle";
 const TASK_ROW_OPEN_CLASS = "flex h-full min-w-0 flex-1 items-center gap-3 text-left outline-none focus-visible:shadow-focus";
 
 // Memoized so a single task update (status change, drag-reorder, socket
@@ -118,6 +121,8 @@ function TaskCard({ task, onOpen, showChannelName = true, footerEnd, titleEnd, c
               onRequestClose={closeStatusEditor}
               triggerRef={statusChipRef}
               badgeClassName=""
+              iconOnly={layout === "row"}
+              buttonClassName={layout === "row" ? TASK_ROW_STATUS_CLASS : undefined}
               dropdownMinWidth="min-w-[140px]"
               dropdownAlign="left"
               dropdownTestId="task-status-menu"
@@ -132,8 +137,8 @@ function TaskCard({ task, onOpen, showChannelName = true, footerEnd, titleEnd, c
             />
           </div>
         ) : (
-          <StatusBadge status={task.status} data-testid="task-status-readonly">
-            {formatMessage({ id: style.labelId })}
+          <StatusBadge status={task.status} data-testid="task-status-readonly" className={layout === "row" ? TASK_ROW_STATUS_CLASS : undefined}>
+            {layout === "row" ? <span className="sr-only">{formatMessage({ id: style.labelId })}</span> : formatMessage({ id: style.labelId })}
           </StatusBadge>
         )
   );
