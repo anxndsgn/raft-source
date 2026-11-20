@@ -320,7 +320,8 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
       tabs.push(tab("apps", appsLabel, ({ dragProps, guardClick }) => (
         <RailTabButton
           {...dragProps}
-          icon={<Blocks size={18} />}
+          // anxndsgn 11/20: the store's blocks are 20, not the rail's 24 (the button stays 36).
+          icon={<Blocks size={18} className="!size-5" />}
           label={appsLabel}
           active={railMode === "apps"}
           showDot={appsAttention.lit}

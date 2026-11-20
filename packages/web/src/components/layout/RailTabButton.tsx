@@ -1,4 +1,4 @@
-import { forwardRef, useCallback } from "react";
+import { cloneElement, forwardRef, isValidElement, useCallback } from "react";
 import { AppRailItem, AppRailItemAttention, AppRailItemIcon, AppRailItemLabel } from "@botiverse/raft-ui";
 
 import Tooltip from "../ui/Tooltip";
@@ -77,7 +77,8 @@ export const RailTabButton = forwardRef<HTMLButtonElement, RailTabButtonProps>(f
       className={`size-(--rail-item) [@media(max-height:600px)]:h-9 [@media(max-height:600px)]:w-9 ${className}`}
     >
       <AppRailItemIcon className="relative">
-        {icon}
+        {/* anxndsgn 11/20: the selected item shows its icon's filled style (Raft icons take `filled`). */}
+        {active && isValidElement<{ filled?: boolean }>(icon) ? cloneElement(icon, { filled: true }) : icon}
         {/* Raft redesign: a rail item shows the dot only, never a number; the count is in the place it opens. */}
         {(badgeCount && badgeCount > 0) || dotVisible ? (
           <AppRailItemAttention title={dotTooltip ?? label} />
