@@ -457,6 +457,7 @@ export function ThreadsInbox() {
   // the title focuses the next unread row.
   const headerContainerProps = useMemo(() => ({
     "data-testid": "inbox-header",
+    "data-full-page-head": "",
     title: isPhoneTabRoot ? undefined : jumpToNextUnreadTitle,
     onClick: isPhoneTabRoot ? goToNextUnread : undefined,
   }), [goToNextUnread, isPhoneTabRoot, jumpToNextUnreadTitle]);
@@ -614,7 +615,7 @@ export function ThreadsInbox() {
 
   return (
     // Its left neighbour (the rail, or the sidebar) already draws the seam.
-    <ActivityInboxPanel edge="inset">
+    <ActivityInboxPanel edge="inset" data-full-page="">
       {/* No Back: on a phone /activity is the Activity tab root, reached from
           the tab bar (Raft DS › Navigation: tab roots have no Back), so its
           head is the tab roots' bar and its name the page's one h1. A host

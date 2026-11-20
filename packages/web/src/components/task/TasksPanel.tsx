@@ -67,6 +67,7 @@ import { LIST_TOOLBAR_MORE_GROUP_CLASS, LIST_TOOLBAR_STEP } from "../ui/listTool
 import { ListToolbarMore, ListViewSwitch, MoreMenuChoices } from "../ui/ListToolbarParts";
 import { useTabRootScroll } from "../../hooks/useTabRootScroll";
 import { TabRootBar } from "../layout/TabRootBar";
+import { FULL_PAGE_HEAD_PROPS } from "../ui/PanelHeader";
 import { usePinnedHeadRailInset } from "../../hooks/usePinnedHeadRailInset";
 import { PHONE_ROOT_TOOLBAR_CLASS, PHONE_ROOT_VIEWPORT_CLASS, TOOLBAR_CLASS, VIEWPORT_CLASS, VIEWPORT_CONTENT_CLASS } from "./tasksPanelViewport";
 import { LoadMoreSentinel } from "./tasksPage/LoadMoreSentinel";
@@ -1198,6 +1199,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
     <TasksPanelRoot
       className="flex min-h-0 flex-1 flex-col"
       data-testid={isChannelMode ? "channel-task-panel" : undefined}
+      data-full-page={isChannelMode ? undefined : ""}
     >
       {/* Server-mode page header. Channel mode is mounted inside ChatPanel
           which already shows the channel header, so a second "Tasks" title
@@ -1212,6 +1214,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
         <TabRootBar
           name={formatMessage({ id: "task.panel.heading" })}
           headingLevel={isPhoneTabRoot ? 1 : 2}
+          containerProps={FULL_PAGE_HEAD_PROPS}
           // Task #15: the page's New task, its primary action (the Create task dialog, the channel picked there).
           actions={(
             <Button variant="primary" size={isPhoneTabRoot ? "md" : "sm"} onClick={openCreateDialog} data-testid="tasks-page-header-new-task">

@@ -3,7 +3,7 @@ import { useIntl } from "react-intl";
 import { useNavigate } from "react-router-dom";
 import { Users } from "lucide-react";
 import { Tabs, TabsLabel, TabsList, TabsTab } from "@botiverse/raft-ui";
-import PanelHeader from "../../components/ui/PanelHeader";
+import PanelHeader, { FULL_PAGE_HEAD_PROPS } from "../../components/ui/PanelHeader";
 import type { AppPanelHeaderProps } from "../../components/ui/PanelHeader";
 import { useMachineStore } from "../../store/machineStore";
 import { useServerStore } from "../../store/serverStore";
@@ -37,8 +37,9 @@ export function TeamHeader({ view, onMobileBack, mobileBackProps }: {
   ));
   return (
     // The head's own 20px edge (the Members tab's), the same on every tab.
-    <div className="flex shrink-0 flex-col [--column-margin:20px]" data-testid="team-header">
+    <div className="flex shrink-0 flex-col [--column-margin:20px]" data-testid="team-header" data-full-page="">
       <PanelHeader
+        containerProps={FULL_PAGE_HEAD_PROPS}
         title={formatMessage({ id: "team.page.title" })}
         icon={<Users size={18} />}
         // No "0 members" while they load: the counts come with the members.

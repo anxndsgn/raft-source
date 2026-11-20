@@ -1640,3 +1640,18 @@ html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [d
     visibility: hidden;
   }
 }
+
+/* Raft redesign (Figmama 11/21): a full page (Artifacts, Tasks, Team, Apps, Inbox, Settings) keeps its title,
+   toolbar and content on one left edge, 20px in, with a mouse; its head draws no line under it (the toolbar's or
+   the tabs' line is the one). Pages mark their root `data-full-page` and their head `data-full-page-head`. */
+@media (width >= 48rem) and (pointer: fine) {
+  [data-full-page] {
+    --column-margin: 20px;
+    --surface-inset: 20px;
+    --page-inset: 20px;
+  }
+  [data-full-page] [data-full-page-head] {
+    padding-inline: 20px;
+    border-bottom-width: 0;
+  }
+}

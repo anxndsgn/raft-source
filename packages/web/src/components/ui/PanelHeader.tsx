@@ -304,3 +304,6 @@ export default function AppPanelHeader({
     </>
   );
 }
+
+/** A full page's head (Artifacts, Tasks, Team, Apps, Inbox, Settings): index.css `[data-full-page-head]`. */
+export const FULL_PAGE_HEAD_PROPS = { "data-full-page-head": "" } as const;

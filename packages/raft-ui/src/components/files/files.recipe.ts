@@ -17,7 +17,7 @@ export const files = tv({
       // Raft redesign (Figmama 11/21): with a mouse an item card: no edge or
       // fill at rest, 8/10 inside, the card corner; the subtle fill on hover.
       "md:pointer-fine:gap-2.5 md:pointer-fine:border-transparent md:pointer-fine:bg-transparent md:pointer-fine:px-2.5 md:pointer-fine:py-2",
-      "md:pointer-fine:[@media(hover:hover)]:has-[[data-slot=file-row-open]:hover]:bg-fill-subtle md:pointer-fine:[@media(hover:hover)]:has-[[data-slot=file-row-open]:hover]:bg-none",
+      "md:pointer-fine:hover:bg-fill-subtle",
     ],
     rowOpen: [
       "flex min-w-0 flex-1 gap-3 text-left",
@@ -32,7 +32,7 @@ export const files = tv({
       "size-9 rounded-chip border-0 bg-fill-muted text-foreground-muted",
       "has-[[data-slot=file-preview]]:size-9",
       // A 32px tile of 5% ink at the control corner, a 16px icon (or a 32px thumbnail).
-      "md:pointer-fine:size-8 md:pointer-fine:rounded-control md:pointer-fine:bg-fill-medium md:pointer-fine:[&_svg]:size-4 md:pointer-fine:has-[[data-slot=file-preview]]:size-8",
+      "md:pointer-fine:size-8 md:pointer-fine:rounded-control md:pointer-fine:bg-fill-medium md:pointer-fine:[&_svg]:size-4",
     ],
     image: [
       "block size-full",
@@ -49,7 +49,8 @@ export const files = tv({
     ],
     metaItem: [
       "inline-flex items-center gap-1 [&_svg]:size-3 [&_svg]:shrink-0",
-      "md:pointer-fine:[&_svg]:hidden md:pointer-fine:not-first:before:content-['_·_'] md:pointer-fine:not-first:before:whitespace-pre",
+      // No gap: a flex gap would also stand between the dot and the words.
+      "md:pointer-fine:gap-0 md:pointer-fine:[&_svg]:hidden md:pointer-fine:not-first:before:content-['_·_'] md:pointer-fine:not-first:before:whitespace-pre",
     ],
     // With a mouse the More button shows while the row is hovered or its menu is open.
     actions: ["flex shrink-0 self-center items-center gap-1.5", "md:pointer-fine:[&_[data-slot=button]]:size-6 md:pointer-fine:opacity-0 md:pointer-fine:group-hover/file-row:opacity-100 md:pointer-fine:has-data-popup-open:opacity-100 md:pointer-fine:focus-within:opacity-100"],

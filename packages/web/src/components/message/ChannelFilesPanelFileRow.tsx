@@ -18,6 +18,7 @@ import { isHeicImageMimeType } from "../../utils/imageMimeTypes";
 import { useTimeFormatter } from "../../hooks/useTimeFormatter";
 import AvatarListRow from "../ui/AvatarListRow";
 import AttachmentTooltip from "./attachmentTooltip";
+import { TruncatedTooltip } from "./TruncatedTooltip";
 import {
   formatChannelFileSize,
   getChannelFileType,
@@ -190,11 +191,12 @@ export function ChannelFilesPanelFileRow({
     return (
       <FileRow className="channel-file-row" data-testid="channel-file-item-card">
         <FileRowOpen onClick={handlePreview} {...previewButtonProps}>
-          <FileThumbnail aria-hidden="true" className="[&_img]:size-full [&_img]:object-cover">
+          <FileThumbnail aria-hidden="true" className="[&_img]:size-full [&_img]:object-cover [&>[data-testid=channel-file-compact-visual]]:size-full [&>[data-testid=channel-file-compact-visual]]:rounded-none">
             <ChannelFileVisual file={file} canPreview={canPreview} icon={Icon} compact />
           </FileThumbnail>
           <FileContent>
-            <FileName><AttachmentTooltip content={file.filename}><span>{file.filename}</span></AttachmentTooltip></FileName>
+            {/* The whole name on hover only when it is cut short (Figmama 11/21). */}
+            <FileName><TruncatedTooltip content={file.filename} className="block truncate">{file.filename}</TruncatedTooltip></FileName>
             <FileMeta>
               <FileMetaItem>{formatChannelFileSize(file.sizeBytes, formatMessage)}</FileMetaItem>
               <FileMetaItem>{formatShortDateTime(file.createdAt)}</FileMetaItem>

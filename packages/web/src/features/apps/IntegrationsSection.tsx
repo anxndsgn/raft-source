@@ -56,7 +56,7 @@ import api from "../../api/client";
 import { appPermissionsChangedCurrentSet, expectedAppPermissionsBody, isAppPermissionsChangedError, isExpectedPermissionsRequiredError } from "../../lib/appPermissionExpectation";
 import { AppPermissionSetList } from "../../components/integrations/AppPermissionSetList";
 import { useIntl } from "react-intl";
-import PanelHeader from "../../components/ui/PanelHeader";
+import PanelHeader, { FULL_PAGE_HEAD_PROPS } from "../../components/ui/PanelHeader";
 import SectionEyebrow from "../../components/ui/SectionEyebrow";
 import SectionHeader from "../../components/ui/SectionHeader";
 import FormField from "../../components/ui/FormField";
@@ -2257,9 +2257,10 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
     // tabs its scope, Add App at its end) drawn at once and pinned; only the
     // list scrolls. On a phone it is a pushed page with Back.
     return (
-      <div className="flex min-h-0 flex-1 bg-layer-canvas text-foreground" data-testid="apps-page">
+      <div className="flex min-h-0 flex-1 bg-layer-canvas text-foreground" data-testid="apps-page" data-full-page="">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <PanelHeader
+            containerProps={FULL_PAGE_HEAD_PROPS}
             title={pageTitle}
             onMobileBack={onAppsMobileBack}
             mobileBackProps={appsMobileBackProps}

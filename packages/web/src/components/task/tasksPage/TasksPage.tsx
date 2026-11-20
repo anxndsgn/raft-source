@@ -335,13 +335,13 @@ export function TasksPage() {
 
   const viewportContentClass = `${VIEWPORT_CONTENT_CLASS} mobile-nav-clearance ${isPhone ? PHONE_ROOT_VIEWPORT_CLASS : ""} ${selectedTasks.length > 0 ? "pb-24" : ""}`;
   return (
-    <TasksPanelRoot ref={rootRef} className="relative flex min-h-0 flex-1 flex-col" data-tasks-page="" data-testid="tasks-page">
+    <TasksPanelRoot ref={rootRef} className="relative flex min-h-0 flex-1 flex-col" data-tasks-page="" data-testid="tasks-page" data-full-page="">
       {isPhone ? (
         // On a phone the head is the Tasks tab root's bar (its one h1).
         <TabRootBar name={formatMessage({ id: "task.panel.heading" })} headingLevel={1} subtitle={headNumber} />
       ) : (
         // Raft DS › Panel: the head names the page (no icon tile), its number beside it; the search is the toolbar's.
-        <PanelSectionHeader data-tab-root-bar="">
+        <PanelSectionHeader data-tab-root-bar="" data-full-page-head="">
           <PanelHeaderContent className="flex-row items-baseline gap-2">
             <PanelTitle render={<h2>{formatMessage({ id: "task.panel.heading" })}</h2>} />
             {headNumber ? <span className="text-mono-meta text-foreground-hint">{headNumber}</span> : null}

@@ -108,6 +108,7 @@ export function SettingsPanel({
   const headerContainerProps = useMemo(() => ({
     "data-testid": "settings-panel-header",
     "data-slock-settings-tab": settingsTab,
+    "data-full-page-head": "",
   }), [settingsTab]);
   const mobileBackProps = useMemo(
     () => ({ "data-testid": "settings-mobile-back", title: formatMessage({ id: "settings.tabs.back" }) }),
@@ -118,7 +119,7 @@ export function SettingsPanel({
     // One seam between two regions: the settings list beside this panel
     // already draws it, so the frame is inset and draws none of its own.
     // Settings content sits on paper.
-    <Panel edge="inset" className="flex min-h-0 flex-1 flex-col bg-layer-canvas text-foreground" data-testid="settings-panel-frame">
+    <Panel edge="inset" className="flex min-h-0 flex-1 flex-col bg-layer-canvas text-foreground" data-testid="settings-panel-frame" data-full-page="">
       {!embedded && settingsTab !== "feedback" && (
         <PanelHeader
           title={activeLabel}
