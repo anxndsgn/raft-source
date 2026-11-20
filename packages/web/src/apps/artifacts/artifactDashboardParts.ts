@@ -16,7 +16,7 @@ export const SKELETON_ROWS = 3;
 export const SKELETON_TABLE_ROWS = 8;
 
 /** The tile grid's box: the loaded grid's and its skeleton's, so the placeholders sit where the tiles will. */
-export const TILE_GRID_CLASS = "grid grid-cols-2 gap-2 px-(--column-margin) py-2 md:grid-cols-[repeat(auto-fill,minmax(248px,1fr))] md:gap-3";
+export const TILE_GRID_CLASS = "grid grid-cols-2 gap-2 px-(--column-margin) py-2 md:grid-cols-[repeat(auto-fill,minmax(248px,1fr))] md:gap-3 md:pointer-fine:gap-4 md:pointer-fine:pt-5 md:pointer-fine:pb-5";
 
 /** A filter list's chosen row reads bold, beside its check (Kirby's draft, #proj-workspace:#221). */
 export const CHOSEN_BOLD = "data-selected:font-bold";

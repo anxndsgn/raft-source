@@ -71,7 +71,7 @@ const TILE_SCOPE_HIT_CLASS = "supports-[anchor-scope:all]:pointer-coarse:enabled
 
 // Raft redesign (C19): with a mouse a tile is a card on the canvas with a hairline edge, no
 // grey fill; pointed at, the edge goes 15% ink (no wash over the picture).
-const TILE_CARD_CLASS = "md:pointer-fine:bg-layer-canvas md:pointer-fine:border-line-hairline md:pointer-fine:hover:bg-none md:pointer-fine:active:bg-none md:pointer-fine:hover:border-[color-mix(in_oklch,var(--foreground)_15%,transparent)]";
+const TILE_CARD_CLASS = "md:pointer-fine:bg-layer-canvas md:pointer-fine:border-line-hairline md:pointer-fine:hover:bg-none! md:pointer-fine:active:bg-none! md:pointer-fine:hover:border-[color-mix(in_oklch,var(--foreground)_15%,transparent)]";
 
 /**
  * One Artifact in the home page's grid (#proj-workspace:#133, design g1, c1):
