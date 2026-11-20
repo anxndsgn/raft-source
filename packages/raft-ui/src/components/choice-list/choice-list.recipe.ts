@@ -7,6 +7,8 @@ export const choiceList = tv({
     frame: [
       "flex min-w-0 flex-col overflow-hidden",
       "rounded-container border border-line-hairline bg-layer-card",
+      // Raft redesign (Figmama 11/21): with a mouse the card rule: the canvas with a hairline.
+      "md:pointer-fine:bg-layer-canvas",
     ],
     scroller: ["min-h-0 min-w-0 p-1"],
     rows: ["grid grid-cols-[minmax(0,1fr)_auto] gap-x-0 gap-y-0.5"],
@@ -21,7 +23,7 @@ export const choiceList = tv({
       "min-h-option py-option-inset",
       "pointer-coarse:min-h-11 pointer-coarse:py-[calc((--spacing(11)-1lh)/2)]",
       "text-left font-sans text-subhead",
-      "not-data-disabled:hover:bg-brand-soft not-data-disabled:active:overlay-medium",
+      "not-data-disabled:hover:bg-brand-soft not-data-disabled:active:overlay-medium md:pointer-fine:not-data-disabled:hover:bg-fill-subtle",
       "data-disabled:cursor-not-allowed",
     ],
     media: ["flex h-lh shrink-0 items-center"],

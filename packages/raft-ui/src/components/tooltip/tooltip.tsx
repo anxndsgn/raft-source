@@ -283,7 +283,7 @@ export function TooltipContent({
         disableAnchorTracking={disableAnchorTracking}
         positionMethod={positionMethod}
         side={side}
-        sideOffset={sideOffset ?? 8}
+        sideOffset={sideOffset ?? 6} // Raft redesign (Figmama 11/21): 6px from what it names
         sticky={sticky}
         className={positioner()}
       >

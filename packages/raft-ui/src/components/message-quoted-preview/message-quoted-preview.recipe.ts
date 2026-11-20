@@ -6,6 +6,8 @@ export const messageQuotedPreview = tv({
       "w-full",
       "rounded-none border-0 border-l-2 border-line-seam bg-transparent pl-2.5",
       "text-foreground-muted",
+      // Raft redesign (Figmama 11/21): with a mouse a 2px line of 15% ink.
+      "md:pointer-fine:border-[color-mix(in_oklch,var(--foreground)_15%,transparent)]",
     ],
     content: ["min-w-0", "p-0"],
     // With "(sent by …)" the line wraps rather than cut it: the place and the
@@ -26,11 +28,11 @@ export const messageQuotedPreview = tv({
       "gap-1 text-footnote font-semibold text-foreground-hint [&_svg]:size-3.5 [&_svg]:lead-icon",
     ],
     author: ["inline-flex min-w-0 items-center", "gap-1.5"],
-    authorName: ["truncate", "text-footnote font-bold text-foreground-muted"],
+    authorName: ["truncate", "text-footnote font-bold text-foreground-muted", "md:pointer-fine:font-semibold"],
     authorMeta: ["truncate", "text-caption text-foreground-hint"],
     authorDelegatedBy: ["shrink-0 whitespace-nowrap", "text-footnote text-foreground-muted"],
     timestamp: ["ml-auto shrink-0", "font-mono text-mono-meta tabular-nums text-foreground-hint"],
-    text: ["line-clamp-2", "text-callout text-foreground-muted"],
+    text: ["line-clamp-2", "text-callout text-foreground-muted", "md:pointer-fine:text-footnote"],
     attachments: ["flex flex-wrap gap-1.5", "mt-1.5"],
     attachment: [
       "inline-flex items-center",

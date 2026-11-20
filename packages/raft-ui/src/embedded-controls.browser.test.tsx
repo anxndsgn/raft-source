@@ -703,9 +703,14 @@ function moreCases(s: Screen) {
       </>,
     );
     const short = inset(screen.getByTestId("short"), screen.getByTestId("short-copy"));
-    near(short.top, 6);
-    near(short.bottom, 6);
-    near(short.right, 6);
+    if (s.touch) {
+      near(short.top, 6);
+      near(short.bottom, 6);
+      near(short.right, 6);
+    } else {
+      // Raft redesign (Figmama 11/21): with a mouse a 24px copy button, centred on a one-line block.
+      expect(Math.abs(short.top - short.bottom)).toBeLessThanOrEqual(2);
+    }
     const code = screen.getByTestId("long-code");
     expect(code.scrollWidth).toBeGreaterThan(code.clientWidth);
     // Code that scrolls is a named region the keyboard reaches; code that

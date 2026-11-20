@@ -7,6 +7,7 @@ const inlineCode = tv({
       "rounded-sticker px-1 py-px",
       "font-mono text-[0.875em] font-normal text-foreground wrap-anywhere",
       "bg-fill-muted",
+      "md:pointer-fine:bg-fill-medium md:pointer-fine:text-[0.9em]",
     ],
   },
   variants: {
@@ -27,6 +28,8 @@ const inlineCode = tv({
           // area's centre (ascent, descent, cap height), so move the fill down
           // by as much and the letters look centred in it.
           "rounded-sticker bg-fill-muted pt-[calc(1px-0.0275em)] pb-[calc(1px+0.0275em)] text-foreground",
+          // Raft redesign (Figmama 11/21): with a mouse 5% ink, 4px sides, 0.9em mono.
+          "md:pointer-fine:bg-fill-medium md:pointer-fine:[font-size:0.9em]",
         ],
       },
     },

@@ -9,6 +9,8 @@ export const messageForwardedBundle = tv({
     headerLabel: [
       "inline-flex shrink-0 items-center",
       "gap-1 text-footnote font-bold text-foreground-muted [&_svg]:size-3.5",
+      // Raft redesign (Figmama 11/21): with a mouse regular 12 muted, a 16px icon.
+      "md:pointer-fine:font-normal md:pointer-fine:text-caption md:pointer-fine:[&_svg]:size-4",
     ],
     headerCount: ["shrink-0", "font-mono text-mono-meta text-foreground-hint"],
     source: [
