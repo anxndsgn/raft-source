@@ -234,16 +234,17 @@ function Card({ valueWidth }: { valueWidth: number }) {
 }
 
 it("an action card's properties stack only when a value doesn't fit beside its label", () => {
-  // A 300px card leaves its properties about 274px, so 170px beside the label.
+  // A 328px card leaves its properties about 274px, so 170px beside the label: with a mouse the
+  // card's content stands 28px in, past the header icon (B7), and the fit measures the list itself.
   render(
-    <Region width={300}>
+    <Region width={328}>
       <Card valueWidth={120} />
     </Region>,
   );
   expect(beside("Channel", "value")).toBe(true);
   cleanup();
   render(
-    <Region width={300}>
+    <Region width={328}>
       <Card valueWidth={220} />
     </Region>,
   );

@@ -73,7 +73,8 @@ export const messageActionCardContent = tv({
     // (why the buttons are paused, what changed) is a line of its own above
     // them: in a 400px card a note beside two buttons had about 150px and
     // pushed the second button onto a line of its own.
-    actions: ["mt-1"],
+    // B7: with a mouse the buttons start at the title's edge, 8 under the body (the content's gap).
+    actions: ["mt-1", "md:pointer-fine:mt-0 md:pointer-fine:justify-start"],
     actionsNote: ["min-w-0 basis-full", "text-footnote text-foreground-muted"],
   },
 });

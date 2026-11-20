@@ -41,6 +41,8 @@ export const messageActionCard = tv({
       "before:size-2.5 before:shrink-0 before:rounded-[2px] before:border-[1.5px] before:border-sticker-ink before:content-['']",
       // B7: with a mouse the status is the 8px square of the task bar, no edge.
       "md:pointer-fine:before:size-2 md:pointer-fine:before:rounded-none md:pointer-fine:before:border-0",
+      // Every status reads the same, the square and its word, no chip fill (a muted one is a soft Badge).
+      "md:pointer-fine:h-auto md:pointer-fine:bg-transparent md:pointer-fine:px-0",
     ],
     collapseTrigger: [
       "flex shrink-0 cursor-pointer items-center justify-center",
