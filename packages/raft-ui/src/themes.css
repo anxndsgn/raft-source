@@ -94,7 +94,7 @@
   --foreground-on-frame-active: var(--sticker-ink);
   --layer-frame-active: oklch(1 0 0);
   --fill-frame-medium: oklch(0.1813 0.005 17.62 / 0.1);
-  --layer-sidebar: oklch(0.985 0.012 240);
+  --layer-sidebar: oklch(0.985 0 0);
 }
 
 .dark[data-theme="bots"] {
@@ -104,10 +104,10 @@
   --layer-frame-active: var(--brand-400);
   --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
-  --layer-canvas: oklch(0.235 0.02 240);
-  --layer-sidebar: oklch(0.205 0.022 240);
-  --layer-card: oklch(0.265 0.02 240);
-  --layer-popover: oklch(0.29 0.02 240);
+  --layer-canvas: oklch(0.235 0 0);
+  --layer-sidebar: oklch(0.205 0 0);
+  --layer-card: oklch(0.265 0 0);
+  --layer-popover: oklch(0.29 0 0);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -118,10 +118,10 @@
     --layer-frame-active: var(--brand-400);
     --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
-    --layer-canvas: oklch(0.235 0.02 240);
-    --layer-sidebar: oklch(0.205 0.022 240);
-    --layer-card: oklch(0.265 0.02 240);
-    --layer-popover: oklch(0.29 0.02 240);
+    --layer-canvas: oklch(0.235 0 0);
+    --layer-sidebar: oklch(0.205 0 0);
+    --layer-card: oklch(0.265 0 0);
+    --layer-popover: oklch(0.29 0 0);
   }
 }
 
@@ -139,7 +139,7 @@
   --foreground-on-frame-active: var(--sticker-ink);
   --layer-frame-active: oklch(1 0 0);
   --fill-frame-medium: oklch(0.1813 0.005 17.62 / 0.1);
-  --layer-sidebar: oklch(0.985 0.012 60);
+  --layer-sidebar: oklch(0.985 0 0);
 }
 
 .dark[data-theme="critters"] {
@@ -149,10 +149,10 @@
   --layer-frame-active: var(--brand-400);
   --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
-  --layer-canvas: oklch(0.235 0.02 60);
-  --layer-sidebar: oklch(0.205 0.022 60);
-  --layer-card: oklch(0.265 0.02 60);
-  --layer-popover: oklch(0.29 0.02 60);
+  --layer-canvas: oklch(0.235 0 0);
+  --layer-sidebar: oklch(0.205 0 0);
+  --layer-card: oklch(0.265 0 0);
+  --layer-popover: oklch(0.29 0 0);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -163,10 +163,10 @@
     --layer-frame-active: var(--brand-400);
     --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
-    --layer-canvas: oklch(0.235 0.02 60);
-    --layer-sidebar: oklch(0.205 0.022 60);
-    --layer-card: oklch(0.265 0.02 60);
-    --layer-popover: oklch(0.29 0.02 60);
+    --layer-canvas: oklch(0.235 0 0);
+    --layer-sidebar: oklch(0.205 0 0);
+    --layer-card: oklch(0.265 0 0);
+    --layer-popover: oklch(0.29 0 0);
   }
 }
 
@@ -184,7 +184,7 @@
   --layer-frame-active: var(--brand-400);
   --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
-  --layer-sidebar: oklch(0.985 0.012 293);
+  --layer-sidebar: oklch(0.985 0 0);
 }
 
 .dark[data-theme="space"] {
@@ -194,10 +194,10 @@
   --layer-frame-active: var(--brand-400);
   --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
-  --layer-canvas: oklch(0.235 0.035 293);
-  --layer-sidebar: oklch(0.205 0.039 293);
-  --layer-card: oklch(0.265 0.035 293);
-  --layer-popover: oklch(0.29 0.035 293);
+  --layer-canvas: oklch(0.235 0 0);
+  --layer-sidebar: oklch(0.205 0 0);
+  --layer-card: oklch(0.265 0 0);
+  --layer-popover: oklch(0.29 0 0);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -208,10 +208,10 @@
     --layer-frame-active: var(--brand-400);
     --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
-    --layer-canvas: oklch(0.235 0.035 293);
-    --layer-sidebar: oklch(0.205 0.039 293);
-    --layer-card: oklch(0.265 0.035 293);
-    --layer-popover: oklch(0.29 0.035 293);
+    --layer-canvas: oklch(0.235 0 0);
+    --layer-sidebar: oklch(0.205 0 0);
+    --layer-card: oklch(0.265 0 0);
+    --layer-popover: oklch(0.29 0 0);
   }
 }
 
@@ -229,7 +229,7 @@
   --foreground-on-frame-active: var(--sticker-ink);
   --layer-frame-active: oklch(1 0 0);
   --fill-frame-medium: oklch(0.1813 0.005 17.62 / 0.1);
-  --layer-sidebar: oklch(0.985 0.012 75);
+  --layer-sidebar: oklch(0.985 0 0);
 }
 
 .dark[data-theme="desk"] {
@@ -239,10 +239,10 @@
   --layer-frame-active: var(--brand-400);
   --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
-  --layer-canvas: oklch(0.235 0.02 75);
-  --layer-sidebar: oklch(0.205 0.022 75);
-  --layer-card: oklch(0.265 0.02 75);
-  --layer-popover: oklch(0.29 0.02 75);
+  --layer-canvas: oklch(0.235 0 0);
+  --layer-sidebar: oklch(0.205 0 0);
+  --layer-card: oklch(0.265 0 0);
+  --layer-popover: oklch(0.29 0 0);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -253,10 +253,10 @@
     --layer-frame-active: var(--brand-400);
     --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
-    --layer-canvas: oklch(0.235 0.02 75);
-    --layer-sidebar: oklch(0.205 0.022 75);
-    --layer-card: oklch(0.265 0.02 75);
-    --layer-popover: oklch(0.29 0.02 75);
+    --layer-canvas: oklch(0.235 0 0);
+    --layer-sidebar: oklch(0.205 0 0);
+    --layer-card: oklch(0.265 0 0);
+    --layer-popover: oklch(0.29 0 0);
   }
 }
 
@@ -274,7 +274,7 @@
   --foreground-on-frame-active: var(--sticker-ink);
   --layer-frame-active: oklch(1 0 0);
   --fill-frame-medium: oklch(0.1813 0.005 17.62 / 0.1);
-  --layer-sidebar: oklch(0.985 0.012 355);
+  --layer-sidebar: oklch(0.985 0 0);
 }
 
 .dark[data-theme="food"] {
@@ -284,10 +284,10 @@
   --layer-frame-active: var(--brand-400);
   --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
-  --layer-canvas: oklch(0.235 0.025 355);
-  --layer-sidebar: oklch(0.205 0.028 355);
-  --layer-card: oklch(0.265 0.025 355);
-  --layer-popover: oklch(0.29 0.025 355);
+  --layer-canvas: oklch(0.235 0 0);
+  --layer-sidebar: oklch(0.205 0 0);
+  --layer-card: oklch(0.265 0 0);
+  --layer-popover: oklch(0.29 0 0);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -298,10 +298,10 @@
     --layer-frame-active: var(--brand-400);
     --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
-    --layer-canvas: oklch(0.235 0.025 355);
-    --layer-sidebar: oklch(0.205 0.028 355);
-    --layer-card: oklch(0.265 0.025 355);
-    --layer-popover: oklch(0.29 0.025 355);
+    --layer-canvas: oklch(0.235 0 0);
+    --layer-sidebar: oklch(0.205 0 0);
+    --layer-card: oklch(0.265 0 0);
+    --layer-popover: oklch(0.29 0 0);
   }
 }
 
@@ -319,7 +319,7 @@
   --layer-frame-active: var(--brand-400);
   --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
-  --layer-sidebar: oklch(0.985 0.012 25);
+  --layer-sidebar: oklch(0.985 0 0);
 }
 
 .dark[data-theme="quest"] {
@@ -329,10 +329,10 @@
   --layer-frame-active: var(--brand-400);
   --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
-  --layer-canvas: oklch(0.235 0.03 25);
-  --layer-sidebar: oklch(0.205 0.033 25);
-  --layer-card: oklch(0.265 0.03 25);
-  --layer-popover: oklch(0.29 0.03 25);
+  --layer-canvas: oklch(0.235 0 0);
+  --layer-sidebar: oklch(0.205 0 0);
+  --layer-card: oklch(0.265 0 0);
+  --layer-popover: oklch(0.29 0 0);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -343,10 +343,10 @@
     --layer-frame-active: var(--brand-400);
     --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
-    --layer-canvas: oklch(0.235 0.03 25);
-    --layer-sidebar: oklch(0.205 0.033 25);
-    --layer-card: oklch(0.265 0.03 25);
-    --layer-popover: oklch(0.29 0.03 25);
+    --layer-canvas: oklch(0.235 0 0);
+    --layer-sidebar: oklch(0.205 0 0);
+    --layer-card: oklch(0.265 0 0);
+    --layer-popover: oklch(0.29 0 0);
   }
 }
 
@@ -364,7 +364,7 @@
   --foreground-on-frame-active: var(--sticker-ink);
   --layer-frame-active: oklch(1 0 0);
   --fill-frame-medium: oklch(0.1813 0.005 17.62 / 0.1);
-  --layer-sidebar: oklch(0.985 0.012 222);
+  --layer-sidebar: oklch(0.985 0 0);
 }
 
 .dark[data-theme="weather"] {
@@ -374,10 +374,10 @@
   --layer-frame-active: var(--brand-400);
   --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
-  --layer-canvas: oklch(0.235 0.03 245);
-  --layer-sidebar: oklch(0.205 0.033 245);
-  --layer-card: oklch(0.265 0.03 245);
-  --layer-popover: oklch(0.29 0.03 245);
+  --layer-canvas: oklch(0.235 0 0);
+  --layer-sidebar: oklch(0.205 0 0);
+  --layer-card: oklch(0.265 0 0);
+  --layer-popover: oklch(0.29 0 0);
   --theme-decor-top: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='48' shape-rendering='crispEdges'%3E%3Cg transform='translate(0 12) scale(3)'%3E%3Cpath fill='%23141111' d='M3 0h2v1h-2zM3 1h2v1h-2zM0 2h8v1h-8zM1 3h1v1h-1zM6 3h1v1h-1zM2 4h1v1h-1zM5 4h1v1h-1zM1 5h1v1h-1zM3 5h2v1h-2zM6 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM0 7h2v1h-2zM6 7h2v1h-2z'/%3E%3Cpath fill='%23ffd440' d='M2 3h4v1h-4zM3 4h2v1h-2zM2 5h1v1h-1zM5 5h1v1h-1zM1 6h1v1h-1zM6 6h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(38 4) scale(2)'%3E%3Cpath fill='%23141111' d='M2 0h3v1h-3zM1 1h1v1h-1zM4 1h1v1h-1zM0 2h1v1h-1zM3 2h1v1h-1zM0 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM3 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM4 5h2v1h-2zM7 5h1v1h-1zM1 6h1v1h-1zM6 6h1v1h-1zM2 7h4v1h-4z'/%3E%3Cpath fill='%23ffd440' d='M2 1h2v1h-2zM6 1h1v1h-1zM1 2h2v1h-2zM1 3h2v1h-2zM1 4h2v1h-2zM1 5h3v1h-3zM6 5h1v1h-1zM2 6h4v1h-4z'/%3E%3C/g%3E%3Cg transform='translate(80 14) scale(3)'%3E%3Cpath fill='%23141111' d='M2 1h2v1h-2zM1 2h1v1h-1zM4 2h2v1h-2zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM7 5h1v1h-1zM1 6h6v1h-6z'/%3E%3Cpath fill='%23ffffff' d='M2 2h2v1h-2zM1 3h5v1h-5zM1 4h6v1h-6zM1 5h6v1h-6z'/%3E%3C/g%3E%3Cg transform='translate(118 6) scale(2)'%3E%3Cpath fill='%23141111' d='M3 0h2v1h-2zM3 1h2v1h-2zM0 2h8v1h-8zM1 3h1v1h-1zM6 3h1v1h-1zM2 4h1v1h-1zM5 4h1v1h-1zM1 5h1v1h-1zM3 5h2v1h-2zM6 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM0 7h2v1h-2zM6 7h2v1h-2z'/%3E%3Cpath fill='%23ffd440' d='M2 3h4v1h-4zM3 4h2v1h-2zM2 5h1v1h-1zM5 5h1v1h-1zM1 6h1v1h-1zM6 6h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(160 12) scale(3)'%3E%3Cpath fill='%23141111' d='M3 0h4v1h-4zM2 1h1v1h-1zM5 1h1v1h-1zM1 2h1v1h-1zM4 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM1 4h2v1h-2zM5 4h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM1 6h1v1h-1zM3 6h1v1h-1zM1 7h2v1h-2z'/%3E%3Cpath fill='%23ffd440' d='M3 1h2v1h-2zM2 2h2v1h-2zM1 3h5v1h-5zM3 4h2v1h-2zM3 5h1v1h-1zM2 6h1v1h-1z'/%3E%3C/g%3E%3C/svg%3E");
   --theme-decor-rail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='112' shape-rendering='crispEdges'%3E%3Cg transform='translate(12 0) scale(3)'%3E%3Cpath fill='%23141111' d='M2 0h3v1h-3zM1 1h1v1h-1zM4 1h1v1h-1zM0 2h1v1h-1zM3 2h1v1h-1zM0 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM3 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM4 5h2v1h-2zM7 5h1v1h-1zM1 6h1v1h-1zM6 6h1v1h-1zM2 7h4v1h-4z'/%3E%3Cpath fill='%23ffd440' d='M2 1h2v1h-2zM6 1h1v1h-1zM1 2h2v1h-2zM1 3h2v1h-2zM1 4h2v1h-2zM1 5h3v1h-3zM6 5h1v1h-1zM2 6h4v1h-4z'/%3E%3C/g%3E%3Cg transform='translate(0 34) scale(2)'%3E%3Cpath fill='%23141111' d='M3 0h2v1h-2zM3 1h2v1h-2zM0 2h8v1h-8zM1 3h1v1h-1zM6 3h1v1h-1zM2 4h1v1h-1zM5 4h1v1h-1zM1 5h1v1h-1zM3 5h2v1h-2zM6 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM0 7h2v1h-2zM6 7h2v1h-2z'/%3E%3Cpath fill='%23ffd440' d='M2 3h4v1h-4zM3 4h2v1h-2zM2 5h1v1h-1zM5 5h1v1h-1zM1 6h1v1h-1zM6 6h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(24 52) scale(3)'%3E%3Cpath fill='%23141111' d='M2 0h2v1h-2zM1 1h1v1h-1zM4 1h2v1h-2zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM7 3h1v1h-1zM1 4h6v1h-6z'/%3E%3Cpath fill='%23ffffff' d='M2 1h2v1h-2zM1 2h5v1h-5zM1 3h6v1h-6z'/%3E%3Cpath fill='%2327ccf3' d='M1 5h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM1 7h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(4 86) scale(3)'%3E%3Cpath fill='%23141111' d='M2 0h4v1h-4zM2 1h4v1h-4zM0 2h8v1h-8zM0 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM5 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM7 5h1v1h-1zM0 6h1v1h-1zM7 6h1v1h-1zM1 7h6v1h-6z'/%3E%3Cpath fill='%23ffffff' d='M1 3h6v1h-6zM1 4h1v1h-1zM3 4h2v1h-2zM6 4h1v1h-1zM1 5h2v1h-2zM4 5h3v1h-3z'/%3E%3Cpath fill='%23f8a16f' d='M3 5h1v1h-1z'/%3E%3Cpath fill='%23f97264' d='M1 6h6v1h-6z'/%3E%3C/g%3E%3C/svg%3E");
 }
@@ -390,10 +390,10 @@
     --layer-frame-active: var(--brand-400);
     --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
-    --layer-canvas: oklch(0.235 0.03 245);
-    --layer-sidebar: oklch(0.205 0.033 245);
-    --layer-card: oklch(0.265 0.03 245);
-    --layer-popover: oklch(0.29 0.03 245);
+    --layer-canvas: oklch(0.235 0 0);
+    --layer-sidebar: oklch(0.205 0 0);
+    --layer-card: oklch(0.265 0 0);
+    --layer-popover: oklch(0.29 0 0);
     --theme-decor-top: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='48' shape-rendering='crispEdges'%3E%3Cg transform='translate(0 12) scale(3)'%3E%3Cpath fill='%23141111' d='M3 0h2v1h-2zM3 1h2v1h-2zM0 2h8v1h-8zM1 3h1v1h-1zM6 3h1v1h-1zM2 4h1v1h-1zM5 4h1v1h-1zM1 5h1v1h-1zM3 5h2v1h-2zM6 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM0 7h2v1h-2zM6 7h2v1h-2z'/%3E%3Cpath fill='%23ffd440' d='M2 3h4v1h-4zM3 4h2v1h-2zM2 5h1v1h-1zM5 5h1v1h-1zM1 6h1v1h-1zM6 6h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(38 4) scale(2)'%3E%3Cpath fill='%23141111' d='M2 0h3v1h-3zM1 1h1v1h-1zM4 1h1v1h-1zM0 2h1v1h-1zM3 2h1v1h-1zM0 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM3 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM4 5h2v1h-2zM7 5h1v1h-1zM1 6h1v1h-1zM6 6h1v1h-1zM2 7h4v1h-4z'/%3E%3Cpath fill='%23ffd440' d='M2 1h2v1h-2zM6 1h1v1h-1zM1 2h2v1h-2zM1 3h2v1h-2zM1 4h2v1h-2zM1 5h3v1h-3zM6 5h1v1h-1zM2 6h4v1h-4z'/%3E%3C/g%3E%3Cg transform='translate(80 14) scale(3)'%3E%3Cpath fill='%23141111' d='M2 1h2v1h-2zM1 2h1v1h-1zM4 2h2v1h-2zM0 3h1v1h-1zM6 3h1v1h-1zM0 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM7 5h1v1h-1zM1 6h6v1h-6z'/%3E%3Cpath fill='%23ffffff' d='M2 2h2v1h-2zM1 3h5v1h-5zM1 4h6v1h-6zM1 5h6v1h-6z'/%3E%3C/g%3E%3Cg transform='translate(118 6) scale(2)'%3E%3Cpath fill='%23141111' d='M3 0h2v1h-2zM3 1h2v1h-2zM0 2h8v1h-8zM1 3h1v1h-1zM6 3h1v1h-1zM2 4h1v1h-1zM5 4h1v1h-1zM1 5h1v1h-1zM3 5h2v1h-2zM6 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM0 7h2v1h-2zM6 7h2v1h-2z'/%3E%3Cpath fill='%23ffd440' d='M2 3h4v1h-4zM3 4h2v1h-2zM2 5h1v1h-1zM5 5h1v1h-1zM1 6h1v1h-1zM6 6h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(160 12) scale(3)'%3E%3Cpath fill='%23141111' d='M3 0h4v1h-4zM2 1h1v1h-1zM5 1h1v1h-1zM1 2h1v1h-1zM4 2h1v1h-1zM0 3h1v1h-1zM6 3h1v1h-1zM1 4h2v1h-2zM5 4h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM1 6h1v1h-1zM3 6h1v1h-1zM1 7h2v1h-2z'/%3E%3Cpath fill='%23ffd440' d='M3 1h2v1h-2zM2 2h2v1h-2zM1 3h5v1h-5zM3 4h2v1h-2zM3 5h1v1h-1zM2 6h1v1h-1z'/%3E%3C/g%3E%3C/svg%3E");
     --theme-decor-rail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='112' shape-rendering='crispEdges'%3E%3Cg transform='translate(12 0) scale(3)'%3E%3Cpath fill='%23141111' d='M2 0h3v1h-3zM1 1h1v1h-1zM4 1h1v1h-1zM0 2h1v1h-1zM3 2h1v1h-1zM0 3h1v1h-1zM3 3h1v1h-1zM0 4h1v1h-1zM3 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM4 5h2v1h-2zM7 5h1v1h-1zM1 6h1v1h-1zM6 6h1v1h-1zM2 7h4v1h-4z'/%3E%3Cpath fill='%23ffd440' d='M2 1h2v1h-2zM6 1h1v1h-1zM1 2h2v1h-2zM1 3h2v1h-2zM1 4h2v1h-2zM1 5h3v1h-3zM6 5h1v1h-1zM2 6h4v1h-4z'/%3E%3C/g%3E%3Cg transform='translate(0 34) scale(2)'%3E%3Cpath fill='%23141111' d='M3 0h2v1h-2zM3 1h2v1h-2zM0 2h8v1h-8zM1 3h1v1h-1zM6 3h1v1h-1zM2 4h1v1h-1zM5 4h1v1h-1zM1 5h1v1h-1zM3 5h2v1h-2zM6 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM0 7h2v1h-2zM6 7h2v1h-2z'/%3E%3Cpath fill='%23ffd440' d='M2 3h4v1h-4zM3 4h2v1h-2zM2 5h1v1h-1zM5 5h1v1h-1zM1 6h1v1h-1zM6 6h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(24 52) scale(3)'%3E%3Cpath fill='%23141111' d='M2 0h2v1h-2zM1 1h1v1h-1zM4 1h2v1h-2zM0 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM7 3h1v1h-1zM1 4h6v1h-6z'/%3E%3Cpath fill='%23ffffff' d='M2 1h2v1h-2zM1 2h5v1h-5zM1 3h6v1h-6z'/%3E%3Cpath fill='%2327ccf3' d='M1 5h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM4 6h1v1h-1zM1 7h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(4 86) scale(3)'%3E%3Cpath fill='%23141111' d='M2 0h4v1h-4zM2 1h4v1h-4zM0 2h8v1h-8zM0 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM5 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM7 5h1v1h-1zM0 6h1v1h-1zM7 6h1v1h-1zM1 7h6v1h-6z'/%3E%3Cpath fill='%23ffffff' d='M1 3h6v1h-6zM1 4h1v1h-1zM3 4h2v1h-2zM6 4h1v1h-1zM1 5h2v1h-2zM4 5h3v1h-3z'/%3E%3Cpath fill='%23f8a16f' d='M3 5h1v1h-1z'/%3E%3Cpath fill='%23f97264' d='M1 6h6v1h-6z'/%3E%3C/g%3E%3C/svg%3E");
   }
@@ -413,7 +413,7 @@
   --foreground-on-frame-active: var(--sticker-ink);
   --layer-frame-active: oklch(1 0 0);
   --fill-frame-medium: oklch(0.1813 0.005 17.62 / 0.1);
-  --layer-sidebar: oklch(0.985 0.012 158);
+  --layer-sidebar: oklch(0.985 0 0);
 }
 
 .dark[data-theme="plants"] {
@@ -423,10 +423,10 @@
   --layer-frame-active: var(--brand-400);
   --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
-  --layer-canvas: oklch(0.235 0.025 158);
-  --layer-sidebar: oklch(0.205 0.028 158);
-  --layer-card: oklch(0.265 0.025 158);
-  --layer-popover: oklch(0.29 0.025 158);
+  --layer-canvas: oklch(0.235 0 0);
+  --layer-sidebar: oklch(0.205 0 0);
+  --layer-card: oklch(0.265 0 0);
+  --layer-popover: oklch(0.29 0 0);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -437,10 +437,10 @@
     --layer-frame-active: var(--brand-400);
     --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
-    --layer-canvas: oklch(0.235 0.025 158);
-    --layer-sidebar: oklch(0.205 0.028 158);
-    --layer-card: oklch(0.265 0.025 158);
-    --layer-popover: oklch(0.29 0.025 158);
+    --layer-canvas: oklch(0.235 0 0);
+    --layer-sidebar: oklch(0.205 0 0);
+    --layer-card: oklch(0.265 0 0);
+    --layer-popover: oklch(0.29 0 0);
   }
 }
 
@@ -458,7 +458,7 @@
   --foreground-on-frame-active: var(--sticker-ink);
   --layer-frame-active: oklch(1 0 0);
   --fill-frame-medium: oklch(0.1813 0.005 17.62 / 0.1);
-  --layer-sidebar: oklch(0.985 0.012 52);
+  --layer-sidebar: oklch(0.985 0 0);
 }
 
 .dark[data-theme="spooky"] {
@@ -468,10 +468,10 @@
   --layer-frame-active: var(--brand-400);
   --foreground-on-frame-active: var(--sticker-ink);
   --fill-frame-medium: oklch(1 0 0 / 0.1);
-  --layer-canvas: oklch(0.235 0.03 300);
-  --layer-sidebar: oklch(0.205 0.033 300);
-  --layer-card: oklch(0.265 0.03 300);
-  --layer-popover: oklch(0.29 0.03 300);
+  --layer-canvas: oklch(0.235 0 0);
+  --layer-sidebar: oklch(0.205 0 0);
+  --layer-card: oklch(0.265 0 0);
+  --layer-popover: oklch(0.29 0 0);
   --theme-decor-top: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='48' shape-rendering='crispEdges'%3E%3Cg transform='translate(0 12) scale(3)'%3E%3Cpath fill='%23141111' d='M2 0h4v1h-4zM1 1h1v1h-1zM6 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM0 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM0 7h1v1h-1zM2 7h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1z'/%3E%3Cpath fill='%23ffffff' d='M2 1h4v1h-4zM1 2h1v1h-1zM3 2h2v1h-2zM6 2h1v1h-1zM1 3h6v1h-6zM1 4h6v1h-6zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h1v1h-1zM3 6h2v1h-2zM6 6h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(38 4) scale(2)'%3E%3Cpath fill='%23141111' d='M2 1h4v1h-4zM1 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h1v1h-1zM3 4h2v1h-2zM7 4h1v1h-1zM1 5h1v1h-1zM6 5h1v1h-1zM2 6h4v1h-4z'/%3E%3Cpath fill='%23ffffff' d='M2 2h4v1h-4zM1 3h2v1h-2zM5 3h2v1h-2zM1 4h2v1h-2zM5 4h2v1h-2zM2 5h4v1h-4z'/%3E%3C/g%3E%3Cg transform='translate(80 14) scale(3)'%3E%3Cpath fill='%23141111' d='M0 1h1v1h-1zM2 1h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h8v1h-8zM0 5h1v1h-1zM2 5h4v1h-4zM7 5h1v1h-1zM3 6h2v1h-2z'/%3E%3Cpath fill='%23ffffff' d='M2 3h1v1h-1zM5 3h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(118 6) scale(2)'%3E%3Cpath fill='%23141111' d='M3 0h1v1h-1zM2 1h1v1h-1zM4 1h1v1h-1zM2 2h1v1h-1zM4 2h2v1h-2zM1 3h1v1h-1zM6 3h1v1h-1zM1 4h1v1h-1zM6 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM0 6h1v1h-1zM5 6h1v1h-1zM1 7h4v1h-4z'/%3E%3Cpath fill='%23f97264' d='M3 1h1v1h-1zM3 2h1v1h-1zM3 3h3v1h-3zM4 4h2v1h-2zM5 5h1v1h-1z'/%3E%3Cpath fill='%23f8a16f' d='M2 3h1v1h-1zM2 4h2v1h-2zM2 5h3v1h-3zM3 6h2v1h-2z'/%3E%3Cpath fill='%23ffd440' d='M1 5h1v1h-1zM1 6h2v1h-2z'/%3E%3C/g%3E%3Cg transform='translate(160 12) scale(3)'%3E%3Cpath fill='%23141111' d='M3 0h2v1h-2zM3 1h1v1h-1zM5 1h1v1h-1zM1 2h6v1h-6zM0 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM5 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM7 5h1v1h-1zM0 6h1v1h-1zM2 6h4v1h-4zM7 6h1v1h-1zM1 7h6v1h-6z'/%3E%3Cpath fill='%23a9d877' d='M4 1h1v1h-1z'/%3E%3Cpath fill='%23f8a16f' d='M1 3h6v1h-6zM1 4h1v1h-1zM3 4h2v1h-2zM6 4h1v1h-1zM1 5h6v1h-6zM1 6h1v1h-1zM6 6h1v1h-1z'/%3E%3C/g%3E%3C/svg%3E");
   --theme-decor-rail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='112' shape-rendering='crispEdges'%3E%3Cg transform='translate(12 0) scale(3)'%3E%3Cpath fill='%23141111' d='M0 1h1v1h-1zM2 1h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h8v1h-8zM0 5h1v1h-1zM2 5h4v1h-4zM7 5h1v1h-1zM3 6h2v1h-2z'/%3E%3Cpath fill='%23ffffff' d='M2 3h1v1h-1zM5 3h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(0 34) scale(2)'%3E%3Cpath fill='%23141111' d='M3 0h2v1h-2zM3 1h1v1h-1zM5 1h1v1h-1zM2 2h1v1h-1zM5 2h1v1h-1zM2 3h1v1h-1zM6 3h1v1h-1zM1 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM6 5h1v1h-1zM0 6h1v1h-1zM7 6h1v1h-1zM0 7h8v1h-8z'/%3E%3Cpath fill='%23576574' d='M4 1h1v1h-1zM3 2h2v1h-2zM4 3h2v1h-2zM2 4h4v1h-4zM2 5h3v1h-3zM1 6h6v1h-6z'/%3E%3Cpath fill='%23ffd440' d='M3 3h1v1h-1zM5 5h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(24 52) scale(3)'%3E%3Cpath fill='%23141111' d='M3 0h2v1h-2zM3 1h2v1h-2zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM1 3h6v1h-6zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM1 5h6v1h-6zM0 6h1v1h-1zM2 6h4v1h-4zM7 6h1v1h-1zM0 7h1v1h-1zM7 7h1v1h-1z'/%3E%3Cpath fill='%23ffffff' d='M2 4h1v1h-1zM5 4h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(4 86) scale(3)'%3E%3Cpath fill='%23141111' d='M1 0h6v1h-6zM0 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM0 3h1v1h-1zM7 3h1v1h-1zM1 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM3 5h1v1h-1zM5 5h2v1h-2zM2 6h4v1h-4zM3 7h2v1h-2z'/%3E%3Cpath fill='%23ffffff' d='M1 1h6v1h-6zM1 2h1v1h-1zM3 2h2v1h-2zM6 2h1v1h-1zM1 3h6v1h-6zM2 4h4v1h-4zM2 5h1v1h-1zM4 5h1v1h-1z'/%3E%3C/g%3E%3C/svg%3E");
 }
@@ -484,10 +484,10 @@
     --layer-frame-active: var(--brand-400);
     --foreground-on-frame-active: var(--sticker-ink);
     --fill-frame-medium: oklch(1 0 0 / 0.1);
-    --layer-canvas: oklch(0.235 0.03 300);
-    --layer-sidebar: oklch(0.205 0.033 300);
-    --layer-card: oklch(0.265 0.03 300);
-    --layer-popover: oklch(0.29 0.03 300);
+    --layer-canvas: oklch(0.235 0 0);
+    --layer-sidebar: oklch(0.205 0 0);
+    --layer-card: oklch(0.265 0 0);
+    --layer-popover: oklch(0.29 0 0);
     --theme-decor-top: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='190' height='48' shape-rendering='crispEdges'%3E%3Cg transform='translate(0 12) scale(3)'%3E%3Cpath fill='%23141111' d='M2 0h4v1h-4zM1 1h1v1h-1zM6 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM0 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM3 5h2v1h-2zM7 5h1v1h-1zM0 6h1v1h-1zM2 6h1v1h-1zM5 6h1v1h-1zM7 6h1v1h-1zM0 7h1v1h-1zM2 7h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1z'/%3E%3Cpath fill='%23ffffff' d='M2 1h4v1h-4zM1 2h1v1h-1zM3 2h2v1h-2zM6 2h1v1h-1zM1 3h6v1h-6zM1 4h6v1h-6zM1 5h2v1h-2zM5 5h2v1h-2zM1 6h1v1h-1zM3 6h2v1h-2zM6 6h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(38 4) scale(2)'%3E%3Cpath fill='%23141111' d='M2 1h4v1h-4zM1 2h1v1h-1zM6 2h1v1h-1zM0 3h1v1h-1zM3 3h2v1h-2zM7 3h1v1h-1zM0 4h1v1h-1zM3 4h2v1h-2zM7 4h1v1h-1zM1 5h1v1h-1zM6 5h1v1h-1zM2 6h4v1h-4z'/%3E%3Cpath fill='%23ffffff' d='M2 2h4v1h-4zM1 3h2v1h-2zM5 3h2v1h-2zM1 4h2v1h-2zM5 4h2v1h-2zM2 5h4v1h-4z'/%3E%3C/g%3E%3Cg transform='translate(80 14) scale(3)'%3E%3Cpath fill='%23141111' d='M0 1h1v1h-1zM2 1h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h8v1h-8zM0 5h1v1h-1zM2 5h4v1h-4zM7 5h1v1h-1zM3 6h2v1h-2z'/%3E%3Cpath fill='%23ffffff' d='M2 3h1v1h-1zM5 3h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(118 6) scale(2)'%3E%3Cpath fill='%23141111' d='M3 0h1v1h-1zM2 1h1v1h-1zM4 1h1v1h-1zM2 2h1v1h-1zM4 2h2v1h-2zM1 3h1v1h-1zM6 3h1v1h-1zM1 4h1v1h-1zM6 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM0 6h1v1h-1zM5 6h1v1h-1zM1 7h4v1h-4z'/%3E%3Cpath fill='%23f97264' d='M3 1h1v1h-1zM3 2h1v1h-1zM3 3h3v1h-3zM4 4h2v1h-2zM5 5h1v1h-1z'/%3E%3Cpath fill='%23f8a16f' d='M2 3h1v1h-1zM2 4h2v1h-2zM2 5h3v1h-3zM3 6h2v1h-2z'/%3E%3Cpath fill='%23ffd440' d='M1 5h1v1h-1zM1 6h2v1h-2z'/%3E%3C/g%3E%3Cg transform='translate(160 12) scale(3)'%3E%3Cpath fill='%23141111' d='M3 0h2v1h-2zM3 1h1v1h-1zM5 1h1v1h-1zM1 2h6v1h-6zM0 3h1v1h-1zM7 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM5 4h1v1h-1zM7 4h1v1h-1zM0 5h1v1h-1zM7 5h1v1h-1zM0 6h1v1h-1zM2 6h4v1h-4zM7 6h1v1h-1zM1 7h6v1h-6z'/%3E%3Cpath fill='%23a9d877' d='M4 1h1v1h-1z'/%3E%3Cpath fill='%23f8a16f' d='M1 3h6v1h-6zM1 4h1v1h-1zM3 4h2v1h-2zM6 4h1v1h-1zM1 5h6v1h-6zM1 6h1v1h-1zM6 6h1v1h-1z'/%3E%3C/g%3E%3C/svg%3E");
     --theme-decor-rail: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='112' shape-rendering='crispEdges'%3E%3Cg transform='translate(12 0) scale(3)'%3E%3Cpath fill='%23141111' d='M0 1h1v1h-1zM2 1h1v1h-1zM5 1h1v1h-1zM7 1h1v1h-1zM0 2h8v1h-8zM0 3h2v1h-2zM3 3h2v1h-2zM6 3h2v1h-2zM0 4h8v1h-8zM0 5h1v1h-1zM2 5h4v1h-4zM7 5h1v1h-1zM3 6h2v1h-2z'/%3E%3Cpath fill='%23ffffff' d='M2 3h1v1h-1zM5 3h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(0 34) scale(2)'%3E%3Cpath fill='%23141111' d='M3 0h2v1h-2zM3 1h1v1h-1zM5 1h1v1h-1zM2 2h1v1h-1zM5 2h1v1h-1zM2 3h1v1h-1zM6 3h1v1h-1zM1 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM6 5h1v1h-1zM0 6h1v1h-1zM7 6h1v1h-1zM0 7h8v1h-8z'/%3E%3Cpath fill='%23576574' d='M4 1h1v1h-1zM3 2h2v1h-2zM4 3h2v1h-2zM2 4h4v1h-4zM2 5h3v1h-3zM1 6h6v1h-6z'/%3E%3Cpath fill='%23ffd440' d='M3 3h1v1h-1zM5 5h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(24 52) scale(3)'%3E%3Cpath fill='%23141111' d='M3 0h2v1h-2zM3 1h2v1h-2zM0 2h1v1h-1zM2 2h4v1h-4zM7 2h1v1h-1zM1 3h6v1h-6zM0 4h2v1h-2zM3 4h2v1h-2zM6 4h2v1h-2zM1 5h6v1h-6zM0 6h1v1h-1zM2 6h4v1h-4zM7 6h1v1h-1zM0 7h1v1h-1zM7 7h1v1h-1z'/%3E%3Cpath fill='%23ffffff' d='M2 4h1v1h-1zM5 4h1v1h-1z'/%3E%3C/g%3E%3Cg transform='translate(4 86) scale(3)'%3E%3Cpath fill='%23141111' d='M1 0h6v1h-6zM0 1h1v1h-1zM7 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM5 2h1v1h-1zM7 2h1v1h-1zM0 3h1v1h-1zM7 3h1v1h-1zM1 4h1v1h-1zM6 4h1v1h-1zM1 5h1v1h-1zM3 5h1v1h-1zM5 5h2v1h-2zM2 6h4v1h-4zM3 7h2v1h-2z'/%3E%3Cpath fill='%23ffffff' d='M1 1h6v1h-6zM1 2h1v1h-1zM3 2h2v1h-2zM6 2h1v1h-1zM1 3h6v1h-6zM2 4h4v1h-4zM2 5h1v1h-1zM4 5h1v1h-1z'/%3E%3C/g%3E%3C/svg%3E");
   }

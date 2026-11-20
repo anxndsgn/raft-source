@@ -59,7 +59,7 @@
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--layer-frame-active": "oklch(1 0 0)",
         "--fill-frame-medium": "oklch(0.1813 0.005 17.62 / 0.1)",
-        "--layer-sidebar": "oklch(0.985 0.012 240)"
+        "--layer-sidebar": "oklch(0.985 0 0)"
       },
       "dark": {
         "--layer-frame": "oklch(0.31 0.04 240)",
@@ -68,10 +68,10 @@
         "--layer-frame-active": "var(--brand-400)",
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--fill-frame-medium": "oklch(1 0 0 / 0.1)",
-        "--layer-canvas": "oklch(0.235 0.02 240)",
-        "--layer-sidebar": "oklch(0.205 0.022 240)",
-        "--layer-card": "oklch(0.265 0.02 240)",
-        "--layer-popover": "oklch(0.29 0.02 240)"
+        "--layer-canvas": "oklch(0.235 0 0)",
+        "--layer-sidebar": "oklch(0.205 0 0)",
+        "--layer-card": "oklch(0.265 0 0)",
+        "--layer-popover": "oklch(0.29 0 0)"
       }
     },
     "critters": {
@@ -93,7 +93,7 @@
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--layer-frame-active": "oklch(1 0 0)",
         "--fill-frame-medium": "oklch(0.1813 0.005 17.62 / 0.1)",
-        "--layer-sidebar": "oklch(0.985 0.012 60)"
+        "--layer-sidebar": "oklch(0.985 0 0)"
       },
       "dark": {
         "--layer-frame": "oklch(0.31 0.045 60)",
@@ -102,10 +102,10 @@
         "--layer-frame-active": "var(--brand-400)",
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--fill-frame-medium": "oklch(1 0 0 / 0.1)",
-        "--layer-canvas": "oklch(0.235 0.02 60)",
-        "--layer-sidebar": "oklch(0.205 0.022 60)",
-        "--layer-card": "oklch(0.265 0.02 60)",
-        "--layer-popover": "oklch(0.29 0.02 60)"
+        "--layer-canvas": "oklch(0.235 0 0)",
+        "--layer-sidebar": "oklch(0.205 0 0)",
+        "--layer-card": "oklch(0.265 0 0)",
+        "--layer-popover": "oklch(0.29 0 0)"
       }
     },
     "space": {
@@ -127,7 +127,7 @@
         "--layer-frame-active": "var(--brand-400)",
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--fill-frame-medium": "oklch(1 0 0 / 0.1)",
-        "--layer-sidebar": "oklch(0.985 0.012 293)"
+        "--layer-sidebar": "oklch(0.985 0 0)"
       },
       "dark": {
         "--layer-frame": "oklch(0.29 0.085 293)",
@@ -136,10 +136,10 @@
         "--layer-frame-active": "var(--brand-400)",
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--fill-frame-medium": "oklch(1 0 0 / 0.1)",
-        "--layer-canvas": "oklch(0.235 0.035 293)",
-        "--layer-sidebar": "oklch(0.205 0.039 293)",
-        "--layer-card": "oklch(0.265 0.035 293)",
-        "--layer-popover": "oklch(0.29 0.035 293)"
+        "--layer-canvas": "oklch(0.235 0 0)",
+        "--layer-sidebar": "oklch(0.205 0 0)",
+        "--layer-card": "oklch(0.265 0 0)",
+        "--layer-popover": "oklch(0.29 0 0)"
       }
     },
     "desk": {
@@ -161,7 +161,7 @@
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--layer-frame-active": "oklch(1 0 0)",
         "--fill-frame-medium": "oklch(0.1813 0.005 17.62 / 0.1)",
-        "--layer-sidebar": "oklch(0.985 0.012 75)"
+        "--layer-sidebar": "oklch(0.985 0 0)"
       },
       "dark": {
         "--layer-frame": "oklch(0.31 0.04 75)",
@@ -170,10 +170,10 @@
         "--layer-frame-active": "var(--brand-400)",
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--fill-frame-medium": "oklch(1 0 0 / 0.1)",
-        "--layer-canvas": "oklch(0.235 0.02 75)",
-        "--layer-sidebar": "oklch(0.205 0.022 75)",
-        "--layer-card": "oklch(0.265 0.02 75)",
-        "--layer-popover": "oklch(0.29 0.02 75)"
+        "--layer-canvas": "oklch(0.235 0 0)",
+        "--layer-sidebar": "oklch(0.205 0 0)",
+        "--layer-card": "oklch(0.265 0 0)",
+        "--layer-popover": "oklch(0.29 0 0)"
       }
     },
     "food": {
@@ -195,7 +195,7 @@
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--layer-frame-active": "oklch(1 0 0)",
         "--fill-frame-medium": "oklch(0.1813 0.005 17.62 / 0.1)",
-        "--layer-sidebar": "oklch(0.985 0.012 355)"
+        "--layer-sidebar": "oklch(0.985 0 0)"
       },
       "dark": {
         "--layer-frame": "oklch(0.31 0.055 355)",
@@ -204,10 +204,10 @@
         "--layer-frame-active": "var(--brand-400)",
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--fill-frame-medium": "oklch(1 0 0 / 0.1)",
-        "--layer-canvas": "oklch(0.235 0.025 355)",
-        "--layer-sidebar": "oklch(0.205 0.028 355)",
-        "--layer-card": "oklch(0.265 0.025 355)",
-        "--layer-popover": "oklch(0.29 0.025 355)"
+        "--layer-canvas": "oklch(0.235 0 0)",
+        "--layer-sidebar": "oklch(0.205 0 0)",
+        "--layer-card": "oklch(0.265 0 0)",
+        "--layer-popover": "oklch(0.29 0 0)"
       }
     },
     "quest": {
@@ -229,7 +229,7 @@
         "--layer-frame-active": "var(--brand-400)",
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--fill-frame-medium": "oklch(1 0 0 / 0.1)",
-        "--layer-sidebar": "oklch(0.985 0.012 25)"
+        "--layer-sidebar": "oklch(0.985 0 0)"
       },
       "dark": {
         "--layer-frame": "oklch(0.31 0.08 25)",
@@ -238,10 +238,10 @@
         "--layer-frame-active": "var(--brand-400)",
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--fill-frame-medium": "oklch(1 0 0 / 0.1)",
-        "--layer-canvas": "oklch(0.235 0.03 25)",
-        "--layer-sidebar": "oklch(0.205 0.033 25)",
-        "--layer-card": "oklch(0.265 0.03 25)",
-        "--layer-popover": "oklch(0.29 0.03 25)"
+        "--layer-canvas": "oklch(0.235 0 0)",
+        "--layer-sidebar": "oklch(0.205 0 0)",
+        "--layer-card": "oklch(0.265 0 0)",
+        "--layer-popover": "oklch(0.29 0 0)"
       }
     },
     "weather": {
@@ -263,7 +263,7 @@
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--layer-frame-active": "oklch(1 0 0)",
         "--fill-frame-medium": "oklch(0.1813 0.005 17.62 / 0.1)",
-        "--layer-sidebar": "oklch(0.985 0.012 222)"
+        "--layer-sidebar": "oklch(0.985 0 0)"
       },
       "dark": {
         "--layer-frame": "oklch(0.30 0.055 245)",
@@ -272,10 +272,10 @@
         "--layer-frame-active": "var(--brand-400)",
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--fill-frame-medium": "oklch(1 0 0 / 0.1)",
-        "--layer-canvas": "oklch(0.235 0.03 245)",
-        "--layer-sidebar": "oklch(0.205 0.033 245)",
-        "--layer-card": "oklch(0.265 0.03 245)",
-        "--layer-popover": "oklch(0.29 0.03 245)"
+        "--layer-canvas": "oklch(0.235 0 0)",
+        "--layer-sidebar": "oklch(0.205 0 0)",
+        "--layer-card": "oklch(0.265 0 0)",
+        "--layer-popover": "oklch(0.29 0 0)"
       }
     },
     "plants": {
@@ -297,7 +297,7 @@
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--layer-frame-active": "oklch(1 0 0)",
         "--fill-frame-medium": "oklch(0.1813 0.005 17.62 / 0.1)",
-        "--layer-sidebar": "oklch(0.985 0.012 158)"
+        "--layer-sidebar": "oklch(0.985 0 0)"
       },
       "dark": {
         "--layer-frame": "oklch(0.30 0.05 158)",
@@ -306,10 +306,10 @@
         "--layer-frame-active": "var(--brand-400)",
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--fill-frame-medium": "oklch(1 0 0 / 0.1)",
-        "--layer-canvas": "oklch(0.235 0.025 158)",
-        "--layer-sidebar": "oklch(0.205 0.028 158)",
-        "--layer-card": "oklch(0.265 0.025 158)",
-        "--layer-popover": "oklch(0.29 0.025 158)"
+        "--layer-canvas": "oklch(0.235 0 0)",
+        "--layer-sidebar": "oklch(0.205 0 0)",
+        "--layer-card": "oklch(0.265 0 0)",
+        "--layer-popover": "oklch(0.29 0 0)"
       }
     },
     "spooky": {
@@ -331,7 +331,7 @@
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--layer-frame-active": "oklch(1 0 0)",
         "--fill-frame-medium": "oklch(0.1813 0.005 17.62 / 0.1)",
-        "--layer-sidebar": "oklch(0.985 0.012 52)"
+        "--layer-sidebar": "oklch(0.985 0 0)"
       },
       "dark": {
         "--layer-frame": "oklch(0.27 0.06 300)",
@@ -340,10 +340,10 @@
         "--layer-frame-active": "var(--brand-400)",
         "--foreground-on-frame-active": "var(--sticker-ink)",
         "--fill-frame-medium": "oklch(1 0 0 / 0.1)",
-        "--layer-canvas": "oklch(0.235 0.03 300)",
-        "--layer-sidebar": "oklch(0.205 0.033 300)",
-        "--layer-card": "oklch(0.265 0.03 300)",
-        "--layer-popover": "oklch(0.29 0.03 300)"
+        "--layer-canvas": "oklch(0.235 0 0)",
+        "--layer-sidebar": "oklch(0.205 0 0)",
+        "--layer-card": "oklch(0.265 0 0)",
+        "--layer-popover": "oklch(0.29 0 0)"
       }
     }
   }
