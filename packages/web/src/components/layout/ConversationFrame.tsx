@@ -23,7 +23,9 @@ export function ConversationFrame({ children }: { children: ReactNode }) {
   // as they were; index.css `data-workspace-expanded`). The rail and the sidebar stay.
   const expanded = useArtifactViewerStore((s) => s.expanded && s.open !== null);
   return (
-    <div className="relative flex min-h-0 min-w-0 flex-1" data-testid="workspace-frame" data-workspace-expanded={expanded ? "true" : undefined}>
+    // In the shell's islands the conversation stays beside an expanded workspace (Raft redesign 11/21: the sidebar
+    // folds instead, ShellFrame); only a frame with its own workspace slot hides the conversation.
+    <div className="relative flex min-h-0 min-w-0 flex-1" data-testid="workspace-frame" data-workspace-expanded={expanded && workspaceIsland === undefined ? "true" : undefined}>
       <ConversationHeaderSlotContext.Provider value={headerSlot}>
         <WorkspaceSlotContext.Provider value={workspaceSlot}>
           <div className="flex min-h-0 min-w-0 flex-1 flex-col" data-testid="conversation-frame">

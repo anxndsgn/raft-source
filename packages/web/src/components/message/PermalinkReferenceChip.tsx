@@ -36,7 +36,7 @@ export function PermalinkReferenceChip({
       data-select-screenshot-author-link={href}
       data-select-screenshot-author-text={authorText}
       trailing={quotedMessageUnavailable ? undefined : (
-        <span className="font-mono text-label font-normal leading-none text-foreground-hint">msg</span>
+        <span className="font-mono text-label font-normal leading-none text-foreground-hint md:pointer-fine:hidden">msg</span>
       )}
     />
   );

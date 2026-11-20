@@ -1542,19 +1542,14 @@ html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [d
   max-width: none;
 }
 
-/* …and in the shell's islands (ShellFrame): the workspace island takes the conversation's room; the conversation's
-   island keeps only the sidebar, and is not drawn when that is folded away. */
+/* …and in the shell's islands (ShellFrame), Raft redesign (Figmama 11/21): the sidebar folds away (ShellFrame
+   closes it, useWorkspaceExpandLayout) and the workspace island takes its room; the conversation keeps the width it
+   had (--ws-conversation-width), so nothing else moves. */
 [data-workspace-expanded="true"] > [data-testid="workspace-island"] {
   flex: 1 1 auto;
 }
 [data-workspace-expanded="true"] > [data-testid="conversation-island"] {
-  flex: none;
-}
-[data-workspace-expanded="true"] > [data-testid="conversation-island"] > [data-testid="conversation-island-main"] {
-  display: none;
-}
-[data-slot="app-shell-root"][data-state="collapsed"] [data-workspace-expanded="true"] > [data-testid="conversation-island"] {
-  display: none;
+  flex: 0 0 var(--ws-conversation-width, auto);
 }
 
 /* Migration log chart: failure marks are non-text graphics, so they use the

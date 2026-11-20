@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
+import { useHasChildElements, useWorkspaceExpandLayout } from "./workspaceExpand";
 import { ShellPendingContext } from "./shellPending";
 import { DESKTOP_SHELL_QUERY } from "./desktopShell";
 import type { ReactNode } from "react";
@@ -113,10 +115,16 @@ export function ShellFrame({
   main,
   after,
 }: ShellFrameProps) {
-  // The workspace (an open Artifact) expanded takes the conversation's island, beside the sidebar (§5).
-  const workspaceExpanded = useArtifactViewerStore((s) => s.expanded && s.open !== null) && isDesktop;
   // The workspace island: ConversationFrame hands it to the channel's side area, which portals the open Artifact's column into it.
   const [workspaceIsland, setWorkspaceIsland] = useState<HTMLElement | null>(null);
+  const [conversationMain, setConversationMain] = useState<HTMLElement | null>(null);
+  // The workspace (an open Artifact) expanded, only while this page shows it: an Artifact left open in a channel
+  // must not hide another page (an empty island and a hidden conversation left only the frame, anxndsgn 11/21).
+  const workspaceShown = useHasChildElements(workspaceIsland);
+  const workspaceExpanded = useArtifactViewerStore((s) => s.expanded && s.open !== null) && isDesktop && workspaceShown;
+  // Expanded, the workspace takes the sidebar's room; the conversation keeps its width (Raft redesign 11/21).
+  const heldConversationWidth = useWorkspaceExpandLayout({ expanded: workspaceExpanded, sidebarOpen, onSidebarOpenChange, conversationMain });
+  const islandRowStyle = heldConversationWidth === null ? undefined : ({ "--ws-conversation-width": `${heldConversationWidth}px` } as CSSProperties);
   useSystemBarSurface(topEdgeSurface);
   // MainLayout is keyed by server: leaving one removes this whole shell, often with the composer focused.
   useReleaseFocusOnUnmount("[data-slot='app-shell-root']");
@@ -174,7 +182,7 @@ export function ShellFrame({
           {/* Raft redesign (Figma 精修 · 组件化): from 768px the sidebar and the
               conversation stand on the frame as one island, and the workspace
               (an open Artifact) as another beside it; empty, it is not drawn. */}
-          <AppShellIslandRow data-workspace-expanded={workspaceExpanded ? "true" : undefined}>
+          <AppShellIslandRow data-workspace-expanded={workspaceExpanded ? "true" : undefined} style={islandRowStyle}>
             <AppShellIsland data-testid="conversation-island">
               {sidebar}
 
@@ -183,7 +191,7 @@ export function ShellFrame({
                   collapsed; it is always rendered so toggling never remounts the
                   routes. */}
               {/* data-otter-dock: an edge the assistant's otter can be dragged to (assistantOtterDock.ts). */}
-              <div className={`relative min-h-0 min-w-0 flex-1 ${mainHidden ? "hidden" : "flex"}`} data-otter-dock="main" data-testid="conversation-island-main">
+              <div ref={setConversationMain} className={`relative min-h-0 min-w-0 flex-1 ${mainHidden ? "hidden" : "flex"}`} data-otter-dock="main" data-testid="conversation-island-main">
                 <AppShellMainSlot
                   overlay
                   className={`relative ${mainHidden ? "hidden" : "flex"}`}
