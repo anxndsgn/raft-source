@@ -43,8 +43,9 @@ export const taskBoardColumn = tv({
       "text-center text-footnote text-foreground-hint",
       "group-data-[drop-state=blocked]:text-foreground-muted",
       // C13: with a mouse an empty column has no fill and no frame, just its
-      // line in Inter 12 hint (a card dragged over it still outlines it).
-      "md:pointer-fine:min-h-10 md:pointer-fine:border-transparent md:pointer-fine:text-[12px] md:pointer-fine:leading-4",
+      // line in Inter 12 hint, left on the status square, 12 under the head
+      // (the open head's 8 margin and 4 here; a card dragged over still outlines it).
+      "md:pointer-fine:min-h-0 md:pointer-fine:border-0 md:pointer-fine:justify-start md:pointer-fine:text-left md:pointer-fine:px-0 md:pointer-fine:pt-1 md:pointer-fine:pb-0 md:pointer-fine:text-[12px] md:pointer-fine:leading-4",
     ],
     emptyIdle: ["group-data-[drop-state=allowed]:hidden group-data-[drop-state=blocked]:hidden"],
     emptyAllowed: ["hidden group-data-[drop-state=allowed]:block"],

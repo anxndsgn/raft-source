@@ -147,6 +147,7 @@ export function TaskSection({
   onLoadMore,
   renderFooterEnd,
   placeholders,
+  rows = false,
 }: {
   status: TaskStatus;
   tasks: Task[];
@@ -164,6 +165,8 @@ export function TaskSection({
   /** The list is still loading: this many card placeholders (0: the empty
    *  box, held invisible), and no count until it is known. */
   placeholders?: number;
+  /** The desktop Tasks page list: each task one 40px row on a hairline (C13), not a card. */
+  rows?: boolean;
 }) {
   const { formatMessage } = useIntl();
   const ruiStatus = toRuiTaskStatus(status);
@@ -178,8 +181,9 @@ export function TaskSection({
       onOpen={onOpenTask}
       showChannelName={showChannelName}
       footerEnd={renderFooterEnd?.(task)}
+      layout={rows ? "row" : "card"}
     />
-  ), [onOpenTask, showChannelName, renderFooterEnd]);
+  ), [onOpenTask, showChannelName, renderFooterEnd, rows]);
   return (
     <RuiTaskSection
       open={!collapsed}
@@ -225,8 +229,8 @@ export function TaskSection({
             <VirtualizedTaskStack
               items={tasks}
               scrollElementRef={scrollElementRef}
-              estimateSize={116}
-              gap={LIST_CARD_GAP}
+              estimateSize={rows ? 40 : 116}
+              gap={rows ? 0 : LIST_CARD_GAP}
               getItemKey={getTaskKey}
               renderItem={renderTask}
             />
@@ -812,6 +816,8 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
   // the scroller as the first child and pins under the bar, like Activity's.
   const isPhone = useMediaQuery("(max-width: 767px)");
   const isPhoneTabRoot = !isChannelMode && isPhone;
+  // C13: the server-wide Tasks page's list, with a mouse, is rows; a channel's narrow panel keeps cards.
+  const listRows = useMediaQuery("(width >= 48rem) and (pointer: fine)") && !isChannelMode;
   // The Tasks tab root: a re-tap scrolls it to the top, and its scroll
   // position survives a switch to another tab (its filters are in the URL,
   // which the tab bar brings back).
@@ -1324,6 +1330,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
                 showChannelName={!isChannelMode}
                 scrollElementRef={scrollContainerRef}
                 placeholders={placeholders}
+                rows={listRows}
                 {...(loading ? {} : lanePagingProps(status))}
               />
             ))}

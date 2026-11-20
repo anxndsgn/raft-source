@@ -15,8 +15,11 @@ export const taskListSection = tv({
       "inline-flex items-center gap-2 p-0",
       "font-sans text-footnote font-bold text-foreground-hint",
       "[&>svg]:shrink-0",
+      // C13: with a mouse a list group's head reads as a board column's: the
+      // name Semi Bold 13 ink, the count Inter 12 muted.
+      "md:pointer-fine:text-[13px] md:pointer-fine:leading-[17px] md:pointer-fine:font-semibold md:pointer-fine:text-foreground",
     ],
-    count: ["font-mono text-mono-meta font-normal text-foreground-hint"],
+    count: ["font-mono text-mono-meta font-normal text-foreground-hint", "md:pointer-fine:text-foreground-muted"],
     chevron: [
       "inline-flex shrink-0 -rotate-90 items-center transition-transform",
       "[&_svg]:size-3.5",

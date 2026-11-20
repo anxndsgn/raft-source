@@ -32,14 +32,18 @@ import { STATUS_STYLES, canEditTaskStatus, getTaskStatusOptions, toRuiTaskStatus
 // the foot under it with the status chip.
 const TASK_CARD_OPEN_CLASS = "inline-block w-full rounded-control text-left outline-none focus-visible:shadow-focus";
 const TASK_CARD_FOOT_CLASS = "mt-2 flex min-w-0 items-center gap-2";
+const TASK_ROW_CLASS = "flex h-10 w-full items-center gap-3 rounded-none border-0 border-b border-line-hairline bg-transparent px-3 py-0 hover:bg-fill-subtle! hover:bg-none!";
+const TASK_ROW_OPEN_CLASS = "flex h-full min-w-0 flex-1 items-center gap-3 text-left outline-none focus-visible:shadow-focus";
 
 // Memoized so a single task update (status change, drag-reorder, socket
 // task:* broadcast) re-renders only the changed card, not the whole board.
 // `onOpen` takes the task so callsites can pass a *stable* handler instead of
 // an inline `() => open(task)` closure that would break this memo for every row
 // (#proj-frontend render-perf, same churn class as the channelActivity slice).
-function TaskCard({ task, onOpen, showChannelName = true, footerEnd, titleEnd, current = false, selected = false }: {
+function TaskCard({ task, onOpen, showChannelName = true, footerEnd, titleEnd, current = false, selected = false, layout = "card" }: {
   task: Task;
+  /** "row": the desktop Tasks page list's 40px line (C13); "card" everywhere else. */
+  layout?: "card" | "row";
   /** The card was clicked; the event says with which modifiers (the Tasks page selects on ⌘/Ctrl/Shift). */
   onOpen: (task: Task, event?: MouseEvent) => void;
   showChannelName?: boolean;
@@ -100,6 +104,74 @@ function TaskCard({ task, onOpen, showChannelName = true, footerEnd, titleEnd, c
   const closeStatusEditor = useCallback(() => setEditingStatus(false), []);
   const closeBacklogReason = useCallback(() => setAskingBacklogReason(false), []);
 
+  const statusControl = (
+    canEditStatus ? (
+          <div className={`relative shrink-0 ${busy ? "pointer-events-none" : ""}`}>
+            <InlineBadgeEditor
+              badgeStatus={toRuiTaskStatus(task.status)}
+              displayValue={formatMessage({ id: style.labelId })}
+              selectedId={task.status}
+              options={statusOptions}
+              onSelect={handleStatusSelect}
+              open={editingStatus}
+              onToggle={toggleStatusEditor}
+              onRequestClose={closeStatusEditor}
+              triggerRef={statusChipRef}
+              badgeClassName=""
+              dropdownMinWidth="min-w-[140px]"
+              dropdownAlign="left"
+              dropdownTestId="task-status-menu"
+              optionTestIdPrefix="task-status-option"
+            />
+            <TaskBacklogReasonPopover
+              open={askingBacklogReason}
+              task={task}
+              anchor={statusChipRef}
+              finalFocus={statusChipRef}
+              onClose={closeBacklogReason}
+            />
+          </div>
+        ) : (
+          <StatusBadge status={task.status} data-testid="task-status-readonly">
+            {formatMessage({ id: style.labelId })}
+          </StatusBadge>
+        )
+  );
+
+  if (layout === "row") {
+    const rowNumber = `#${task.taskNumber}`;
+    const rowChannel = `#${task.channelName || formatMessage({ id: "task.legacyPanel.unknownChannel" })}`;
+    // C13 list row (desktop Tasks page): one 40px line, the status chip, the
+    // number, the title, the channel, then the row's own facts; rows meet on a hairline.
+    return (
+      <RuiTaskCard
+        className={`${TASK_ROW_CLASS} ${selected ? "bg-fill-cell-selected inset-ring-2 inset-ring-info" : current ? "bg-fill-cell-selected" : ""}`}
+        data-current={current ? "" : undefined}
+        data-selected={selected ? "" : undefined}
+        data-layout="row"
+      >
+        <div className="flex shrink-0 items-center">{statusControl}</div>
+        <button
+          type="button"
+          onClick={(event) => onOpen(task, event)}
+          aria-current={current ? "true" : undefined}
+          className={TASK_ROW_OPEN_CLASS}
+        >
+          <TaskCardNumber className="w-10">{rowNumber}</TaskCardNumber>
+          <span className="min-w-0 flex-1 truncate text-[14px] leading-5 text-foreground">
+            {task.title}
+            {titleEnd ? <span className="ml-1.5 inline-block">{titleEnd}</span> : null}
+          </span>
+          {task.isLegacy && <TaskCardLegacy>{formatMessage({ id: "task.badge.legacy" })}</TaskCardLegacy>}
+          {showChannelName && (
+            <TaskCardChannel className="max-w-48 shrink-0">{rowChannel}</TaskCardChannel>
+          )}
+        </button>
+        {footerEnd ? <div className="flex min-w-0 shrink-0 items-center">{footerEnd}</div> : null}
+      </RuiTaskCard>
+    );
+  }
+
   return (
     // The task open beside the board, or selected: the cell's selected fill, as
     // its row in a list; selected also rings it, so a run of picks reads apart.
@@ -144,37 +216,7 @@ function TaskCard({ task, onOpen, showChannelName = true, footerEnd, titleEnd, c
       {/* Raft DS TaskCard foot: the status chip is the only thing on the card
           that edits in place. A pending write only blocks pointer input. */}
       <div className={TASK_CARD_FOOT_CLASS}>
-        {canEditStatus ? (
-          <div className={`relative shrink-0 ${busy ? "pointer-events-none" : ""}`}>
-            <InlineBadgeEditor
-              badgeStatus={toRuiTaskStatus(task.status)}
-              displayValue={formatMessage({ id: style.labelId })}
-              selectedId={task.status}
-              options={statusOptions}
-              onSelect={handleStatusSelect}
-              open={editingStatus}
-              onToggle={toggleStatusEditor}
-              onRequestClose={closeStatusEditor}
-              triggerRef={statusChipRef}
-              badgeClassName=""
-              dropdownMinWidth="min-w-[140px]"
-              dropdownAlign="left"
-              dropdownTestId="task-status-menu"
-              optionTestIdPrefix="task-status-option"
-            />
-            <TaskBacklogReasonPopover
-              open={askingBacklogReason}
-              task={task}
-              anchor={statusChipRef}
-              finalFocus={statusChipRef}
-              onClose={closeBacklogReason}
-            />
-          </div>
-        ) : (
-          <StatusBadge status={task.status} data-testid="task-status-readonly">
-            {formatMessage({ id: style.labelId })}
-          </StatusBadge>
-        )}
+        {statusControl}
         {footerEnd ? <div className="ml-auto flex min-w-0 items-center">{footerEnd}</div> : null}
       </div>
     </RuiTaskCard>
