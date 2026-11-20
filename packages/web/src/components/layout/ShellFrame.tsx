@@ -121,9 +121,10 @@ export function ShellFrame({
   // The workspace (an open Artifact) expanded, only while this page shows it: an Artifact left open in a channel
   // must not hide another page (an empty island and a hidden conversation left only the frame, anxndsgn 11/21).
   const workspaceShown = useHasChildElements(workspaceIsland);
-  const workspaceExpanded = useArtifactViewerStore((s) => s.expanded && s.open !== null) && isDesktop && workspaceShown;
-  // Expanded, the workspace takes the sidebar's room; the conversation keeps its width (Raft redesign 11/21).
-  const heldConversationWidth = useWorkspaceExpandLayout({ expanded: workspaceExpanded, sidebarOpen, onSidebarOpenChange, conversationMain });
+  const viewerExpanded = useArtifactViewerStore((s) => s.expanded && s.open !== null) && isDesktop;
+  const workspaceExpanded = viewerExpanded && workspaceShown;
+  // Expanded, the workspace takes the channel list's room; the conversation keeps its width (Raft redesign 11/21).
+  const heldConversationWidth = useWorkspaceExpandLayout({ shown: workspaceExpanded, expanded: viewerExpanded, conversationMain });
   const islandRowStyle = heldConversationWidth === null ? undefined : ({ "--ws-conversation-width": `${heldConversationWidth}px` } as CSSProperties);
   useSystemBarSurface(topEdgeSurface);
   // MainLayout is keyed by server: leaving one removes this whole shell, often with the composer focused.
