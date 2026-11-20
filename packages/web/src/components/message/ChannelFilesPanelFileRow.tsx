@@ -3,8 +3,16 @@ import { useCallback, useMemo } from "react";
 import { useIntl } from "react-intl";
 import {
   Button,
+  FileContent,
+  FileMeta,
+  FileMetaItem,
+  FileName,
   FileRow,
+  FileActions,
+  FileRowOpen,
+  FileThumbnail,
 } from "@botiverse/raft-ui";
+import { useMediaQuery } from "../../hooks/effectPrimitives";
 import api from "../../api/client";
 import { isHeicImageMimeType } from "../../utils/imageMimeTypes";
 import { useTimeFormatter } from "../../hooks/useTimeFormatter";
@@ -82,6 +90,7 @@ export function ChannelFilesPanelFileRow({
   const type = getChannelFileType(file);
   const Icon = fileTypeIcon(type);
   const canPreview = isPreviewableImage(file);
+  const itemCards = useMediaQuery("(width >= 48rem) and (pointer: fine)");
 
   const handlePreview = useCallback(() => {
     void onOpenPreview(file);
@@ -172,6 +181,30 @@ export function ChannelFilesPanelFileRow({
           <span data-row-mark className="relative z-raised -my-[calc((2rem-var(--text-callout--line-height))/2)] -mr-[9px] md:pointer-fine:-my-[calc((var(--bar-button-size)-var(--text-callout--line-height))/2)] md:pointer-fine:-mr-[7px] md:pointer-fine:**:data-[slot=button]:size-(--bar-button-size) md:pointer-fine:**:data-[slot=button]:rounded-(--bar-button-radius)">{actions}</span>
         </span>
       </div>
+    );
+  }
+
+  if (itemCards) {
+    // Raft redesign (anxndsgn / Figmama 11/21): with a mouse an item card, as the Artifacts above it: a 32px tile,
+    // the name, then its size and date; the ⋯ shows on hover.
+    return (
+      <FileRow className="channel-file-row" data-testid="channel-file-item-card">
+        <FileRowOpen onClick={handlePreview} {...previewButtonProps}>
+          <FileThumbnail aria-hidden="true" className="[&_img]:size-full [&_img]:object-cover">
+            <ChannelFileVisual file={file} canPreview={canPreview} icon={Icon} compact />
+          </FileThumbnail>
+          <FileContent>
+            <FileName><AttachmentTooltip content={file.filename}><span>{file.filename}</span></AttachmentTooltip></FileName>
+            <FileMeta>
+              <FileMetaItem>{formatChannelFileSize(file.sizeBytes, formatMessage)}</FileMetaItem>
+              <FileMetaItem>{formatShortDateTime(file.createdAt)}</FileMetaItem>
+            </FileMeta>
+          </FileContent>
+        </FileRowOpen>
+        <FileActions>
+          <ChannelFileOverflowMenu file={file} onOpenSource={handleOpenSource} onDownload={handleDownload} />
+        </FileActions>
+      </FileRow>
     );
   }
 

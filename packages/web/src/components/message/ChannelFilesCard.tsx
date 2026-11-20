@@ -1,4 +1,5 @@
 import { useIntl } from "react-intl";
+import { useMediaQuery } from "../../hooks/effectPrimitives";
 
 import type { Channel } from "../../store/channelStore";
 import ChannelSideCard from "../task/ChannelSideCard";
@@ -7,6 +8,8 @@ import { ChannelFilesPanel } from "./DeferredChannelFilesPanel";
 /** The channel's files, in the card beside the message list (was the Files tab). */
 export default function ChannelFilesCard({ channel, onClose }: { channel: Channel; onClose: () => void }) {
   const { formatMessage } = useIntl();
+  // Raft redesign (anxndsgn / Figmama 11/21): with a mouse the files are item cards, roomier than the compact rows.
+  const itemCards = useMediaQuery("(width >= 48rem) and (pointer: fine)");
   return (
     <ChannelSideCard
       title={formatMessage({ id: "message.chatPanel.tabFiles" })}
@@ -15,7 +18,7 @@ export default function ChannelFilesCard({ channel, onClose }: { channel: Channe
       testId="channel-files-card"
     >
       <div className="flex min-h-0 flex-1 flex-col">
-        <ChannelFilesPanel channel={channel} variant="compact" />
+        <ChannelFilesPanel channel={channel} variant={itemCards ? "card" : "compact"} />
       </div>
     </ChannelSideCard>
   );
