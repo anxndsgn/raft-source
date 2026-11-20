@@ -20,6 +20,7 @@ import { TASK_V2_CONVERSATIONS_FLAG_KEY, useServerFeatureFlag } from "../../stor
 import InlineBadgeEditor from "../InlineBadgeEditor";
 import { useIntl } from "react-intl";
 import { StatusBadge } from "./StatusBadge";
+import Tooltip from "../ui/Tooltip";
 import { SkeletonTextBar } from "../ui/Skeleton";
 import { SKELETON_BADGE_CLASS } from "../ui/skeletonBoxes";
 import { TaskBacklogReasonPopover } from "./TaskBacklogReasonPopover";
@@ -122,6 +123,7 @@ function TaskCard({ task, onOpen, showChannelName = true, footerEnd, titleEnd, c
               triggerRef={statusChipRef}
               badgeClassName=""
               iconOnly={layout === "row"}
+              buttonTitle={layout === "row" ? formatMessage({ id: style.labelId }) : undefined}
               buttonClassName={layout === "row" ? TASK_ROW_STATUS_CLASS : undefined}
               dropdownMinWidth="min-w-[140px]"
               dropdownAlign="left"
@@ -137,9 +139,17 @@ function TaskCard({ task, onOpen, showChannelName = true, footerEnd, titleEnd, c
             />
           </div>
         ) : (
-          <StatusBadge status={task.status} data-testid="task-status-readonly" className={layout === "row" ? TASK_ROW_STATUS_CLASS : undefined}>
-            {layout === "row" ? <span className="sr-only">{formatMessage({ id: style.labelId })}</span> : formatMessage({ id: style.labelId })}
-          </StatusBadge>
+          layout === "row" ? (
+            <Tooltip content={formatMessage({ id: style.labelId })}>
+              <StatusBadge status={task.status} data-testid="task-status-readonly" className={TASK_ROW_STATUS_CLASS}>
+                <span className="sr-only">{formatMessage({ id: style.labelId })}</span>
+              </StatusBadge>
+            </Tooltip>
+          ) : (
+            <StatusBadge status={task.status} data-testid="task-status-readonly">
+              {formatMessage({ id: style.labelId })}
+            </StatusBadge>
+          )
         )
   );
 
