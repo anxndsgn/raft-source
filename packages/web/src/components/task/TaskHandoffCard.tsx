@@ -94,7 +94,8 @@ export function TaskHandoffCard({ message, notice, returned, time }: {
             </MessageActionCardHeaderDescription>
           </MessageActionCardHeaderTitle>
         </MessageActionCardHeader>
-        <MessageActionCardContent>
+        {/* No header icon here, so the body keeps the card's own inset, under the title. */}
+        <MessageActionCardContent className="md:pointer-fine:*:ms-0">
           <p className="m-0 whitespace-pre-wrap break-words text-callout text-foreground" data-testid="task-handoff-reason">
             {notice.reason}
           </p>

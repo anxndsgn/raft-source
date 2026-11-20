@@ -4,7 +4,9 @@ export const messageActionCardContent = tv({
   slots: {
     // The card's inset comes from messageCard; the header above sets the
     // space over the content.
-    root: ["flex flex-col gap-2 pt-0"],
+    // Raft redesign (B7): with a mouse the body and its buttons start where the
+    // title does, each 28 in: past the 20px icon and its 8px gap.
+    root: ["flex flex-col gap-2 pt-0", "md:pointer-fine:*:ms-7"],
     panel: [
       "h-(--collapsible-panel-height) overflow-hidden",
       "transition-[height] duration-200 ease-out motion-reduce:transition-none",
