@@ -24,6 +24,7 @@ import Tooltip from "../ui/Tooltip";
 import { SkeletonTextBar } from "../ui/Skeleton";
 import { SKELETON_BADGE_CLASS } from "../ui/skeletonBoxes";
 import { TaskBacklogReasonPopover } from "./TaskBacklogReasonPopover";
+import { TaskAssigneeAvatar, useTaskAssigneeIdentity } from "./TaskAssignee";
 
 import { STATUS_STYLES, canEditTaskStatus, getTaskStatusOptions, toRuiTaskStatus } from "./taskStatusUi";
 
@@ -182,7 +183,7 @@ function TaskCard({ task, onOpen, showChannelName = true, footerEnd, titleEnd, c
             <TaskCardChannel className="max-w-48 shrink-0">{rowChannel}</TaskCardChannel>
           )}
         </button>
-        {footerEnd ? <div className="flex min-w-0 shrink-0 items-center">{footerEnd}</div> : null}
+        {footerEnd ? <div className="flex min-w-0 shrink-0 items-center">{footerEnd}</div> : <CardAssignee task={task} />}
       </RuiTaskCard>
     );
   }
@@ -232,13 +233,30 @@ function TaskCard({ task, onOpen, showChannelName = true, footerEnd, titleEnd, c
           that edits in place. A pending write only blocks pointer input. */}
       <div className={TASK_CARD_FOOT_CLASS}>
         {statusControl}
-        {footerEnd ? <div className="ml-auto flex min-w-0 items-center">{footerEnd}</div> : null}
+        {footerEnd ? <div className="ml-auto flex min-w-0 items-center">{footerEnd}</div> : <CardAssignee task={task} className="ml-auto" />}
       </div>
     </RuiTaskCard>
   );
 }
 
 export default memo(TaskCard);
+
+/**
+ * C13, desktop: who has the task, as their 16px round avatar (the name on hover). A card given its own
+ * footer facts (a channel's panel names the assignee there) doesn't draw it; nor does an unclaimed task.
+ */
+function CardAssignee({ task, className = "" }: { task: Task; className?: string }) {
+  const { identity } = useTaskAssigneeIdentity(task);
+  if (!task.claimedById || !task.claimedByType) return null;
+  const name = identity?.displayName || identity?.name || task.claimedByName || "";
+  return (
+    <Tooltip content={name}>
+      <span role="img" aria-label={name} className={`hidden size-4 shrink-0 overflow-hidden rounded-full md:pointer-fine:flex *:size-4! *:rounded-full! ${className}`} data-testid="task-card-assignee">
+        <TaskAssigneeAvatar task={task} identity={identity} />
+      </span>
+    </Tooltip>
+  );
+}
 
 /**
  * A task card while its column or group loads: TaskCard's own card, open
