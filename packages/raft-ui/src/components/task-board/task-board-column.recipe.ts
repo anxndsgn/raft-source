@@ -12,6 +12,9 @@ export const taskBoardColumn = tv({
       "min-h-8 md:pointer-fine:min-h-control gap-2 rounded-control",
       "font-sans text-footnote font-bold text-foreground-muted",
       "data-[panel-open]:mb-2",
+      // C13: with a mouse the column head is the status square, the name in
+      // Semi Bold 13 ink, the count Inter 12 muted.
+      "md:pointer-fine:text-[13px] md:pointer-fine:leading-[17px] md:pointer-fine:font-semibold md:pointer-fine:text-foreground",
       "focus-visible:shadow-focus",
     ],
     heading: ["flex min-w-0 items-center", "gap-2"],
@@ -19,8 +22,9 @@ export const taskBoardColumn = tv({
       "inline-flex items-center gap-2 p-0",
       "font-sans text-footnote font-bold text-foreground-muted",
       "[&>svg]:shrink-0",
+      "md:pointer-fine:text-[13px] md:pointer-fine:leading-[17px] md:pointer-fine:font-semibold md:pointer-fine:text-foreground",
     ],
-    count: ["font-mono text-mono-meta font-normal text-foreground-hint"],
+    count: ["font-mono text-mono-meta font-normal text-foreground-hint", "md:pointer-fine:text-foreground-muted"],
     chevron: [
       "inline-flex shrink-0 -rotate-90 items-center transition-transform",
       "[&_svg]:size-3.5",
@@ -38,6 +42,9 @@ export const taskBoardColumn = tv({
       "rounded-container border border-dashed border-line-seam",
       "text-center text-footnote text-foreground-hint",
       "group-data-[drop-state=blocked]:text-foreground-muted",
+      // C13: with a mouse an empty column has no fill and no frame, just its
+      // line in Inter 12 hint (a card dragged over it still outlines it).
+      "md:pointer-fine:min-h-10 md:pointer-fine:border-transparent md:pointer-fine:text-[12px] md:pointer-fine:leading-4",
     ],
     emptyIdle: ["group-data-[drop-state=allowed]:hidden group-data-[drop-state=blocked]:hidden"],
     emptyAllowed: ["hidden group-data-[drop-state=allowed]:block"],

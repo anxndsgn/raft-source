@@ -67,7 +67,10 @@ function TileCover({ card }: { card: ArtifactCard }) {
  * anchored ::after, whose top and bottom these replace.
  * TODO(raft-ui): a Badge hit area that hangs one way, for dense rows.
  */
-const TILE_SCOPE_HIT_CLASS = "supports-[anchor-scope:all]:pointer-coarse:enabled:after:top-[calc(anchor(top)-16px)] supports-[anchor-scope:all]:pointer-coarse:enabled:after:bottom-[calc(anchor(bottom)-6px)] md:pointer-fine:bg-transparent md:pointer-fine:text-foreground-hint md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:hover:text-foreground md:pointer-fine:h-5 md:pointer-fine:px-0.5 md:pointer-fine:[&_svg]:size-4";
+const TILE_SCOPE_HIT_CLASS = "supports-[anchor-scope:all]:pointer-coarse:enabled:after:top-[calc(anchor(top)-16px)] supports-[anchor-scope:all]:pointer-coarse:enabled:after:bottom-[calc(anchor(bottom)-6px)]";
+
+// Raft redesign (C19): with a mouse the scope chip on a tile is its icon alone, no fill until pointed at.
+const TILE_SCOPE_LOOK_CLASS = "md:pointer-fine:bg-transparent md:pointer-fine:text-foreground-hint md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:hover:text-foreground md:pointer-fine:h-5 md:pointer-fine:px-0.5 md:pointer-fine:[&_svg]:size-4";
 
 // Raft redesign (C19): with a mouse a tile is a card on the canvas with a hairline edge, no
 // grey fill; pointed at, the edge goes 15% ink (no wash over the picture).
@@ -147,7 +150,7 @@ export function ArtifactTile({ item, readerId, onOpen, phone }: {
               {card.commentCount}
             </MessageAttachmentSummary>
           ) : null}
-          <ArtifactScopeLabel home={card.home} fromAnotherServer={card.fromAnotherServer} onCard iconOnly className={TILE_SCOPE_HIT_CLASS} />
+          <ArtifactScopeLabel home={card.home} fromAnotherServer={card.fromAnotherServer} onCard iconOnly className={`${TILE_SCOPE_HIT_CLASS} ${TILE_SCOPE_LOOK_CLASS}`} />
         </div>
         <p className="min-w-0 basis-full break-words font-mono text-mono-meta text-foreground-hint max-md:flex-[1_1_min-content] max-md:break-normal" data-testid="artifacts-tile-time">{time}</p>
       </MessageEmbedFooter>
