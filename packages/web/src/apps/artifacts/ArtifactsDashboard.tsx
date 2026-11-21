@@ -340,7 +340,7 @@ export default function ArtifactsDashboard({ serverId, onMobileBack, address: ho
     <PageHead
       testId="artifacts-dashboard-header"
       title={<span data-testid="artifacts-dashboard-title">{formatMessage({ id: "artifacts.dashboard.title" })}</span>}
-      subtitle={counts ? <span data-testid="artifacts-dashboard-count">{countLine(formatMessage, counts)}</span> : undefined}
+      subtitle={counts ? <span className="*:font-sans!" data-testid="artifacts-dashboard-count">{countLine(formatMessage, counts)}</span> : undefined}
     />
   ) : (
     <PanelHeader data-testid="artifacts-dashboard-header" data-full-page-head="">
@@ -376,7 +376,7 @@ export default function ArtifactsDashboard({ serverId, onMobileBack, address: ho
   return (
     // A column of list cells: its head, filter row and rows share one edge,
     // 20px at every width (raft-ui --column-margin; raft-design patterns/lists.md).
-    <div className={`relative flex min-h-0 flex-1 flex-col bg-layer-canvas [--column-margin:16px] md:[--column-margin:20px] ${PAGE_ROOT_CLASS} ${layout === "grid" ? "[--page-column-width:1200px]" : ""}`} data-testid="artifacts-dashboard" data-full-page="">
+    <div className={`relative flex min-h-0 flex-1 flex-col bg-layer-canvas [--column-margin:16px] md:[--column-margin:20px] ${PAGE_ROOT_CLASS} [--page-column-width:1200px]`} data-testid="artifacts-dashboard" data-full-page="">
       {/* The page under the viewer is a layer of its own (`isolate`): its header is sticky at z-chrome on
           a phone (PanelHeader). The viewer's z-cover is above that already; the isolate keeps it so.
           A pushed page covers the page under it (page structure), so the viewer is above all of it. */}

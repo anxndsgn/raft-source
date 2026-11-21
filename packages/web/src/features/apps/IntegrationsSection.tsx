@@ -61,7 +61,7 @@ import { appPermissionsChangedCurrentSet, expectedAppPermissionsBody, isAppPermi
 import { AppPermissionSetList } from "../../components/integrations/AppPermissionSetList";
 import { useIntl } from "react-intl";
 import PanelHeader, { FULL_PAGE_HEAD_PROPS } from "../../components/ui/PanelHeader";
-import { PAGE_COLUMN_CONTENT_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, PageHead, PageNav, PageNavFrame, useDesktopMouse, usePageElement, usePageNavWide } from "../../components/ui/PageHead";
+import { PAGE_COLUMN_CONTENT_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, PAGE_TOOLBAR_PLAIN_CLASS, PageHead, PageNav, PageNavFrame, useDesktopMouse, usePageElement, usePageNavWide } from "../../components/ui/PageHead";
 import SectionEyebrow from "../../components/ui/SectionEyebrow";
 import SectionHeader from "../../components/ui/SectionHeader";
 import FormField from "../../components/ui/FormField";
@@ -1323,7 +1323,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
   const pageHeadAction = desktopMouse && variant === "page";
   const addAppMenu = canManage ? (
     <RegisterAppMenu
-      inToolbar={variant === "page" && !pageHeadAction}
+      inToolbar={variant === "page"}
       onRegisterOwnService={openRegisterDrawer}
       onRegisterMcpServer={handleRegisterMcpServer}
     />
@@ -1348,8 +1348,8 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
       // The Apps page is one table per tab (task #18): no grid to switch to.
       viewSwitch={variant === "page" ? undefined : <ConnectedAppsViewToggle value={connectedAppsViewMode} onValueChange={updateConnectedAppsViewMode} />}
       // The page's Add App ends its toolbar; Settings keeps it in the section header.
-      addApp={variant === "page" && !pageHeadAction ? addAppMenu : undefined}
-      skillsAction={pageHeadAction ? undefined : skillsAddAction}
+      addApp={variant === "page" ? addAppMenu : undefined}
+      skillsAction={skillsAddAction}
       tabsInHead={pageHeadAction}
       variant={variant}
     />
@@ -2284,11 +2284,10 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
               />
             ) : null}
             head={pageHeadAction && appsNavWide ? (
-              <PageHead title={pageTitle} action={activeTab === "skills" ? skillsAddAction : addAppMenu} withNav />
+              <PageHead title={pageTitle} withNav />
             ) : pageHeadAction ? (
             <PageHead
               title={pageTitle}
-              action={activeTab === "skills" ? skillsAddAction : addAppMenu}
               tabs={(
                 <Tabs<ConnectedAppsTab> value={activeTab} onValueChange={handleTabChange} className="min-w-0 -mb-px" data-testid="connected-apps-tabs">
                   <TabsList aria-label={pageTitle}>
@@ -2313,7 +2312,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
             />
           )}
           >
-          <div className={`shrink-0 ${PAGE_COLUMN_INSET_CLASS}`}>
+          <div className={`shrink-0 ${PAGE_COLUMN_INSET_CLASS} ${pageHeadAction ? PAGE_TOOLBAR_PLAIN_CLASS : ""}`}>
             {toolbar}
           </div>
           <ScrollArea ref={appsScrollRef} className="min-h-0 flex-1" contentClassName="px-4 py-4 safe-bottom md:px-(--surface-inset)" data-testid="apps-page-scroller">

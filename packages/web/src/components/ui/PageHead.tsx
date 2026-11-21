@@ -21,6 +21,9 @@ export const PAGE_ROOT_CLASS = "@container/page";
 /** The air above a page head: 40 on a page at least 1024 wide, else 20 (the vertical nav starts under it too). */
 const PAGE_TOP_AIR_CLASS = "pt-5 @min-[1024px]/page:pt-10";
 
+/** A toolbar over content on a page with the page head (Figmama 670629d1): no line under it, 16 down to the content. */
+export const PAGE_TOOLBAR_PLAIN_CLASS = "md:pointer-fine:*:border-b-0! md:pointer-fine:*:pt-4! md:pointer-fine:*:pb-4!";
+
 /** With a mouse on a desktop: where the page head and reading column apply (the same query as `md:pointer-fine:`). */
 export const DESKTOP_MOUSE_QUERY = "(width >= 48rem) and (pointer: fine)";
 
@@ -48,15 +51,16 @@ export function PageHead({
   action?: ReactNode;
   tabs?: ReactNode;
   form?: boolean;
-  /** Beside a vertical nav (PageWithNav): the head is the top of the content column, beside the nav (anxndsgn 11/21). */
+  /** Beside a vertical nav (PageWithNav): the title at the top of the content, a line under it as wide as the content
+   *  (owner c4157597). */
   withNav?: boolean;
   /** A page that fills the width (the task board, the Artifacts grid): the head runs with it, 20px in. */
   wide?: boolean;
   testId?: string;
 }) {
   return (
-    <div className={`${wide || withNav ? "" : form ? PAGE_COLUMN_FORM_CLASS : PAGE_COLUMN_CLASS} shrink-0 px-(--column-margin) ${PAGE_TOP_AIR_CLASS} ${tabs ? "" : withNav ? "pb-4" : "pb-3"}`} data-full-page-head="" data-page-head="" data-testid={testId}>
-      <div className="flex min-w-0 items-center gap-4">
+    <div className={`${wide || withNav ? "" : form ? PAGE_COLUMN_FORM_CLASS : PAGE_COLUMN_CLASS} shrink-0 px-(--column-margin) ${PAGE_TOP_AIR_CLASS} ${tabs ? "" : withNav ? "" : "pb-3"}`} data-full-page-head="" data-page-head="" data-testid={testId}>
+      <div className={`flex min-w-0 items-center gap-4 ${withNav ? "border-b border-line-seam pb-4" : ""}`}>
         <div className="min-w-0 flex-1">
           <h2 className="truncate font-sans text-[24px] leading-8 font-semibold text-foreground" data-slot="page-head-title">{title}</h2>
           {subtitle ? (
@@ -116,7 +120,7 @@ export function PageNav<T extends string>({ items, value, onValueChange, label, 
   testId?: string;
 }) {
   return (
-    <nav aria-label={label} className={`flex w-40 shrink-0 flex-col gap-0.5 ${PAGE_TOP_AIR_CLASS}`} data-testid={testId} data-slot="page-nav">
+    <nav aria-label={label} className="flex w-40 shrink-0 flex-col gap-0.5 pt-4" data-testid={testId} data-slot="page-nav">
       {items.map((item) => {
         const current = item.value === value;
         return (
@@ -141,16 +145,17 @@ export function PageNav<T extends string>({ items, value, onValueChange, label, 
 }
 
 /**
- * The page beside its vertical nav: the column is 1080 (160 + 40 + 880), centered, the nav from the page's top and the
- * head at the top of the content beside it (anxndsgn, Figmama 11/21); the content's bands keep their own 20px edges
- * inside the 920 beside the nav, so its content is the 880.
+ * A page with a vertical nav (owner c4157597, Figmama 670629d1): the column is 1080 (160 + 40 + 880), centered; the
+ * title at the top of the content with a line under it; the nav beside the content under that line, its first item
+ * level with the content's first line (its toolbar, the primary action at the toolbar's end). The content's bands keep their own 20px edges inside the 920 beside the
+ * nav, so its content is the 880.
  */
 export function PageWithNav({ nav, head, children }: { nav: ReactNode; head?: ReactNode; children: ReactNode }) {
   return (
-    <div className="mx-auto flex min-h-0 w-full max-w-[1120px] flex-1 gap-5 pl-5" data-page-nav="">
-      {nav}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col [--page-column-width:880px]" data-page-nav-content="">
-        {head}
+    <div className="mx-auto grid min-h-0 w-full max-w-[1120px] flex-1 grid-cols-[160px_minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-x-5 pl-5 [--page-column-width:880px]" data-page-nav="">
+      <div className="col-start-2 row-start-1 min-w-0">{head}</div>
+      <div className="col-start-1 row-start-2 min-h-0">{nav}</div>
+      <div className="col-start-2 row-start-2 flex min-h-0 min-w-0 flex-col" data-page-nav-content="">
         {children}
       </div>
     </div>

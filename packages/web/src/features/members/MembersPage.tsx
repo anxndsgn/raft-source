@@ -355,7 +355,7 @@ export function MembersPage() {
     <MemberActionsContext.Provider value={memberActions}>
     <div ref={setPageElement} className={`${PAGE_ROOT_CLASS} flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:16px] md:[--column-margin:16px] md:[--column-margin:20px]`} data-testid="members-page" data-layout={isDesktop ? "desktop" : "phone"}>
       {/* A root of the Team tab on a phone (PRD 团队页 §8): no Back. */}
-      <PageNavFrame nav={navWide ? <TeamPageNav view="members" /> : null} head={<TeamHeader view="members" withNav={navWide} action={desktopMouse && canCreateAgents ? <MembersCreateAgentButton actions={addAgentActions} inHead /> : undefined} />}>
+      <PageNavFrame nav={navWide ? <TeamPageNav view="members" /> : null} head={<TeamHeader view="members" withNav={navWide} />}>
       <ScrollArea ref={scrollerRef} railInset={toolbarRailInset} className="min-h-0 flex-1 bg-layer-canvas pb-5 safe-bottom" data-testid="members-scroller">
         {/* The toolbar over the list (Raft DS › The toolbar over a list), pinned under the header while the
             members scroll: the tabs, the search filling the line, the Agents tab's Group menu and Invite human,
@@ -363,7 +363,7 @@ export function MembersPage() {
             by touch; as it narrows the Group menu shows its icon, Invite human its icon, Create agent becomes +, the
             tabs become a Select, the Group menu and Invite human fold into ⋯ (step 6), and last an empty search
             becomes its button. */}
-        <div ref={toolbarRef} className={`sticky top-0 z-sticky px-5 ${PAGE_COLUMN_INSET_CLASS} ${LIST_TOOLBAR_AIR_CLASS}`} data-testid="members-toolbar">
+        <div ref={toolbarRef} className={`sticky top-0 z-sticky px-5 ${PAGE_COLUMN_INSET_CLASS} ${LIST_TOOLBAR_AIR_CLASS} ${desktopMouse ? "md:pointer-fine:border-b-0 md:pointer-fine:pt-4 md:pointer-fine:pb-4" : ""}`} data-testid="members-toolbar">
           <FitToolbar aria-label={formatMessage({ id: "members.page.title" })} wrap={showUsage} className="gap-2">
             <ListScope value={tab} options={scopeOptions} onValueChange={setTab} label={scopeLabel} testId="members-tabs" selectTestId="members-scope-select" />
             <FitToolbarSearch
@@ -466,9 +466,9 @@ export function MembersPage() {
                 ) : null}
               </FitToolbarGroup>
             ) : null}
-            <FitToolbarGroup firstLine className={canCreateAgents && !desktopMouse ? "gap-2" : LIST_TOOLBAR_MORE_GROUP_CLASS}>
+            <FitToolbarGroup firstLine className={canCreateAgents ? "gap-2" : LIST_TOOLBAR_MORE_GROUP_CLASS}>
               <ListToolbarMore testId="members-more" />
-              {canCreateAgents && !desktopMouse ? <MembersCreateAgentButton actions={addAgentActions} /> : null}
+              {canCreateAgents ? <MembersCreateAgentButton actions={addAgentActions} /> : null}
             </FitToolbarGroup>
           </FitToolbar>
         </div>

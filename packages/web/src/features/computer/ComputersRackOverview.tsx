@@ -7,7 +7,7 @@ import { useComputersRackView } from "../../store/computersRackViewPreference";
 import { useMachineStore } from "../../store/machineStore";
 import EmptyState from "../../components/ui/EmptyState";
 import { TeamHeader, TeamPageNav } from "../team/TeamHeader";
-import { PAGE_COLUMN_CLASS, PAGE_COLUMN_INSET_CLASS, PageNavFrame, useDesktopMouse, usePageElement, usePageNavWide } from "../../components/ui/PageHead";
+import { PAGE_COLUMN_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_TOOLBAR_PLAIN_CLASS, PageNavFrame, useDesktopMouse, usePageElement, usePageNavWide } from "../../components/ui/PageHead";
 import { ComputersRackList } from "./ComputersRackList";
 import { ComputersRackToolbar } from "./ComputersRackToolbar";
 import { ComputersAttentionSummary } from "./ComputersAttentionSummary";
@@ -52,20 +52,14 @@ export function ComputersRackOverview() {
       <TeamHeader
         view="computers"
         withNav={navWide}
-        action={desktopMouse && capabilities.registerMachines ? (
-          <Button variant="primary" size="md" onClick={openAddMachine} data-testid="computers-rack-add">
-            <Plus />
-            {formatMessage({ id: "machine.mobile.addComputer" })}
-          </Button>
-        ) : undefined}
       />
       )}>
       {/* Search, filters, grouping, sort, the view and Add computer (ComputersRackToolbar), above the
           scroller so they stay put while the list scrolls; the head holds only the title and the
           count (Raft DS › Page structure › A page of a list). The toolbar shows with the page, empty or
           errored too, so Add computer is always at its end. */}
-      <div className={`shrink-0 ${PAGE_COLUMN_INSET_CLASS}`}>
-        <ComputersRackToolbar onAdd={capabilities.registerMachines && !desktopMouse ? openAddMachine : undefined} />
+      <div className={`shrink-0 ${PAGE_COLUMN_INSET_CLASS} ${PAGE_TOOLBAR_PLAIN_CLASS}`}>
+        <ComputersRackToolbar onAdd={capabilities.registerMachines ? openAddMachine : undefined} />
       {/* #68: what needs a person and what is waiting, from the server's summary (nothing from an older server). */}
         <ComputersAttentionSummary />
       </div>
