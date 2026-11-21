@@ -1,5 +1,5 @@
 import { Monitor } from "lucide-react";
-import { useCallback, useId } from "react";
+import { useCallback, useId, useMemo } from "react";
 import type { ComponentType, ReactNode } from "react";
 import { useIntl } from "react-intl";
 import { Button, Switch } from "@botiverse/raft-ui";
@@ -7,7 +7,7 @@ import type { RaftThemeId } from "@botiverse/raft-shared";
 import { RAFT_THEME_NAME_ID } from "../../components/settings/raftThemeNames";
 import type { ServerAppearanceControls } from "../../components/settings/useServerAppearance";
 import { raftThemeHasDecor } from "../../theme/serverTheme";
-import { frameInk, THEME_FRAME_MIN_CONTRAST } from "../../theme/themeTweak";
+import { frameInk, THEME_FRAME_MIN_CONTRAST, THEME_TWEAK_RADII } from "../../theme/themeTweak";
 import type { ThemeTweakRadius } from "../../theme/themeTweak";
 import { ThemeColorPlate } from "./ThemeColorPlate";
 import { ThemeLightnessRamp } from "./ThemeLightnessRamp";
@@ -54,6 +54,10 @@ function ThemeEditorPanelBody({
   const { ink, contrast } = frameInk(frame);
   const contrastLow = contrast < THEME_FRAME_MIN_CONTRAST;
   const radiusText = radiusValueText(tweak.radius, formatMessage);
+  const stopLabels = useMemo(
+    () => THEME_TWEAK_RADII.map((radius) => (radius === 0 ? formatMessage({ id: "themeEditor.radiusSquare" }) : String(radius))),
+    [formatMessage],
+  );
 
   return (
     <div className="flex min-w-0 flex-col gap-4" data-testid="theme-editor-panel">
@@ -94,6 +98,7 @@ function ThemeEditorPanelBody({
           value={tweak.radius}
           label={formatMessage({ id: "themeEditor.radius" })}
           valueText={radiusText}
+          stopLabels={stopLabels}
           onValueChange={setRadius}
         />
       </div>
