@@ -105,10 +105,17 @@ export interface ArtifactSideCard {
  * doesn't host Artifacts (`channelId` null), or when what's open belongs to
  * another channel.
  */
+/** Where an Artifact in a conversation opens in the shell's workspace island (artifactViewerAddress's workspaceIsland). */
+const WORKSPACE_ISLAND_QUERY = "(min-width: 48rem)";
+
 export function useArtifactSideCard(channelId: string | null | undefined): ArtifactSideCard | null {
   const enabled = useWorkspaceArtifactsEnabled() && !!channelId;
   const addressed = useArtifactViewerStore((s) => !!channelId && s.addressed?.conversationId === channelId);
-  return useArtifactCard(useArtifactViewerStore((s) => enabled && s.open !== null && s.open.conversationId === channelId), false, addressed);
+  // On a desktop the workspace is a place of its own beside whichever conversation is shown (owner, 11/21 20:33): a
+  // switch to another conversation keeps it, its tabs moving over once the address has (useArtifactViewerAddress).
+  // Until then it is still shown here, so the viewer is not unmounted and loaded again in between (owner 389ecf8e).
+  const island = useMediaQuery(WORKSPACE_ISLAND_QUERY);
+  return useArtifactCard(useArtifactViewerStore((s) => enabled && s.open !== null && s.open.conversationId !== null && (s.open.conversationId === channelId || island)), false, addressed);
 }
 
 /**
