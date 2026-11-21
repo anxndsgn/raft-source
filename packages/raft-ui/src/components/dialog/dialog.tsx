@@ -4,13 +4,25 @@ import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { ArrowLeft, X } from "lucide-react";
-import { Children, createContext, isValidElement, useContext, useEffect, useState } from "react";
+import {
+  Children,
+  createContext,
+  isValidElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import type { ComponentPropsWithRef, CSSProperties, ReactNode } from "react";
 import { decisionWidth } from "../../lib/decision-width";
+import { PopupSheetReset } from "../../lib/popup-boundary";
 import { ScrollArea } from "../scroll-area/scroll-area";
+import { ScrollAreaGutters } from "../scroll-area/scroll-area-gutters";
+import { useScrollAreaContainer } from "../scroll-area/use-scroll-area-container";
 import type { ScrollAreaProps } from "../scroll-area/types";
 import { headEdgePull } from "../../lib/head-edges";
+import { useHoldsFocusable } from "../../lib/holds-focusable";
 import { stackedActions, useStackedActions } from "../../lib/stacked-actions";
 import { tv } from "../../lib/tv";
 import type { StyledProps } from "../../lib/styled-props";
@@ -38,6 +50,7 @@ const dialog = tv({
     // A centred modal appears and goes without motion (Raft DS: only sheets
     // slide; a dialog is simply there).
     overlay: ["fixed inset-0 z-dialog bg-layer-backdrop"],
+    portal: [],
     content: [
       "fixed top-1/2 left-1/2 z-dialog flex w-[calc(100%-2rem)] -translate-1/2 flex-col",
       "max-h-[calc(100dvh-2rem)] outline-none",
@@ -60,6 +73,20 @@ const dialog = tv({
       // lay out DialogBody itself (`grid gap-4`); gutters would take its first cell.
       "min-w-0 flex-1 overflow-y-auto",
       "px-(--surface-inset) pt-1.5 pb-(--surface-inset) first:pt-(--surface-inset)",
+      "font-sans text-subhead text-foreground-muted",
+    ],
+    // DialogBody with `unstable_scrollArea`: a ScrollArea with absolute gutters
+    // (scroll-area.md#gutters-position). The frame is the dialog's flex child
+    // and holds the scrollbars; the body inside it scrolls and stays the
+    // caller's to lay out. The body is the frame's first child whatever comes
+    // before the frame, so the frame says which top padding the body takes.
+    bodyFrame: [
+      "min-h-0 min-w-0 flex-1",
+      "[--dialog-body-top:--spacing(1.5)] first:[--dialog-body-top:var(--surface-inset)]",
+    ],
+    bodyScroll: [
+      "min-h-0 min-w-0 flex-1",
+      "px-(--surface-inset) pt-(--dialog-body-top) pb-(--surface-inset)",
       "font-sans text-subhead text-foreground-muted",
     ],
     // One row at the end, Cancel then commit, on a phone as on a desktop
@@ -142,7 +169,14 @@ const dialog = tv({
     },
     layer: {
       0: { overlay: [], content: [] },
-      1: { overlay: ["z-dialog-layer"], content: ["z-dialog-layer"] },
+      1: { overlay: ["z-dialog-layer"], content: [] },
+    },
+    // DialogContent's portal at `layer={1}`: a stacking context of its own at
+    // z-dialog-layer, with the scrim, the card and every popup opened from
+    // inside (Base UI portals it into this element) ordered in it.
+    lifted: {
+      false: {},
+      true: { portal: ["relative isolate z-dialog-layer"] },
     },
     // Opened from another modal surface (a sheet or a dialog): a lighter scrim
     // of its own, so what is below steps back without going black.
@@ -247,13 +281,30 @@ export function DialogContent({
   const sheetSurface = useContext(DialogSheetSurfaceContext);
   const [keyboard, setKeyboard] = useState<SoftKeyboardViewport | null>(null);
   const raised = !sheetSurface && keyboard != null;
-  const { content } = dialog({ size, layer, placement, keyboard: raised || undefined });
+  // At `layer={1}` the portal is lifted, not the scrim and the card in it: a
+  // popup opened from the card (a select list, a menu) is portaled into the
+  // same element at z-popup (50), and under a card at z-dialog-layer (60) it
+  // was drawn behind the card and its scrim.
+  const lifted = layer === 1;
+  const { content, portal } = dialog({ size, placement, lifted, keyboard: raised || undefined });
 
-  const overlayProps = typeof overlay === "object" ? overlay : {};
+  // The scrim's own `layer` goes with the card's: inside the lifted portal a
+  // scrim at z-dialog-layer would cover the card at z-dialog.
+  const { layer: overlayLayer, ...overlayRest } = typeof overlay === "object" ? overlay : {};
+  const overlayProps = lifted ? overlayRest : { layer: overlayLayer, ...overlayRest };
+  const portalClassName = portalProps?.className;
+  const liftedPortalClassName =
+    typeof portalClassName === "function"
+      ? (state: BaseDialog.Portal.State) => portal({ className: portalClassName(state) })
+      : portal({ className: portalClassName });
 
   return (
-    <DialogPortal {...portalProps}>
-      {overlay === false ? null : <DialogOverlay layer={layer} {...overlayProps} />}
+    <DialogPortal
+      {...portalProps}
+      data-layer={lifted ? 1 : undefined}
+      className={lifted ? liftedPortalClassName : portalClassName}
+    >
+      {overlay === false ? null : <DialogOverlay {...overlayProps} />}
       <BaseDialog.Popup
         data-slot="dialog-content"
         data-placement={top ? "top" : undefined}
@@ -419,8 +470,11 @@ export function DialogHeader({ className, bar = false, children, ...props }: Dia
         {...props}
       >
         <DialogSheetHeadContext.Provider value>
-          {backs.length > 0 ? backs : closes}
-          {rest}
+          {/* A popup on a head button isn't held under the head. */}
+          <PopupSheetReset>
+            {backs.length > 0 ? backs : closes}
+            {rest}
+          </PopupSheetReset>
         </DialogSheetHeadContext.Provider>
         <div ref={setCommitSlot} data-slot="dialog-commit-slot" className={head.commitSlot()} />
       </div>
@@ -437,14 +491,43 @@ export function DialogHeader({ className, bar = false, children, ...props }: Dia
 export type DialogBodyProps = ComponentPropsWithRef<"div"> & {
   /** A pinned bar of a scrolling (`size="wide"`) dialog. */
   bar?: boolean;
+  /**
+   * Scroll the body in a ScrollArea, with raft-ui's scrollbar in place of the
+   * platform's. A frame (`data-slot="dialog-body-frame"`) is rendered around
+   * the body and holds the scrollbars; the body keeps its slot, `className`,
+   * `ref`, native props and children, so a layout written on it
+   * (`grid gap-4`) is unchanged. It becomes the default in a later minor
+   * release: delete the prop then. A `bar` body ignores it.
+   */
+  unstable_scrollArea?: boolean;
+  /**
+   * With `unstable_scrollArea`, the class of the frame around the body: the
+   * classes that size the body in the dialog (`max-h-*`, `h-*`, `flex-*`) go
+   * here, not in `className`. Ignored without `unstable_scrollArea`.
+   */
+  wrapperClassName?: string;
 };
 
-export function DialogBody({ className, bar = false, children, ...props }: DialogBodyProps) {
+export function DialogBody({
+  className,
+  bar = false,
+  unstable_scrollArea: scrollArea = false,
+  wrapperClassName,
+  children,
+  ...props
+}: DialogBodyProps) {
   const { sheet, setBodyEndSlot } = useDialogSheet();
   const { body } = dialog({ bar });
   // In a sheet a wide dialog's body scrolls as one, on the same margin: its
   // DialogNav is hidden below 768px and its sections follow one another.
   const sheetBody = sheet ? cn(bar && dialogSheet().barBody(), dialogSheet().body()) : undefined;
+  if (scrollArea && !bar) {
+    return (
+      <DialogBodyScrollArea className={className} wrapperClassName={wrapperClassName} {...props}>
+        {children}
+      </DialogBodyScrollArea>
+    );
+  }
   return (
     <div
       data-slot="dialog-body"
@@ -460,6 +543,74 @@ export function DialogBody({ className, bar = false, children, ...props }: Dialo
           className={dialogSheet().bodyEnd()}
         />
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * DialogBody as a ScrollArea with absolute gutters: nothing is put inside the
+ * body, so its own grid or flex layout holds only the caller's children.
+ */
+function DialogBodyScrollArea({
+  className,
+  wrapperClassName,
+  children,
+  ref,
+  tabIndex,
+  ...props
+}: Omit<DialogBodyProps, "bar" | "unstable_scrollArea">) {
+  const { sheet, setBodyEndSlot } = useDialogSheet();
+  const { bodyFrame, bodyScroll } = dialog();
+  const [body, setBody] = useState<HTMLDivElement | null>(null);
+  const setRef = useCallback(
+    (element: HTMLDivElement | null) => {
+      setBody(element);
+      if (typeof ref === "function") ref(element);
+      else if (ref) ref.current = element;
+    },
+    [ref],
+  );
+  const holdsFocusable = useHoldsFocusable(body);
+  const { containerProps, frameProps, guttersProps } = useScrollAreaContainer<HTMLDivElement>({
+    containerRef: setRef,
+    guttersPosition: "absolute",
+    // As the native body, whose `overflow-y: auto` makes the other axis `auto` too: a child
+    // wider than the body (a table, a line that doesn't wrap) is scrolled to, not cut off.
+    orientation: "both",
+    // As PanelScrollViewport: the scroll stops at the body's end, and a Mac
+    // trackpad or iOS still bounces it.
+    overscroll: "contain",
+  });
+  return (
+    <div
+      {...frameProps}
+      data-slot="dialog-body-frame"
+      className={bodyFrame({ className: cn(frameProps.className, wrapperClassName) })}
+    >
+      <div
+        data-slot="dialog-body"
+        {...containerProps}
+        {...props}
+        // A Tab stop only while it overflows (the hook's `tabIndex`) and holds
+        // nothing that takes focus, as a native scroller is in Chromium (the
+        // only browser this was checked in): a form adds no stop before its first field, and a long text
+        // that is only read can be scrolled with the keyboard.
+        tabIndex={tabIndex ?? (holdsFocusable ? -1 : containerProps.tabIndex)}
+        className={bodyScroll({
+          className: cn(containerProps.className, sheet && dialogSheet().body(), className),
+        })}
+      >
+        {children}
+        {sheet ? (
+          // The footer is hidden in a sheet: its note or link moves here.
+          <div
+            ref={setBodyEndSlot}
+            data-slot="dialog-sheet-body-end"
+            className={dialogSheet().bodyEnd()}
+          />
+        ) : null}
+      </div>
+      <ScrollAreaGutters {...guttersProps} />
     </div>
   );
 }

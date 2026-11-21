@@ -514,7 +514,14 @@ function SelectFramePositioner({
   container,
   ...props
 }: SelectFramePositionerProps) {
-  const collision = usePopupCollision(collisionPadding, collisionBoundary, 8, container);
+  const collision = usePopupCollision(
+    collisionPadding,
+    collisionBoundary,
+    8,
+    container,
+    undefined,
+    props.anchor,
+  );
   return <BaseSelect.Positioner {...collision} {...props} />;
 }
 

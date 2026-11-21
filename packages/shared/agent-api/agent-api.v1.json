@@ -1,6 +1,6 @@
 {
   "schema": "raft-agent-api-description.v1",
-  "manifestVersion": "27fac753c1d15016",
+  "manifestVersion": "dab48a430323accd",
   "basePath": "/internal/agent-api",
   "capabilities": [
     "read",

@@ -3,10 +3,6 @@ import { afterEach, beforeAll, expect, test } from "vite-plus/test";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { ThemeProvider } from "./lib/theme/theme-provider";
-import {
-  ActivityInboxSelectionCount,
-  ActivityInboxSelectionToolbar,
-} from "./components/activity-inbox";
 import { Button } from "./components/button";
 import { CodeBlockPre } from "./components/code-block";
 import {
@@ -249,46 +245,6 @@ it("an action card's properties stack only when a value doesn't fit beside its l
     </Region>,
   );
   expect(above("Channel", "value")).toBe(true);
-});
-
-function SelectionToolbar() {
-  return (
-    <ActivityInboxSelectionToolbar data-testid="toolbar">
-      <ActivityInboxSelectionCount>12 selected</ActivityInboxSelectionCount>
-      <Button variant="outline">Mark as Read</Button>
-      <Button variant="outline">Mark as Done</Button>
-      <Button variant="outline">Unfollow</Button>
-    </ActivityInboxSelectionToolbar>
-  );
-}
-
-it("the activity selection toolbar is one 44px row while it fits, and wraps in a 320px column", () => {
-  render(
-    <Region width={800}>
-      <SelectionToolbar />
-    </Region>,
-  );
-  const row = screen.getByTestId("toolbar");
-  // 44px including its 1px hairline, on whole pixels: the 32px buttons sit 6px
-  // from the top and 6px from the row's bottom edge; on a desktop with a mouse
-  // the 34px buttons sit 4px from the top and 6px from the bottom edge (5px of
-  // space above the hairline).
-  expect(rect(row).height).toBe(44);
-  const button = rect(screen.getByRole("button", { name: "Mark as Read" }));
-  const desktop = matchMedia("(width >= 48rem) and (pointer: fine)").matches;
-  // Raft redesign: with a mouse the buttons are 32px too: 5px from the top,
-  // 6px of air above the hairline (7px from the row's bottom edge).
-  expect(button.top - rect(row).top).toBe(desktop ? 5 : 6);
-  expect(rect(row).bottom - button.bottom).toBe(desktop ? 7 : 6);
-  cleanup();
-  render(
-    <Region width={320}>
-      <SelectionToolbar />
-    </Region>,
-  );
-  const toolbar = screen.getByTestId("toolbar");
-  expect(rect(toolbar).height).toBeGreaterThan(44);
-  expect(toolbar.scrollWidth).toBeLessThanOrEqual(toolbar.clientWidth);
 });
 
 function TasksToolbar() {

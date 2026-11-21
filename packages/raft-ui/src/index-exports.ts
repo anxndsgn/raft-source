@@ -874,8 +874,6 @@ export {
   MessageItemToolbarButton,
   MessageMultiSelect,
   MessageMultiSelectCheckbox,
-  MessageMultiSelectToolbar,
-  MessageMultiSelectToolbarActions,
   MessageReactionAddButton,
   MessageReactionChip,
   MessageReactionCount,
@@ -921,8 +919,6 @@ export type {
   MessageItemToolbarProps,
   MessageMultiSelectCheckboxProps,
   MessageMultiSelectProps,
-  MessageMultiSelectToolbarActionsProps,
-  MessageMultiSelectToolbarProps,
   MessageReactionAddButtonProps,
   MessageReactionChipProps,
   MessageReactionCountProps,
@@ -1341,6 +1337,7 @@ export {
   TableHead,
   TableHeader,
   TableRow,
+  TableScroll,
 } from "./components/table/index";
 export type {
   TableBodyProps,
@@ -1352,6 +1349,7 @@ export type {
   TableHeaderProps,
   TableProps,
   TableRowProps,
+  TableScrollProps,
 } from "./components/table/index";
 
 export { Spinner } from "./components/spinner/index";

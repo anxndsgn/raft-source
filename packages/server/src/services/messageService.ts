@@ -10692,6 +10692,7 @@ export async function broadcastAndDeliver(
      * the original's). Written with the message, in its transaction.
      */
     reply?: { replyToMessageId: string | null; taskIds: string[] };
+    /**
      * An agent send only: checks that run inside the send's transaction after
      * a NEW message is inserted (never for an idempotent replay, never on the
      * non-transactional fixture path). RFC 086: a card's acting buttons are

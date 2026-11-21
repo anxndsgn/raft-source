@@ -105,8 +105,10 @@ export const drawer = tv({
       "bg-layer-popover text-foreground",
       "shadow-float ring-1 ring-line-seam",
     ],
+    // `min-w-0`: in a side drawer the content is the one flexible item of a row, and would
+    // otherwise be as wide as the widest thing in its body, past the window's edge.
     content: [
-      "flex min-h-0 flex-1 flex-col rounded-[inherit] select-text",
+      "flex min-h-0 min-w-0 flex-1 flex-col rounded-[inherit] select-text",
       "group-data-swiping/drawer-popup:select-none",
     ],
     swipeHandle: [
@@ -118,7 +120,25 @@ export const drawer = tv({
     closeButton: [barButton],
     closeIcon: ["size-control-icon"],
     header: ["flex flex-col", "items-stretch gap-1 px-4 pt-4 pb-2 text-left"],
-    body: ["flex flex-1 flex-col", "items-stretch px-4 pt-2 pb-4 text-left"],
+    body: [
+      "flex flex-1 flex-col",
+      "items-stretch px-4 pt-2 pb-4 text-left",
+      // The body scrolls, so what is written in it keeps its height: without
+      // this a row of a fixed height shrinks to its text before the body
+      // scrolls. At no specificity, so a class on the child (`flex-1`,
+      // `shrink`) still lets an inner scroller shrink.
+      "[:where(&)>*]:shrink-0",
+    ],
+    // A side drawer's DrawerBody with `unstable_scrollArea`: a ScrollArea with
+    // absolute gutters (scroll-area.md#gutters-position). The frame is the
+    // drawer's flex child and holds the scrollbars; the body inside it scrolls,
+    // with the side drawer's padding, and stays the caller's flex column.
+    bodyFrame: ["min-h-0 flex-1"],
+    bodyScroll: [
+      "flex min-h-0 flex-1 flex-col",
+      "items-stretch px-(--surface-inset) pt-(--page-top) pb-(--page-inset) text-left",
+      "[:where(&)>*]:shrink-0",
+    ],
     footer: ["mt-auto py-5", "px-4 pt-3 pb-4"],
     actions: ["flex w-full flex-col items-stretch", "**:data-[slot=button]:w-full", "gap-2"],
     title: [
@@ -205,6 +225,12 @@ export const drawer = tv({
           "h-4",
           "before:top-1.5 before:h-1 before:w-9",
         ],
+        body: [
+          // Native scroll, an allowed exception (scroll-area.md#native-scrolling): a sheet is
+          // a phone surface, where the platform's scrollbar lies over the content and takes
+          // no room, and a drag down at the top of the body has to start closing the sheet.
+          "min-h-0 overflow-y-auto",
+        ],
       },
     },
   },
@@ -222,6 +248,11 @@ export const drawer = tv({
       snapPoints: true,
       class: {
         popup: ["[--drawer-content-height:100dvh]"],
+        // Below its full height a sheet with snap points has its lower part under the
+        // window's edge, and a drag up on the body has to raise the sheet, not scroll
+        // it: Base UI's drawer scrolls any scroller under the finger first. So the
+        // body scrolls only at the full-height snap point (`data-expanded`).
+        body: ["overflow-y-hidden group-data-expanded/drawer-popup:overflow-y-auto"],
       },
     },
   ],

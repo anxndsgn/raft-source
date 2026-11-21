@@ -98,7 +98,6 @@ test("a list column sets its margin to 16px on a phone, 20px from 768px by touch
     "panel-section-header": panelHeader().sectionHeader(),
     "sidebar-header": sidebarRecipe().sidebarHeader(),
     "activity-inbox-controls": activityInboxToolbar().controls(),
-    "activity-inbox-selection-toolbar": activityInboxToolbar().selectionToolbar(),
     "search-shell-filters": search().filtersRow(),
   };
   for (const [name, value] of Object.entries(padded)) {

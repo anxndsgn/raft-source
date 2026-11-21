@@ -1,6 +1,6 @@
 {
   "name": "@botiverse/raft-ui",
-  "version": "0.95.3",
+  "version": "0.101.0",
   "description": "React components and CSS foundations for the Raft Design System.",
   "keywords": [
     "agent-skills",
@@ -21,6 +21,7 @@
   },
   "files": [
     "CHANGELOG.md",
+    "checks",
     "codemods",
     "dist",
     "skills"

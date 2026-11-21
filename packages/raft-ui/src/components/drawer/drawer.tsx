@@ -2,12 +2,17 @@ import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { X } from "lucide-react";
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { cn } from "../../lib/cn";
+import { useHoldsFocusable } from "../../lib/holds-focusable";
+import { PopupSheetContext, PopupSheetReset } from "../../lib/popup-boundary";
+import type { PopupSheet } from "../../lib/popup-boundary";
 import type { StyledProps } from "../../lib/styled-props";
 import { useThemeScopeProps } from "../../lib/theme/theme-scope";
 import { Button } from "../button/index";
 import { DialogSheetReset } from "../dialog/dialog-sheet-context";
+import { ScrollAreaGutters } from "../scroll-area/scroll-area-gutters";
+import { useScrollAreaContainer } from "../scroll-area/use-scroll-area-container";
 import type { ButtonProps } from "../button/index";
 import { drawer } from "./drawer.recipe";
 import { useParentOverlayKind, withOverlayLayer } from "../../lib/overlay-depth";
@@ -120,6 +125,19 @@ export function DrawerContent({ className, children, portalProps, ...props }: Dr
     snapPoints: hasSnapPoints,
   });
 
+  // A popup opened in the drawer stays in it, under its head (drawer.md#behavior).
+  const [surface, setSurface] = useState<HTMLDivElement | null>(null);
+  const popupSheet = useMemo<PopupSheet | undefined>(
+    () =>
+      surface
+        ? {
+            head: () => surface.querySelector('[data-slot="drawer-header"]'),
+            surface: () => surface,
+          }
+        : undefined,
+    [surface],
+  );
+
   return (
     <DrawerPortal {...portalProps}>
       {modal === true ? <DrawerOverlay /> : null}
@@ -132,8 +150,14 @@ export function DrawerContent({ className, children, portalProps, ...props }: Dr
               snap points: a content-sized sheet keeps its height and draws
               the handle above its header. Other edges show it with snap points. */}
           {hasSnapPoints || swipeDirection === "down" ? <DrawerSwipeHandle /> : null}
-          <DrawerPrimitive.Content data-slot="drawer-content" className={content()}>
-            <DialogSheetReset>{children}</DialogSheetReset>
+          <DrawerPrimitive.Content
+            ref={setSurface}
+            data-slot="drawer-content"
+            className={content()}
+          >
+            <DialogSheetReset>
+              <PopupSheetContext.Provider value={popupSheet}>{children}</PopupSheetContext.Provider>
+            </DialogSheetReset>
           </DrawerPrimitive.Content>
         </DrawerPrimitive.Popup>
       </DrawerPrimitive.Viewport>
@@ -190,14 +214,18 @@ export function DrawerClose({
 
 export type DrawerHeaderProps = useRender.ComponentProps<"div">;
 
-export function DrawerHeader({ className, render, ...props }: DrawerHeaderProps) {
+export function DrawerHeader({ className, render, children, ...props }: DrawerHeaderProps) {
   const { hasSnapPoints, swipeAxis, swipeDirection } = useDrawerConfig();
   const { header } = drawer({
     side: swipeDirection,
     axis: swipeAxis,
     snapPoints: hasSnapPoints,
   });
-  const defaultProps: useRender.ElementProps<"div"> = { className: header({ className }) };
+  const defaultProps: useRender.ElementProps<"div"> = {
+    className: header({ className }),
+    // A popup on a head button isn't held under the head (drawer.md#behavior).
+    children: <PopupSheetReset>{children}</PopupSheetReset>,
+  };
 
   return useRender({
     defaultTagName: "div",
@@ -222,11 +250,57 @@ export function DrawerFooter({ className, render, ...props }: DrawerFooterProps)
   });
 }
 
-export type DrawerBodyProps = useRender.ComponentProps<"div">;
+export type DrawerBodyProps = useRender.ComponentProps<"div"> & {
+  /**
+   * In a drawer from a side, scroll the body in a ScrollArea, with raft-ui's
+   * scrollbar in place of the platform's. A frame
+   * (`data-slot="drawer-body-frame"`) is rendered around the body and holds
+   * the scrollbars; the body keeps its slot, `className`, `ref`, native
+   * props, `render` and children, so a layout written on it (`gap-4`) is
+   * unchanged. It becomes the default in a later minor release: delete the
+   * prop then. A bottom or top sheet ignores it: its body is as without it.
+   */
+  unstable_scrollArea?: boolean;
+  /**
+   * With `unstable_scrollArea`, the class of the frame around the body: the
+   * classes that size the body in the drawer (`max-h-*`, `h-*`, `flex-*`) go
+   * here, not in `className`. Ignored without `unstable_scrollArea`, and in a
+   * bottom or top sheet.
+   */
+  wrapperClassName?: string;
+};
 
-export function DrawerBody({ className, render, ...props }: DrawerBodyProps) {
+export function DrawerBody({
+  className,
+  render,
+  unstable_scrollArea: scrollArea = false,
+  wrapperClassName,
+  ...props
+}: DrawerBodyProps) {
   const { swipeAxis } = useDrawerConfig();
-  const { body } = drawer({ axis: swipeAxis });
+  if (scrollArea && swipeAxis === "x") {
+    return (
+      <DrawerBodyScrollArea
+        className={className}
+        render={render}
+        wrapperClassName={wrapperClassName}
+        {...props}
+      />
+    );
+  }
+  return (
+    <DrawerBodyNative className={className} render={render} swipeAxis={swipeAxis} {...props} />
+  );
+}
+
+function DrawerBodyNative({
+  className,
+  render,
+  swipeAxis,
+  ...props
+}: useRender.ComponentProps<"div"> & { swipeAxis: DrawerConfig["swipeAxis"] }) {
+  const { hasSnapPoints } = useDrawerConfig();
+  const { body } = drawer({ axis: swipeAxis, snapPoints: hasSnapPoints });
   const defaultProps: useRender.ElementProps<"div"> = { className: body({ className }) };
 
   return useRender({
@@ -235,6 +309,66 @@ export function DrawerBody({ className, render, ...props }: DrawerBodyProps) {
     props: mergeProps<"div">(defaultProps, props),
     state: { slot: "drawer-body" },
   });
+}
+
+/**
+ * A side drawer's DrawerBody as a ScrollArea with absolute gutters: nothing is
+ * put inside the body, so its flex column holds only the caller's children.
+ */
+function DrawerBodyScrollArea({
+  className,
+  render,
+  wrapperClassName,
+  ref,
+  tabIndex,
+  ...props
+}: Omit<DrawerBodyProps, "unstable_scrollArea">) {
+  const { bodyFrame, bodyScroll } = drawer();
+  const [body, setBody] = useState<HTMLDivElement | null>(null);
+  const setRef = useCallback(
+    (element: HTMLDivElement | null) => {
+      setBody(element);
+      if (typeof ref === "function") ref(element);
+      else if (ref) ref.current = element;
+    },
+    [ref],
+  );
+  const holdsFocusable = useHoldsFocusable(body);
+  const { containerProps, frameProps, guttersProps } = useScrollAreaContainer<HTMLDivElement>({
+    containerRef: setRef,
+    guttersPosition: "absolute",
+    // As DialogBody and the native body: a child wider than the body is scrolled to, not cut off.
+    orientation: "both",
+    // As DialogBody and PanelScrollViewport: the scroll stops at the body's
+    // end, and a Mac trackpad or iOS still bounces it.
+    overscroll: "contain",
+  });
+  const defaultProps: useRender.ElementProps<"div"> = {
+    className: bodyScroll({ className: cn(containerProps.className, className) }),
+  };
+  const element = useRender({
+    defaultTagName: "div",
+    render,
+    ref: containerProps.ref,
+    props: {
+      ...mergeProps<"div">(defaultProps, props),
+      // A Tab stop only while it overflows (the hook's `tabIndex`) and holds
+      // nothing that takes focus, as DialogBody (lib/holds-focusable).
+      tabIndex: tabIndex ?? (holdsFocusable ? -1 : containerProps.tabIndex),
+    },
+    state: { slot: "drawer-body" },
+  });
+
+  return (
+    <div
+      {...frameProps}
+      data-slot="drawer-body-frame"
+      className={bodyFrame({ className: cn(frameProps.className, wrapperClassName) })}
+    >
+      {element}
+      <ScrollAreaGutters {...guttersProps} />
+    </div>
+  );
 }
 
 export type DrawerActionsProps = useRender.ComponentProps<"div">;

@@ -1111,7 +1111,7 @@ export function ChatPanel({
     else setSideCardOpen("files", true);
   }, [closeCard, filesCardOpen, setSideCardOpen]);
   // The Artifact's recent menu: "All Artifacts in …" opens (or brings forward) the Files card, as the header's paperclip.
-  const showFilesCard = useCallback(() => setSideCardOpen("files", true), [setSideCardOpen]);
+  const openFilesCard = useCallback(() => setSideCardOpen("files", true), [setSideCardOpen]);
 
   // Load tasks for the channel to show claim badges on messages.
   const channelTasks = useTaskStore((s) => selectChannelTaskBucket(s, channel?.id));
@@ -2217,7 +2217,7 @@ export function ChatPanel({
         <AgentContextViewSectionSlot channelId={channel.id} />
         {/* The open Artifact (F41): a section of the side area for now, never of the stored layout. */}
         {artifactSideCard && artifactSection ? (
-          <ArtifactConversationProvider conversationId={channel.id} name={conversationName} onShowAll={taskV2 && supportsChannelTasks ? showFilesCard : undefined}>
+          <ArtifactConversationProvider conversationId={channel.id} name={conversationName} onShowAll={taskV2 && supportsChannelTasks ? openFilesCard : undefined}>
             <SideArtifactPortal title={artifactSideCard.label} artifact={artifactSection} render={artifactSideCard.render} />
           </ArtifactConversationProvider>
         ) : null}

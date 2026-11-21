@@ -3779,4 +3779,4 @@ export const AGENT_API_ROUTE_MANIFEST = [
 ] as const;
 
 /** Content hash of AGENT_API_ROUTE_MANIFEST; see computeAgentApiManifestVersion. */
-export const AGENT_API_MANIFEST_VERSION = "27fac753c1d15016";
+export const AGENT_API_MANIFEST_VERSION = "dab48a430323accd";

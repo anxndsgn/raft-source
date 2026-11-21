@@ -49,9 +49,7 @@ export { LightboxBody } from "./components/lightbox/index";
 export type { LightboxBodyProps } from "./components/lightbox/index";
 
 // The toolbar for selected items (messages, tasks), in the BatchBar style
-// (stdrc, #wg-task-v2), until its parts settle with the apps. The stable
-// MessageMultiSelectToolbar keeps its own earlier bar until then: changes here
-// are not changes to it.
+// (stdrc, #wg-task-v2), until its parts settle with the apps.
 export * from "./components/selection-toolbar/index";
 
 // The toolbar whose items give way in named steps as its region narrows
@@ -146,6 +144,11 @@ export type { DialogFooterNoteProps } from "./components/dialog/index";
 export { OverlayLayerProvider, useParentOverlayKind } from "./lib/overlay-depth";
 export type { OverlayLayerKind, OverlayLayerProviderProps } from "./lib/overlay-depth";
 
+// Popups kept inside an app's own sheet, under its head (dialog.md, "Popups
+// in a sheet"), until its contract settles.
+export { SheetPopupBoundary } from "./lib/popup-boundary";
+export type { SheetPopupBoundaryProps } from "./lib/popup-boundary";
+
 // The last phone tab as the current server (navigation.md, "Servers"): the
 // one tab that opens a popover, on a press or a long press, above the tab bar.
 // Until slock ships it and stdrc settles the parts.
@@ -203,6 +206,7 @@ export type {
 export {
   AppLinkCard,
   AppLinkCardActions,
+  AppLinkCardBadge,
   AppLinkCardBody,
   AppLinkCardEyebrow,
   AppLinkCardHeader,
@@ -215,6 +219,7 @@ export {
 } from "./components/app-link-card/index";
 export type {
   AppLinkCardActionsProps,
+  AppLinkCardBadgeProps,
   AppLinkCardBodyProps,
   AppLinkCardEyebrowProps,
   AppLinkCardHeaderProps,
@@ -272,6 +277,12 @@ export type {
   PanelSplitActionToggleProps,
 } from "./components/panel/index";
 
+// A panel's title that opens a menu of what the panel can show (the Artifacts
+// opened lately, in slock's Artifact viewer): panel.md, "A title that
+// switches". Until stdrc approves the part.
+export { PANEL_TITLE_TRIGGER_EXTRA_WIDTH, PanelTitleTrigger } from "./components/panel/index";
+export type { PanelTitleTriggerProps } from "./components/panel/index";
+
 // A Button with its ▾ menu, one shape in two parts (Create agent and its
 // ways to bring an agent in, on Raft Chat's Members header): button.md, "Split
 // buttons". Until stdrc approves the parts.
@@ -306,6 +317,11 @@ export type {
   TableSortableHeadProps,
   TableSortButtonProps,
 } from "./components/table/index";
+
+// Textarea's look for a ScrollAreaTextarea, a field that scrolls with
+// raft-ui's scrollbar (textarea.md, "A field that scrolls"). Until a form has
+// used it, and it is known whether a part of its own serves better.
+export { textareaScrollAreaVariants } from "./components/textarea/index";
 
 // A shortcut from key names, one cap per key, drawn for the platform: icons
 // on a Mac, words elsewhere, and the shortcut in words for a screen reader
