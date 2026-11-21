@@ -10253,6 +10253,7 @@ export const en = {
   "message.composer.newTaskCancel": "Cancel new task",
   "message.reply.joinsTask": "Joins task #{number}",
   "message.reply.joinsTaskLead": "Joins",
+  "message.reply.taskNumber": "#{number}",
   "message.reply.leaveTask": "Keep this reply off task #{number}",
   "message.taskLinks.title": "Adjust task links",
   "message.taskLinks.description": "Tick the tasks this message belongs to. It shows in their discussions.",

@@ -39,7 +39,7 @@ function ReplyTaskChip({ number, channelId, onRemove }: { number: number; channe
       data-testid={`composer-reply-task-${number}`}
     >
       {status ? <TaskStatusIcon status={toRuiTaskStatus(status)} className="size-2 shrink-0" /> : null}
-      <span className="font-sans text-[12px] leading-4 font-semibold text-foreground tabular-nums">{`#${number}`}</span>
+      <span className="font-sans text-[12px] leading-4 font-semibold text-foreground tabular-nums">{formatMessage({ id: "message.reply.taskNumber" }, { number })}</span>
       <button
         type="button"
         onClick={remove}
