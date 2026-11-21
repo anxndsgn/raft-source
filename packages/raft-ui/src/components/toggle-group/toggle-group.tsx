@@ -14,9 +14,9 @@ const toggleGroup = tv({
       "data-[orientation=horizontal]:flex-row data-[orientation=horizontal]:flex-wrap",
       "data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-stretch",
       "gap-[3px] rounded-[11px] bg-fill-muted p-[3px]",
-      // Raft redesign (Figmama 11/21): with a mouse the segmented track: 5% ink,
-      // the control corner, 2px inside, the items touching.
-      "md:pointer-fine:gap-0 md:pointer-fine:rounded-control md:pointer-fine:bg-fill-medium md:pointer-fine:p-0.5",
+      // Raft redesign (Figmama 11/21): the segmented track: 5% ink, the control
+      // corner, 2px inside, the items touching; by touch too.
+      "gap-0 md:pointer-fine:gap-0 rounded-control md:pointer-fine:rounded-control bg-fill-medium md:pointer-fine:bg-fill-medium p-0.5 md:pointer-fine:p-0.5",
     ],
     item: [
       "inline-flex h-8 md:pointer-fine:h-control min-w-0 shrink-0 items-center justify-center gap-1.5",
@@ -33,10 +33,12 @@ const toggleGroup = tv({
       "focus-visible:shadow-focus",
       "data-disabled:opacity-100 data-disabled:text-foreground-disabled data-disabled:hover:bg-transparent",
       // Raft redesign: 28px items, muted regular words, the ink on hover; the
-      // pressed one the canvas with a 1px floating line, Semi Bold ink.
-      "md:pointer-fine:h-7 md:pointer-fine:border-0 md:pointer-fine:px-2.5 md:pointer-fine:font-normal md:pointer-fine:hover:bg-transparent md:pointer-fine:hover:text-foreground md:pointer-fine:active:bg-transparent",
-      "md:pointer-fine:data-pressed:bg-layer-canvas md:pointer-fine:data-pressed:ring-1 md:pointer-fine:data-pressed:ring-line-floating md:pointer-fine:data-pressed:font-semibold md:pointer-fine:data-pressed:text-foreground",
-      "md:pointer-fine:data-pressed:hover:bg-layer-canvas md:pointer-fine:data-pressed:active:bg-layer-canvas md:pointer-fine:data-pressed:active:bg-none",
+      // pressed one the canvas with a 1px floating line, Semi Bold ink, which
+      // neither hover nor a press changes. By touch the same look at 32px.
+      "md:pointer-fine:h-7 md:pointer-fine:px-2.5",
+      "border-0 md:pointer-fine:border-0 font-normal md:pointer-fine:font-normal hover:bg-transparent md:pointer-fine:hover:bg-transparent hover:text-foreground md:pointer-fine:hover:text-foreground active:bg-transparent md:pointer-fine:active:bg-transparent",
+      "data-pressed:bg-layer-canvas md:pointer-fine:data-pressed:bg-layer-canvas data-pressed:ring-1 md:pointer-fine:data-pressed:ring-1 data-pressed:ring-line-floating md:pointer-fine:data-pressed:ring-line-floating data-pressed:font-semibold md:pointer-fine:data-pressed:font-semibold data-pressed:text-foreground md:pointer-fine:data-pressed:text-foreground",
+      "data-pressed:hover:bg-layer-canvas md:pointer-fine:data-pressed:hover:bg-layer-canvas data-pressed:active:bg-layer-canvas md:pointer-fine:data-pressed:active:bg-layer-canvas data-pressed:active:bg-none md:pointer-fine:data-pressed:active:bg-none",
     ],
     label: ["truncate"],
   },

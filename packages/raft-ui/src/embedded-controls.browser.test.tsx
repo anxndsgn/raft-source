@@ -357,10 +357,9 @@ for (const s of SCREENS) {
       screen.getByTestId(b).getBoundingClientRect().left -
       screen.getByTestId(a).getBoundingClientRect().right;
     // Raft redesign (Figmama 11/20): with a mouse a segmented track's
-    // segments touch, 2px inside it, and by touch too (11/21); a toggle group
-    // with a mouse too (11/21).
+    // segments touch, 2px inside it, and by touch too; a toggle group too (11/21).
     near(gap("seg-a", "seg-b"), 0);
-    near(gap("tog-a", "tog-b"), s.touch ? 3 : 0);
+    near(gap("tog-a", "tog-b"), 0);
   });
 
   it(`${s.name}: a popup's highlight sits 4px inside it with radius-chip`, async () => {
