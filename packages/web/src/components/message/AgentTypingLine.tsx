@@ -88,7 +88,7 @@ function useAgentTypingShown(channelId: string | null | undefined, parentMessage
  * For the list's bottom MessageListJumpControls (Back to bottom, the
  * unread-thread pill), which come after AgentTypingLine in the same
  * container: while the line shows, `--message-list-bottom-inset` is its
- * 24px row, so they sit 12px above it instead of 12px above the list's edge
+ * 36px room (the 28px pill 8px up), so they sit 12px above it instead of 12px above the list's edge
  * and the two never overlap (raft-ui message-list.md, "Jump controls"). CSS
  * only (a sibling selector), so the panel does not re-render when typing
  * starts and stops. While select mode floats its toolbar over the list's
@@ -97,7 +97,8 @@ function useAgentTypingShown(channelId: string | null | undefined, parentMessage
  */
 export const ABOVE_AGENT_TYPING_LINE_CLASS = [
   "[--message-list-bottom-inset:var(--select-mode-reserve,0px)]",
-  "peer-data-[agent-typing=shown]/agent-typing:[--message-list-bottom-inset:calc(var(--select-mode-reserve,0px)+--spacing(6))]",
+  // The pill is 28px and floats 8px up (fafe198e): 36px of room.
+  "peer-data-[agent-typing=shown]/agent-typing:[--message-list-bottom-inset:calc(var(--select-mode-reserve,0px)+--spacing(9))]",
 ].join(" ");
 
 /**
@@ -109,8 +110,8 @@ export const ABOVE_AGENT_TYPING_LINE_CLASS = [
  * jump controls above; no motion, like the line itself.
  */
 export const END_FADE_UNDER_AGENT_TYPING_LINE_CLASS = [
-  "peer-data-[agent-typing=shown]/agent-typing:h-[calc(var(--spacing-timeline-section)-(--spacing(2))+(--spacing(6)))]",
-  "peer-data-[agent-typing=shown]/agent-typing:[--tw-gradient-from-position:--spacing(6)]",
+  "peer-data-[agent-typing=shown]/agent-typing:h-[calc(var(--spacing-timeline-section)-(--spacing(2))+(--spacing(9)))]",
+  "peer-data-[agent-typing=shown]/agent-typing:[--tw-gradient-from-position:--spacing(9)]",
 ].join(" ");
 
 /**

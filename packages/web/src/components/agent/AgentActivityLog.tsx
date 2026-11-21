@@ -685,7 +685,7 @@ export default function AgentActivityLog({ agentId, machineId, canStopSubagents 
           mouse it is part of the content: the content's 12px top inset above it,
           8px to the content under it (the overview starts 8 down), so the
           gap above is the larger one (stdrc, 2026-11-05). */}
-      <div className="flex min-h-(--header-height) shrink-0 items-center justify-start px-(--surface-inset) py-3 max-md:px-4 md:pointer-fine:min-h-0 md:pointer-fine:pt-(--page-top) md:pointer-fine:pb-0" data-testid="activity-view-toolbar">
+      <div className="flex min-h-(--header-height) shrink-0 items-center justify-start px-(--surface-inset) py-3 max-md:px-4 md:pointer-fine:min-h-0 md:pointer-fine:pt-4 md:pointer-fine:pb-3" data-testid="activity-view-toolbar">
         <SegmentedControl<ActivityView>
           value={view}
           aria-label={formatMessage({ id: "activity.overview.view.label" })}
