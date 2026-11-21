@@ -1,3 +1,4 @@
+import { PAGE_COLUMN_CONTENT_CLASS, PAGE_ROOT_CLASS, PageHead, useDesktopMouse } from "../ui/PageHead";
 import { Panel, ScrollArea, Spinner } from "@botiverse/raft-ui";
 import { useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
@@ -115,12 +116,16 @@ export function SettingsPanel({
     [formatMessage],
   );
 
+  // Layout changes C (11/21): with a mouse on a desktop a settings page is the page head and a 720 reading column.
+  const desktopMouse = useDesktopMouse();
   return (
     // One seam between two regions: the settings list beside this panel
     // already draws it, so the frame is inset and draws none of its own.
     // Settings content sits on paper.
-    <Panel edge="inset" className="flex min-h-0 flex-1 flex-col bg-layer-canvas text-foreground" data-testid="settings-panel-frame" data-full-page="">
-      {!embedded && settingsTab !== "feedback" && (
+    <Panel edge="inset" className={`flex min-h-0 flex-1 flex-col bg-layer-canvas text-foreground ${PAGE_ROOT_CLASS} [--page-column-width:720px]`} data-testid="settings-panel-frame" data-full-page="">
+      {!embedded && settingsTab !== "feedback" && desktopMouse && !deleteAccount ? (
+        <PageHead form testId="settings-panel-header" title={<span data-slock-settings-tab={settingsTab}>{activeLabel}</span>} />
+      ) : !embedded && settingsTab !== "feedback" && (
         <PanelHeader
           title={activeLabel}
           titleSlot={deleteAccount && serverSlug ? (
@@ -182,7 +187,7 @@ function SettingsContentFrame({ feedback, children }: { feedback: boolean; child
       className="flex-1 bg-layer-canvas text-foreground"
       contentClassName="px-4 py-4 mobile-nav-clearance md:px-(--surface-inset) md:pointer-fine:pt-(--page-top) md:pointer-fine:pb-(--page-inset)"
     >
-      {children}
+      <div className={PAGE_COLUMN_CONTENT_CLASS}>{children}</div>
     </ScrollArea>
   );
 }
