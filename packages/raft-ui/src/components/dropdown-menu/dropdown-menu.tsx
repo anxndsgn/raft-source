@@ -2,6 +2,7 @@ import type { ComponentPropsWithRef, ReactNode } from "react";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { BASE_COLLISION_PADDING, usePopupCollision } from "../../lib/frame-insets";
 import { tv } from "../../lib/tv";
+import { sheetBackdrop, sheetContent, sheetLabel, sheetPositioner, sheetRow, sheetSeparator } from "../../lib/bottom-sheet";
 import { Badge } from "../badge/index";
 import type { BadgeProps } from "../badge/index";
 import { Button } from "../button/index";
@@ -10,15 +11,19 @@ import type { KbdProps } from "../kbd/index";
 import type { StyledProps } from "../../lib/styled-props";
 import { useThemeScopeProps } from "../../lib/theme/theme-scope";
 
+
 const dropdownMenu = tv({
   slots: {
     trigger: ["select-none"],
-    positioner: ["isolate z-popup outline-none"],
+    // On a phone a bottom sheet (lib/bottom-sheet.ts).
+    positioner: ["isolate z-popup outline-none", ...sheetPositioner],
+    backdrop: sheetBackdrop,
     content: [
       "max-h-(--available-height) overflow-hidden",
       "outline-none",
       "flex min-w-60 flex-col gap-0 rounded-container bg-layer-popover p-1 text-foreground",
       "shadow-float ring-1 ring-line-seam",
+      ...sheetContent,
     ],
     item: [
       "flex w-full cursor-default select-none items-center",
@@ -30,6 +35,7 @@ const dropdownMenu = tv({
       "data-disabled:pointer-events-none data-disabled:text-foreground-disabled",
       "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&>svg:not([class*='size-'])]:size-4",
       "[&>svg]:text-foreground-muted data-disabled:[&>svg]:text-foreground-disabled",
+      ...sheetRow,
     ],
     radioItem: [
       "flex w-full cursor-default select-none items-center",
@@ -41,6 +47,7 @@ const dropdownMenu = tv({
       "data-disabled:pointer-events-none data-disabled:text-foreground-disabled",
       "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&>svg:not([class*='size-'])]:size-4",
       "[&>svg]:text-foreground-muted data-disabled:[&>svg]:text-foreground-disabled",
+      ...sheetRow,
     ],
     submenuTrigger: [
       "flex w-full cursor-default select-none items-center",
@@ -51,17 +58,18 @@ const dropdownMenu = tv({
       "data-disabled:pointer-events-none data-disabled:text-foreground-disabled",
       "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&>svg:not([class*='size-'])]:size-4",
       "[&>svg]:text-foreground-muted data-disabled:[&>svg]:text-foreground-disabled",
+      ...sheetRow,
     ],
     itemLabel: ["min-w-0 flex-1 truncate text-left"],
     footer: ["px-3 py-2 text-xs text-foreground-muted tabular-nums"],
-    label: ["px-2.5 pt-2 pb-1", "font-sans text-caption font-bold text-foreground-hint"],
+    label: ["px-2.5 pt-2 pb-1", "font-sans text-caption font-bold text-foreground-hint", ...sheetLabel],
     shortcut: [
       "ml-auto",
       "h-auto min-w-0 rounded-none bg-transparent p-0 shadow-none inset-ring-0",
       "font-mono text-mono-meta font-normal text-foreground-hint",
     ],
     itemCount: ["ml-auto inline-flex min-w-5 justify-center gap-0 px-1 tabular-nums"],
-    separator: ["-mx-1 my-1 h-px border-0 bg-line-hairline"],
+    separator: ["-mx-1 my-1 h-px border-0 bg-line-hairline", ...sheetSeparator],
     indicator: [
       "pointer-events-none ml-auto flex shrink-0 items-center justify-center",
       "size-4 text-foreground [&_svg]:size-4",
@@ -180,9 +188,10 @@ export function DropdownMenuContent({
   ...props
 }: DropdownMenuContentProps) {
   const resolvedSideOffset = sideOffset ?? 6;
-  const { positioner, content } = dropdownMenu();
+  const { positioner, content, backdrop } = dropdownMenu();
   return (
     <DropdownMenuPortal {...portalProps}>
+      <BaseMenu.Backdrop data-slot="dropdown-menu-backdrop" className={backdrop()} />
       <DropdownMenuFramePositioner
         align={align}
         alignOffset={alignOffset}

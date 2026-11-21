@@ -1,5 +1,5 @@
 import "./select.test.css";
-import { afterEach, expect, test } from "vite-plus/test";
+import { afterEach, beforeAll, expect, test } from "vite-plus/test";
 import { cleanup, render, screen } from "@testing-library/react";
 import { ThemeProvider } from "../../lib/theme/theme-provider";
 import {
@@ -23,6 +23,14 @@ import {
 const it = test.skipIf(typeof window === "undefined");
 
 afterEach(cleanup);
+
+// The popup under its trigger, as from 768px (below it the list is a bottom
+// sheet, lib/bottom-sheet.ts).
+beforeAll(async () => {
+  if (typeof window === "undefined") return;
+  const { page } = await import("vite-plus/test/browser/context");
+  await page.viewport(1280, 800);
+});
 
 const ITEMS = [
   { value: "opus", label: "Claude Opus 5.5" },
@@ -89,9 +97,9 @@ it("an item with a description grows and keeps the one-line item's space around 
   expect(item.height).toBeGreaterThan(36);
 });
 
-it("a one-line item keeps its 36px height", async () => {
+it("a one-line item keeps its row height, 34px with a mouse (option-height)", async () => {
   await renderOpen();
-  expect(screen.getByTestId("one-line").getBoundingClientRect().height).toBe(36);
+  expect(screen.getByTestId("one-line").getBoundingClientRect().height).toBe(34);
 });
 
 it("the trigger shows only the label, not the description", async () => {

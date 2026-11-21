@@ -15,6 +15,7 @@ import type { DataAttributes } from "../../lib/data-attributes";
 import { usePopupCollision } from "../../lib/frame-insets";
 import { cn } from "../../lib/cn";
 import { tv } from "../../lib/tv";
+import { sheetBackdrop, sheetContent, sheetPositioner, sheetRow } from "../../lib/bottom-sheet";
 import { useOverflowTitle } from "../../lib/use-overflow-title";
 import type { StyledProps } from "../../lib/styled-props";
 import { useThemeScopeProps } from "../../lib/theme/theme-scope";
@@ -64,17 +65,22 @@ const select = tv({
     ],
     sizerLabel: ["whitespace-nowrap font-semibold"],
     sizerPlaceholder: ["whitespace-nowrap font-medium"],
-    positioner: ["isolate z-popup outline-none"],
+    // On a phone the options are a bottom sheet (lib/bottom-sheet.ts).
+    positioner: ["isolate z-popup outline-none", ...sheetPositioner],
+    backdrop: sheetBackdrop,
     content: [
       "relative max-h-(--available-height) min-w-[max(var(--anchor-width),220px)] overflow-hidden",
       "max-w-[min(var(--available-width),max(var(--anchor-width),24rem))]",
       "outline-none",
       "rounded-container bg-layer-popover p-1 text-foreground",
       "shadow-float ring-1 ring-line-seam",
+      ...sheetContent,
+      "max-md:max-w-none",
     ],
-    listFrame: ["-mx-1 min-h-0"],
+    listFrame: ["-mx-1 min-h-0", "max-md:mx-0"],
     // A ScrollArea container (absolute gutters): useScrollAreaContainer gives it its overflow.
-    list: ["max-h-64 min-h-0 scroll-py-6", "flex flex-col px-1"],
+    // In a phone's sheet the list takes the sheet's height (85% of the screen).
+    list: ["max-h-64 min-h-0 scroll-py-6", "flex flex-col px-1", "max-md:max-h-[calc(85dvh-28px)] max-md:px-0"],
     item: [
       "flex w-full shrink-0 cursor-default select-none items-center justify-between overflow-hidden",
       "text-left outline-none",
@@ -86,6 +92,8 @@ const select = tv({
       "[&>svg]:pointer-events-none [&>svg]:shrink-0 [&>svg]:text-foreground-muted",
       "[&>svg:not([class*='size-'])]:size-4",
       "[&>svg:not([class*='stroke-'])]:stroke-2",
+      ...sheetRow,
+      "max-md:data-selected:**:data-[slot='select-item-text']:font-normal",
     ],
     actionItem: [
       "flex w-full shrink-0 cursor-default select-none items-center gap-2.5 overflow-hidden",
@@ -97,6 +105,7 @@ const select = tv({
       "[&>svg]:pointer-events-none [&>svg]:shrink-0",
       "[&>svg:not([class*='size-'])]:size-4",
       "[&>svg:not([class*='stroke-'])]:stroke-2",
+      ...sheetRow,
     ],
     itemLeading: [
       "flex shrink-0 items-center justify-center",
@@ -569,8 +578,10 @@ export function SelectContent({
   className,
   ...props
 }: SelectContentProps) {
-  const { positioner, content } = select();
+  const { positioner, content, backdrop } = select();
   const positionerNode = (
+    <>
+    <BaseSelect.Backdrop data-slot="select-backdrop" className={backdrop()} />
     <SelectFramePositioner
       align={align}
       alignItemWithTrigger={alignItemWithTrigger}
@@ -590,6 +601,7 @@ export function SelectContent({
     >
       <BaseSelect.Popup data-slot="select-content" className={content({ className })} {...props} />
     </SelectFramePositioner>
+    </>
   );
 
   return <SelectPortal {...portalProps}>{positionerNode}</SelectPortal>;

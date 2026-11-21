@@ -293,12 +293,21 @@ function offenders(root: Element) {
   return found;
 }
 
-/** A popup, its edges at least 8px from the screen's, nothing in it spilling. */
+/**
+ * A popup, its edges at least 8px from the screen's, nothing in it spilling.
+ * Below 768px a Select's list is a bottom sheet (lib/bottom-sheet.ts, Figmama
+ * mobile spec 11/21): the screen's full width, its edges on the screen's.
+ */
 function popupOffenders(popup: Element) {
   const width = document.documentElement.clientWidth;
   const rect = popup.getBoundingClientRect();
   const found = offenders(popup);
-  if (rect.left < 7.5 || rect.right > width - 7.5) {
+  const sheet = width < 768 && popup.matches("[data-slot=select-content]");
+  if (sheet) {
+    if (Math.abs(rect.left) > 0.5 || Math.abs(rect.right - width) > 0.5) {
+      found.push(`sheet spans ${Math.round(rect.left)}..${Math.round(rect.right)} of ${width}`);
+    }
+  } else if (rect.left < 7.5 || rect.right > width - 7.5) {
     found.push(`popup spans ${Math.round(rect.left)}..${Math.round(rect.right)} of ${width}`);
   }
   return found;

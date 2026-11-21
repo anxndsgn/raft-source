@@ -1,5 +1,5 @@
 import "./select.test.css";
-import { afterEach, expect, test } from "vite-plus/test";
+import { afterEach, beforeAll, expect, test } from "vite-plus/test";
 import { cleanup, render, screen } from "@testing-library/react";
 import { ThemeProvider } from "../../lib/theme/theme-provider";
 import {
@@ -26,6 +26,14 @@ import {
 const it = test.skipIf(typeof window === "undefined");
 
 afterEach(cleanup);
+
+// The popup under its trigger, as from 768px (below it the list is a bottom
+// sheet, lib/bottom-sheet.ts).
+beforeAll(async () => {
+  if (typeof window === "undefined") return;
+  const { page } = await import("vite-plus/test/browser/context");
+  await page.viewport(1280, 800);
+});
 
 const noop = () => {};
 

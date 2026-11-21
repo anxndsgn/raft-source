@@ -59,7 +59,8 @@ const VIEWPORTS = [
 ] as const;
 
 async function viewport(width: number, touch: boolean) {
-  ROW = touch ? 36 : 34;
+  // A phone's menus and lists are bottom sheets, 48px rows (Figmama mobile spec 11/21).
+  ROW = touch ? 48 : 34;
   const { cdp, page } = await context();
   await page.viewport(width, 720);
   // Turning touch emulation off leaves no fine pointer, whatever the media
@@ -87,8 +88,10 @@ async function settled() {
   await new Promise((resolve) => requestAnimationFrame(resolve));
 }
 
-/** One line: 36px on a touch screen, the 34px desktop row with a mouse. */
+/** One line: 48px in a phone's bottom sheet, the 34px desktop row with a mouse. */
 let ROW = 36;
+/** A Combobox's list stays a popup under its field on a phone (no sheet): 36px rows by touch. */
+const COMBOBOX_ROW = () => (ROW === 34 ? 34 : 36);
 const LONG = "Claude Opus with extended thinking and the long context window, billed per token";
 
 const COMBOBOX_ITEMS = ["one", "two", "three"];
@@ -117,9 +120,9 @@ async function options() {
   return { one: measure(one), two: measure(two), extras: extras.map(measure) };
 }
 
-function expectConstantPadding({ one, two, extras }: Awaited<ReturnType<typeof options>>) {
-  expect(one.height).toBeCloseTo(ROW, 1);
-  for (const extra of extras) expect(extra.height).toBeCloseTo(ROW, 1);
+function expectConstantPadding({ one, two, extras }: Awaited<ReturnType<typeof options>>, row = ROW) {
+  expect(one.height).toBeCloseTo(row, 1);
+  for (const extra of extras) expect(extra.height).toBeCloseTo(row, 1);
   expect(two.height).toBeGreaterThan(one.height + 8);
   expect(one.above).toBeCloseTo(one.below, 1);
   expect(two.above).toBeCloseTo(one.above, 1);
@@ -229,7 +232,7 @@ for (const { name, width, touch } of VIEWPORTS) {
     );
     await screen.findByTestId("two");
     const measured = await options();
-    expectConstantPadding(measured);
+    expectConstantPadding(measured, COMBOBOX_ROW());
     const described = measure(screen.getByTestId("described"));
     expect(described.height).toBeGreaterThan(ROW);
     expect(described.above).toBeCloseTo(measured.one.above, 1);
@@ -256,7 +259,7 @@ for (const { name, width, touch } of VIEWPORTS) {
       option!.setAttribute("data-testid", id);
       option!.querySelector(".r-combobox-select__text")!.setAttribute("data-text", "");
     }
-    expectConstantPadding(await options());
+    expectConstantPadding(await options(), COMBOBOX_ROW());
   });
 
   it(`DropdownMenu (${name}): one line keeps its row height, two lines grow with the same padding`, async () => {

@@ -35,7 +35,9 @@ export default function DismissBackdrop({
       // The dismiss-layer marker: a full-window dismiss layer (task #121).
       data-slot="dismiss-backdrop"
       {...dismissLayerProps}
-      className="fixed inset-0 z-popup touch-none"
+      // On a phone the menu over it is a bottom sheet (raft-ui lib/bottom-sheet.ts), so the catcher is its 40%
+      // black backdrop there (Figmama mobile spec 11/21); the iOS phantom-click shield stays clear.
+      className={`fixed inset-0 z-popup touch-none ${stopPropagation ? "" : "max-md:bg-black/40"}`}
       onClick={
         stopPropagation
           ? (e) => { e.stopPropagation(); e.preventDefault(); }

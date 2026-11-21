@@ -2,6 +2,7 @@ import { ContextMenu as BaseContextMenu } from "@base-ui/react";
 import type { ComponentPropsWithRef } from "react";
 import { usePopupCollision } from "../../lib/frame-insets";
 import { tv } from "../../lib/tv";
+import { sheetBackdrop, sheetContent, sheetLabel, sheetPositioner, sheetRow, sheetSeparator } from "../../lib/bottom-sheet";
 import { Kbd } from "../kbd/index";
 import type { KbdProps } from "../kbd/index";
 import type { StyledProps } from "../../lib/styled-props";
@@ -10,12 +11,18 @@ import { useThemeScopeProps } from "../../lib/theme/theme-scope";
 const contextMenu = tv({
   slots: {
     trigger: ["select-none"],
-    positioner: ["isolate z-popup outline-none"],
+    // On a phone a bottom sheet (lib/bottom-sheet.ts). The popup takes the
+    // sheet's place itself too, for a menu placed by hand (a message's long
+    // press, ContextMenuPopup).
+    positioner: ["isolate z-popup outline-none", ...sheetPositioner],
+    backdrop: sheetBackdrop,
     content: [
       "flex flex-col max-h-(--available-height) overflow-hidden",
       "outline-none",
       "min-w-60 gap-0 rounded-container bg-layer-popover p-1 text-foreground",
       "shadow-float ring-1 ring-line-seam",
+      ...sheetPositioner,
+      ...sheetContent,
     ],
     item: [
       "flex w-full cursor-default select-none items-center",
@@ -27,6 +34,7 @@ const contextMenu = tv({
       "data-disabled:pointer-events-none data-disabled:text-foreground-disabled",
       "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&>svg:not([class*='size-'])]:size-4",
       "[&>svg]:text-foreground-muted data-disabled:[&>svg]:text-foreground-disabled",
+      ...sheetRow,
     ],
     radioItem: [
       "flex w-full cursor-default select-none items-center",
@@ -38,6 +46,7 @@ const contextMenu = tv({
       "data-disabled:pointer-events-none data-disabled:text-foreground-disabled",
       "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&>svg:not([class*='size-'])]:size-4",
       "[&>svg]:text-foreground-muted data-disabled:[&>svg]:text-foreground-disabled",
+      ...sheetRow,
     ],
     submenuTrigger: [
       "flex w-full cursor-default select-none items-center",
@@ -48,16 +57,17 @@ const contextMenu = tv({
       "data-disabled:pointer-events-none data-disabled:text-foreground-disabled",
       "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&>svg:not([class*='size-'])]:size-4",
       "[&>svg]:text-foreground-muted data-disabled:[&>svg]:text-foreground-disabled",
+      ...sheetRow,
     ],
     itemLabel: ["min-w-0 flex-1 truncate text-left"],
     footer: ["px-3 py-2 text-xs text-foreground-muted tabular-nums"],
-    label: ["px-2.5 pt-2 pb-1", "font-sans text-caption font-bold text-foreground-hint"],
+    label: ["px-2.5 pt-2 pb-1", "font-sans text-caption font-bold text-foreground-hint", ...sheetLabel],
     shortcut: [
       "ml-auto",
       "h-auto min-w-0 rounded-none bg-transparent p-0 shadow-none inset-ring-0",
       "font-mono text-mono-meta font-normal text-foreground-hint",
     ],
-    separator: ["-mx-1 my-1 h-px border-0 bg-line-hairline"],
+    separator: ["-mx-1 my-1 h-px border-0 bg-line-hairline", ...sheetSeparator],
     indicator: [
       "pointer-events-none ml-auto flex shrink-0 items-center justify-center",
       "size-4 text-foreground [&_svg]:size-4",
@@ -175,9 +185,10 @@ export function ContextMenuContent({
   className,
   ...props
 }: ContextMenuContentProps) {
-  const { positioner, content } = contextMenu();
+  const { positioner, content, backdrop } = contextMenu();
   return (
     <ContextMenuPortal {...portalProps}>
+      <BaseContextMenu.Backdrop data-slot="context-menu-backdrop" className={backdrop()} />
       <ContextMenuFramePositioner
         align={align}
         alignOffset={alignOffset}

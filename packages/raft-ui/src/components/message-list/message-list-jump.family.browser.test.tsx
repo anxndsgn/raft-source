@@ -126,7 +126,7 @@ async function phone() {
   await expect.poll(() => matchMedia("(pointer: coarse)").matches).toBe(true);
 }
 
-for (const [name, setup, type] of [
+for (const [name, setup] of [
   ["desktop", desktop, "14px/22px 700"],
   ["phone", phone, "13px/18px 700"],
 ] as const) {
