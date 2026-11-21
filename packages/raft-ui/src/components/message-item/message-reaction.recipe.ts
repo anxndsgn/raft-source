@@ -43,6 +43,9 @@ export const messageReaction = tv({
       // buttons on the menu items' inset (the menu's own 4px padding), as a
       // menu item's highlight sits.
       "justify-start gap-0.5 bg-layer-popover p-0",
+      // In a phone's bottom sheet it is on the sheet's canvas, its first emoji
+      // on the rows' 16px edge (8 + the 36px button's 8).
+      "max-md:bg-transparent max-md:px-2 max-md:pb-1",
       "[&>[role=menuitem]]:size-9 md:pointer-fine:[&>[role=menuitem]]:size-control [&>[role=menuitem]]:p-0 *:[[role=menuitem]]:justify-center",
     ],
     quickButton: [

@@ -4872,7 +4872,8 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
         >
           {/* The popup is the frame (max height, rounded clip); the items scroll in a raft-ui
               ScrollArea, the popup's padding on its content. The items take focus: no tab stop. */}
-          <ScrollArea tabIndex={-1} className="min-h-0 flex-1" contentClassName="flex flex-col p-1">
+          {/* On a phone the popup is a bottom sheet (raft-ui lib/bottom-sheet.ts): its rows run to its edges. */}
+          <ScrollArea tabIndex={-1} className="min-h-0 flex-1" contentClassName="flex flex-col p-1 max-md:p-0">
           {/* Reaction quick row — shown on both desktop right-click ("pointer")
               and mobile long-press ("touch") per stdrc 2026-05-14
               #proj-mobile:a8293493 msg=2cebeb18: "无论是移动端还是桌面端，其右
@@ -5112,7 +5113,7 @@ const ConnectedMessageItem = memo(function ConnectedMessageItem({ message: rawMe
     )}
     {emojiPickerAt && createPortal(
       <>
-        <DismissBackdrop onDismiss={closeEmojiPicker} />
+        <DismissBackdrop onDismiss={closeEmojiPicker} dimOnPhone={false} />
         <PopoverPopup
           className="fixed z-popup min-w-0 p-0"
           role="dialog"

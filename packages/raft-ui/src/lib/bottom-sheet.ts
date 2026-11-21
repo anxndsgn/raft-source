@@ -18,7 +18,7 @@ export const sheetPositioner = [
 /** A backdrop drawn only on a phone. */
 export const sheetBackdrop = [
   "fixed inset-0 z-popup bg-black/40 md:hidden",
-  "transition-opacity duration-200 data-ending-style:duration-150 data-starting-style:opacity-0 data-ending-style:opacity-0",
+  "transition-opacity duration-200 data-ending-style:duration-150 data-starting-style:opacity-0 data-ending-style:opacity-0 motion-reduce:transition-none",
 ];
 
 /** On the popup itself. */
@@ -28,6 +28,8 @@ export const sheetContent = [
   "max-md:px-0 max-md:pt-5 max-md:pb-[calc(8px+env(safe-area-inset-bottom,0px))]",
   "max-md:before:absolute max-md:before:top-2 max-md:before:left-1/2 max-md:before:h-1 max-md:before:w-9 max-md:before:-translate-x-1/2 max-md:before:rounded-full max-md:before:bg-[color-mix(in_oklch,var(--foreground)_15%,transparent)] max-md:before:content-['']",
   "max-md:transition-transform max-md:duration-200 max-md:ease-out max-md:data-ending-style:duration-150 max-md:data-starting-style:translate-y-full max-md:data-ending-style:translate-y-full",
+  // With reduced motion it doesn't slide.
+  "motion-reduce:max-md:transition-none",
 ];
 
 /**

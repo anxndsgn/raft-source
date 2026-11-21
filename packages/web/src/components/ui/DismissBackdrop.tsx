@@ -23,12 +23,15 @@ export default function DismissBackdrop({
   onDismiss,
   trapContextMenu = false,
   stopPropagation = false,
+  dimOnPhone = true,
 }: {
   onDismiss: () => void;
   /** If true, also intercepts right-click (prevents native context menu). */
   trapContextMenu?: boolean;
   /** If true, stops propagation instead of calling onDismiss (iOS phantom-click shield). */
   stopPropagation?: boolean;
+  /** Whether it is a bottom sheet's 40% backdrop on a phone (a menu's); off for a popover that stays one (the emoji picker). */
+  dimOnPhone?: boolean;
 }) {
   return createPortal(
     <div
@@ -37,7 +40,7 @@ export default function DismissBackdrop({
       {...dismissLayerProps}
       // On a phone the menu over it is a bottom sheet (raft-ui lib/bottom-sheet.ts), so the catcher is its 40%
       // black backdrop there (Figmama mobile spec 11/21); the iOS phantom-click shield stays clear.
-      className={`fixed inset-0 z-popup touch-none ${stopPropagation ? "" : "max-md:bg-black/40"}`}
+      className={`fixed inset-0 z-popup touch-none ${stopPropagation || !dimOnPhone ? "" : "max-md:bg-black/40"}`}
       onClick={
         stopPropagation
           ? (e) => { e.stopPropagation(); e.preventDefault(); }
