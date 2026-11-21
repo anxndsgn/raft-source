@@ -13,7 +13,7 @@ import type { RowUnit } from "../ui/seamCascade";
  * - Rule 4: short of room every column gives up, in proportion, what it has above its content's minimum; then the
  *   thread folds; then the folded column gives way to 360; then all shrink in proportion and clip, to 160; past
  *   that the rightmost column becomes a tab in its left neighbour's head (`groups`). Saved widths never change.
- * - Rule 5: one region expanded fills the row; every other column is 160.
+ * - Rule 5: one region expanded fills the row; every other column is put away (0; layout changes 11/21).
  *
  * The thread may stand in any column of the side layout, alone or stacked with sections (slock moves it, stdrc's
  * correction to the prototype): folded, it leaves that column, which stays for the sections stacked with it.
@@ -193,9 +193,9 @@ export function planRow(input: PlanInput): RowPlan {
     const unit = unitOf(units, input.expanded);
     const group = groups.findIndex((g) => g.includes(unit));
     if (unit >= 0 && group >= 0) {
-      // Rule 5: the expanded column fills the row, every other one is 160 and clips.
-      const others = groups.length - 1;
-      const widths = groups.map((_, index) => (index === group ? Math.max(ROW_COLUMN_MIN_WIDTH, available - ROW_COLUMN_MIN_WIDTH * others) : ROW_COLUMN_MIN_WIDTH));
+      // Rule 5, as the layout changes have it (Figmama 11/21): the expanded column fills the row, every other one is
+      // put away (0 wide, no seam; rowLayout); the sidebar too (ShellSidebarColumn).
+      const widths = groups.map((_, index) => (index === group ? Math.max(ROW_COLUMN_MIN_WIDTH, available) : 0));
       return { fold, units, groups, widths, expanded: input.expanded, expandedUnit: units[unit]!.key, rebalance: null };
     }
     // The expanded region went (closed, or the row changed under it): the row as if nothing were expanded.

@@ -184,7 +184,7 @@ export function ShellFrame({
               conversation stand on the frame as one island, and the workspace
               (an open Artifact) as another beside it; empty, it is not drawn. */}
           <AppShellIslandRow data-workspace-expanded={workspaceExpanded ? "true" : undefined} style={islandRowStyle}>
-            <AppShellIsland data-testid="conversation-island">
+            <AppShellIsland data-testid="conversation-island" inert={workspaceExpanded || undefined}>
               {sidebar}
 
               {/* The main slot's box. A collapsible shell positions the main

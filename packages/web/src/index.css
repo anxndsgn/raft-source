@@ -1098,6 +1098,16 @@
   max-width: none !important;
 }
 
+/* Put away by another column's Expand (rule 5, layout changes 11/21): no width, no seam, not drawn; its content and
+   scroll kept (rowLayout putAway). */
+.thread-layout-container[data-row-plan]:not(#_) [data-row-width][data-row-away] {
+  visibility: hidden;
+  overflow: hidden !important;
+  border-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 .thread-layout-container[data-row-plan]:not(#_) > .thread-main-column {
   display: flex;
   position: relative;
@@ -1542,16 +1552,21 @@ html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [d
   max-width: none;
 }
 
-/* …and in the shell's islands (ShellFrame), Raft redesign (Figmama 11/21): the sidebar folds away (ShellFrame
-   closes it, useWorkspaceExpandLayout) and the workspace island takes its room; the conversation keeps the width it
-   had (--ws-conversation-width), so nothing else moves. */
+/* …and in the shell's islands (ShellFrame), layout changes (Figmama 11/21): the workspace fills everything but the
+   rail. The sidebar folds away (ShellFrame closes it, useWorkspaceExpandLayout) and the conversation's island is put
+   away: no width, no border, no gap after it, not drawn, its content and scroll kept for the restore (ShellFrame makes
+   it inert). */
 [data-workspace-expanded="true"] > [data-testid="workspace-island"] {
   flex: 1 1 auto;
 }
 [data-workspace-expanded="true"] > [data-testid="conversation-island"] {
-  /* It gives way as the window narrows (Betty 11/21), down to its 360. */
-  flex: 0 1 var(--ws-conversation-width, auto);
-  min-width: 360px;
+  flex: 0 0 0px;
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  visibility: hidden;
+  border-width: 0;
+  margin-inline-end: calc(-1 * var(--island-gap));
 }
 
 /* Migration log chart: failure marks are non-text graphics, so they use the

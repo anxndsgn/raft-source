@@ -173,15 +173,15 @@ test("rule 4: the sidebar collapsing or expanding is the window 240px wider or n
   assert.equal(planRow({ ...collapsed, expanded: "tasks" }).expandedUnit, expanded.expandedUnit);
 });
 
-test("rule 5: the expanded region's column fills the row, every other column is 160; its regions' unit is the one expanded", () => {
+test("rule 5: the expanded region's column fills the row, every other column is put away (0, 11/21); its regions' unit is the one expanded", () => {
   const plan = planRow({ ...row(1920, ALL), expanded: "tasks" });
   assert.equal(plan.expandedUnit, "col:1");
-  assert.deepEqual(rounded(plan.widths), [160, 160, 1616 - 480, 160]);
+  assert.deepEqual(rounded(plan.widths), [0, 0, 1616, 0]);
   // The thread folded when it was expanded stays folded, and expanding it expands the conversation's column.
   const folded = planRow({ ...row(1280, [THREAD, TASKS]), expanded: "thread", expandFold: true });
   assert.equal(folded.fold, true);
   assert.equal(folded.expandedUnit, "conversation");
-  assert.deepEqual(rounded(folded.widths), [976 - 160, 160]);
+  assert.deepEqual(rounded(folded.widths), [976, 0]);
   // Restored (nothing expanded), the row is the saved widths' again, to the pixel.
   assert.deepEqual(planRow(row(1920, ALL)).widths, planRow({ ...row(1920, ALL), expanded: null }).widths);
 });
@@ -191,7 +191,7 @@ test("rule 5: an expanded region that left the row expands nothing; with every c
   const tabbed = planRow({ ...row(1920, [THREAD, TASKS, FILES, ARTIFACT, PROFILE]), available: 336, expanded: "artifact", expandFold: true });
   assert.deepEqual(tabbed.groups, [[0], [1, 2, 3, 4]]);
   assert.equal(tabbed.expandedUnit, "col:3");
-  assert.deepEqual(rounded(tabbed.widths), [160, 176]);
+  assert.deepEqual(rounded(tabbed.widths), [0, 336]);
 });
 
 test("the keyboard shortcuts panel is a column of the row in the thread's place: every column gives way for it, nothing overflows", () => {
@@ -237,6 +237,6 @@ test("the Tasks page's task beside its list is a column of the row, the list its
   const clipped = planRow(tasksRow(564, { conversation: { saved: 976, contentMin: 360 } }));
   assert.equal(Math.round(clipped.widths[0]! + clipped.widths[1]!), 500);
   assert.ok(clipped.widths[0]! < 360 && clipped.widths[0]! >= 160 && clipped.widths[1]! < 320 && clipped.widths[1]! >= 160);
-  // Rule 5: the task expanded fills the row, the list a 160 strip.
-  assert.deepEqual(rounded(planRow(tasksRow(1440, { expanded: TASKS_PAGE_TASK })).widths), [160, 1216]);
+  // Rule 5: the task expanded fills the row, the list put away (11/21).
+  assert.deepEqual(rounded(planRow(tasksRow(1440, { expanded: TASKS_PAGE_TASK })).widths), [0, 1376]);
 });

@@ -56,6 +56,7 @@ function commitConversationWidth(width: number) {
 /** Shows `element` at `width` (index.css `[data-row-width]`), or at its own width again (null). */
 function showAt(element: HTMLElement, width: number | null) {
   if (width === null) {
+    putAway(element, false);
     if (!element.hasAttribute("data-row-width")) return;
     element.removeAttribute("data-row-width");
     element.style.removeProperty("--row-width");
@@ -64,6 +65,19 @@ function showAt(element: HTMLElement, width: number | null) {
   const value = `${Math.round(width * 100) / 100}px`;
   if (element.style.getPropertyValue("--row-width") !== value) element.style.setProperty("--row-width", value);
   if (!element.hasAttribute("data-row-width")) element.setAttribute("data-row-width", "");
+  putAway(element, width === 0);
+}
+
+/** A column another one's Expand put away (rule 5, 11/21): 0 wide, no seam, out of reach; its content as it was. */
+function putAway(element: HTMLElement, away: boolean) {
+  if (away === element.hasAttribute("data-row-away")) return;
+  if (away) {
+    element.setAttribute("data-row-away", "");
+    element.setAttribute("inert", "");
+  } else {
+    element.removeAttribute("data-row-away");
+    if (!element.hasAttribute("data-row-tab-hidden")) element.removeAttribute("inert");
+  }
 }
 
 /** A column that is a tab not shown (rule 4): out of the row's flow and out of reach, its content as it was. */
@@ -74,7 +88,7 @@ function hideAsTab(element: HTMLElement, hidden: boolean) {
     element.setAttribute("inert", "");
   } else {
     element.removeAttribute("data-row-tab-hidden");
-    element.removeAttribute("inert");
+    if (!element.hasAttribute("data-row-away")) element.removeAttribute("inert");
   }
 }
 

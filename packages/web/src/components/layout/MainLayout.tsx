@@ -37,7 +37,7 @@ import { useColumnWidth } from "../../store/columnWidthStore";
 import ChannelSideArea, { SideSectionPortal, ThreadColumnSections, useThreadColumnSide } from "../task/ChannelSideArea";
 import { ThreadCollapseChevron } from "../task/ThreadCollapseChevron";
 import { AgentContextViewPageSlot } from "../agentContextView/AgentContextViewSlots";
-import { useRowPlanned } from "./rowPlanStore";
+import { useRowPlanned, useRowPlanStore } from "./rowPlanStore";
 import { RowRegionChrome } from "./RowRegionChrome";
 import { SideSectionDnd, useSideSectionHead } from "../task/sideSectionDrag";
 import { useStackEndHead } from "../task/stackEnd";
@@ -2423,6 +2423,9 @@ export default function MainLayout() {
   const rightColumnMin = rightPanelBeside ? COLUMN_BOUNDS.thread.contentMin : 0;
   const sidebarHidden = useSidebarSlotHidden(collapseColumn);
   const sidebarCollapsed = sidebarCollapsible && sidebarHidden;
+  // Layout changes (Figmama 11/21): an expanded region fills everything but the rail, so the sidebar is put away
+  // while it is; its own collapsed state is left as it was, and restoring brings it back.
+  const rowExpanded = useRowPlanStore((s) => s.plan?.expanded != null);
   const handleSidebarOpenChange = useCallback(
     (open: boolean) => setSidebarSlotHidden(collapseColumn, !open),
     [collapseColumn],
@@ -2451,7 +2454,7 @@ export default function MainLayout() {
       showTopBar={showTopBar}
       topEdgeSurface={topEdgeSurface}
       sidebarCollapsible={sidebarCollapsible}
-      sidebarOpen={!sidebarHidden} sidebarToggle={headSidebarToggle}
+      sidebarOpen={!sidebarHidden && !rowExpanded} sidebarToggle={headSidebarToggle}
       onSidebarOpenChange={handleSidebarOpenChange}
       topStrip={<OpenInAppOffers slot="top" />}
       bottomStrip={<OpenInAppOffers slot="bottom" />}
