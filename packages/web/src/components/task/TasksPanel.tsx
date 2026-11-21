@@ -68,7 +68,7 @@ import { ListToolbarMore, ListViewSwitch, MoreMenuChoices } from "../ui/ListTool
 import { useTabRootScroll } from "../../hooks/useTabRootScroll";
 import { TabRootBar } from "../layout/TabRootBar";
 import { FULL_PAGE_HEAD_PROPS } from "../ui/PanelHeader";
-import { PAGE_COLUMN_CONTENT_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_TOOLBAR_PLAIN_CLASS, PAGE_ROOT_CLASS, PageHead, useDesktopMouse } from "../ui/PageHead";
+import { PAGE_COLUMN_CONTENT_CLASS, PAGE_TOOLBAR_PLAIN_CLASS, PAGE_ROOT_CLASS, PageHead, useDesktopMouse } from "../ui/PageHead";
 import { usePinnedHeadRailInset } from "../../hooks/usePinnedHeadRailInset";
 import { PHONE_ROOT_TOOLBAR_CLASS, PHONE_ROOT_VIEWPORT_CLASS, TOOLBAR_CLASS, VIEWPORT_CLASS, VIEWPORT_CONTENT_CLASS } from "./tasksPanelViewport";
 import { LoadMoreSentinel } from "./tasksPage/LoadMoreSentinel";
@@ -1217,7 +1217,8 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
   // reading column, the board across the page as before.
   // The head and toolbar in the 880 column for both views, so switching moves neither (owner 94cd5094, 838ac465); the
   // board itself across the page, scrolling sideways there, the list in the column (Figmama f624f725).
-  const listColumn = pageHead;
+  // Owner 5d73a727 (Figmama 151bf43a): the Tasks page is the page's full width, 20 in, both views.
+  const listColumn = false;
   const newTaskButton = (
     <Button variant="primary" size="md" onClick={openCreateDialog} data-testid="tasks-page-header-new-task">
       <Plus aria-hidden />
@@ -1247,7 +1248,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
           the frame on a phone, the page name its one h1 there. The Board/List
           toggle lives in the filter row, not here. */}
       {pageHead ? (
-        <PageHead title={formatMessage({ id: "task.panel.heading" })} subtitle={pageSubtitle} />
+        <PageHead title={formatMessage({ id: "task.panel.heading" })} subtitle={pageSubtitle} wide />
       ) : !isChannelMode && (
         <TabRootBar
           name={formatMessage({ id: "task.panel.heading" })}
@@ -1261,7 +1262,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
         />
       )}
 
-      {isPhoneTabRoot ? null : listColumn ? <div className={`shrink-0 ${PAGE_COLUMN_INSET_CLASS} ${PAGE_TOOLBAR_PLAIN_CLASS} md:pointer-fine:*:gap-0!`}>{toolbar}</div> : toolbar}
+      {isPhoneTabRoot ? null : pageHead ? <div className={`shrink-0 px-5 ${PAGE_TOOLBAR_PLAIN_CLASS} md:pointer-fine:*:gap-0!`}>{toolbar}</div> : toolbar}
 
       {/* raft-ui ScrollArea, both ways (the board scrolls sideways); the
           scrollbars show while it is pointed at or scrolls, as on every page

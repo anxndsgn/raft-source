@@ -1,7 +1,10 @@
-import { PAGE_COLUMN_CONTENT_CLASS, PAGE_ROOT_CLASS, PageHead, PageWithNav, useDesktopMouse, useSettingsPageNav } from "../ui/PageHead";
+import { PAGE_COLUMN_CONTENT_CLASS, PAGE_COLUMN_FORM_CLASS, PAGE_ROOT_CLASS, PageHead, PageWithNav, useDesktopMouse, useSettingsPageNav } from "../ui/PageHead";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import Tooltip from "../ui/Tooltip";
 import { Sidebar } from "../../features/sidebar/Sidebar";
-import { Panel, ScrollArea, Spinner } from "@botiverse/raft-ui";
-import { useEffect, useMemo } from "react";
+import { Panel, PanelAction, ScrollArea, Spinner } from "@botiverse/raft-ui";
+import { useCallback, useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
 import { PROVIDER_CONNECTIONS_FEATURE_FLAG_KEY, SLACK_BRIDGE_FEATURE_FLAG_KEYS } from "@botiverse/raft-shared";
 import { useServerStore } from "../../store/serverStore";
@@ -154,7 +157,25 @@ export function SettingsPanel({
     </>
   );
   // Wide, the directory is in the page (owner, Figmama 4f0745ec): 200 nav, 40, the 720 form, centered.
-  const pageNav = useSettingsPageNav() && desktopMouse && !embedded;
+  const wide = useSettingsPageNav();
+  const navigate = useNavigate();
+  const backToDirectory = useCallback(() => {
+    if (serverSlug) navigate(`/s/${serverSlug}/settings`);
+  }, [navigate, serverSlug]);
+  const pageNav = wide && desktopMouse && !embedded;
+  // Narrow with a mouse (Figmama e37d4d4c): /settings is the directory's own page; an item's page has Back to it.
+  const narrowPage = !wide && desktopMouse && !embedded && !!serverSlug;
+  const atDirectory = narrowPage && tabProp === undefined;
+  if (atDirectory) {
+    return (
+      <Panel edge="inset" className={`flex min-h-0 flex-1 flex-col bg-layer-canvas text-foreground ${PAGE_ROOT_CLASS} [--page-column-width:720px]`} data-testid="settings-panel-frame" data-full-page="">
+        <PageHead form testId="settings-panel-header" title={formatMessage({ id: "layout.sidebar.headerSettings" })} />
+        <div className={`flex min-h-0 flex-1 flex-col px-3 pt-2 ${PAGE_COLUMN_FORM_CLASS} [&_[data-testid=sidebar-root]]:border-0 [&_[data-testid=sidebar-root]]:bg-transparent`} data-testid="settings-directory-page">
+          <Sidebar hideTitle />
+        </div>
+      </Panel>
+    );
+  }
   if (pageNav) {
     return (
       <Panel edge="inset" className={`flex min-h-0 flex-1 flex-col bg-layer-canvas text-foreground ${PAGE_ROOT_CLASS}`} data-testid="settings-panel-frame" data-full-page="">
@@ -178,7 +199,18 @@ export function SettingsPanel({
     // Settings content sits on paper.
     <Panel edge="inset" className={`flex min-h-0 flex-1 flex-col bg-layer-canvas text-foreground ${PAGE_ROOT_CLASS} [--page-column-width:720px]`} data-testid="settings-panel-frame" data-full-page="">
       {!embedded && settingsTab !== "feedback" && desktopMouse && !deleteAccount ? (
-        <PageHead form testId="settings-panel-header" title={<span data-slock-settings-tab={settingsTab}>{activeLabel}</span>} />
+        <PageHead
+          form
+          testId="settings-panel-header"
+          title={<span data-slock-settings-tab={settingsTab}>{activeLabel}</span>}
+          leading={narrowPage ? (
+            <Tooltip content={formatMessage({ id: "settings.tabs.back" })}>
+              <PanelAction aria-label={formatMessage({ id: "settings.tabs.back" })} onClick={backToDirectory} data-testid="settings-page-back">
+                <ArrowLeft />
+              </PanelAction>
+            </Tooltip>
+          ) : undefined}
+        />
       ) : !embedded && settingsTab !== "feedback" && (
         <PanelHeader
           title={activeLabel}

@@ -42,6 +42,7 @@ export function PageHead({
   action,
   tabs,
   form = false,
+  leading,
   withNav = false,
   wide = false,
   testId,
@@ -51,6 +52,8 @@ export function PageHead({
   action?: ReactNode;
   tabs?: ReactNode;
   form?: boolean;
+  /** Before the title (a narrow Settings form page's Back, Figmama e37d4d4c). */
+  leading?: ReactNode;
   /** Beside a vertical nav (PageWithNav): the title at the top of the content, a line under it as wide as the content
    *  (owner c4157597). */
   withNav?: boolean;
@@ -61,6 +64,7 @@ export function PageHead({
   return (
     <div className={`${wide || withNav ? "" : form ? PAGE_COLUMN_FORM_CLASS : PAGE_COLUMN_CLASS} shrink-0 px-(--column-margin) ${PAGE_TOP_AIR_CLASS} `} data-full-page-head="" data-page-head="" data-testid={testId}>
       <div className={`flex min-w-0 items-center gap-4 ${tabs ? "" : "border-b border-line-seam pb-4"}`}>
+        {leading}
         <div className="min-w-0 flex-1">
           <h2 className="truncate font-sans text-[24px] leading-8 font-semibold text-foreground" data-slot="page-head-title">{title}</h2>
           {subtitle ? (

@@ -38,7 +38,7 @@ import ChannelSideArea, { SideSectionPortal, ThreadColumnSections, useThreadColu
 import { ThreadCollapseChevron } from "../task/ThreadCollapseChevron";
 import { AgentContextViewPageSlot } from "../agentContextView/AgentContextViewSlots";
 import { useRowPlanned, useRowPlanStore } from "./rowPlanStore";
-import { useSettingsPageNav } from "../ui/PageHead";
+import { useDesktopMouse } from "../ui/PageHead";
 import { RowRegionChrome } from "./RowRegionChrome";
 import { SideSectionDnd, useSideSectionHead } from "../task/sideSectionDrag";
 import { useStackEndHead } from "../task/stackEnd";
@@ -2402,8 +2402,9 @@ export default function MainLayout() {
     sidebarCollapsible,
     topEdgeSurface,
   } = shellRouteLayout(path, pathBase, { isDesktop, searchSlotOpen, guest });
-  // Settings with its directory in the page on a wide window (layout changes, Figmama 4f0745ec): no sidebar there.
-  const settingsPageNav = useSettingsPageNav() && isDesktop && !!pathBase && (path === `${pathBase}/settings` || path.startsWith(`${pathBase}/settings/`));
+  // Settings with its directory in the page with a mouse on a desktop (layout changes, Figmama 4f0745ec, e37d4d4c):
+  // beside the form when wide, its own list page when narrow; never the sidebar.
+  const settingsPageNav = useDesktopMouse() && isDesktop && !!pathBase && (path === `${pathBase}/settings` || path.startsWith(`${pathBase}/settings/`));
   const hideSidebar = routeHidesSidebar || settingsPageNav;
   const threadRow = useThreadRowState();
   const threadParentMessageIdForLayout = useThreadStore((s) => s.openParentMessageId);
