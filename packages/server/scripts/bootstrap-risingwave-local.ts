@@ -176,6 +176,39 @@ async function alreadyBootstrapped(risingwave: pg.Client): Promise<boolean> {
   return (result.rowCount ?? 0) > 0;
 }
 
+/**
+ * Self-host only: drops the whole serving graph in this RisingWave database
+ * (the CDC source and everything built on it, then anything left in public),
+ * so the bootstrap below can build the current one.
+ */
+async function dropSelfHostGraph(risingwave: pg.Client): Promise<void> {
+  await risingwave.query(`DROP SOURCE IF EXISTS ${RISINGWAVE_LOCAL_SOURCE} CASCADE`);
+  for (const [catalog, kind] of [
+    ["rw_sinks", "SINK"],
+    ["rw_materialized_views", "MATERIALIZED VIEW"],
+    ["rw_views", "VIEW"],
+    ["rw_tables", "TABLE"],
+    ["rw_sources", "SOURCE"],
+  ] as const) {
+    let names: string[] = [];
+    try {
+      const rows = await risingwave.query<{ name: string }>(
+        `SELECT r.name FROM rw_catalog.${catalog} r JOIN rw_catalog.rw_schemas s ON s.id = r.schema_id WHERE s.name = 'public'`,
+      );
+      names = rows.rows.map((row) => row.name);
+    } catch (error) {
+      console.error(`[rw-bootstrap] could not list ${kind}s: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    for (const name of names) {
+      try {
+        await risingwave.query(`DROP ${kind} IF EXISTS "${name.replaceAll('"', '""')}" CASCADE`);
+      } catch (error) {
+        console.error(`[rw-bootstrap] could not drop ${kind} ${name}: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+  }
+}
+
 async function assertRequiredRelations(risingwave: pg.Client): Promise<void> {
   const names = RISINGWAVE_REQUIRED_RELATIONS.map(sqlLiteral).join(", ");
   const result = await risingwave.query<{ name: string }>(
@@ -273,9 +306,18 @@ async function main(): Promise<void> {
   let restoreBarrierIntervalMs: number | null = null;
   try {
     if (selfHost && await alreadyBootstrapped(risingwave)) {
-      await assertRequiredRelations(risingwave);
-      console.log(JSON.stringify({ ok: true, skipped: "already bootstrapped" }));
-      return;
+      try {
+        await assertRequiredRelations(risingwave);
+        console.log(JSON.stringify({ ok: true, skipped: "already bootstrapped" }));
+        return;
+      } catch (error) {
+        // An upgrade whose serving graph has relations this RisingWave lacks
+        // (upstream merges add MVs): rebuild it from scratch. Everything here
+        // derives from Postgres through CDC, so nothing is lost.
+        const detail = error instanceof Error ? error.message : String(error);
+        console.error(`[rw-bootstrap] the existing graph is out of date (${detail}); rebuilding it`);
+        await dropSelfHostGraph(risingwave);
+      }
     }
     // Loopback-only (checked above): this never touches a staging or
     // production RisingWave. Build at the normal interval, never the
