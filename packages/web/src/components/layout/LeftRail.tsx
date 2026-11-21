@@ -54,6 +54,8 @@ import type { RailTab, RailTabDrag } from "./SortableRailTabs";
 import { hasChatAttentionUnread, selectChatAttentionChannelIds } from "../../utils/chatAttentionUnread";
 import { useShallow } from "zustand/react/shallow";
 import { markMobileAppSeen, shouldShowMobileAppBadge } from "./mobileAppBadge";
+import { useLongPress } from "../../hooks/useLongPress";
+import { ThemeEditorPopover } from "../../features/theme-editor/ThemeEditorPopover";
 
 // Narrow vertical rail to the left of the Sidebar. Hosts, top to bottom:
 // 1. Server avatar / switcher button (clicking opens a flyout to switch servers)
@@ -236,6 +238,18 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
   const closeServerMenu = useCallback(() => setShowServerMenu(false), []);
   // The switcher opens 8px right of the rail head, 4px below its top.
   const railHeaderRef = useRef<HTMLDivElement | null>(null);
+  // Edit theme: a right-click or a long press on the server avatar opens it beside the rail head.
+  const [showThemeEditor, setShowThemeEditor] = useState(false);
+  const openThemeEditor = useCallback(() => {
+    setShowServerMenu(false);
+    setShowHelpMenu(false);
+    setShowThemeEditor(true);
+  }, []);
+  const handleServerContextMenu = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    openThemeEditor();
+  }, [openThemeEditor]);
+  const serverLongPress = useLongPress(openThemeEditor);
   const closeHelpMenu = useCallback(() => setShowHelpMenu(false), []);
   const railModeSelectors = useMemo(() => {
     const select = (mode: Exclude<RailMode, "activity">) => () => {
@@ -502,6 +516,12 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
                   // button's corner. `group` lets the avatar read the item's
                   // selected state.
                   className="group size-(--rail-item) p-0 md:[@media(max-height:600px)]:size-9 md:pointer-fine:hover:bg-transparent md:pointer-fine:active:bg-transparent md:pointer-fine:data-[selected=true]:bg-transparent md:pointer-fine:cursor-pointer"
+                  onContextMenu={handleServerContextMenu}
+                  onTouchStart={serverLongPress.onTouchStart}
+                  onTouchMove={serverLongPress.onTouchMove}
+                  onTouchEnd={serverLongPress.onTouchEnd}
+                  onTouchCancel={serverLongPress.onTouchCancel}
+                  data-testid="left-rail-server"
                 />
               )}
             >
@@ -532,6 +552,7 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
             className="w-64"
           />
         </Popover>
+        <ThemeEditorPopover open={showThemeEditor} onOpenChange={setShowThemeEditor} anchor={railHeaderRef} />
       </AppRailHeader>
       </>
       )}

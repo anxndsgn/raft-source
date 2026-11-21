@@ -1,6 +1,7 @@
 import { effectiveRaftTheme, isRaftThemeId } from "@botiverse/raft-shared";
 import type { RaftThemeId } from "@botiverse/raft-shared";
 import { refreshSystemBarColor } from "./systemBarColor";
+import { activateServerThemeTweak, applyRootThemeTweak, forgetThemeTweak, readThemeTweak } from "./themeTweakRoot";
 
 /**
  * Each member picks a Raft theme per server (design/foundations/themes.md).
@@ -87,6 +88,7 @@ export function readCachedServerTheme(serverId: string): ServerThemeLook | null 
 
 /** A server this person no longer belongs to keeps no look: its public page must not wear their old theme. */
 export function forgetCachedServerTheme(serverId: string): void {
+  forgetThemeTweak(serverId);
   try {
     storage()?.removeItem(`${SERVER_THEME_STORAGE_PREFIX}${serverId}`);
   } catch {
@@ -105,8 +107,8 @@ export function writeCachedServerTheme(serverId: string, look: ServerThemeLook, 
   }
 }
 
-/** The cached look of the server with this slug, for the first paint. */
-function readCachedServerThemeBySlug(slug: string): ServerThemeLook | null {
+/** The cached look of the server with this slug and that server's id, for the first paint. */
+function readCachedServerThemeBySlug(slug: string): (ServerThemeLook & { id: string }) | null {
   const store = storage();
   if (!store) return null;
   try {
@@ -114,7 +116,7 @@ function readCachedServerThemeBySlug(slug: string): ServerThemeLook | null {
       const key = store.key(index);
       if (!key?.startsWith(SERVER_THEME_STORAGE_PREFIX)) continue;
       const look = parseLook(store.getItem(key));
-      if (look?.slug === slug) return { theme: look.theme, decor: look.decor };
+      if (look?.slug === slug) return { theme: look.theme, decor: look.decor, id: key.slice(SERVER_THEME_STORAGE_PREFIX.length) };
     }
   } catch {
     return null;
@@ -145,7 +147,10 @@ export function applyBootServerTheme(pathname: string): void {
   if (!match) return;
   const slug = decodeURIComponent(match[1]);
   const look = readCachedServerThemeBySlug(slug);
-  if (look) applyRootServerTheme(look);
+  if (!look) return;
+  applyRootServerTheme({ theme: look.theme, decor: look.decor });
+  // The member's local tweak of it (themeTweakRoot.ts), as the boot script did.
+  applyRootThemeTweak(readThemeTweak(look.id));
 }
 
 interface ServerThemeStoreState {
@@ -167,9 +172,14 @@ interface ServerThemeStore {
 export function syncServerTheme(state: ServerThemeStoreState, previous: ServerThemeStoreState | null): void {
   const current = state.current;
   if (!current) {
-    if (previous?.current) applyRootServerTheme(null);
+    if (previous?.current) {
+      applyRootServerTheme(null);
+      activateServerThemeTweak(null);
+    }
     return;
   }
+  // The member's local tweak of this server's theme follows the server, not its record.
+  if (previous?.current?.id !== current.id) activateServerThemeTweak(current.id);
   const look = serverThemeLook(current, state.billing?.plan);
   if (look) {
     applyRootServerTheme(look);

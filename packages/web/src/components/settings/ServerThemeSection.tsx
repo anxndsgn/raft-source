@@ -1,9 +1,10 @@
 import { Check, Palette, Smile, SunMoon } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import type { ReactNode } from "react";
 import { useIntl } from "react-intl";
 import {
   Badge,
+  Button,
   Card,
   ListRow,
   ListRowBody,
@@ -14,22 +15,20 @@ import {
   RadioGroupItem,
   Switch,
 } from "@botiverse/raft-ui";
-import { isRaftThemeId, PRO_RAFT_THEME_IDS } from "@botiverse/raft-shared";
+import { PRO_RAFT_THEME_IDS } from "@botiverse/raft-shared";
 import type { RaftThemeId } from "@botiverse/raft-shared";
-import api from "../../api/client";
 import type { MessageId } from "../../i18n/messages";
 import { useOptionalAppTheme } from "../../hooks/useAppTheme";
-import { useCurrentServerLook } from "../../hooks/useServerTheme";
-import { useServerStore } from "../../store/serverStore";
-import { openUpgradeDialog } from "../../store/upgradeDialogStore";
 import { usePaywallShown } from "../../analytics/paywall";
 import { raftThemeHasDecor } from "../../theme/serverTheme";
 import type { AppResolvedMode } from "../../theme/appTheme";
+import { ThemeEditorDialog } from "../../features/theme-editor/ThemeEditorDialog";
 import Banner from "../ui/Banner";
 import SectionHeader from "../ui/SectionHeader";
 import { AppearanceThemeSettingsControl } from "./AppearanceThemePicker";
 import { RAFT_THEME_NAME_ID } from "./raftThemeNames";
 import AssistantSettingChanges from "./AssistantSettingChanges";
+import { useServerAppearance } from "./useServerAppearance";
 
 export { RAFT_THEME_NAME_ID } from "./raftThemeNames";
 
@@ -40,94 +39,24 @@ const THEME_SETTINGS = ["theme", "themeDecor", "sidebarMove", "sidebarPin", "sid
 const BASIC_THEMES: RaftThemeId[] = ["raft", "boring"];
 const AVATAR_THEMES: RaftThemeId[] = ["bots", "critters", "space", "desk", "food", "quest", "weather", "plants", "spooky"];
 
-type Appearance = { theme: RaftThemeId | null; themeDecor: boolean };
-
-function readAppearance(data: unknown): Appearance | null {
-  if (!data || typeof data !== "object") return null;
-  const record = data as { theme?: unknown; themeDecor?: unknown };
-  const theme = record.theme === null ? null : isRaftThemeId(record.theme) ? record.theme : undefined;
-  if (theme === undefined || typeof record.themeDecor !== "boolean") return null;
-  return { theme, themeDecor: record.themeDecor };
-}
-
 /**
  * Settings › Theme: how the current server looks to this member, and only to
  * them (design/foundations/themes.md). Choosing applies at once and saves;
  * a failed save puts the previous look back. A Pro theme on a Free server
- * opens the upgrade dialog instead of saving.
+ * opens the upgrade dialog instead of saving (useServerAppearance). Edit
+ * theme above the grid opens the panel that tweaks the frame colour and the
+ * corners on this device (features/theme-editor).
  */
 export default function ServerThemeSection() {
   const { formatMessage } = useIntl();
-  const server = useServerStore((state) => state.current);
-  const plan = useServerStore((state) => state.billing?.plan || state.current?.plan);
-  const applyServerPatch = useServerStore((state) => state.applyServerPatch);
-  const look = useCurrentServerLook();
+  const appearance = useServerAppearance();
+  const { server, look, freePlan, error, pickTheme: handlePick, setDecor: handleDecorChange } = appearance;
   const mode = useOptionalAppTheme()?.resolvedMode ?? "light";
-  const [error, setError] = useState("");
-  // Only the latest save may put an earlier look back.
-  const saveSequence = useRef(0);
-  const confirmed = useRef<Appearance | null>(null);
-  const serverId = server?.id;
+  const [editorOpen, setEditorOpen] = useState(false);
+  const openEditor = useCallback(() => setEditorOpen(true), []);
 
-  // The server list carries the look; read it fresh once the page opens.
-  useEffect(() => {
-    if (!serverId) return;
-    let cancelled = false;
-    api.get(`/servers/${serverId}/appearance-settings`)
-      .then(({ data }) => {
-        const appearance = readAppearance(data);
-        if (cancelled || !appearance) return;
-        confirmed.current = appearance;
-        if (saveSequence.current > 0) return;
-        applyServerPatch({ id: serverId, ...appearance });
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [applyServerPatch, serverId]);
-
-  const save = useCallback(async (patch: Partial<Appearance>) => {
-    const current = useServerStore.getState().current;
-    if (!current) return;
-    // A failed save goes back to what the server last confirmed, not to the
-    // previous optimistic value: two saves that both fail leave nothing unsaved on screen.
-    const fallback: Appearance = confirmed.current ?? { theme: current.theme ?? null, themeDecor: current.themeDecor !== false };
-    const sequence = ++saveSequence.current;
-    setError("");
-    applyServerPatch({ id: current.id, ...patch });
-    try {
-      // The store keeps Raft Yellow as no theme (null); the API names it
-      // "raft" and rejects null (servers.ts › appearance-settings).
-      const body = patch.theme === null ? { ...patch, theme: "raft" } : patch;
-      const { data } = await api.patch(`/servers/${current.id}/appearance-settings`, body);
-      const saved = readAppearance(data);
-      if (saved) confirmed.current = saved;
-      if (saved && sequence === saveSequence.current) applyServerPatch({ id: current.id, ...saved });
-    } catch {
-      if (sequence !== saveSequence.current) return;
-      applyServerPatch({ id: current.id, ...fallback });
-      setError(formatMessage({ id: "settings.theme.saveFailed" }));
-    }
-  }, [applyServerPatch, formatMessage]);
-
-  const freePlan = !plan || plan === "free";
   // On Free the Pro themes show locked: the paywall is on screen.
   usePaywallShown(freePlan && "pro_theme");
-  const handlePick = useCallback((value: string) => {
-    // Compare with the stored choice, not the look: a stored Pro theme shows as
-    // Raft Yellow on Free, and picking Raft Yellow must still clear it.
-    if (!isRaftThemeId(value) || value === (server?.theme ?? "raft")) return;
-    if (freePlan && PRO_RAFT_THEME_IDS.includes(value)) {
-      openUpgradeDialog("pro_theme");
-      return;
-    }
-    void save({ theme: value === "raft" ? null : value });
-  }, [freePlan, server?.theme, save]);
-
-  const handleDecorChange = useCallback((checked: boolean) => {
-    void save({ themeDecor: checked });
-  }, [save]);
 
   if (!server || !look) return null;
   const hasDecor = raftThemeHasDecor(look.theme);
@@ -165,6 +94,12 @@ export default function ServerThemeSection() {
         <SectionHeader className="mb-3" icon={<SunMoon size={16} />} label={formatMessage({ id: "settings.theme.groupMode" })} />
         <AppearanceThemeSettingsControl />
       </section>
+      <div className="mb-3 flex">
+        <Button variant="default" size="md" onClick={openEditor} data-testid="server-theme-edit">
+          {formatMessage({ id: "themeEditor.title" })}
+        </Button>
+      </div>
+      <ThemeEditorDialog open={editorOpen} onOpenChange={setEditorOpen} appearance={appearance} />
       <RadioGroup
         id="server-theme"
         value={look.theme}

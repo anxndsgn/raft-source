@@ -31,7 +31,8 @@ export const BOOT_SERVER_THEME_STORAGE_PREFIX = "raft:server-theme:v1:";
  * columns take the widths the person dragged them to (`--boot-sidebar-width`,
  * `--boot-thread-width`, read and clamped as columnWidthStore does), so the
  * frame does not jump when React takes over. The server in the URL wears its
- * cached theme, as applyBootServerTheme does later, and a conversation link
+ * cached theme and the member's local tweak of it (BOOT_THEME_TWEAK_STATEMENT),
+ * as applyBootServerTheme does later, and a conversation link
  * sends the first screen's reads (BOOT_PREFETCH_STATEMENT).
  */
 /** One column's remembered width onto <html> as `name`: its own key, else an earlier build's, clamped; nothing when none is stored. */
@@ -41,6 +42,43 @@ function bootWidthStatement(column: "sidebar" | "thread", name: string): string 
     + `if(r===null||r.trim()===""||!isFinite(r))continue;`
     + `d.style.setProperty(${JSON.stringify(name)},Math.round(Math.max(${min},Math.min(${max},+r)))+"px");break}}catch(e){}`;
 }
+
+/** themeTweak.ts's THEME_TWEAK_STORAGE_PREFIX and themeTweakRoot.ts's THEME_TWEAK_STYLE_ID, literal as above (tests compare them). */
+export const BOOT_THEME_TWEAK_STORAGE_PREFIX = "raft:theme-tweak:v1:";
+export const BOOT_THEME_TWEAK_STYLE_ID = "raft-theme-tweak";
+
+/**
+ * The member's local tweak of the server's theme (theme/themeTweak.ts), read
+ * by the server id the theme cache gave (`sid`), as `<style
+ * id="raft-theme-tweak">` and `data-theme-tweak` on <html>, so a reload
+ * paints the tweaked frame and corners at once, never the preset's first.
+ * themeTweakCss in ES5: the same checks of what is stored and the same text
+ * (tests/themeTweak.test.ts runs both). Uses `d`, `s`, `sid`.
+ */
+export const BOOT_THEME_TWEAK_STATEMENT = String.raw`(function(){var T,f,r,o={},w,u,X,Z,N,K,B,V,Y,I,c,k;if(!sid||!s)return;
+try{T=JSON.parse(s.getItem(${JSON.stringify(BOOT_THEME_TWEAK_STORAGE_PREFIX)}+sid)||"null")}catch(e){return}
+if(!T||typeof T!=="object"||Object.prototype.toString.call(T)==="[object Array]")return;f=T.frame;r=T.radius;
+V=function(v,a,b){return typeof v==="number"&&isFinite(v)&&v>=a&&v<=b};
+if(f!==null&&!(f&&typeof f==="object"&&V(f.l,0,1)&&V(f.c,0,0.4)&&V(f.h,0,360)))return;
+if([0,2,4,8,12].indexOf(r)<0||(!f&&r===0))return;
+N=function(v){return String(Math.round(v*10000)/10000)};
+K=function(l,c,h,a){return "oklch("+N(l)+" "+N(c)+" "+N(h)+(a===undefined?"":" / "+N(a))+")"};
+B=function(q,o){var t=q+"{",k;for(k in o)t+=k+":"+o[k]+" !important;";return t+"}"};
+Y=function(l,c,h){var a=c*Math.cos(h*Math.PI/180),b=c*Math.sin(h*Math.PI/180),L=Math.pow(l+0.3963377774*a+0.2158037573*b,3),M=Math.pow(l-0.1055613458*a-0.0638541728*b,3),S=Math.pow(l-0.0894841775*a-1.291485548*b,3),
+q=[4.0767416621*L-3.3077115913*M+0.2309699292*S,-1.2684380046*L+2.6097574011*M-0.3413193965*S,-0.0041960863*L-0.7034186147*M+1.707614701*S],i;
+for(i=0;i<3;i++)q[i]=Math.min(1,Math.max(0,q[i]));return 0.2126*q[0]+0.7152*q[1]+0.0722*q[2]};
+if(f){c=Y(f.l,f.c,f.h);I=Y(0.2228,0.0025,67.7);w=(Math.max(c,I)+0.05)/(Math.min(c,I)+0.05)<(Math.max(c,1)+0.05)/(Math.min(c,1)+0.05);
+u=w?"oklch(1 0 0)":"oklch(0.2228 0.0025 67.7)";X=K(f.l,f.c,f.h);
+o["--accent-frame"]=X;o["--layer-frame"]=X;o["--accent-frame-dim"]=K(Math.max(0,f.l-0.2),f.c*0.7,f.h);o["--accent-on-frame"]=u;o["--foreground-on-frame"]=u;
+o["--foreground-on-frame-muted"]=w?"oklch(1 0 0 / 0.7)":"oklch(0.2228 0.0025 67.7 / 0.7)";o["--fill-frame-medium"]=w?"oklch(1 0 0 / 0.07)":"oklch(0.2228 0.0025 67.7 / 0.06)";
+o["--line-frame-active"]="transparent";o["--layer-frame-active"]="var(--layer-canvas)";o["--foreground-on-frame-active"]="var(--foreground)";
+o["--brand-400"]=X;o["--brand-glow"]=X;o["--brand-soft"]=K(f.l,f.c,f.h,0.25);o["--brand-edge"]="transparent";o["--selection"]=K(f.l,f.c,f.h,0.35)}
+if(r!==0){k=["sticker",0.25,"chip",0.25,"control",0.5,"container",0.75,"dialog",0.75,"island",1];for(c=0;c<k.length;c+=2)o["--radius-"+k[c]]=N(r*k[c+1])+"px";
+o["--control-radius"]=N(r*0.5)+"px";o["--bar-button-radius"]=N(r*0.5)+"px"}
+X=B("[data-theme-tweak]",o);
+if(f){Z={"--brand-strong":K(Math.max(f.l,0.82),f.c,f.h)};X+=B(":root[data-theme-tweak],.light[data-theme-tweak]",{"--brand-strong":K(Math.min(f.l,0.42),f.c*0.6,f.h)})
++B(".dark[data-theme-tweak]",Z)+"@media (prefers-color-scheme: dark){"+B(":root:not(.light):not(.dark)[data-theme-tweak]",Z)+"}"}
+u=document.createElement("style");u.id=${JSON.stringify(BOOT_THEME_TWEAK_STYLE_ID)};u.textContent=X;document.head.appendChild(u);d.setAttribute("data-theme-tweak","")})();`;
 
 /**
  * `displayLocaleMatchRules()` of @botiverse/raft-shared ([language, script,
@@ -215,6 +253,7 @@ if(!m)return;
 var slug=null,sid=null;try{slug=decodeURIComponent(m[1]);for(var i=0;i<s.length;i++){var k=s.key(i);if(!k||k.indexOf(${JSON.stringify(BOOT_SERVER_THEME_STORAGE_PREFIX)})!==0)continue;
 var v=JSON.parse(s.getItem(k)||"null");if(!v||v.slug!==slug)continue;sid=sid||k.slice(${BOOT_SERVER_THEME_STORAGE_PREFIX.length});if(typeof v.theme!=="string"||!/^[a-z0-9-]+$/.test(v.theme))continue;
 if(v.theme!=="raft")d.dataset.theme=v.theme;if(v.decor===false)d.dataset.themeDecor="off";break}}catch(e){}
+try{${BOOT_THEME_TWEAK_STATEMENT}}catch(e){}
 ${BOOT_PREFETCH_STATEMENT}})();`;
 
 export function buildBootInlineScript(themeBootstrapSource: string): string {
