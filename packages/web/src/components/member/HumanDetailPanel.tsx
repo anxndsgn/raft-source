@@ -71,6 +71,7 @@ import { RowExpandAction } from "../layout/RowExpandAction";
 import { RowMoveMenu } from "../layout/ColumnMoveMenu";
 import { shownOwnActions, useHeadWidth } from "../layout/headFit";
 import { useRowExpand, useRowPlanned } from "../layout/rowPlanStore";
+import { PAGE_COLUMN_FORM_CLASS, useDesktopMouse } from "../ui/PageHead";
 import { RowRegionBody } from "../layout/RowRegionBody";
 
 const AddSeatsDialog = deferredDialog(() => import("../billing/AddSeatsDialog"));
@@ -369,6 +370,8 @@ export default function HumanDetailPanel({
   const [measureHead, headWidth] = useHeadWidth();
   const headContainerProps = useMemo(() => ({ ref: measureHead }), [measureHead]);
   const headExpand = useRowExpand("profile");
+  // Layout changes C (11/21): expanded to the whole page with a mouse on a desktop, the profile reads in a 720 column.
+  const profileFullPage = useDesktopMouse() && headExpand.pressed;
   const headNarrow = headPlanned && headWidth > 0;
   const showHeadAvatar = !headNarrow || headWidth >= 240;
   const messageFolded = headNarrow && canMessageHuman && shownOwnActions({ width: headWidth, lead: showHeadAvatar ? 1 : 0, own: [32], controls: (headExpand.shown ? 1 : 0) + (onClose ? 1 : 0), menuItems: 0 }) === 0;
@@ -629,7 +632,7 @@ export default function HumanDetailPanel({
       {/* Profile content — white paper, sections separated by hairlines; hidden while a region expanded in its
           column shows the profile as its head alone (#189 rule 5). */}
       <RowRegionBody>
-      <ScrollArea className="flex-1 bg-layer-canvas">
+      <ScrollArea className="flex-1 bg-layer-canvas" contentClassName={profileFullPage ? PAGE_COLUMN_FORM_CLASS : undefined}>
         {sourceServerLabel && (
           <>
           <div className="px-(--surface-inset) py-3">

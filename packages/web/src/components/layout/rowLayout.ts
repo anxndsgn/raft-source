@@ -56,7 +56,6 @@ function commitConversationWidth(width: number) {
 /** Shows `element` at `width` (index.css `[data-row-width]`), or at its own width again (null). */
 function showAt(element: HTMLElement, width: number | null) {
   if (width === null) {
-    putAway(element, false);
     if (!element.hasAttribute("data-row-width")) return;
     element.removeAttribute("data-row-width");
     element.style.removeProperty("--row-width");
@@ -65,10 +64,10 @@ function showAt(element: HTMLElement, width: number | null) {
   const value = `${Math.round(width * 100) / 100}px`;
   if (element.style.getPropertyValue("--row-width") !== value) element.style.setProperty("--row-width", value);
   if (!element.hasAttribute("data-row-width")) element.setAttribute("data-row-width", "");
-  putAway(element, width === 0);
 }
 
-/** A column another one's Expand put away (rule 5, 11/21): 0 wide, no seam, out of reach; its content as it was. */
+/** The conversation another column's Expand put away (rule 5, 11/21): 0 wide, no seam, out of reach; its content as
+ *  it was (the other columns at 0 are out of the row as a tab not shown is). */
 function putAway(element: HTMLElement, away: boolean) {
   if (away === element.hasAttribute("data-row-away")) return;
   if (away) {
@@ -214,7 +213,10 @@ export function useRowLayout(row: HTMLElement | null, measured: unknown, plan: R
     if (!row || !channel || !plan) {
       release();
       if (row) delete row.dataset.rowPlan;
-      if (channel) markClipped(channel, null, undefined);
+      if (channel) {
+        markClipped(channel, null, undefined);
+        putAway(channel, false);
+      }
       return;
     }
     row.dataset.rowPlan = "";
@@ -227,6 +229,10 @@ export function useRowLayout(row: HTMLElement | null, measured: unknown, plan: R
       showAt(element, widths[index] === 0 ? null : widths[index]!);
     });
     release();
+    // Another column expanded (rule 5, 11/21): the conversation's own column goes too, unless the thread folded over it
+    // is the one expanded.
+    const conversationUnit = plan.units.findIndex((unit) => unit.key === CONVERSATION);
+    putAway(channel, plan.expanded !== null && !plan.fold && conversationUnit >= 0 && widths[conversationUnit] === 0);
     // Its content clipped like the others' below its 360 (rule 2): measured as it stands, again once the row settles.
     markClipped(channel, null, MAIN_COLUMN_MIN_WIDTH);
     const fold = plan.fold;

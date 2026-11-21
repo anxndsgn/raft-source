@@ -1098,15 +1098,6 @@
   max-width: none !important;
 }
 
-/* Put away by another column's Expand (rule 5, layout changes 11/21): no width, no seam, not drawn; its content and
-   scroll kept (rowLayout putAway). */
-.thread-layout-container[data-row-plan]:not(#_) [data-row-width][data-row-away] {
-  visibility: hidden;
-  overflow: hidden !important;
-  border-width: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
 
 .thread-layout-container[data-row-plan]:not(#_) > .thread-main-column {
   display: flex;
@@ -1115,6 +1106,17 @@
   width: auto;
   visibility: visible;
   pointer-events: auto;
+}
+
+/* The conversation put away by another column's Expand (rule 5, layout changes 11/21): no width, no seam, not drawn;
+   its content and scroll kept (rowLayout putAway). */
+.thread-layout-container[data-row-plan]:not(#_) > .thread-main-column[data-row-away] {
+  flex: 0 0 0px;
+  width: 0;
+  min-width: 0 !important;
+  overflow: hidden;
+  visibility: hidden;
+  border-width: 0;
 }
 
 .thread-layout-container[data-row-plan]:not(#_) > .thread-side-column {

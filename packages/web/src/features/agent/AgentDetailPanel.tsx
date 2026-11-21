@@ -1,5 +1,7 @@
 import { Badge, Button, ConversationPanelTabs, ScrollArea, SortableTabsList, SortableTabsTab, Tabs, TabsLabel, ProfilePanelBody, useOrderedTabs, Separator, PanelNotice, PanelNoticeActions, PanelNoticeContent } from "@botiverse/raft-ui";
 import { MemberNowRow } from "../../components/message/ProfileCardFooter";
+import { PAGE_COLUMN_FORM_CLASS, useDesktopMouse } from "../../components/ui/PageHead";
+import { useRowExpand } from "../../components/layout/rowPlanStore";
 import Tooltip from "../../components/ui/Tooltip";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useIntl } from "react-intl";
@@ -102,6 +104,9 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
   const { formatMessage } = useIntl();
   const formatMessageRef = useRef(formatMessage);
   formatMessageRef.current = formatMessage;
+  // Layout changes C (11/21): expanded to the whole page with a mouse on a desktop, the profile reads in a 720 column.
+  const profileExpanded = useRowExpand("profile").pressed;
+  const profileFullPage = useDesktopMouse() && profileExpanded;
   const stopAgent = useAgentStore((s) => s.stopAgent);
   const stopAgentTurn = useAgentStore((s) => s.stopAgentTurn);
   const openDM = useChannelStore((s) => s.openDM);
@@ -737,7 +742,7 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
           retry in place of its content instead of blanking the whole panel. */}
       <AgentTabErrorBoundary resetKey={`${agent.id}:${activeTab}`}>
       {activeTab === "profile" ? (
-        <ScrollArea className="flex-1 bg-layer-canvas">
+        <ScrollArea className="flex-1 bg-layer-canvas" contentClassName={profileFullPage ? PAGE_COLUMN_FORM_CLASS : undefined}>
           {/* What it is doing now, kept on the profile (v2.1 §5.4.1): the head says only its state. */}
           {!agent.deletedAt ? <MemberNowRow id={agent.id} /> : null}
           {isRemoteJointAgent && (agent.serverName || agent.serverSlug) && (
