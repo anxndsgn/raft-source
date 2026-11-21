@@ -6,6 +6,7 @@ import { useMessageStore } from "../store/messageStore";
 import { useServerStore } from "../store/serverStore";
 import { useLiveLocation } from "./useLiveLocation";
 import { buildSidebarChannelFocusState } from "../components/layout/sidebarChannelFocus";
+import { carryArtifactAddress } from "../components/layout/artifactOpenAddress";
 import { requestChannelNavigation } from "../navigation/channelSwitchGuard";
 import { prefetchConversationForPath } from "../navigation/conversationPrefetch";
 import { beginViewSwitchToPath } from "../observability/viewSwitchSpan";
@@ -561,8 +562,11 @@ export function useAppNavigate() {
     // A message link to the page already showing it (its `msg=` is the page's):
     // the URL won't change, so nothing would re-run; jump to it again in
     // place, as the first click did (#triage:#157).
-    const toMessagePath = (path: string, channelId: string, messageId: string, opts?: MessageNavOptions) => {
+    const toMessagePath = (target: string, channelId: string, messageId: string, opts?: MessageNavOptions) => {
       const here = liveLocationRef.current();
+      // A message in the conversation on screen keeps the Artifact open in its workspace (owner 1b934a9e: a task's
+      // source message closed it): the address carries it on.
+      const path = carryArtifactAddress(target, here.pathname, here.search);
       if (`${here.pathname}${here.search}` !== path) return guardedNavigate(path, messageNavigateOptions(channelId, opts), opts?.onNavigated);
       beginViewSwitchToPath(path);
       void useMessageStore.getState().loadMessageContext(channelId, messageId);
