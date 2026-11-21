@@ -36,7 +36,9 @@ function InboxSystemNoticeRow({ entry, actionable }: { entry: NotificationEntry;
   const computer = /computer|machine|电脑/i.test(entry.id);
   // raft-ui InboxItem, as the inbox's other rows: the row runs the notice's action, Dismiss at its end.
   return (
-    <InboxItem density="compact" data-layout="list" data-testid={`inbox-system-notice-${entry.id}`}>
+    // With its Dismiss under the text the row is three lines: the icon stays level with the title (owner af958e09),
+    // not centred on all three.
+    <InboxItem density="compact" data-layout="list" className={dismissKey ? "items-start" : undefined} data-testid={`inbox-system-notice-${entry.id}`}>
       <InboxItemTrigger aria-label={entry.title} onClick={run} disabled={!entry.action || entry.action.disabled} />
       <InboxItemLeading>
         <IconTile className="relative">
