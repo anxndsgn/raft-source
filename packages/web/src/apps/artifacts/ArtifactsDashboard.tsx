@@ -418,7 +418,7 @@ export default function ArtifactsDashboard({ serverId, onMobileBack, address: ho
         // Layout changes (owner 5f0d7711): with a mouse on a desktop an Artifact opens as the page's second panel, half
         // its width beside the list, as a member on the Team page; maximized it takes the whole page.
         <div className={`flex min-h-0 flex-col border-l border-line-seam bg-layer-canvas ${viewerMax ? "absolute inset-0 z-cover border-l-0" : "w-1/2 shrink-0"}`} data-testid="artifacts-dashboard-viewer">
-          <ArtifactViewer key={open.id} target={open} source={open.source} expanded={viewerMax} covering={false} onToggleExpanded={toggleViewerMax} onClose={closeSecondPanel} onShowVersion={address.showVersion} onShownTitle={setViewerTitle} />
+          <ArtifactViewer key={open.id} target={open} source={open.source} expanded={viewerMax} covering={false} noTabs onToggleExpanded={toggleViewerMax} onClose={closeSecondPanel} onShowVersion={address.showVersion} onShownTitle={setViewerTitle} />
         </div>
       ) : open ? (
         <div className="absolute inset-0 z-cover flex flex-col bg-layer-canvas" data-testid="artifacts-dashboard-viewer">

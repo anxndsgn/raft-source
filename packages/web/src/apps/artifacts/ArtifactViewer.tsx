@@ -62,6 +62,11 @@ interface ViewerChrome {
    * home): the card's Back shows on a phone too.
    */
   ownBack?: boolean;
+  /**
+   * A viewer of its own, not the workspace's (the Artifacts page, owner c3bdc7fb): no workspace tab row; its head is
+   * this Artifact's title with Expand and Close.
+   */
+  noTabs?: boolean;
   onToggleExpanded?: () => void;
   onClose: () => void;
 }
@@ -418,6 +423,7 @@ function ViewerFrame({
   expanded,
   covering,
   ownBack = false,
+  noTabs = false,
   onToggleExpanded,
   onClose,
   children,
@@ -528,10 +534,10 @@ function ViewerFrame({
           20px margin, so stacked above Tasks and Files its title and buttons
           line up with theirs. Covering, the Back comes first (on a phone the
           channel header's Back stands for it). */}
-      {covering ? null : <WorkspaceTabStrip />}
+      {covering || noTabs ? null : <WorkspaceTabStrip />}
       {/* Layout redesign §5: in the workspace this is its second row — the source on the left, the actions on the
           right; the title, Expand and Close are on the tab bar above (index.css data-workspace-row). */}
-      <PanelHeader data-testid="artifact-viewer-header" data-workspace-row={covering ? undefined : ""} {...(covering ? null : chrome?.props)} className={covering ? chrome?.props?.className : [chrome?.props?.className, WORKSPACE_SOURCE_ROW_CLASS].filter(Boolean).join(" ")} ref={measureHead}>
+      <PanelHeader data-testid="artifact-viewer-header" data-workspace-row={covering || noTabs ? undefined : ""} {...(covering ? null : chrome?.props)} className={covering || noTabs ? chrome?.props?.className : [chrome?.props?.className, WORKSPACE_SOURCE_ROW_CLASS].filter(Boolean).join(" ")} ref={measureHead}>
         {covering ? (
           // A narrow desktop panel has no header Back, so the card keeps its
           // own, labelled as the close it stands for (Task v2's ChannelSideCard).
