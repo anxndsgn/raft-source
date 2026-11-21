@@ -147,6 +147,8 @@
   --opacity-dimmed: 0.6;
   --motion-drag-settle-duration: 160ms;
   --motion-drag-settle-easing: cubic-bezier(0.25, 1, 0.5, 1);
+  --control-radius: 0px;
+  --bar-button-radius: 0px;
 }
 
 /* Raft Design System, light: yellow frame -> cream sidebar -> white paper; ink
@@ -372,11 +374,6 @@
      a control in a bar, and half of the gap between two fields. Every step below
      is the control height plus or minus a number of airs. */
   --control-air: 6px;
-  /* The corner of a control at the control height (a field, a Select, a Button
-     at lg and icon-lg) and of a bar button: set once on the root by the shape
-     (styles.css: 0 square, 4px rounded), at every width. Not declared here:
-     this block also styles a `.light` island (a portal, a preview), which would
-     otherwise bring back an old corner instead of inheriting the shape's. */
   /* Every header: a panel, a sidebar or a thread head, a dialog's bar, a
      drawer's head, a rail head. The control height with the header air above and
      below, so the seams of a screen line up. */
