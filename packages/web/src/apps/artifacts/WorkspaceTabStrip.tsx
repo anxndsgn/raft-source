@@ -11,6 +11,7 @@ import { useArtifactViewerStore } from "./artifactViewerStore";
 import { ShellSidebarToggleContext, SidebarToggleHeadAction } from "../../components/layout/appPanelHead";
 import { ShellWorkspaceIslandContext } from "../../components/layout/rowColumnSlot";
 import { useIsDesktopShell } from "../../components/layout/ShellFrame";
+import { EXPAND_TOGGLE_CLASS } from "../../components/layout/RowExpandAction";
 
 /**
  * Layout redesign §5 (anxndsgn 11/15, A): the workspace's first row, always, as tall as the channel's head and on
@@ -52,7 +53,7 @@ export function WorkspaceTabStrip() {
         </SortableTabsList>
       </ConversationPanelTabs>
       <Tooltip content={expandLabel}>
-        <PanelToggleAction className="shrink-0" aria-label={expandLabel} pressed={expanded} onPressedChange={toggleExpanded} data-testid="artifact-viewer-expand">
+        <PanelToggleAction className={`shrink-0 ${EXPAND_TOGGLE_CLASS}`} aria-label={expandLabel} pressed={expanded} onPressedChange={toggleExpanded} data-testid="artifact-viewer-expand">
           {expanded ? <Minimize2 /> : <Maximize2 />}
         </PanelToggleAction>
       </Tooltip>

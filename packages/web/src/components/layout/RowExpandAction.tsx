@@ -30,6 +30,11 @@ export function RowExpandAction({ region, testId, onExpand }: { region?: string;
 }
 
 /**
+ * Expand stays a ghost button when pressed (Figmama 11/21): its icon (Expand / Restore) says the state, so no fill.
+ */
+export const EXPAND_TOGGLE_CLASS = "data-pressed:border-transparent data-pressed:bg-transparent data-pressed:text-foreground data-pressed:ring-0 md:pointer-fine:data-pressed:bg-transparent data-pressed:hover:bg-fill-medium md:pointer-fine:data-pressed:hover:bg-fill-medium data-pressed:active:bg-fill-medium data-pressed:active:bg-none";
+
+/**
  * Expand as a head shows it (RowExpandAction's, the thread's Focus Mode): Expand, pressed Restore, with its tooltip.
  * For a head whose Expand comes from elsewhere, as the Tasks page's task's (TasksRoute, TaskFocusContext).
  */
@@ -44,6 +49,7 @@ export function ExpandToggleAction({ pressed, onPressedChange, testId }: { press
         onPressedChange={onPressedChange}
         data-testid={testId}
         data-row-expand=""
+        className={EXPAND_TOGGLE_CLASS}
       >
         {pressed ? <Minimize2 /> : <Maximize2 />}
       </PanelToggleAction>

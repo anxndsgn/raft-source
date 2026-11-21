@@ -41,6 +41,7 @@ import { ArtifactShownFileProvider } from "./ArtifactShownFileProvider";
 import { ArtifactSurfaceActions, ArtifactSurfaceMain, ArtifactSurfaceMeta, ArtifactSurfaceProvider, ArtifactSurfaceTitle, ArtifactSurfaceVersionTag, useArtifactSurface, useArtifactSurfaceKeyDown } from "./ArtifactSurface";
 import type { PickVersion } from "./ArtifactVersionHistory";
 import { HEAD_ACTION_GAP, HEAD_ACTION_WIDTH, PanelHeadChromeContext, PanelHeadLeadContext, RowExpandAction, RowRegionBody, shownOwnActions, useHeadWidth, useRowExpand, useRowInRow } from "../../components/layout/appPanelHead";
+import { EXPAND_TOGGLE_CLASS } from "../../components/layout/RowExpandAction";
 import { requestFocus } from "../../utils/focusRequest";
 import { useArtifactComments } from "./ArtifactCommentsContext";
 import { useArtifactReview } from "./ArtifactReviewContext";
@@ -573,7 +574,7 @@ function ViewerFrame({
                 pressed={expanded}
                 onPressedChange={toggleExpanded}
                 data-testid="artifact-viewer-expand"
-                className="max-md:hidden"
+                className={`max-md:hidden ${EXPAND_TOGGLE_CLASS}`}
               >
                 {expanded ? <Minimize2 /> : <Maximize2 />}
               </PanelToggleAction>
