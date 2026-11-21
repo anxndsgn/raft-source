@@ -86,6 +86,7 @@ import { SortableAttachment } from "./SortableAttachment";
 import { UploadFailureBanner } from "./UploadFailureBanner";
 import { preventSendButtonPointerDownBlur, preventToolbarButtonPointerDownBlur } from "./composerPointerHandlers";
 import { mayTakeFocus } from "../../utils/focusGuard";
+import { textDirection } from "../../utils/textDirection";
 
 /**
  * Whether the current server is on Free, read when files are picked. Only the
@@ -2462,6 +2463,8 @@ export function MessageInput({
           <ComposerInput
             id={textareaId}
             data-testid="composer-textarea"
+            // Hebrew, Arabic: right to left from the first letter, skipping mentions (Hands 82e3ca69).
+            dir={textDirection(content) ?? "auto"}
             style={composerFontStyle}
             ref={composerTextareaRef}
             onChange={handleChange}

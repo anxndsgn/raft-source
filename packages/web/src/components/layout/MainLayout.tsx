@@ -8,10 +8,10 @@ import Tooltip from "../ui/Tooltip";
 import AppEmptyState from "../ui/EmptyState";
 import { ConversationLoading } from "../../boot/bootSkeletons";
 import { markBootMilestone } from "../../boot/bootTiming";
-import MessageLinkUnavailable from "../deeplinks/MessageLinkUnavailable";
+import { useMessageLinkLandingBlock } from "../deeplinks/useMessageLinkLandingBlock";
 import { OpenInAppOffers } from "../deeplinks/OpenInAppOffers";
 import { useOtherServerMessageLink } from "../deeplinks/otherServerMessageLink";
-import { conversationPathOf, serverPathOf, useDeepLinksFlag, useLandedMessageLink, useLandingHoldsAnnouncements, useMessageLinkLandingLifetime } from "../deeplinks/deepLinksFlag";
+import { useDeepLinksFlag, useLandingHoldsAnnouncements, useMessageLinkLandingLifetime } from "../deeplinks/deepLinksFlag";
 import { isMessageLinkLanding, isThreadMismatch, parseMessageLink } from "../../utils/messageLinkLanding";
 import { movePageLanding } from "../../utils/pageLanding";
 import { cloneElement, useContext, useState, useEffect, useEffectEvent, useCallback, useMemo, useRef, Suspense } from "react";
@@ -112,6 +112,7 @@ import { blurFocusedControlForScreenshotShortcut } from "../../utils/keyboardSho
 import { MainHeadSidebarToggleContext, SIDEBAR_REGION_ID, setSidebarSlotHidden, toggleSidebarFromKeyboard, useSidebarSlotHidden } from "./sidebarToggle";
 import { LegacyMemberGraphRedirect, LegacyThreadsRedirect, LegacyWorkspaceGridRedirect } from "./LegacyRedirects";
 import { ShortcutHelpColumn } from "../../features/keyboard-shortcuts/ShortcutHelpColumn";
+import { WebLinkRouter } from "../../features/webPreview/WebLinkRouter";
 import "../../features/shortcuts/shortcutAccountBridge";
 import { ShortcutHelpPage } from "../../features/keyboard-shortcuts/ShortcutHelpPage";
 import { useShortcutHelpStore } from "../../features/keyboard-shortcuts/shortcutHelpStore";
@@ -128,6 +129,7 @@ import { canRenderAgentDetail } from "../agent/agentDetailAvailability";
 import { getCachedAgentProfile } from "../profile/profileFallbackCache";
 import type { ProfilePanelProps } from "../profile/ProfilePanel";
 import { recordSynchronousMobileBackNavigation, useAppNavigate, useMobileBack } from "../../hooks/useAppNavigate";
+import { useTaskConversationRedirect } from "../../hooks/useTaskConversationRedirect";
 import { useOwnAssistantDmId, useOwnAssistantPageForDm } from "../../assistant/assistantClient";
 import { AssistantOtterLayer } from "../../assistant/AssistantOtterShortcut";
 import { loadArtifactActivityViewer, loadArtifactsDashboard } from "../../apps/artifacts";
@@ -149,7 +151,7 @@ import { useClearLiveAgentActivityOnServerChange } from "./WorkingNowSummary";
 import { TaskDialogShell } from "../task/TaskDialogShell";
 import { isSettingsApplicationsSlug, legacySettingsRouteRedirectSlug } from "../settings/settingsNavigation";
 import { isChangePasswordSettingsIntent } from "../../utils/changePasswordNavigation";
-import ServerSetupProjectionGate from "../onboarding/ServerSetupProjectionGate";
+import { ServerOnboardingSurfaces } from "../onboarding/ServerOnboardingSurfaces";
 import {
   buildThreadRoutePath,
   consumeThreadRefHandoffSearch,
@@ -435,33 +437,13 @@ import { trackNavEntrySelected } from "../../analytics/navigation";
 import { trackActivityOpen } from "../../analytics/activity";
 import type { MobileTabId } from "../../store/mobileNavStore";
 import JointChannelLinkIntent from "../channel/JointChannelLinkIntent";
+import { ExternalAgentLinkIntent } from "../../features/agent/ExternalAgentLinkIntent";
 import AnnouncementModal from "../AnnouncementModal";
 import UpgradeDialogHost from "../billing/DeferredUpgradeDialogHost";
 import SeatJoinDialogHost from "../billing/SeatJoinDialog";
 import { SearchScopeContext } from "../../features/search/searchScope";
 import { isSearchOverlayEnabled, overlayCloseTarget, rememberNonSearchLocation, resolveSearchOverlayBackground } from "../../features/search/searchOverlayLocation";
 import { useToastViewportFloor } from "../toastViewportBottom";
-
-/**
- * Deep links v1 (item d): what a message link this page landed on shows
- * instead of the conversation, or null to show the conversation. A `thread`
- * naming another conversation rejects the whole link (waiting for the flag
- * rather than opening it first); a conversation that can't be read shows the
- * same "Message not found" as a missing message. Flag off: null, as before.
- */
-function useMessageLinkLandingBlock(channelId: string, conversationMissing: boolean): ReactNode | null {
-  const location = useLocation();
-  const { formatMessage } = useIntl();
-  const link = useLandedMessageLink(location.pathname, location.search);
-  const target = link.target?.channelId === channelId ? link.target : null;
-  if (!target) return null;
-  if (isThreadMismatch(target)) {
-    if (!link.resolved) return <ConversationLoading label={formatMessage({ id: "layout.main.loadingChannel" })} />;
-    return link.enabled ? <MessageLinkUnavailable backTo={conversationPathOf(target)} /> : null;
-  }
-  if (conversationMissing && link.enabled) return <MessageLinkUnavailable backTo={serverPathOf(target)} />;
-  return null;
-}
 
 /** Channel content body — used by both /channel/:channelId AND the
  *  /search master/detail layout (col 3 when slot.kind === "channel").
@@ -534,8 +516,12 @@ export function ChannelById({ channelId }: { channelId: string }) {
 
 /** Route: /channel/:channelId */
 function ChannelRoute() {
+  const { formatMessage } = useIntl();
   const { channelId } = useParams<{ channelId: string }>();
+  // A task's own conversation is no page: its link opens the task (replace).
+  const toTask = useTaskConversationRedirect(channelId);
   if (!channelId) return <ChatPanel channel={null} />;
+  if (toTask) return <ConversationLoading label={formatMessage({ id: "layout.main.loadingChannel" })} />;
   return <ChannelById channelId={channelId} />;
 }
 
@@ -2628,6 +2614,8 @@ export default function MainLayout() {
           <div ref={setRowColumnSlot} className="contents" data-testid="row-column-slot" />
           <RightPanel />
           <ShortcutHelpColumn />
+          {/* Where every content link is decided (the link router; Raft Desktop's built-in browser). */}
+          <WebLinkRouter />
           {/* Task v2's Tasks and Files columns, at the row's level beside the
               thread when the row fits them (ChannelSideArea; task #165).
               `contents`: each column is the row's flex item. */}
@@ -2646,7 +2634,7 @@ export default function MainLayout() {
         <>
           <MobileTabBar />
           {currentServerId && serverSlug ? (
-            <ServerSetupProjectionGate
+            <ServerOnboardingSurfaces
               serverId={currentServerId}
               serverSlug={serverSlug}
             />
@@ -2659,6 +2647,7 @@ export default function MainLayout() {
             />
           )}
           <JointChannelLinkIntent />
+          <ExternalAgentLinkIntent />
           <AgentContextViewPageSlot />
           <UpgradeDialogHost />
           <SeatJoinDialogHost />

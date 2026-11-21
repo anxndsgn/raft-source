@@ -99,6 +99,8 @@ export async function createOrReplayAgentSend<TInserted = never>(opts: {
   actionMetadata?: unknown | null;
   /** Reply mode: stored on a new message as `reply_to_message_id`. */
   replyToMessageId?: string | null;
+  /** Raft voice calls: the call posting this in the agent's name (`messages.voice_call_id`). */
+  voiceCallId?: string | null;
   /**
    * Agent-facing sends (`idempotencyKey`): a replay whose target, content,
    * card (RFC 082) or ordered attachment set differs from the committed message is refused with
@@ -149,6 +151,7 @@ export async function createOrReplayAgentSend<TInserted = never>(opts: {
         searchText: buildSearchText(content),
         actionMetadata: opts.actionMetadata ?? null,
         replyToMessageId: opts.replyToMessageId ?? null,
+        voiceCallId: opts.voiceCallId ?? null,
       })
       .onConflictDoNothing()
       .returning();

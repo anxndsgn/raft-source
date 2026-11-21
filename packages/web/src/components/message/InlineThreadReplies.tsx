@@ -43,6 +43,7 @@ import type { ThreadReplyPreview } from "../../store/threadRepliesReadModel";
 import { resolveMessageSenderMember } from "../../utils/messageSenderMember";
 import { useTimeFormatter } from "../../hooks/useTimeFormatter";
 import { useMediaQuery } from "../../hooks/effectPrimitives";
+import { messageCardFallbackText } from "../../utils/messageCardFallbackText";
 
 const MAX_INLINE_PREVIEWS = 3;
 // B6, desktop: the replies row; it hugs its content, 4 in, the control radius.
@@ -264,7 +265,7 @@ export const InlineThreadReplies = memo(function InlineThreadReplies({
               {reply.senderDisplayName || reply.senderName}
             </MessageRepliesItemSender>
             <MessageRepliesItemContent className={previewSizeClass}>
-              {reply.preview}
+              {messageCardFallbackText(reply.preview)}
             </MessageRepliesItemContent>
             <MessageRepliesItemTime
               dateTime={reply.createdAt}

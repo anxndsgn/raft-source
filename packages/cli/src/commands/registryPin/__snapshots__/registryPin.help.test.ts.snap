@@ -89,6 +89,9 @@ Options:
   --peer-kind <kind>  For a DM target whose name a human and an agent share:
                       'agent' or 'human' (same as dm:@name~agent /
                       dm:@name~human)
+  --list              List the operations you can prepare as a request card
+                      (request:prepare) on this server, with their args and
+                      whom to ask; posts nothing
   -h, --help          display help for command
 
 Ask a person to choose (question:ask): they answer on the card, and the
@@ -98,7 +101,8 @@ answer comes back as a reply that @mentions you (don't poll for it):
   RAFTACTION
 Up to 4 questions in one card. "single" and "multiple" take 1-4 options;
 with 2 or more Raft adds Other… itself (don't add one). "text" takes a
-short answer.
+short answer. Every question must be answered unless you set
+"required": false on it (e.g. an optional comment).
 One option makes a confirm card: the person sees one button with your label
 and presses it to confirm (no Other…). The answer is that option's value:
   raft action prepare --target "#ops" <<'RAFTACTION'
@@ -113,6 +117,10 @@ option you recommend first, mark it recommended in the conversation's
 language, and give your reason in one sentence in the question. Don't ask
 what you can decide yourself; ask open questions with no concrete options in
 a message.
+Ask a person to run an operation you can't (request:prepare): they confirm
+it on the card and it runs as them. List what you can prepare here, with each
+operation's args and whom to ask:
+  raft action prepare --list
 Every card type and its fields: the \`action-cards\` Manual topic.
 ",
 }
@@ -1583,8 +1591,7 @@ Options:
 Commands:
   schedule [options]  Schedule a reminder that fires at a future time
   list [options]      List your own reminders (defaults to scheduled ones)
-  cancel [options]    Cancel a scheduled reminder by id (full uuid or 8-char
-                      prefix)
+  cancel [options]    Cancel a scheduled reminder by id
   snooze [options]    Snooze a scheduled or fired reminder
   update [options]    Update one field on a scheduled reminder
   log [options]       Show lifecycle events for one reminder, or the history of
@@ -1608,10 +1615,11 @@ exports[`--help > raft reminder cancel --help 1`] = `
   "stderr": "",
   "stdout": "Usage: raft reminder cancel [options]
 
-Cancel a scheduled reminder by id (full uuid or 8-char prefix)
+Cancel a scheduled reminder by id
 
 Options:
-  --id <id>   Reminder id (full uuid or short prefix)
+  --id <id>   Reminder id (full uuid, short prefix, or reminder:<id> as raft
+              inbox check prints it)
   -h, --help  display help for command
 ",
 }
@@ -1680,7 +1688,8 @@ exports[`--help > raft reminder snooze --help 1`] = `
 Snooze a scheduled or fired reminder
 
 Options:
-  --id <id>        Reminder id (full uuid or short prefix)
+  --id <id>        Reminder id (full uuid, short prefix, or reminder:<id> as
+                   raft inbox check prints it)
   --by <duration>  Snooze duration, e.g. 30m, 2h, 1d
   -h, --help       display help for command
 ",
@@ -1697,7 +1706,8 @@ exports[`--help > raft reminder update --help 1`] = `
 Update one field on a scheduled reminder
 
 Options:
-  --id <id>         Reminder id (full uuid or short prefix)
+  --id <id>         Reminder id (full uuid, short prefix, or reminder:<id> as
+                    raft inbox check prints it)
   --fire-at <iso>   New absolute next fire time
   --in <duration>   New relative next fire time, e.g. 30m, 2h
   --cadence <rule>  New recurrence rule: every:15m | daily@09:00 |

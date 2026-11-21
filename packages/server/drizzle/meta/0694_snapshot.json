@@ -1,6 +1,6 @@
 {
-  "id": "985a7218-ecf2-4d72-9e84-40b8d01aadc8",
-  "prevId": "17799b4c-2e83-47c0-a6f3-4400dab4168d",
+  "id": "dc7c399f-eaed-4d00-b5fc-7065db9b773e",
+  "prevId": "ffacaf67-2e16-4e25-b0cb-7c6f1f01f768",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -38817,6 +38817,107 @@
       },
       "isRLSEnabled": false
     },
+    "public.oauth_client_uninstalls": {
+      "name": "oauth_client_uninstalls",
+      "schema": "",
+      "columns": {
+        "server_id": {
+          "name": "server_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "client_id": {
+          "name": "client_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "uninstalled_at": {
+          "name": "uninstalled_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actor_user_id": {
+          "name": "actor_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_oauth_client_uninstalls_client": {
+          "name": "idx_oauth_client_uninstalls_client",
+          "columns": [
+            {
+              "expression": "client_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "oauth_client_uninstalls_server_id_servers_id_fk": {
+          "name": "oauth_client_uninstalls_server_id_servers_id_fk",
+          "tableFrom": "oauth_client_uninstalls",
+          "tableTo": "servers",
+          "columnsFrom": [
+            "server_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "oauth_client_uninstalls_client_id_oauth_clients_id_fk": {
+          "name": "oauth_client_uninstalls_client_id_oauth_clients_id_fk",
+          "tableFrom": "oauth_client_uninstalls",
+          "tableTo": "oauth_clients",
+          "columnsFrom": [
+            "client_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "oauth_client_uninstalls_actor_user_id_users_id_fk": {
+          "name": "oauth_client_uninstalls_actor_user_id_users_id_fk",
+          "tableFrom": "oauth_client_uninstalls",
+          "tableTo": "users",
+          "columnsFrom": [
+            "actor_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "oauth_client_uninstalls_server_id_client_id_pk": {
+          "name": "oauth_client_uninstalls_server_id_client_id_pk",
+          "columns": [
+            "server_id",
+            "client_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.oauth_clients": {
       "name": "oauth_clients",
       "schema": "",
@@ -50922,425 +51023,6 @@
           "tableTo": "users",
           "columnsFrom": [
             "created_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.skills_hub_agent_settings": {
-      "name": "skills_hub_agent_settings",
-      "schema": "",
-      "columns": {
-        "agent_id": {
-          "name": "agent_id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "server_id": {
-          "name": "server_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "use_host_skills": {
-          "name": "use_host_skills",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "updated_by_user_id": {
-          "name": "updated_by_user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "idx_skills_hub_agent_settings_server": {
-          "name": "idx_skills_hub_agent_settings_server",
-          "columns": [
-            {
-              "expression": "server_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "skills_hub_agent_settings_agent_id_agents_id_fk": {
-          "name": "skills_hub_agent_settings_agent_id_agents_id_fk",
-          "tableFrom": "skills_hub_agent_settings",
-          "tableTo": "agents",
-          "columnsFrom": [
-            "agent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "skills_hub_agent_settings_server_id_servers_id_fk": {
-          "name": "skills_hub_agent_settings_server_id_servers_id_fk",
-          "tableFrom": "skills_hub_agent_settings",
-          "tableTo": "servers",
-          "columnsFrom": [
-            "server_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "skills_hub_agent_settings_updated_by_user_id_users_id_fk": {
-          "name": "skills_hub_agent_settings_updated_by_user_id_users_id_fk",
-          "tableFrom": "skills_hub_agent_settings",
-          "tableTo": "users",
-          "columnsFrom": [
-            "updated_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.skills_hub_assignments": {
-      "name": "skills_hub_assignments",
-      "schema": "",
-      "columns": {
-        "server_id": {
-          "name": "server_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "agent_id": {
-          "name": "agent_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "item_id": {
-          "name": "item_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updated_by_user_id": {
-          "name": "updated_by_user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "idx_skills_hub_assignments_server_agent": {
-          "name": "idx_skills_hub_assignments_server_agent",
-          "columns": [
-            {
-              "expression": "server_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "agent_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_skills_hub_assignments_item": {
-          "name": "idx_skills_hub_assignments_item",
-          "columns": [
-            {
-              "expression": "item_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "skills_hub_assignments_server_id_servers_id_fk": {
-          "name": "skills_hub_assignments_server_id_servers_id_fk",
-          "tableFrom": "skills_hub_assignments",
-          "tableTo": "servers",
-          "columnsFrom": [
-            "server_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "skills_hub_assignments_agent_id_agents_id_fk": {
-          "name": "skills_hub_assignments_agent_id_agents_id_fk",
-          "tableFrom": "skills_hub_assignments",
-          "tableTo": "agents",
-          "columnsFrom": [
-            "agent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "skills_hub_assignments_item_id_skills_hub_items_id_fk": {
-          "name": "skills_hub_assignments_item_id_skills_hub_items_id_fk",
-          "tableFrom": "skills_hub_assignments",
-          "tableTo": "skills_hub_items",
-          "columnsFrom": [
-            "item_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "skills_hub_assignments_updated_by_user_id_users_id_fk": {
-          "name": "skills_hub_assignments_updated_by_user_id_users_id_fk",
-          "tableFrom": "skills_hub_assignments",
-          "tableTo": "users",
-          "columnsFrom": [
-            "updated_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "skills_hub_assignments_agent_id_item_id_pk": {
-          "name": "skills_hub_assignments_agent_id_item_id_pk",
-          "columns": [
-            "agent_id",
-            "item_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.skills_hub_items": {
-      "name": "skills_hub_items",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "server_id": {
-          "name": "server_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "kind": {
-          "name": "kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "content": {
-          "name": "content",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "marketplace_source": {
-          "name": "marketplace_source",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "files": {
-          "name": "files",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "source": {
-          "name": "source",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_by_user_id": {
-          "name": "created_by_user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "updated_by_user_id": {
-          "name": "updated_by_user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "idx_skills_hub_items_server_kind_name": {
-          "name": "idx_skills_hub_items_server_kind_name",
-          "columns": [
-            {
-              "expression": "server_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "kind",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "name",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "idx_skills_hub_items_server": {
-          "name": "idx_skills_hub_items_server",
-          "columns": [
-            {
-              "expression": "server_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "skills_hub_items_server_id_servers_id_fk": {
-          "name": "skills_hub_items_server_id_servers_id_fk",
-          "tableFrom": "skills_hub_items",
-          "tableTo": "servers",
-          "columnsFrom": [
-            "server_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "skills_hub_items_created_by_user_id_users_id_fk": {
-          "name": "skills_hub_items_created_by_user_id_users_id_fk",
-          "tableFrom": "skills_hub_items",
-          "tableTo": "users",
-          "columnsFrom": [
-            "created_by_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "skills_hub_items_updated_by_user_id_users_id_fk": {
-          "name": "skills_hub_items_updated_by_user_id_users_id_fk",
-          "tableFrom": "skills_hub_items",
-          "tableTo": "users",
-          "columnsFrom": [
-            "updated_by_user_id"
           ],
           "columnsTo": [
             "id"

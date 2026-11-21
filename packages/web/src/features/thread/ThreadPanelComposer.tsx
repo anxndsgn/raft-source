@@ -93,7 +93,7 @@ export function ThreadPanelComposer({
   copiedMd: SelectionShareHandlers["copiedMd"];
   forwardState: ForwardAvailability;
   openForwardComposer: () => void;
-  copySelectedLinks: () => void;
+  copySelectedLinks: () => Promise<boolean>;
   onSavePic: SelectionShareHandlers["onSavePic"];
   onCopyMd: SelectionShareHandlers["onCopyMd"];
   selectableIds: readonly string[];

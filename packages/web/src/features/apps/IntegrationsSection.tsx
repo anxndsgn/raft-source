@@ -87,8 +87,7 @@ import {
   getConnectedAppsErrorSurface,
 } from "../../components/settings/connectedAppsErrorSurface";
 import { isSecondFactorStepUpCancelled, withSecondFactorStepUp } from "../../components/settings/secondFactorStepUp";
-import { InstalledConnectedAppItem, InstalledConnectedAppItemSkeleton } from "../../components/settings/InstalledConnectedAppItem";
-import { useListSkeletonShown } from "../../components/ui/useListSkeletonShown";
+import { InstalledConnectedAppItem } from "../../components/settings/InstalledConnectedAppItem";
 import {
   ConnectedAppBotInstallOption,
   ConnectedAppBotLinkNotInstalledNotice,
@@ -152,6 +151,7 @@ import { AppNotificationsLabel } from "./connected-apps/AppNotificationsLabel";
 import { ConnectedAppEditorSection } from "./connected-apps/ConnectedAppEditorSection";
 import { ConnectedAppLinkPreviewReadOnlyBanner } from "./connected-apps/ConnectedAppLinkPreviewReadOnlyBanner";
 import { ConnectedAppEditorActionRow } from "./connected-apps/ConnectedAppEditorActionRow";
+import { ConnectedAppCardButtonsSection, InstalledAppCardButtons } from "./connected-apps/ConnectedAppCardButtonsSection";
 import { ConnectedAppMarketplaceInstallBadge } from "./connected-apps/ConnectedAppMarketplaceInstallBadge";
 import { ConnectedAppUrlLink } from "./connected-apps/ConnectedAppUrlLink";
 import { OAuthScopeSummaryPanel } from "./connected-apps/OAuthScopeSummaryPanel";
@@ -164,6 +164,8 @@ import { useAppBotLink } from "./useAppBotLink";
 import { useInstalledAppBot } from "./useInstalledAppBot";
 import { useMarketplaceBotHint } from "./useMarketplaceBotHint";
 import { useAppsPageMcp } from "./mcp/useAppsPageMcp";
+import { useOwnServerCardButtons } from "./useOwnServerCardButtons";
+import { InstalledAppsSkeleton } from "./InstalledAppsSkeleton";
 
 /**
  * The server's Apps: Installed, Marketplace and My Apps (#proj-apps task #22).
@@ -173,24 +175,6 @@ import { useAppsPageMcp } from "./mcp/useAppsPageMcp";
  * the native host shell's embedded settings page and a direct render still
  * open (the route sends everyone else to /apps).
  */
-/**
- * Installed while it loads: item placeholders in the collection the Apps will
- * be in, in its view (the grid's cards or the list's rows), after the 1s wait
- * (raft-design Feedback), so the Apps land where these were (#proj-raft-ui:#231).
- */
-export function InstalledAppsSkeleton({ viewMode, canManage }: { viewMode: ConnectedAppsViewMode; canManage: boolean }) {
-  const shown = useListSkeletonShown();
-  return (
-    <div aria-busy="true" data-testid="apps-loading">
-      {shown ? (
-        <div className={connectedAppsCollectionClassName(viewMode)} data-view={viewMode} data-testid="apps-loading-collection">
-          {Array.from({ length: 4 }, (_, index) => <InstalledConnectedAppItemSkeleton key={index} viewMode={viewMode} canManage={canManage} />)}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 /** `?tab=skills` opens the Skills Hub (links from an agent's Capabilities). */
 function initialAppsTab(): ConnectedAppsTab {
   return typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "skills" ? "skills" : "installed";
@@ -680,6 +664,9 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
   }, [applyUpdatedClient, editingClient, formatMessage]);
 
   const editingClientId = editingClient?.id;
+  // Card buttons (RFC 076 §17, #proj-apps:#73), read while the editor is open; the installed App's page has its own.
+  const cardButtons = useOwnServerCardButtons(showRegisterDrawer && editingClient ? editingClient.id : null);
+  const cardButtonsShown = !!cardButtons.view;
   const handleDeleteClient = useCallback(async (client: ServerRegisteredApp) => {
     await api.delete(`/integrations/clients/${client.id}`);
     setClients((items) => items.filter((item) => item.id !== client.id));
@@ -1012,11 +999,12 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
     { id: "connected-app-editor-notifications", label: formatMessage({ id: "settings.connectedApps.section.webhook" }) },
     ...(editingClient
       ? [
+        ...(cardButtonsShown ? [{ id: "connected-app-editor-card-buttons", label: formatMessage({ id: "settings.connectedApps.cardButtons.title" }) }] : []),
         { id: "connected-app-editor-distribution", label: formatMessage({ id: "settings.connectedApps.section.distribution" }) },
         { id: "connected-app-editor-danger", label: formatMessage({ id: "settings.connectedApps.section.dangerZone" }) },
       ]
       : []),
-  ], [editingClient, formatMessage]);
+  ], [cardButtonsShown, editingClient, formatMessage]);
   const updateConnectedAppsViewMode = useCallback((viewMode: ConnectedAppsViewMode) => {
     setConnectedAppsViewMode(viewMode);
     try {
@@ -1608,6 +1596,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
             {/* The viewer's own link-preview answer for this App, as in Link
                 Previews › Manage; nothing when they haven't answered. */}
             <LinkPreviewAppChoice appId={selectedInstalledApp.id} />
+            <InstalledAppCardButtons appId={canManage ? selectedInstalledApp.id : null} appName={selectedInstalledApp.name} serverName={current.name} />
             {!selectedInstalledApp.permissionApprovalRequired ? installedPermissions : null}
         </ConnectedAppDetailModal>
       )}
@@ -2025,6 +2014,15 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
               onError={setError}
             />
             </ConnectedAppEditorSection>
+            {editingClient && cardButtons.view ? (
+              <ConnectedAppCardButtonsSection
+                read={cardButtons.view}
+                appName={editingClient.name}
+                serverName={current?.name ?? ""}
+                onAllow={cardButtons.allow}
+                onWithdraw={cardButtons.withdraw}
+              />
+            ) : null}
             {/* Sharing, publishing and the app's lifecycle act on a saved app;
                 a new app's form stops at what can be filled in now (the
                 Webhook section says that it waits for the save). */}

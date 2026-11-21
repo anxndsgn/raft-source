@@ -105,7 +105,7 @@ import { assertActionCardWritableInTransaction } from "./actionCardConversionSer
 import { messageWithoutAgentHiddenActionCardSpec, withStoredActionCardSpec } from "./actionCardPresentation";
 import { servedActionCardMetadata } from "./actionCardExpiry";
 import { AgentSendIdempotencyConflictError, createOrReplayAgentSend, __hasAgentSendReplayDbOverrideForTests, type AgentSendInsertedTransactionInput } from "./agentSendReplayService";
-import { agentMessageCardField, insertMessageCardRevision } from "./messageCardService";
+import { agentMessageCardFieldNamed, insertMessageCardRevision } from "./messageCardService";
 export { AgentSendIdempotencyConflictError } from "./agentSendReplayService";
 import { traceQuerySpan } from "../tracing/queryTrace";
 import {
@@ -1089,6 +1089,9 @@ function traceChannelAudienceAttrs(channel: Pick<typeof channels.$inferSelect, "
 // covers picker-confirmed intent. Under v2, a raw handle that matches multiple
 // actors stays inert and is reported to the sender as unresolved, while the
 // ordinary message still succeeds. V1 retains its historical all-match behavior.
+/** A mention Raft wrote into a message's content itself, bound to a person by id (RFC 086: a card's `for`). */
+export type RaftAuthoredMention = { type: "user"; id: string; name: string };
+
 export type StructuredMentionInput = {
   /**
    * `user`/`agent` claim a Raft principal (`id` is the user/agent UUID).
@@ -2294,7 +2297,7 @@ export async function createMessage(
   content: string,
   messageType: "chat" | "system" = "chat",
   taskFields?: { taskStatus: "todo"; taskNumber: number },
-  extraFields?: { threadId?: string | null; agentSendKey?: string | null; randomId?: string | null; actionMetadata?: unknown | null; causalActorType?: "user" | "agent" | null; causalActorId?: string | null; systemSubtype?: string | null; senderTimezone?: string | null; delegatedByAgentId?: string | null; replyToMessageId?: string | null },
+  extraFields?: { threadId?: string | null; agentSendKey?: string | null; randomId?: string | null; actionMetadata?: unknown | null; causalActorType?: "user" | "agent" | null; causalActorId?: string | null; systemSubtype?: string | null; senderTimezone?: string | null; delegatedByAgentId?: string | null; replyToMessageId?: string | null; voiceCallId?: string | null },
   executor?: DatabaseExecutor,
 ) {
   const persist = async (db: DatabaseExecutor) => {
@@ -2372,6 +2375,7 @@ export async function prepareSystemMessageForOrderedDelivery(
     randomId: eventId,
     senderTimezone: null,
     delegatedByAgentId: null,
+    voiceCallId: null,
     deletedAt: null,
     messageType: "system",
     content,
@@ -3284,10 +3288,13 @@ async function emitPersistedMessageToFrontend(
           { topology },
         );
         for (const userId of followerIds) {
-          io.in(socketUserServerRoom(userId, projection.localServerId)).socketsJoin(`channel:${projection.localThreadChannelId}`);
+          // The payload carries this server's local thread id; the user's
+          // sockets on their other servers get their own projection's copy.
+          const userServerRoom = socketUserServerRoom(userId, projection.localServerId);
+          io.in(userServerRoom).socketsJoin(`channel:${projection.localThreadChannelId}`);
           // message-realtime-producer: message-service.persisted.joint-thread-follower
           await emitSocketBestEffort(
-            () => io.to(`user:${userId}`).emit("message:new", messagePayload),
+            () => io.to(userServerRoom).emit("message:new", messagePayload),
           );
         }
         if (!parentMessageId || !threadInfo) continue;
@@ -4121,11 +4128,11 @@ export async function broadcastSystemMessageToLocalSurfaces(
         taskId: projection.canonicalParentTaskId,
       })));
       for (const userId of followerIds) {
-        io.in(socketUserServerRoom(userId, projection.localServerId)).socketsJoin(
-          `channel:${projection.localThreadChannelId}`,
-        );
+        // Per-projection payload: only this server's sockets of the user.
+        const userServerRoom = socketUserServerRoom(userId, projection.localServerId);
+        io.in(userServerRoom).socketsJoin(`channel:${projection.localThreadChannelId}`);
         // message-realtime-producer: message-service.system.joint-thread-follower
-        io.to(`user:${userId}`).emit("message:new", payload);
+        io.to(userServerRoom).emit("message:new", payload);
       }
       await deliverMessagesToAgents(
         agentOrchestrator,
@@ -4400,9 +4407,9 @@ export async function deliverMessagesToAgents(
         sender_name: message.externalAuthor?.displayName ?? senderIdentity.uniqueName,
         sender_description: senderIdentity.description,
         sender_timezone: message.senderTimezone ?? null,
-        ...(await agentDelegatedByField(message as { delegatedByAgentId?: string | null })),
+        ...(await agentAuthorshipFields(message as AgentAuthorshipRow)),
         // RFC 082: a card message reads `card=r<revision>` in the header; its content is the fallback.
-        ...agentMessageCardField((message as { actionMetadata?: unknown }).actionMetadata),
+        ...(await agentMessageCardFieldNamed((message as { actionMetadata?: unknown }).actionMetadata)),
         sender_type: toAgentVisibleSenderType(message.senderType, message.messageType),
         ...toAgentVisibleExternalMessage(message),
         // A resolved mention fact on an external_projection message carries the
@@ -4695,9 +4702,9 @@ export async function deliverMessageToAgent(
       sender_name: senderName,
       sender_description: senderDescription,
       sender_timezone: message.senderTimezone ?? null,
-      ...(await agentDelegatedByField(message as { delegatedByAgentId?: string | null })),
+      ...(await agentAuthorshipFields(message as AgentAuthorshipRow)),
       // RFC 082: a card message reads `card=r<revision>` in the header; its content is the fallback.
-      ...agentMessageCardField((message as { actionMetadata?: unknown }).actionMetadata),
+      ...(await agentMessageCardFieldNamed((message as { actionMetadata?: unknown }).actionMetadata)),
       sender_type: toAgentVisibleSenderType(message.senderType, message.messageType),
       ...toAgentVisibleExternalMessage(message),
       content: renderAgentVisibleMessageContent(message, renderedContent),
@@ -5346,9 +5353,9 @@ async function buildResumeCatchupBatch(
         sender_name: identity.uniqueName,
         sender_description: identity.description,
         sender_timezone: row.senderTimezone ?? null,
-        ...(await agentDelegatedByField(row as { delegatedByAgentId?: string | null })),
+        ...(await agentAuthorshipFields(row as AgentAuthorshipRow)),
         // RFC 082: a card message reads `card=r<revision>` in the header; its content is the fallback.
-        ...agentMessageCardField((row as { actionMetadata?: unknown }).actionMetadata),
+        ...(await agentMessageCardFieldNamed((row as { actionMetadata?: unknown }).actionMetadata)),
         sender_type: toAgentVisibleSenderType(row.senderType, row.messageType),
         ...toAgentVisibleExternalMessage(row),
         ...(row.senderType === "external_projection"
@@ -7292,6 +7299,7 @@ function toThreadContextMessage(message: EnrichedMessageRow): AgentThreadContext
     sender_description: message.senderDescription || null,
     sender_timezone: message.senderTimezone ?? null,
         ...((message as { delegatedBy?: { name: string } | null }).delegatedBy ? { delegated_by: { name: (message as { delegatedBy: { name: string } }).delegatedBy.name } } : {}),
+    ...((message as { voiceCallId?: string | null }).voiceCallId ? { posted_by: "voice_call" as const } : {}),
     sender_type: toAgentVisibleSenderType(message.senderType, message.messageType),
     ...toAgentVisibleExternalMessage(message),
     content: renderAgentVisibleMessageContent(message, scopedContent),
@@ -9150,6 +9158,7 @@ export async function syncMessagesWithHorizon(
         -- RFC 077: a gap-filled copy must say who sent it for its owner and whether it was retracted,
         -- or it overwrites the live copy's label (the client may hold no other copy).
         ${messages.delegatedByAgentId} AS "delegatedByAgentId",
+        ${messages.voiceCallId} AS "voiceCallId",
         ${messages.deletedAt} AS "deletedAt"
       `,
       from: sql`
@@ -9544,9 +9553,9 @@ async function handleJointThreadPostBroadcastSideEffects(input: {
           sender_name: senderUniqueName,
           sender_description: senderDescription,
           sender_timezone: message.senderTimezone ?? null,
-          ...(await agentDelegatedByField(message as { delegatedByAgentId?: string | null })),
+          ...(await agentAuthorshipFields(message as AgentAuthorshipRow)),
           // RFC 082: a card message reads `card=r<revision>` in the header; its content is the fallback.
-          ...agentMessageCardField((message as { actionMetadata?: unknown }).actionMetadata),
+          ...(await agentMessageCardFieldNamed((message as { actionMetadata?: unknown }).actionMetadata)),
           sender_type: toAgentVisibleSenderType(senderType, message.messageType),
           content: renderedContent,
           timestamp: message.createdAt.toISOString(),
@@ -10154,6 +10163,15 @@ async function resolveMentionTargets(
   structuredMentions: StructuredMentionInput[] | undefined,
   mentionContract: "v1" | "v2",
   deps: MessageServiceDeps,
+  /**
+   * Mentions Raft itself wrote into the content (RFC 086: a card's `for`),
+   * bound to a person by id. The caller already decided that person may be
+   * named here (a member who can read the conversation), so the sender's
+   * hidden human directory does not filter them; they still resolve only
+   * among the conversation's candidates and claim their handle as any
+   * structured mention does.
+   */
+  raftMentions: readonly RaftAuthoredMention[] = [],
 ): Promise<{ targets: ResolvedMentionTarget[]; resolvedFacts: ResolvedMentionFact[] }> {
   // Deduplicate handles by exact spelling. Handles are actor identifiers; when
   // case-only duplicates exist, lower-casing silently targets the wrong actor.
@@ -10208,6 +10226,8 @@ async function resolveMentionTargets(
     notifiableAgentIds = new Set(scopeMembers.agents.map((a) => a.id));
   }
 
+  // The candidates before the sender's directory filter: only Raft's own mentions resolve among these.
+  const scopeHumans = candidateHumans;
   // A hidden human directory is an authorization boundary, not just a list UI
   // preference. Mention resolution (including sender-only pending actions)
   // must not become an existence or avatar oracle. Private/joint candidates
@@ -10276,6 +10296,16 @@ async function resolveMentionTargets(
       name: rawHandle,
     });
   };
+
+  for (const mention of raftMentions) {
+    const rawHandle = rawByHandle.get(mention.name);
+    if (!rawHandle) continue;
+    structuredHandleKeys.add(mention.name);
+    const candidate = scopeHumans.find((human) => human.userId === mention.id);
+    if (!candidate || candidate.name !== mention.name) continue;
+    structuredTargetByHandle.set(mention.name, `user:${candidate.userId}`);
+    addRow("user", candidate.userId, rawHandle, candidate.avatarUrl ?? null);
+  }
 
   for (const mention of structuredMentions ?? []) {
     const requestedHandle = mention.name.trim();
@@ -10541,16 +10571,24 @@ async function resolveMentionScopeForChannel(
  * Unified message pipeline: write to DB → broadcast via Socket.io → deliver to agents.
  * Both human (POST /messages) and agent (POST /internal/agent/:id/send) paths call this.
  */
+/** The rows agentAuthorshipFields reads: who, other than the sender, wrote the message. */
+export type AgentAuthorshipRow = { delegatedByAgentId?: string | null; voiceCallId?: string | null };
+
 /**
- * RFC 077: the agent-facing `delegated_by` of a message an assistant sent as its
- * owner: `{ name }` (the assistant's handle), rendered as `delegated_by=@name`
+ * Who wrote a message, when the sender alone doesn't say, as an agent reads it
  * in the message header. Empty for every other message, with no query.
+ * - RFC 077 `delegated_by`: an assistant sent it as its owner: `{ name }` (the
+ *   assistant's handle), rendered as `delegated_by=@name`.
+ * - `posted_by: "voice_call"`: a Raft voice call posted it in the agent's name
+ *   (`messages.voice_call_id`). The voice model wrote it, steered by the
+ *   caller, so the agent must not take it as its own words or promises.
  */
-export async function agentDelegatedByField(row: { delegatedByAgentId?: string | null }): Promise<{ delegated_by?: { name: string } }> {
+export async function agentAuthorshipFields(row: AgentAuthorshipRow): Promise<{ delegated_by?: { name: string }; posted_by?: "voice_call" }> {
+  const postedBy = row.voiceCallId ? { posted_by: "voice_call" as const } : {};
   const agentId = row.delegatedByAgentId;
-  if (!agentId) return {};
+  if (!agentId) return postedBy;
   const [agent] = await getDb().select({ name: agents.name }).from(agents).where(eq(agents.id, agentId)).limit(1);
-  return agent ? { delegated_by: { name: agent.name } } : {};
+  return agent ? { ...postedBy, delegated_by: { name: agent.name } } : postedBy;
 }
 
 /**
@@ -10603,6 +10641,12 @@ export async function broadcastAndDeliver(
      * content).
      */
     contentMentions?: boolean;
+    /**
+     * RFC 086: mentions Raft wrote into `content` itself (a card's `for`),
+     * bound by id and resolved whatever the sender's directory hides; they
+     * notify as any mention does, also in a fallback Raft derived.
+     */
+    raftMentions?: readonly RaftAuthoredMention[];
     asTask?: boolean;
     /**
      * A message already committed by a dedicated transactional persistence
@@ -10630,6 +10674,12 @@ export async function broadcastAndDeliver(
     /** RFC 077: the personal assistant sending this as its owner (`senderType: "user"`). */
     delegatedByAgentId?: string | null;
     /**
+     * Raft voice calls: the call posting this in the agent's name
+     * (`senderType: "agent"` with an `agentSendKey` only; agentVoiceCallService
+     * is the only caller). Agents read it as `posted_by=voice_call`.
+     */
+    voiceCallId?: string | null;
+    /**
      * An agent send only: runs inside the send's transaction right after a
      * NEW message is inserted (never for an idempotent replay, never on the
      * non-transactional fixture path). Must not throw (it would fail the send):
@@ -10642,6 +10692,13 @@ export async function broadcastAndDeliver(
      * the original's). Written with the message, in its transaction.
      */
     reply?: { replyToMessageId: string | null; taskIds: string[] };
+     * An agent send only: checks that run inside the send's transaction after
+     * a NEW message is inserted (never for an idempotent replay, never on the
+     * non-transactional fixture path). RFC 086: a card's acting buttons are
+     * "checked in the send transaction". A throw rolls the whole send back;
+     * the caller answers it.
+     */
+    checkAgentInsertInTransaction?: (executor: DatabaseExecutor) => Promise<void>;
   }
 ) {
   const deps = resolveMessageServiceDeps();
@@ -10656,6 +10713,7 @@ export async function broadcastAndDeliver(
   const messageCardMetadata = isMessageCardMetadata(actionMetadata) ? actionMetadata : null;
   if (messageCardMetadata && senderType !== "agent") throw new Error("A message card is sent by an agent");
   const recordAgentInsertInTransaction = async (executor: DatabaseExecutor, insertedMessage: typeof messages.$inferSelect) => {
+    await opts.checkAgentInsertInTransaction?.(executor);
     if (messageCardMetadata) {
       await insertMessageCardRevision(executor, {
         messageId: insertedMessage.id,
@@ -10741,9 +10799,11 @@ export async function broadcastAndDeliver(
   const structuredMentionsForContent = contentMentions ? mentions?.filter((mention) => (
     structuredRaftMentionStillAppears(content, mention.name.trim())
   )) : [];
+  const raftMentions = (opts.raftMentions ?? []).filter((mention) => structuredRaftMentionStillAppears(content, mention.name));
   const mentionHandles = Array.from(new Set([
     ...strictMentionHandles,
     ...(structuredMentionsForContent ?? []).map((mention) => `@${mention.name.trim()}`),
+    ...raftMentions.map((mention) => `@${mention.name}`),
   ]));
   const agentSendAlreadyPersisted = senderType === "agent" && agentSendKey && mentionHandles.length > 0
     ? Boolean((await getDb()
@@ -10773,6 +10833,7 @@ export async function broadcastAndDeliver(
           structuredMentionsForContent,
           mentionContract,
           deps,
+          raftMentions,
         );
       }
     } catch (error) {
@@ -10936,6 +10997,7 @@ export async function broadcastAndDeliver(
           attachmentIds,
           actionMetadata: actionMetadata ?? null,
           replyToMessageId,
+          voiceCallId: senderType === "agent" ? opts.voiceCallId ?? null : null,
           rejectMismatchedReplay: opts.rejectMismatchedAgentSendReplay === true,
           senderWroteContent: opts.contentMentions !== false,
           beforeInsert: tx && useAtomicMessageTransaction
@@ -11089,6 +11151,7 @@ export async function broadcastAndDeliver(
           ...(senderTimezone ? { senderTimezone } : {}),
           ...(delegatedByAgentId ? { delegatedByAgentId } : {}),
           ...(replyToMessageId ? { replyToMessageId } : {}),
+          ...(senderType === "agent" && opts.voiceCallId ? { voiceCallId: opts.voiceCallId } : {}),
         },
         executor,
       );
@@ -11503,9 +11566,9 @@ export async function broadcastAndDeliver(
             sender_type: toAgentVisibleSenderType(senderType),
             sender_description: senderDescription,
             sender_timezone: message.senderTimezone ?? null,
-            ...(await agentDelegatedByField(message as { delegatedByAgentId?: string | null })),
+            ...(await agentAuthorshipFields(message as AgentAuthorshipRow)),
             // RFC 082: a card message reads `card=r<revision>` in the header; its content is the fallback.
-            ...agentMessageCardField((message as { actionMetadata?: unknown }).actionMetadata),
+            ...(await agentMessageCardFieldNamed((message as { actionMetadata?: unknown }).actionMetadata)),
             content: appendAgentForwardedSnapshot(renderedBaseContent, recipientForwardedSnapshot),
             timestamp: message.createdAt.toISOString(),
             seq: message.seq,
@@ -11789,9 +11852,9 @@ export async function broadcastAndDeliver(
         sender_name: senderUniqueName,
         sender_description: senderDescription,
         sender_timezone: message.senderTimezone ?? null,
-        ...(await agentDelegatedByField(message as { delegatedByAgentId?: string | null })),
+        ...(await agentAuthorshipFields(message as AgentAuthorshipRow)),
         // RFC 082: a card message reads `card=r<revision>` in the header; its content is the fallback.
-        ...agentMessageCardField((message as { actionMetadata?: unknown }).actionMetadata),
+        ...(await agentMessageCardFieldNamed((message as { actionMetadata?: unknown }).actionMetadata)),
         sender_type: toAgentVisibleSenderType(senderType, message.messageType),
         content: renderedContent,
         timestamp: message.createdAt.toISOString(),

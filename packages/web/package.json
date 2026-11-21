@@ -1,6 +1,6 @@
 {
   "name": "@botiverse/raft-web",
-  "version": "1.24.0",
+  "version": "1.29.3",
   "license": "LicenseRef-Raft-License",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "typecheck": "tsrs --noEmit",
     "typecheck:tsc": "tsc --noEmit",
-    "lint": "node --import @oxc-node/core/register scripts/check-source-extensions.ts && oxlint --react-plugin --max-warnings=0 src visual-testing && oxlint -c scripts/oxlint-tests.json --disable-nested-config --max-warnings=0 tests src/features/*/tests && node --import @oxc-node/core/register scripts/check-color-tokens.ts && node --import @oxc-node/core/register scripts/check-resize-handle-touch-action.ts && node --import @oxc-node/core/register scripts/check-embed-wiring.ts && node --import @oxc-node/core/register scripts/check-host-bridge-callers.ts && node --import @oxc-node/core/register scripts/check-orphan-animations.ts && node --import @oxc-node/core/register scripts/check-banner-inline-action.ts && node --import @oxc-node/core/register scripts/check-banner-margin.ts && node --import @oxc-node/core/register scripts/check-hand-rolled-text-links.ts && node --import @oxc-node/core/register scripts/check-module-shape.ts && node --import @oxc-node/core/register scripts/check-scroll-area-debt.ts && pnpm run lint:i18n-literals",
+    "lint": "node --import @oxc-node/core/register scripts/check-source-extensions.ts && oxlint --react-plugin --max-warnings=0 src visual-testing && oxlint -c scripts/oxlint-tests.json --disable-nested-config --max-warnings=0 tests src/features/*/tests && node --import @oxc-node/core/register scripts/check-color-tokens.ts && node --import @oxc-node/core/register scripts/check-resize-handle-touch-action.ts && node --import @oxc-node/core/register scripts/check-embed-wiring.ts && node --import @oxc-node/core/register scripts/check-host-bridge-callers.ts && node --import @oxc-node/core/register scripts/check-orphan-animations.ts && node --import @oxc-node/core/register scripts/check-banner-inline-action.ts && node --import @oxc-node/core/register scripts/check-banner-margin.ts && node --import @oxc-node/core/register scripts/check-hand-rolled-text-links.ts && node --import @oxc-node/core/register scripts/check-module-shape.ts && node --import @oxc-node/core/register scripts/check-scroll-area-debt.ts && node node_modules/@botiverse/raft-ui/checks/native-scroll-css.mjs src && pnpm run lint:i18n-literals",
     "lint:i18n-literals": "node --import @oxc-node/core/register scripts/check-i18n-literals.ts",
     "lint:fix": "oxlint --react-plugin --fix src visual-testing && oxlint -c scripts/oxlint-tests.json --disable-nested-config --fix tests src/features/*/tests",
     "test": "node --import @oxc-node/core/register scripts/run-vitest-tests.ts",
@@ -29,8 +29,8 @@
     "ui:status": "node scripts/linkLocalRaftUi.mjs status"
   },
   "dependencies": {
-    "@botiverse/hands-feedback-react": "0.5.3",
-    "@botiverse/oar": "0.103.0",
+    "@botiverse/hands-feedback-react": "0.5.5",
+    "@botiverse/oar": "0.107.0",
     "@botiverse/porthole": "0.16.0",
     "@botiverse/raft-runtime-form": "workspace:*",
     "@botiverse/raft-shared": "workspace:*",

@@ -237,8 +237,10 @@ export const CANONICAL_MESSAGE_EXCLUSIONS = Object.freeze({
     // (retracted) was promoted to an optionalAggregate canonical field in manifest v7.
     // Reply mode: the original a reply points at and its display facts, reply count, linked task
     // numbers and the channel's mode ride every enriched row; web reads them, mobile not yet (D3).
-    fields: ["updatedAt", "delegatedBy", "delegatedByAgentId", "replyToMessageId", "replyTo", "directReplyCount", "linkedTaskNumbers", "inReplyModeChannel"] as readonly string[],
-    migrationStatus: "web canonical zero-consumption; mobile legacy consumption to retire in round-2 (label/event-key/SQL cache -> (epoch,seq,id/revision) adjudication); RFC 077 delegation fields: web/mobile label pending (Kirby / Lagoon)",
+    // voiceCallId: the Raft voice call that posted the message in the agent's name; read by
+    // agents only (`posted_by=voice_call`); people see the call's own 📞 prefix.
+    fields: ["updatedAt", "delegatedBy", "delegatedByAgentId", "replyToMessageId", "replyTo", "directReplyCount", "linkedTaskNumbers", "inReplyModeChannel", "voiceCallId"] as readonly string[],
+    migrationStatus: "web canonical zero-consumption; mobile legacy consumption to retire in round-2 (label/event-key/SQL cache -> (epoch,seq,id/revision) adjudication); RFC 077 delegation fields: web/mobile label pending (Kirby / Lagoon); voiceCallId: agent-facing only, no client label planned",
   }),
   /** Viewer-scoped nested metadata: shared broadcasts strip these; truth comes
    *  only from actor-scoped HTTP / receiver-private surfaces. */

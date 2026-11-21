@@ -89,6 +89,8 @@ const AGENT_LOUNGE_WRITE_CLASSIFICATION: Readonly<Record<string, LoungeWriteClas
   assistantCheckStateImport: "notChannel",
   assistantSendAsOwner: "notChannel",
   assistantForwardAsOwner: "notChannel",
+  // #proj-assistant:#33: placed as the owner (a person: postableConversation), as send-as-owner is; no agent places it.
+  assistantOwnerArtifactPublishAsOwner: "notChannel",
   serverUpdate: "notChannel",
   serverLabsAccess: "notChannel",
   serverLabEnrollment: "notChannel",
@@ -107,6 +109,7 @@ const AGENT_LOUNGE_WRITE_CLASSIFICATION: Readonly<Record<string, LoungeWriteClas
   integrationAppUpdate: "notChannel",
   integrationAppManage: "notChannel",
   integrationAppLogoUpdate: "notChannel",
+  integrationAppCardButtons: "notChannel",
   pushWebhookRegister: "notChannel",
   pushWebhookDelete: "notChannel",
   artifactUpload: "notChannel",
