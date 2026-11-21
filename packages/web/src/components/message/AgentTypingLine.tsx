@@ -135,6 +135,10 @@ export const END_FADE_UNDER_AGENT_TYPING_LINE_CLASS = [
  * or the typing sentence and " · 2 others working". It is a button that opens
  * Working now for them, upward from the line. Only typing is announced.
  */
+// Raft redesign (Figmama 11/21, 250d9559): the line is the floating pill the typing one is, the canvas on a 10% line,
+// fully round, the agents' faces 16px circles, regular 12 muted words; it floats over the timeline above the composer.
+const WORKING_PILL_CLASS = "flex h-7 min-w-0 max-w-full items-center gap-1.5 rounded-pill border border-line-floating bg-layer-canvas pr-2.5 pl-1.5 text-[12px] leading-4 text-foreground-muted [&_[data-slot=avatar]]:size-4 [&_[data-slot=avatar]]:rounded-full [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none [&_[data-slot=avatar-image]]:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full";
+
 export const AgentTypingLine = memo(function AgentTypingLine({
   channelId,
   parentMessageId,
@@ -175,9 +179,9 @@ export const AgentTypingLine = memo(function AgentTypingLine({
       className="peer/agent-typing pointer-events-none absolute inset-x-0 bottom-[var(--select-mode-reserve,0px)] z-float"
     >
       <span role="status" data-testid="agent-typing-status" className="sr-only">{typingSentence}</span>
-      <div data-testid="agent-typing-line" className="relative h-6" hidden={!shown}>
+      <div data-testid="agent-typing-line" className="relative h-7" hidden={!shown}>
         {shown && inChannel ? (
-          <div className="absolute inset-x-5 bottom-0 flex h-6 min-w-0 items-center">
+          <div className="absolute inset-x-5 bottom-0 flex h-7 min-w-0 items-center">
             <WorkingNowPopover
               items={rows}
               typingAgentIds={typingIds}
@@ -185,19 +189,21 @@ export const AgentTypingLine = memo(function AgentTypingLine({
               side="top"
               align="start"
               testId="agent-typing-trigger"
-              className="group pointer-events-auto -mx-1 flex h-6 min-w-0 max-w-full items-center gap-1.5 rounded-control px-1 text-left text-footnote text-foreground-muted outline-none focus-visible:shadow-focus"
+              className={`group pointer-events-auto ${WORKING_PILL_CLASS} text-left outline-none hover:overlay-subtle focus-visible:shadow-focus`}
             >
               <WorkingFaces items={faces} still testId="agent-typing-faces" />
-              <span className="min-w-0 truncate decoration-[1.5px] underline-offset-[3px] group-hover:underline">{sentence}</span>
+              <span className="min-w-0 truncate">{sentence}</span>
             </WorkingNowPopover>
           </div>
         ) : shown ? (
           <div
             aria-hidden="true"
-            className="absolute inset-x-5 bottom-0 flex h-6 min-w-0 items-center gap-1.5 text-footnote text-foreground-muted"
+            className="absolute inset-x-5 bottom-0 flex h-7 min-w-0 items-center"
           >
-            <WorkingFaces items={typing} still testId="agent-typing-faces" />
-            <span className="min-w-0 truncate">{sentence}</span>
+            <span className={WORKING_PILL_CLASS}>
+              <WorkingFaces items={typing} still testId="agent-typing-faces" />
+              <span className="min-w-0 truncate">{sentence}</span>
+            </span>
           </div>
         ) : null}
       </div>

@@ -106,7 +106,7 @@ const segmentedControl = tv({
         root: [
           // Each look is said twice, plain and with a mouse, so it wins over the
           // segment's own desktop look (the canvas and its line) there too.
-          "md:pointer-fine:-my-1.5 gap-4 rounded-none bg-transparent p-0 [--segment-size:44px] md:pointer-fine:[--segment-size:44px]",
+          "md:pointer-fine:-my-1.5 gap-4 md:pointer-fine:gap-4 rounded-none md:pointer-fine:rounded-none bg-transparent md:pointer-fine:bg-transparent p-0 md:pointer-fine:p-0 [--segment-size:44px] md:pointer-fine:[--segment-size:44px]",
           // 44px tall at every width, so a tab takes no taps past its box.
           "**:data-[slot=segmented-control-item]:after:hidden",
           "**:data-[slot=segmented-control-item]:rounded-none **:data-[slot=segmented-control-item]:border-0 **:data-[slot=segmented-control-item]:bg-transparent **:data-[slot=segmented-control-item]:px-0 **:data-[slot=segmented-control-item]:gap-1 **:data-[slot=segmented-control-item]:text-[14px] **:data-[slot=segmented-control-item]:font-normal **:data-[slot=segmented-control-item]:text-foreground-muted",

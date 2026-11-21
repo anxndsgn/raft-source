@@ -108,27 +108,39 @@ it("InputGroup: the caret in its field draws its line, clicked or tabbed to (Fig
   expect(fieldRinged(group), "field tabbed to").toBe(true);
 });
 
-it("Composer: typing after a click keeps it un-ringed; Tab into it rings it", async () => {
+// Raft redesign (Figmama 11/21, 250d9559): the composer's 1px line turns the
+// foreground while the caret is in it, clicked into or tabbed to; it never
+// takes the thicker focus ring.
+const composerLined = (el: Element) => {
+  const style = getComputedStyle(el);
+  return style.borderTopColor === getComputedStyle(document.body).color || style.borderTopColor !== lineAtRest;
+};
+let lineAtRest = "";
+
+it("Composer: the caret in it turns its 1px line the foreground, clicked or tabbed to; no ring", async () => {
   const userEvent = await context();
   render(<Fields />);
   const composer = screen.getByTestId("composer");
   const input = screen.getByTestId("composer-input");
+  lineAtRest = getComputedStyle(composer).borderTopColor;
+  expect(getComputedStyle(composer).borderTopWidth).toBe("1px");
   await userEvent.click(input);
   await userEvent.keyboard("Ship it on Friday{Enter}{ArrowLeft}{ArrowUp}{Home} ok");
   await settle();
   expect(document.activeElement).toBe(input);
-  expect(ringed(composer), "typing after a click").toBe(false);
+  expect(composerLined(composer), "typing after a click").toBe(true);
+  expect(ringed(composer), "no ring after a click").toBe(false);
 
   await userEvent.click(screen.getByTestId("before"));
+  await settle();
+  expect(getComputedStyle(composer).borderTopColor, "at rest again").toBe(lineAtRest);
   // before -> Input -> Textarea -> the group's field -> its clear button -> composer
   await userEvent.keyboard("{Tab}{Tab}{Tab}{Tab}{Tab}");
   await settle();
   expect(document.activeElement).toBe(input);
-  expect(ringed(composer), "tabbed into").toBe(true);
-  // Typing keeps the keyboard ring: it is still where the person is.
-  await userEvent.keyboard("abc");
-  await settle();
-  expect(ringed(composer), "typing after Tab").toBe(true);
+  expect(composerLined(composer), "tabbed into").toBe(true);
+  expect(ringed(composer), "no ring after Tab").toBe(false);
+  expect(getComputedStyle(composer).borderTopWidth).toBe("1px");
 });
 
 function Island({ children }: { children: ReactNode }) {

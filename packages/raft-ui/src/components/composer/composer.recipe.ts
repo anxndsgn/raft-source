@@ -7,9 +7,11 @@ export const composer = tv({
       "flex w-full flex-col gap-2 p-2",
       "rounded-container border-[1.5px] px-3 pt-3 pb-[calc(var(--control-embedded-inset)-1px)]",
       "border-line-field bg-layer-card text-foreground shadow-none",
-      "has-focus-visible:shadow-focus",
       // Raft redesign (Figma Composer; by touch too, mobile spec 11/21): the
       // canvas with a 1px hairline, 10px top and bottom, 12px sides, 10px between its rows.
+      // While the caret is in it the line is the foreground, 1px, clicked into
+      // or tabbed to; never a thicker ring (Figmama 11/21, 250d9559).
+      "has-[[data-slot=composer-input]:focus]:border-foreground",
       "gap-2.5 md:pointer-fine:gap-2.5 border md:pointer-fine:border border-line-hairline md:pointer-fine:border-line-hairline bg-layer-canvas md:pointer-fine:bg-layer-canvas",
       // anxndsgn 11/20 (Figmama): the buttons 8px from the left, right and
       // bottom edges (inside the 1px line: 7px), the text 14px in.
