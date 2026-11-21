@@ -48,6 +48,7 @@ import { HelpMenu } from "./HelpMenu";
 import { HELP_MENU_TRIGGER_ID } from "../../features/keyboard-shortcuts/shortcutHelpStore";
 import { useFirstScreenDone } from "../../boot/deferredUi";
 import { useShellPending } from "./shellPending";
+import { isSidebarSlotHidden, setSidebarSlotHidden } from "./sidebarToggle";
 import { SortableRailTabs } from "./SortableRailTabs";
 import type { RailTab, RailTabDrag } from "./SortableRailTabs";
 import { hasChatAttentionUnread, selectChatAttentionChannelIds } from "../../utils/chatAttentionUnread";
@@ -253,6 +254,9 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
   const railModeSelectors = useMemo(() => {
     const select = (mode: Exclude<RailMode, "activity">) => () => {
       trackNavEntrySelected(mode === "chat" ? "home" : mode, "rail", currentMode === mode);
+      // Pressing the current tab again brings its folded column back (owner e563ebcc: a folded list with nothing open
+      // beside it left no control to reopen it).
+      if (mode === "chat" && currentMode === "chat" && isSidebarSlotHidden("sidebar")) setSidebarSlotHidden("sidebar", false);
       selectRailMode(mode);
     };
     return {
@@ -270,6 +274,7 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
     if (event.detail >= 2) return;
     trackActivityOpen("rail");
     trackNavEntrySelected("activity", "rail", currentMode === "activity");
+    if (currentMode === "activity" && isSidebarSlotHidden("activityList")) setSidebarSlotHidden("activityList", false);
     selectRailMode("activity");
   }, [currentMode, selectRailMode]);
   // The navigation tabs this person can see, in no particular order:

@@ -29,7 +29,8 @@ export function TeamPageNav({ view }: { view: TeamView }) {
   const computers = useMachineStore((s) => s.machines.length);
   const members = population.humans.length + population.agents.length;
   const pick = useCallback((next: TeamView) => {
-    if (serverSlug && next !== view) navigate(teamViewPath(serverSlug, next));
+    // The panel open beside the page (its `?profile=…`) stays open across the views (owner ede53e26).
+    if (serverSlug && next !== view) navigate(`${teamViewPath(serverSlug, next)}${window.location.search}`);
   }, [navigate, serverSlug, view]);
   return (
     <PageNav<TeamView>
@@ -63,7 +64,8 @@ export function TeamHeader({ view, action, withNav = false, onMobileBack, mobile
   const agents = population.agents.length;
   const members = humans + agents;
   const pick = useCallback((next: TeamView) => {
-    if (serverSlug && next !== view) navigate(teamViewPath(serverSlug, next));
+    // The panel open beside the page (its `?profile=…`) stays open across the views (owner ede53e26).
+    if (serverSlug && next !== view) navigate(`${teamViewPath(serverSlug, next)}${window.location.search}`);
   }, [navigate, serverSlug, view]);
   const count = (value: number | null) => (value === null ? null : (
     <span className="tabular-nums text-[12px] font-normal text-foreground-muted" data-slot="team-tab-count">{value}</span>

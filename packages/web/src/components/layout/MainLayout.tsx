@@ -33,7 +33,7 @@ import { ThreadIcon, MessageIcon } from "@botiverse/ricons";
 import { PROFILE_PANEL_OVERLAY_CLASS, profilePanelDesktopStyle } from "../profile/profilePanelGeometry";
 import { LEGACY_TASK_SIDE_PANEL_CLASS, legacyTaskSidePanelDesktopStyle } from "../task/legacyTaskPanelGeometry";
 import { COLUMN_BOUNDS } from "../../lib/panelBounds";
-import { useColumnWidth } from "../../store/columnWidthStore";
+import { commitColumnWidth, useColumnWidth } from "../../store/columnWidthStore";
 import ChannelSideArea, { SideSectionPortal, ThreadColumnSections, useThreadColumnSide } from "../task/ChannelSideArea";
 import { ThreadCollapseChevron } from "../task/ThreadCollapseChevron";
 import { AgentContextViewPageSlot } from "../agentContextView/AgentContextViewSlots";
@@ -45,7 +45,7 @@ import { useStackEndHead } from "../task/stackEnd";
 import ColumnResizeHandle from "../ui/ColumnResizeHandle";
 import ShellSidebarColumn from "./ShellSidebarColumn";
 import ShellArtifactHost from "./ShellArtifactHost";
-import { useMediaQuery } from "../../hooks/effectPrimitives";
+import { useDomMeasureEffect, useMediaQuery } from "../../hooks/effectPrimitives";
 import { Routes, Route, Navigate, UNSAFE_NavigationContext as NavigationContext, useParams, useNavigate, useLocation, useNavigationType } from "react-router-dom";
 import { directTaskConversationChannelId, opensAsTaskConversation, parseTaskConversationParam } from "../../utils/taskConversation";
 import { dismissTaskConversationDialog, TaskConversationDialog } from "../task/taskConversationDialogChunk";
@@ -2410,6 +2410,20 @@ export default function MainLayout() {
   const threadParentMessageIdForLayout = useThreadStore((s) => s.openParentMessageId);
   const threadOpenForLayout = !!threadParentMessageIdForLayout;
   const profileOpenForLayout = useProfileStore((s) => !!s.profileId);
+  // The second panel (a profile, a computer) opens at half the row (owner ede53e26); dragged, it keeps that width
+  // until it closes.
+  const profileWasOpen = useRef(profileOpenForLayout);
+  useDomMeasureEffect(() => {
+    const opened = profileOpenForLayout && !profileWasOpen.current;
+    profileWasOpen.current = profileOpenForLayout;
+    if (!opened || !isDesktop) return;
+    const row = document.querySelector<HTMLElement>(".thread-layout-container");
+    const width = row?.getBoundingClientRect().width ?? 0;
+    if (width <= 0) return;
+    // Its column is the side panel's in the row (Team page, channels) and the detail column elsewhere.
+    commitColumnWidth("sidePanel", Math.round(width / 2));
+    commitColumnWidth("detail", Math.round(width / 2));
+  }, [profileOpenForLayout, isDesktop]);
   const masterDetailShellClassName = searchMasterDetail
     ? "flex flex-col"
     : "";
