@@ -265,7 +265,7 @@ export function MembersAgentUsageBody({ usage, groups, heading, openKey, onOpen 
     return (
       <section aria-busy="true" data-testid="members-usage-loading">
         <AfterSkeletonDelay>
-          <ListRowGroup className="mx-5 mt-4">
+          <ListRowGroup className="mx-5 mt-4 md:pointer-fine:mx-2 md:pointer-fine:*:px-3!">
             {Array.from({ length: 6 }, (_, index) => <AgentRowSkeleton key={index} />)}
           </ListRowGroup>
         </AfterSkeletonDelay>

@@ -65,8 +65,9 @@ export function ListScope<T extends string>({ value, options, onValueChange, lab
       collapseOrder={LIST_TOOLBAR_STEP.scopeSelect}
       collapsed={<ListScopeSelect value={value} options={options} onValueChange={onValueChange} label={label} testId={selectTestId} />}
     >
-      {/* Raft redesign (Figmama 11/20): a list's scope switches the view, so with a mouse it is underlined tabs. */}
-      <SegmentedControl<T> variant="underline" className={SEGMENTED_IN_LINE_CLASS} value={value} onValueChange={onValueChange} aria-label={label} data-testid={testId}>
+      {/* Layout changes (Figmama 11/21): a list's scope filters it, so it is filter pills, as the channel's Tasks
+          filters; underlined tabs are kept for switching views (the page's tabs above it). */}
+      <SegmentedControl<T> variant="pill" className={SEGMENTED_IN_LINE_CLASS} value={value} onValueChange={onValueChange} aria-label={label} data-testid={testId}>
         {options.map((option) => (
           <SegmentedControlItem key={option.value} value={option.value} data-testid={option.testId}>
             <SegmentedControlLabel>{option.label}</SegmentedControlLabel>

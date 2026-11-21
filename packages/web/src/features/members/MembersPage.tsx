@@ -41,6 +41,7 @@ import { useAgentsGrouping, writeAgentsGrouping } from "./agentsGroupingPreferen
 import { useMembersPopulation } from "./useMembersPopulation";
 import { MembersAddAgentDialogs } from "./MembersAddAgentDialogs";
 import { MembersCreateAgentButton } from "./MembersCreateAgentButton";
+import { PAGE_COLUMN_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, useDesktopMouse } from "../../components/ui/PageHead";
 import { useAddAgentActions } from "./useAddAgentActions";
 import type { MembersLocateState } from "./useMembersProfileRedirect";
 import type { AddAgentStep } from "./useAddAgentActions";
@@ -99,6 +100,9 @@ const GROUPING_LABEL: Record<AgentsGrouping, MessageId> = {
 export function MembersPage() {
   const { formatMessage, locale } = useIntl();
   const isDesktop = useIsDesktopShell();
+  // Layout changes C (11/21): with a mouse on a desktop, the page head holds Recruit agent and the bands sit in the
+  // reading column.
+  const desktopMouse = useDesktopMouse();
   const members = useServerStore((s) => s.members);
   const allAgents = useAgentStore((s) => s.agents);
   const machines = useMachineStore((s) => s.machines);
@@ -287,9 +291,9 @@ export function MembersPage() {
         }
         return (
           <section aria-busy="true" data-testid="members-loading" data-skeleton="rows">
-            <div className="mx-5 border-x border-transparent pt-4">{headingLine}</div>
+            <div className="mx-5 border-x border-transparent pt-4 md:pointer-fine:border-x-0 md:pointer-fine:pr-0">{headingLine}</div>
             <AfterSkeletonDelay>
-              <ListRowGroup className="mx-5 mt-2 md:pointer-fine:rounded-none md:pointer-fine:border-0">
+              <ListRowGroup className="mx-5 mt-2 md:pointer-fine:rounded-none md:pointer-fine:border-0 md:pointer-fine:mx-2 md:pointer-fine:*:px-3!">
                 {Array.from({ length: 6 }, (_, index) => <AgentRowSkeleton key={index} />)}
               </ListRowGroup>
             </AfterSkeletonDelay>
@@ -346,9 +350,9 @@ export function MembersPage() {
   return (
     // One edge for the head, the toolbar and the rows: 16px on a phone (mobile spec 11/21), else 20px (raft-ui listColumnMargin).
     <MemberActionsContext.Provider value={memberActions}>
-    <div ref={pageRef} className="flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:16px] md:[--column-margin:16px] md:[--column-margin:20px]" data-testid="members-page" data-layout={isDesktop ? "desktop" : "phone"}>
+    <div ref={pageRef} className={`${PAGE_ROOT_CLASS} flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:16px] md:[--column-margin:16px] md:[--column-margin:20px]`} data-testid="members-page" data-layout={isDesktop ? "desktop" : "phone"}>
       {/* A root of the Team tab on a phone (PRD 团队页 §8): no Back. */}
-      <TeamHeader view="members" />
+      <TeamHeader view="members" action={desktopMouse && canCreateAgents ? <MembersCreateAgentButton actions={addAgentActions} inHead /> : undefined} />
       <ScrollArea ref={scrollerRef} railInset={toolbarRailInset} className="min-h-0 flex-1 bg-layer-canvas pb-5 safe-bottom" data-testid="members-scroller">
         {/* The toolbar over the list (Raft DS › The toolbar over a list), pinned under the header while the
             members scroll: the tabs, the search filling the line, the Agents tab's Group menu and Invite human,
@@ -356,7 +360,7 @@ export function MembersPage() {
             by touch; as it narrows the Group menu shows its icon, Invite human its icon, Create agent becomes +, the
             tabs become a Select, the Group menu and Invite human fold into ⋯ (step 6), and last an empty search
             becomes its button. */}
-        <div ref={toolbarRef} className={`sticky top-0 z-sticky px-5 ${LIST_TOOLBAR_AIR_CLASS}`} data-testid="members-toolbar">
+        <div ref={toolbarRef} className={`sticky top-0 z-sticky px-5 ${PAGE_COLUMN_INSET_CLASS} ${LIST_TOOLBAR_AIR_CLASS}`} data-testid="members-toolbar">
           <FitToolbar aria-label={formatMessage({ id: "members.page.title" })} wrap={showUsage} className="gap-2">
             <ListScope value={tab} options={scopeOptions} onValueChange={setTab} label={scopeLabel} testId="members-tabs" selectTestId="members-scope-select" />
             <FitToolbarSearch
@@ -459,20 +463,20 @@ export function MembersPage() {
                 ) : null}
               </FitToolbarGroup>
             ) : null}
-            <FitToolbarGroup firstLine className={canCreateAgents ? "gap-2" : LIST_TOOLBAR_MORE_GROUP_CLASS}>
+            <FitToolbarGroup firstLine className={canCreateAgents && !desktopMouse ? "gap-2" : LIST_TOOLBAR_MORE_GROUP_CLASS}>
               <ListToolbarMore testId="members-more" />
-              {canCreateAgents ? <MembersCreateAgentButton actions={addAgentActions} /> : null}
+              {canCreateAgents && !desktopMouse ? <MembersCreateAgentButton actions={addAgentActions} /> : null}
             </FitToolbarGroup>
           </FitToolbar>
         </div>
         {membersLoadError ? (
-          <p className="px-5 pb-2 font-sans text-footnote font-semibold text-warning-strong" data-testid="members-load-error">
+          <p className={`px-5 pb-2 font-sans text-footnote font-semibold text-warning-strong ${PAGE_COLUMN_CLASS}`} data-testid="members-load-error">
             {formatMessage({ id: "layout.sidebar.humansFailedToLoad" })}
           </p>
         ) : null}
         {/* Its own stacking context, so nothing in it (an avatar's badge is z-raised, and later in
             the DOM) is drawn over the sticky toolbar (raft-design lists.md: no row shows through). */}
-        <div className="isolate" data-testid="members-body">{renderBody()}</div>
+        <div className={`isolate ${PAGE_COLUMN_CLASS}`} data-testid="members-body">{renderBody()}</div>
       </ScrollArea>
       {showInvite ? <InviteHumanDialog onClose={closeInvite} surface="members_page" /> : null}
       <MembersAddAgentDialogs step={addAgent} onStep={setAddAgent} />

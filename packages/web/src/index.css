@@ -1659,6 +1659,27 @@ html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [d
 /* Raft redesign (Figmama 11/21): a full page (Artifacts, Tasks, Team, Apps, Inbox, Settings) keeps its title,
    toolbar and content on one left edge, 20px in, with a mouse; its head draws no line under it (the toolbar's or
    the tabs' line is the one). Pages mark their root `data-full-page` and their head `data-full-page-head`. */
+/* Layout changes C (Figmama 11/21): a full page's reading column (PageHead.tsx). Each band of the page (head, toolbar,
+   body) is centered at the column's width plus its own 20px edges: 880 for lists, 720 for forms; narrower, the full
+   width as before. */
+@media (width >= 48rem) and (pointer: fine) {
+  .page-column {
+    width: 100%;
+    max-width: calc(880px + 2 * var(--column-margin, 20px));
+    margin-inline: auto;
+  }
+  .page-column-form {
+    max-width: calc(720px + 2 * var(--column-margin, 20px));
+  }
+  /* A band whose line under it is the column's (a toolbar): the column itself, its edges outside. */
+  .page-column-inset {
+    width: calc(100% - 2 * var(--column-margin, 20px));
+    max-width: 880px;
+    margin-inline: auto;
+    padding-inline: 0 !important;
+  }
+}
+
 @media (width >= 48rem) and (pointer: fine) {
   [data-full-page] {
     --column-margin: 20px;

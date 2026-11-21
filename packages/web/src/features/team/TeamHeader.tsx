@@ -5,6 +5,8 @@ import { Users } from "lucide-react";
 import { Tabs, TabsLabel, TabsList, TabsTab } from "@botiverse/raft-ui";
 import PanelHeader, { FULL_PAGE_HEAD_PROPS } from "../../components/ui/PanelHeader";
 import type { AppPanelHeaderProps } from "../../components/ui/PanelHeader";
+import { PageHead, useDesktopMouse } from "../../components/ui/PageHead";
+import type { ReactNode } from "react";
 import { useMachineStore } from "../../store/machineStore";
 import { useServerStore } from "../../store/serverStore";
 import { useMembersPopulation } from "../members/useMembersPopulation";
@@ -18,9 +20,12 @@ import type { TeamView } from "./teamWorking";
  * The Members and Computers pages are the tabs' views, so each keeps its own
  * toolbar below this head.
  */
-export function TeamHeader({ view, onMobileBack, mobileBackProps }: {
+export function TeamHeader({ view, action, onMobileBack, mobileBackProps }: {
   view: TeamView;
+  /** The tab's primary action (Members: Recruit agent), at the head's right with a mouse on a desktop (11/21). */
+  action?: ReactNode;
 } & Pick<AppPanelHeaderProps, "onMobileBack" | "mobileBackProps">) {
+  const desktopMouse = useDesktopMouse();
   const { formatMessage } = useIntl();
   const navigate = useNavigate();
   const serverSlug = useServerStore((s) => s.current?.slug);
@@ -35,6 +40,38 @@ export function TeamHeader({ view, onMobileBack, mobileBackProps }: {
   const count = (value: number | null) => (value === null ? null : (
     <span className="tabular-nums text-[12px] font-normal text-foreground-muted" data-slot="team-tab-count">{value}</span>
   ));
+  const tabs = (
+    <Tabs<TeamView> value={view} onValueChange={pick} className="min-w-0 -mb-px" data-testid="team-tabs">
+      <TabsList aria-label={formatMessage({ id: "team.page.title" })}>
+        <TabsTab value="overview" data-testid="team-tab-overview">
+          <TabsLabel>{formatMessage({ id: "team.page.overview" })}</TabsLabel>
+        </TabsTab>
+        <TabsTab value="members" data-testid="team-tab-members">
+          <TabsLabel>{formatMessage({ id: "members.page.title" })}</TabsLabel>
+          {count(loading ? null : members)}
+        </TabsTab>
+        <TabsTab value="computers" data-testid="team-tab-computers">
+          <TabsLabel>{formatMessage({ id: "machine.mobile.title" })}</TabsLabel>
+          {count(computers)}
+        </TabsTab>
+      </TabsList>
+    </Tabs>
+  );
+  // Layout changes C (Figmama 11/21): with a mouse on a desktop the page head of the reading column.
+  if (desktopMouse) {
+    return (
+      <div className="flex shrink-0 flex-col [--column-margin:20px]" data-testid="team-header" data-full-page="">
+        <PageHead
+          title={formatMessage({ id: "team.page.title" })}
+          subtitle={loading ? undefined : (
+            <span data-testid="team-counts">{formatMessage({ id: "team.page.counts" }, { members, humans, agents, computers })}</span>
+          )}
+          action={action}
+          tabs={tabs}
+        />
+      </div>
+    );
+  }
   return (
     // The head's own 20px edge (the Members tab's), the same on every tab.
     <div className="flex shrink-0 flex-col [--column-margin:16px] md:[--column-margin:20px]" data-testid="team-header" data-full-page="">
@@ -54,21 +91,7 @@ export function TeamHeader({ view, onMobileBack, mobileBackProps }: {
       {/* With a mouse on a desktop the row is the conversation tab bar's height (44px), so its seam runs on with the
           one under the member column's tabs beside it (anxndsgn 11/16). */}
       <div className="border-b border-line-seam px-(--column-margin) py-0">
-        <Tabs<TeamView> value={view} onValueChange={pick} className="min-w-0 -mb-px" data-testid="team-tabs">
-          <TabsList aria-label={formatMessage({ id: "team.page.title" })}>
-            <TabsTab value="overview" data-testid="team-tab-overview">
-              <TabsLabel>{formatMessage({ id: "team.page.overview" })}</TabsLabel>
-            </TabsTab>
-            <TabsTab value="members" data-testid="team-tab-members">
-              <TabsLabel>{formatMessage({ id: "members.page.title" })}</TabsLabel>
-              {count(loading ? null : members)}
-            </TabsTab>
-            <TabsTab value="computers" data-testid="team-tab-computers">
-              <TabsLabel>{formatMessage({ id: "machine.mobile.title" })}</TabsLabel>
-              {count(computers)}
-            </TabsTab>
-          </TabsList>
-        </Tabs>
+        {tabs}
       </div>
     </div>
   );

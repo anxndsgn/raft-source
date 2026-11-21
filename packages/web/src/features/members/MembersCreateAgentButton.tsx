@@ -1,5 +1,5 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@botiverse/raft-ui";
-import { FitToolbarSplitButton } from "@botiverse/raft-ui/wip";
+import { ButtonSplit, ButtonSplitMain, ButtonSplitMenu, FitToolbarSplitButton } from "@botiverse/raft-ui/wip";
 import { ArrowRightLeft, Bot, Plug } from "lucide-react";
 import { useIntl } from "react-intl";
 import { LIST_TOOLBAR_STEP } from "../../components/ui/listToolbar";
@@ -14,10 +14,26 @@ import type { AddAgentActions } from "./useAddAgentActions";
  * an external agent, always, and Take over a local session where it applies
  * (the desktop app's handoff bridge, `actions.openHandoff`).
  */
-export function MembersCreateAgentButton({ actions }: { actions: AddAgentActions }) {
+export function MembersCreateAgentButton({ actions, inHead = false }: {
+  actions: AddAgentActions;
+  /** In the page head (layout changes C, 11/21), not a toolbar: a plain split button that never shrinks to +. */
+  inHead?: boolean;
+}) {
   const { formatMessage } = useIntl();
   return (
     <DropdownMenu>
+      {inHead ? (
+        <ButtonSplit aria-label={formatMessage({ id: "members.page.createAgent.group" })}>
+          <ButtonSplitMain variant="primary" onClick={actions.openCreate} data-testid="members-create-agent">
+            <Bot />
+            {formatMessage({ id: "layout.sidebar.createAgent" })}
+          </ButtonSplitMain>
+          <DropdownMenuTrigger
+            render={<ButtonSplitMenu variant="primary" aria-label={formatMessage({ id: "members.page.createAgent.more" })} />}
+            data-testid="members-create-agent-more"
+          />
+        </ButtonSplit>
+      ) : (
       <FitToolbarSplitButton
         variant="primary"
         icon={<Bot />}
@@ -30,6 +46,7 @@ export function MembersCreateAgentButton({ actions }: { actions: AddAgentActions
       >
         {formatMessage({ id: "layout.sidebar.createAgent" })}
       </FitToolbarSplitButton>
+      )}
       <DropdownMenuContent side="bottom" align="end" sideOffset={4} className="min-w-[220px]">
         {actions.openHandoff ? (
           <DropdownMenuItem onClick={actions.openHandoff} data-testid="members-create-agent-handoff">

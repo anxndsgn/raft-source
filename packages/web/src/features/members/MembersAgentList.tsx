@@ -204,6 +204,9 @@ const AgentRow = memo(function AgentRow({ entry, machine, showComputer, selected
  * report no presence), the name and role word, the description, and the
  * agent-only cells (status, runtime, model, computer) left empty.
  */
+/** A person's row with one line (no description), with a mouse on a desktop: 44 high, its name and role on it. */
+const HUMAN_ROW_ONE_LINE = "md:pointer-fine:min-h-11! md:pointer-fine:py-0!";
+
 const HumanRow = memo(function HumanRow({ entry, isSelf, showComputer, selected, onOpen }: {
   entry: Extract<MemberEntry, { kind: "human" }>;
   isSelf: boolean;
@@ -223,7 +226,8 @@ const HumanRow = memo(function HumanRow({ entry, isSelf, showComputer, selected,
       aria-label={formatMessage({ id: "members.page.openProfile" }, { name: entry.name })}
       data-testid={`members-human-row-${member.userId}`}
       data-member-entry-id={member.userId}
-      className={MEMBER_ROW_MIN_H}
+      // Layout changes (Figmama 11/21): with a mouse a person with no description is one line, 44 high.
+      className={member.description ? MEMBER_ROW_MIN_H : `${MEMBER_ROW_MIN_H} ${HUMAN_ROW_ONE_LINE}`}
     >
       {/* No presence for people: their small avatar where an agent's state mark is (Anna 11/16). */}
       <ListRowIcon className="w-3 justify-center" aria-hidden>
@@ -297,7 +301,7 @@ export function MembersAgentGroup({ heading, entries, machinesById, showComputer
       {heading || showColumnHeadings ? (
         // The column headings ride on the group's heading line, on the rows'
         // tracks: the same margin, edge and padding as the group and its rows.
-        <div className="mx-5 flex min-w-0 items-baseline gap-3 border-x border-transparent pt-4 pr-4">
+        <div className="mx-5 flex min-w-0 items-baseline gap-3 border-x border-transparent pt-4 pr-4 md:pointer-fine:border-x-0 md:pointer-fine:pr-0">
           <div className="min-w-0 flex-1">{heading}</div>
           {showColumnHeadings ? (
             <>
@@ -310,7 +314,9 @@ export function MembersAgentGroup({ heading, entries, machinesById, showComputer
         </div>
       ) : null}
       {/* C21: with a mouse the members table has no card around it. */}
-      <ListRowGroup className="mx-5 mt-2 md:pointer-fine:rounded-none md:pointer-fine:border-0">
+      {/* Layout changes C (11/21): with a mouse the rows' content sits on the reading column's edges, their hover 12
+          past them. */}
+      <ListRowGroup className="mx-5 mt-2 md:pointer-fine:rounded-none md:pointer-fine:border-0 md:pointer-fine:mx-2 md:pointer-fine:*:px-3!">
         {entries.map((entry) => entry.kind === "agent" ? (
           <AgentRow
             key={entry.id}
@@ -356,7 +362,7 @@ export function MembersAgentUsageHeadings({ label, name, headings }: {
   return (
     <div role="table" aria-label={label} className="@container/members-list min-w-0" data-testid="members-usage-headings">
       {/* Centred, not on the baseline: a heading that sorts is a button, which centres its label. */}
-      <div role="row" className="mx-5 flex min-w-0 items-center gap-3 border-x border-transparent pt-4 pr-4">
+      <div role="row" className="mx-5 flex min-w-0 items-center gap-3 border-x border-transparent pt-4 pr-4 md:pointer-fine:border-x-0 md:pointer-fine:pr-0">
         <div className="min-w-0 flex-1">{name}</div>
         <StatusColumn role="columnheader"><span className={HEADING_LABEL}>{formatMessage({ id: "members.page.column.status" })}</span></StatusColumn>
         <span role="columnheader" className={`${COL_USAGE_MODEL} ${HEADING_LABEL}`}>{formatMessage({ id: "members.page.column.model" })}</span>
