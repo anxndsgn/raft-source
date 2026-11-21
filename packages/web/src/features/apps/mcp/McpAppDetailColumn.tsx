@@ -10,6 +10,9 @@ import { mcpAppErrorMessage } from "../../../components/settings/mcpApps/mcpAppA
 import type { McpAppSectionId, McpAppView } from "../../../components/settings/mcpApps/mcpAppApi";
 import Banner from "../../../components/ui/Banner";
 import AppTooltip from "../../../components/ui/Tooltip";
+import ColumnResizeHandle from "../../../components/ui/ColumnResizeHandle";
+import { useDesktopMouse } from "../../../components/ui/PageHead";
+import { useColumnWidth } from "../../../store/columnWidthStore";
 import { CONNECTED_APP_CATEGORY_LABEL_ID } from "../connected-apps/connectedAppCatalog";
 import { McpAppAgentsEditor } from "./McpAppAgentsEditor";
 
@@ -87,6 +90,8 @@ export function McpAppDetailColumn({ appId, canManage, onClose, onOpenEditor, on
   const askRemove = useCallback(() => setConfirmRemove(true), []);
   const closeRemove = useCallback(() => setConfirmRemove(false), []);
 
+  const desktopMouse = useDesktopMouse();
+  const width = useColumnWidth("detail");
   const name = view?.profile.name ?? "";
   const defaultConnection = view?.connections.find((connection) => connection.id === view.defaultConnectionId) ?? view?.connections[0] ?? null;
   const signInLapsed = view ? view.server.authKind !== "none" && (!defaultConnection || defaultConnection.status !== "ready") : false;
@@ -103,11 +108,14 @@ export function McpAppDetailColumn({ appId, canManage, onClose, onOpenEditor, on
   const source = view ? formatMessage({ id: view.source.maintainedByRaft ? "settings.connectedApps.mcp.maintainedByRaft" : "settings.connectedApps.mcp.custom" }) : "";
 
   return (
+    // The page's second panel (owner c55f6bd7): its left edge drags it, the width a profile's second panel keeps too.
     <aside
-      className="flex h-full min-h-0 w-[400px] shrink-0 flex-col border-l border-line-hairline bg-layer-canvas max-md:fixed max-md:inset-0 max-md:z-40 max-md:w-full max-md:border-l-0 max-md:safe-bottom"
+      style={desktopMouse ? { width } : undefined}
+      className="relative flex h-full min-h-0 w-[400px] shrink-0 flex-col border-l border-line-hairline bg-layer-canvas max-md:fixed max-md:inset-0 max-md:z-40 max-md:w-full max-md:border-l-0 max-md:safe-bottom"
       aria-label={formatMessage({ id: "apps.cap.detail.label" }, { name })}
       data-testid="apps-detail-column"
     >
+      {desktopMouse ? <ColumnResizeHandle column="detail" edge="left" ownBorder data-testid="apps-detail-resize" /> : null}
       <div className="flex h-11 shrink-0 items-center gap-1 border-b border-line-hairline px-4">
         <h2 className="mr-auto min-w-0 truncate text-body font-bold" data-testid="apps-detail-title">{name}</h2>
         {canManage ? (

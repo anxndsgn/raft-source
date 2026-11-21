@@ -2272,7 +2272,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
     // list scrolls. On a phone it is a pushed page with Back.
     return (
       <div className="flex min-h-0 flex-1 bg-layer-canvas text-foreground" data-testid="apps-page" data-full-page="">
-        <div ref={setAppsPageElement} className={`${PAGE_ROOT_CLASS} flex min-h-0 min-w-0 flex-1 flex-col`}>
+        <div ref={setAppsPageElement} className={`${PAGE_ROOT_CLASS} flex min-h-0 min-w-0 flex-1 flex-col`} data-main-column="">
           <PageNavFrame
             nav={appsNavWide ? (
               <PageNav<ConnectedAppsTab>

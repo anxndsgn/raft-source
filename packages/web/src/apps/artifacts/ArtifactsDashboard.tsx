@@ -29,7 +29,9 @@ import type {
 import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { showToast } from "../../components/toastBridge";
 import EmptyState from "../../components/ui/EmptyState";
-import { useMediaQuery } from "../../hooks/effectPrimitives";
+import { useDomMeasureEffect, useMediaQuery } from "../../hooks/effectPrimitives";
+import ColumnResizeHandle from "../../components/ui/ColumnResizeHandle";
+import { commitColumnWidth, useColumnWidth } from "../../store/columnWidthStore";
 import { useServerFeatureFlag } from "../../store/serverFeatureFlags";
 import { useServerPageDocumentLabel } from "../../utils/browserDocumentTitle";
 import { useFocusRestore } from "../../hooks/useFocusRestore";
@@ -341,6 +343,18 @@ export default function ArtifactsDashboard({ serverId, onMobileBack, address: ho
   // the grid's cards across up to 1200.
   const desktopMouse = useDesktopMouse();
   const [viewerMax, setViewerMax] = useState(false);
+  // The second panel opens at half the page, as a profile's does (owner ede53e26); its left edge drags it (owner
+  // a4437df5), and it keeps that width until it closes. The second-panel column (`detail`) is shared with a profile's.
+  const pageRef = useRef<HTMLDivElement | null>(null);
+  const viewerWidth = useColumnWidth("detail");
+  const viewerShown = open !== null && desktopMouse;
+  const viewerWasShown = useRef(false);
+  useDomMeasureEffect(() => {
+    const opened = viewerShown && !viewerWasShown.current;
+    viewerWasShown.current = viewerShown;
+    const width = pageRef.current?.getBoundingClientRect().width ?? 0;
+    if (opened && width > 0) commitColumnWidth("detail", Math.round(width / 2));
+  }, [viewerShown]);
   const toggleViewerMax = useCallback(() => setViewerMax((max) => !max), []);
 
   const header = desktopMouse ? (
@@ -383,11 +397,11 @@ export default function ArtifactsDashboard({ serverId, onMobileBack, address: ho
   return (
     // A column of list cells: its head, filter row and rows share one edge,
     // 20px at every width (raft-ui --column-margin; raft-design patterns/lists.md).
-    <div className={`relative flex min-h-0 flex-1 ${open && desktopMouse ? "flex-row" : "flex-col"} bg-layer-canvas [--column-margin:16px] md:[--column-margin:20px] ${PAGE_ROOT_CLASS} [--page-column-width:880px]`} data-testid="artifacts-dashboard" data-full-page="">
+    <div ref={pageRef} className={`relative flex min-h-0 flex-1 ${open && desktopMouse ? "flex-row" : "flex-col"} bg-layer-canvas [--column-margin:16px] md:[--column-margin:20px] ${PAGE_ROOT_CLASS} [--page-column-width:880px]`} data-testid="artifacts-dashboard" data-full-page="">
       {/* The page under the viewer is a layer of its own (`isolate`): its header is sticky at z-chrome on
           a phone (PanelHeader). The viewer's z-cover is above that already; the isolate keeps it so.
           A pushed page covers the page under it (page structure), so the viewer is above all of it. */}
-      <div className="isolate flex min-h-0 min-w-0 flex-1 flex-col" inert={(open !== null && (!desktopMouse || viewerMax)) || undefined} data-testid="artifacts-dashboard-page">
+      <div className="isolate flex min-h-0 min-w-0 flex-1 flex-col" data-main-column="" inert={(open !== null && (!desktopMouse || viewerMax)) || undefined} data-testid="artifacts-dashboard-page">
         {header}
         <DashboardList
           all={all}
@@ -417,7 +431,8 @@ export default function ArtifactsDashboard({ serverId, onMobileBack, address: ho
       {open && desktopMouse ? (
         // Layout changes (owner 5f0d7711): with a mouse on a desktop an Artifact opens as the page's second panel, half
         // its width beside the list, as a member on the Team page; maximized it takes the whole page.
-        <div className={`flex min-h-0 flex-col border-l border-line-seam bg-layer-canvas ${viewerMax ? "absolute inset-0 z-cover border-l-0" : "w-1/2 shrink-0"}`} data-testid="artifacts-dashboard-viewer">
+        <div className={`flex min-h-0 flex-col border-l border-line-seam bg-layer-canvas ${viewerMax ? "absolute inset-0 z-cover border-l-0" : "relative shrink-0"}`} style={viewerMax ? undefined : { width: viewerWidth }} data-testid="artifacts-dashboard-viewer">
+          {viewerMax ? null : <ColumnResizeHandle column="detail" edge="left" ownBorder data-testid="artifacts-dashboard-viewer-resize" />}
           <ArtifactViewer key={open.id} target={open} source={open.source} expanded={viewerMax} covering={false} noTabs onToggleExpanded={toggleViewerMax} onClose={closeSecondPanel} onShowVersion={address.showVersion} onShownTitle={setViewerTitle} />
         </div>
       ) : open ? (
