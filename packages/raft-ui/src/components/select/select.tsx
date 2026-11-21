@@ -15,6 +15,7 @@ import type { DataAttributes } from "../../lib/data-attributes";
 import { usePopupCollision } from "../../lib/frame-insets";
 import { cn } from "../../lib/cn";
 import { tv } from "../../lib/tv";
+import { SheetDragHandle } from "../../lib/sheet-drag-handle";
 import { sheetBackdrop, sheetContent, sheetPositioner, sheetRow } from "../../lib/bottom-sheet";
 import { useOverflowTitle } from "../../lib/use-overflow-title";
 import type { StyledProps } from "../../lib/styled-props";
@@ -599,7 +600,10 @@ export function SelectContent({
       sticky={sticky}
       className={positioner()}
     >
-      <BaseSelect.Popup data-slot="select-content" className={content({ className })} {...props} />
+      <BaseSelect.Popup data-slot="select-content" className={content({ className })} {...props}>
+        <SheetDragHandle />
+        {props.children}
+      </BaseSelect.Popup>
     </SelectFramePositioner>
     </>
   );

@@ -2,6 +2,7 @@ import { ContextMenu as BaseContextMenu } from "@base-ui/react";
 import type { ComponentPropsWithRef } from "react";
 import { usePopupCollision } from "../../lib/frame-insets";
 import { tv } from "../../lib/tv";
+import { SheetDragHandle } from "../../lib/sheet-drag-handle";
 import { sheetBackdrop, sheetContent, sheetLabel, sheetPositioner, sheetRow, sheetSeparator } from "../../lib/bottom-sheet";
 import { Kbd } from "../kbd/index";
 import type { KbdProps } from "../kbd/index";
@@ -209,7 +210,10 @@ export function ContextMenuContent({
           data-slot="context-menu-content"
           className={content({ className })}
           {...props}
-        />
+        >
+          <SheetDragHandle />
+          {props.children}
+        </BaseContextMenu.Popup>
       </ContextMenuFramePositioner>
     </ContextMenuPortal>
   );
@@ -217,9 +221,14 @@ export function ContextMenuContent({
 
 export type ContextMenuPopupProps = ComponentPropsWithRef<"div">;
 
-export function ContextMenuPopup({ className, ...props }: ContextMenuPopupProps) {
+export function ContextMenuPopup({ className, children, ...props }: ContextMenuPopupProps) {
   const { content } = contextMenu();
-  return <div data-slot="context-menu-content" className={content({ className })} {...props} />;
+  return (
+    <div data-slot="context-menu-content" className={content({ className })} {...props}>
+      <SheetDragHandle />
+      {children}
+    </div>
+  );
 }
 
 export type ContextMenuItemProps = StyledProps<BaseContextMenu.Item.Props>;

@@ -2,6 +2,7 @@ import type { ComponentPropsWithRef, ReactNode } from "react";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { BASE_COLLISION_PADDING, usePopupCollision } from "../../lib/frame-insets";
 import { tv } from "../../lib/tv";
+import { SheetDragHandle } from "../../lib/sheet-drag-handle";
 import { sheetBackdrop, sheetContent, sheetLabel, sheetPositioner, sheetRow, sheetSeparator } from "../../lib/bottom-sheet";
 import { Badge } from "../badge/index";
 import type { BadgeProps } from "../badge/index";
@@ -212,7 +213,10 @@ export function DropdownMenuContent({
           data-slot="dropdown-menu-content"
           className={content({ className })}
           {...props}
-        />
+        >
+          <SheetDragHandle />
+          {props.children}
+        </BaseMenu.Popup>
       </DropdownMenuFramePositioner>
     </DropdownMenuPortal>
   );
