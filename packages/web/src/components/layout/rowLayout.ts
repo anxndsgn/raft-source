@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef } from "react";
 import { create } from "zustand";
 
 import { COLUMN_BOUNDS, MAIN_COLUMN_MIN_WIDTH } from "../../lib/panelBounds";
+import { WORKSPACE_TIMELINE_MIN } from "../task/sideAreaLayoutRedesign";
 import { commitColumnWidth, getColumnWidth, previewColumnWidth, useColumnWidth } from "../../store/columnWidthStore";
 import { useUIStore } from "../../store/uiStore";
 import { useThreadStore } from "../../store/threadStore";
@@ -51,6 +52,16 @@ function commitConversationWidth(width: number) {
   } catch {
     // Storage can be unavailable (private mode); the width still holds for the session.
   }
+}
+
+/** The conversation's least width under a seam drag in the row: its 480 beside an open workspace, else 160. */
+export function conversationSeamMin(workspaceIsOpen: boolean): number {
+  return workspaceIsOpen ? WORKSPACE_TIMELINE_MIN : SEAM_COLUMN_MIN_WIDTH;
+}
+
+/** Whether the shell's workspace island holds a workspace now. */
+function workspaceOpen(): boolean {
+  return (document.querySelector('[data-testid="workspace-island"]')?.childElementCount ?? 0) > 0;
 }
 
 /** Shows `element` at `width` (index.css `[data-row-width]`), or at its own width again (null). */
@@ -238,7 +249,9 @@ export function useRowLayout(row: HTMLElement | null, measured: unknown, plan: R
     const fold = plan.fold;
     return registerSeamColumn(channel, () => ({
       key: "conversation",
-      min: SEAM_COLUMN_MIN_WIDTH,
+      // With a workspace open beside it the timeline keeps its 480 (its CSS minimum there): a seam drag counting on
+      // 160 widened the conversation's island into the workspace instead (owner 19e73a49).
+      min: conversationSeamMin(workspaceOpen()),
       get: () => {
         const own = useConversationWidth.getState().width ?? channel.getBoundingClientRect().width;
         return fold ? own + getColumnWidth("thread") : own;

@@ -36,6 +36,7 @@ import { StackCorners } from "./StackCorner";
 import { moveNodeInto } from "../ui/moveNode";
 import { ShellWorkspaceIslandContext } from "../layout/rowColumnSlot";
 import { columnClass } from "./sideColumnClass";
+import { useHasChildElements } from "../layout/workspaceExpand";
 import { focusLost } from "../../utils/focusGuard";
 
 /**
@@ -1138,6 +1139,8 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
   // In the shell's workspace island (Raft redesign): the island's ring is its edge, the gap beside it its handle.
   const workspaceIsland = useContext(ShellWorkspaceIslandContext);
   const inIsland = beside && !panel && workspaceIsland !== undefined;
+  // A workspace open in the shell's island beside this conversation.
+  const workspaceBeside = useHasChildElements(workspaceIsland ?? null);
 
   const source = useMemo<ColumnWidthSource | undefined>(() => (resizable && panel ? sidePanelWidthSource(width, minWidth) : resizable ? {
     width: width ?? channelSideSectionWidth(sections[0] ?? "tasks"),
@@ -1199,7 +1202,10 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
           label={label}
           source={giveWay?.source ?? source}
           dragMax={giveWay?.dragMax}
-          mainColumn={panel ? rowMainColumn : workspaceMainColumn} mainMin={panel ? undefined : WORKSPACE_TIMELINE_MIN}
+          // With the workspace beside the conversation the timeline keeps its 480 there (its own minimum then): the side
+          // panel grows into the timeline only down to it, or the conversation's island would widen into the workspace
+          // instead (owner 19e73a49).
+          mainColumn={panel ? rowMainColumn : workspaceMainColumn} mainMin={panel ? (workspaceBeside ? WORKSPACE_TIMELINE_MIN : undefined) : WORKSPACE_TIMELINE_MIN}
           highlight={highlight}
           // The column draws its left seam itself (columnClass "beside"); in the island it is resized from the gap.
           ownBorder={!inIsland}

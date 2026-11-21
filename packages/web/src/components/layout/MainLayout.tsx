@@ -2420,8 +2420,10 @@ export default function MainLayout() {
     const row = document.querySelector<HTMLElement>(".thread-layout-container");
     const width = row?.getBoundingClientRect().width ?? 0;
     if (width <= 0) return;
-    // Its column is the side panel's in the row (Team page, channels) and the detail column elsewhere.
-    commitColumnWidth("sidePanel", Math.round(width / 2));
+    // Its column is the side panel's in the row (Team page, channels) and the detail column elsewhere. Not with a
+    // workspace open beside the conversation: half the row there would leave the workspace no room (owner fc02cf9e).
+    const workspaceOpen = (document.querySelector('[data-testid="workspace-island"]')?.childElementCount ?? 0) > 0;
+    if (!workspaceOpen) commitColumnWidth("sidePanel", Math.round(width / 2));
     commitColumnWidth("detail", Math.round(width / 2));
   }, [profileOpenForLayout, isDesktop]);
   const masterDetailShellClassName = searchMasterDetail

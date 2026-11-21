@@ -1,4 +1,4 @@
-import { useContext, useMemo } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { WorkspaceSlotContext, workspaceFrameOf, workspaceFrameWidth } from "../layout/rowColumnSlot";
 import { commitColumnWidth, getColumnWidth, previewColumnWidth, resetColumnWidth, useColumnWidth } from "../../store/columnWidthStore";
 import { COLUMN_BOUNDS } from "../../lib/panelBounds";
@@ -97,7 +97,15 @@ export function useWorkspaceDrawer(layout: ChannelSideLayout, open: Set<ChannelS
   const frameElement = row ? workspaceFrameOf(row) : null;
   const frame = frameElement ? workspaceFrameWidth(frameElement) : 0;
   const room = frame - sideWidth(open, { panel, thread }) - WORKSPACE_TIMELINE_MIN;
-  const drawer = workspace && !expanded && frame > 0 && room < 420;
+  // A side panel wide enough to leave the workspace no room gives way to it first, down to its 320 (owner fc02cf9e:
+  // a wide Files panel turned the workspace into the drawer over the timeline); only past that is it the drawer.
+  const panelOpen = !open.has("thread") && SIDE_PANEL_SECTIONS.some((section) => open.has(section as ChannelSideSection));
+  const panelFits = Math.max(COLUMN_BOUNDS.sidePanel.min, Math.floor(frame - WORKSPACE_TIMELINE_MIN - 420));
+  const panelGivesWay = workspace && !expanded && frame > 0 && panelOpen && room < 420 && panel > panelFits;
+  useEffect(() => {
+    if (panelGivesWay) commitColumnWidth("sidePanel", panelFits);
+  }, [panelGivesWay, panelFits]);
+  const drawer = workspace && !expanded && frame > 0 && room < 420 && !panelGivesWay;
   const rowOpen = useMemo(() => {
     if (!workspace) return open;
     const rest = new Set(open);
