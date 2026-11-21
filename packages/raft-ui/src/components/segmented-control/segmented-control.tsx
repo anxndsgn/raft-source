@@ -186,7 +186,21 @@ const segmentedControl = tv({
         ],
       },
     },
+    // The pills' height (owner d3361143): `sm` 25, `md` 32, a toolbar's control height beside its search and buttons.
+    size: {
+      sm: {},
+      md: {},
+    },
   },
+  compoundVariants: [
+    {
+      variant: "pill",
+      size: "md",
+      class: {
+        root: "md:pointer-fine:**:data-[slot=segmented-control-item]:h-8 md:pointer-fine:**:data-[slot=segmented-control-item]:px-3",
+      },
+    },
+  ],
 });
 
 /** Tailwind's container sizes, `@xs` (20rem) to `@2xl` (42rem). */
@@ -243,6 +257,8 @@ export type SegmentedControlProps<T extends string = string> = StyledProps<
    * not read as selected.
    */
   variant?: "default" | "on-frame" | "pill" | "underline";
+  /** The `pill` variant's height with a mouse: `sm` 25 (the default), `md` 32 (a toolbar's, beside its search). */
+  size?: "sm" | "md";
 };
 
 /**
@@ -440,6 +456,7 @@ export function SegmentedControl<T extends string = string>({
   disabled = false,
   iconsOnlyBelow: iconsOnlyBelowProp,
   variant = "default",
+  size = "sm",
   className,
   ref,
   ...props
@@ -454,6 +471,7 @@ export function SegmentedControl<T extends string = string>({
     iconsOnlyMeasured: iconsOnlyBelow !== undefined && !preset ? true : undefined,
     inFitToolbar: inFitToolbar || undefined,
     variant,
+    size,
   });
   const rootRef = useRef<HTMLDivElement>(null);
   const [track, setTrack] = useState<HTMLDivElement | null>(null);
