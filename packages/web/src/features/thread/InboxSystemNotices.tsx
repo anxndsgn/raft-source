@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useIntl } from "react-intl";
 import { Bell, Monitor, TriangleAlert } from "lucide-react";
-import { Button, IconTile, InboxItem, InboxItemActions, InboxItemBody, InboxItemContent, InboxItemHeading, InboxItemLeading, InboxItemTitle, InboxItemTrigger } from "@botiverse/raft-ui";
+import { Button, IconTile, InboxItem, InboxItemTrailing, InboxItemBody, InboxItemContent, InboxItemHeading, InboxItemLeading, InboxItemTitle, InboxItemTrigger } from "@botiverse/raft-ui";
 import { InboxItemLine, InboxItemListGroup, InboxItemListHeading } from "@botiverse/raft-ui/wip";
 
 import { useDismissedNotificationStore } from "../../components/layout/dismissedNotificationStore";
@@ -36,9 +36,8 @@ function InboxSystemNoticeRow({ entry, actionable }: { entry: NotificationEntry;
   const computer = /computer|machine|电脑/i.test(entry.id);
   // raft-ui InboxItem, as the inbox's other rows: the row runs the notice's action, Dismiss at its end.
   return (
-    // With its Dismiss under the text the row is three lines: the icon stays level with the title (owner af958e09),
-    // not centred on all three.
-    <InboxItem density="compact" data-layout="list" className={dismissKey ? "items-start" : undefined} data-testid={`inbox-system-notice-${entry.id}`}>
+    // With Dismiss at its end the text stops before it (the content ends a column earlier).
+    <InboxItem density="compact" data-layout="list" className={dismissKey ? "has-data-[slot=inbox-item-line]:[--inbox-item-content-end:-2]" : undefined} data-testid={`inbox-system-notice-${entry.id}`}>
       <InboxItemTrigger aria-label={entry.title} onClick={run} disabled={!entry.action || entry.action.disabled} />
       <InboxItemLeading>
         <IconTile className="relative">
@@ -49,14 +48,15 @@ function InboxSystemNoticeRow({ entry, actionable }: { entry: NotificationEntry;
       <InboxItemContent>
         <InboxItemHeading><InboxItemTitle>{entry.title}</InboxItemTitle></InboxItemHeading>
         <InboxItemLine><InboxItemBody>{entry.body}</InboxItemBody></InboxItemLine>
-        {dismissKey ? (
-          <InboxItemActions>
-            <Button type="button" size="sm" variant="outline" onClick={handleDismiss} data-testid={`inbox-system-notice-dismiss-${entry.id}`}>
-              {formatMessage({ id: "common.announcement.dismiss" })}
-            </Button>
-          </InboxItemActions>
-        ) : null}
       </InboxItemContent>
+      {/* Dismiss at the row's end, a button of its own size, not a line under the text (owner af958e09, f39a1064). */}
+      {dismissKey ? (
+        <InboxItemTrailing className="pointer-events-auto self-center">
+          <Button type="button" size="md" variant="outline" onClick={handleDismiss} data-testid={`inbox-system-notice-dismiss-${entry.id}`}>
+            {formatMessage({ id: "common.announcement.dismiss" })}
+          </Button>
+        </InboxItemTrailing>
+      ) : null}
     </InboxItem>
   );
 }
