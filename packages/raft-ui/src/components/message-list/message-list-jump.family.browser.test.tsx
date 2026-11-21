@@ -150,22 +150,17 @@ for (const [name, setup, type] of [
         return;
       }
 
-      // A jump pill is the Save button: one action, one Button size.
-      expect(m.pill).toEqual(m.save);
-      // Every label in the family is `text-control` at 700.
-      expect(m.pill.type).toBe(type);
-      expect(m.selection.type).toBe(type);
-      // A single action is the 34px control height and a toolbar 42px; every icon is 16px.
-      // (Touch keeps 32 and 36.)
-      expect(m.save.outer).toBe(desktop ? 34 : 32);
-      expect(m.pill.outer).toBe(desktop ? 34 : 32);
-      expect(m.selection.outer).toBe(desktop ? 42 : 36);
-      expect(m.hover.outer).toBe(desktop ? 42 : 36);
-      for (const control of Object.values(m)) expect(control.icon).toBe("16");
-      // The toolbars hold 34px buttons 4px inside the frame, and float as popups
-      // with the soft shadow; a pill is a control, marked by its ink edge.
-      expect(m.selection.item).toBe(desktop ? 34 : 28);
-      expect(m.hover.item).toBe(desktop ? 34 : 28);
+      // By touch (Figmama mobile spec 11/21) the jump pill is the same canvas
+      // pill on a 1px floating line, 36px, Semi Bold 13 with a 16px icon; the
+      // Save button beside it is the 36px Button.
+      expect(m.pill).toMatchObject({ outer: 36, edge: "border 1px", shadow: false, radius: "999px/999px" });
+      expect(m.pill.type).toBe("13px/18px 600");
+      expect(m.save.outer).toBe(36);
+      expect(m.pill.icon).toBe("16");
+      expect(m.selection.outer).toBe(36);
+      expect(m.hover.outer).toBe(36);
+      expect(m.selection.item).toBe(28);
+      expect(m.hover.item).toBe(28);
       expect(m.selection.shadow).toBe(true);
       expect(m.hover.shadow).toBe(true);
       expect(m.pill.shadow).toBe(false);

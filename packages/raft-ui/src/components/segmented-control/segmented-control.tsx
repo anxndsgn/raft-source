@@ -104,11 +104,20 @@ const segmentedControl = tv({
       // 12 muted sans.
       underline: {
         root: [
-          "md:pointer-fine:-my-1.5 md:pointer-fine:gap-4 md:pointer-fine:rounded-none md:pointer-fine:bg-transparent md:pointer-fine:p-0 md:pointer-fine:[--segment-size:44px]",
+          // Each look is said twice, plain and with a mouse, so it wins over the
+          // segment's own desktop look (the canvas and its line) there too.
+          "md:pointer-fine:-my-1.5 gap-4 rounded-none bg-transparent p-0 [--segment-size:44px] md:pointer-fine:[--segment-size:44px]",
+          // 44px tall at every width, so a tab takes no taps past its box.
+          "**:data-[slot=segmented-control-item]:after:hidden",
+          "**:data-[slot=segmented-control-item]:rounded-none **:data-[slot=segmented-control-item]:border-0 **:data-[slot=segmented-control-item]:bg-transparent **:data-[slot=segmented-control-item]:px-0 **:data-[slot=segmented-control-item]:gap-1 **:data-[slot=segmented-control-item]:text-[14px] **:data-[slot=segmented-control-item]:font-normal **:data-[slot=segmented-control-item]:text-foreground-muted",
           "md:pointer-fine:**:data-[slot=segmented-control-item]:rounded-none md:pointer-fine:**:data-[slot=segmented-control-item]:border-0 md:pointer-fine:**:data-[slot=segmented-control-item]:bg-transparent md:pointer-fine:**:data-[slot=segmented-control-item]:px-0 md:pointer-fine:**:data-[slot=segmented-control-item]:gap-1 md:pointer-fine:**:data-[slot=segmented-control-item]:text-[14px] md:pointer-fine:**:data-[slot=segmented-control-item]:font-normal md:pointer-fine:**:data-[slot=segmented-control-item]:text-foreground-muted",
+          "**:data-[slot=segmented-control-item]:hover:bg-transparent **:data-[slot=segmented-control-item]:hover:text-foreground **:data-[slot=segmented-control-item]:active:bg-transparent",
           "md:pointer-fine:**:data-[slot=segmented-control-item]:hover:bg-transparent md:pointer-fine:**:data-[slot=segmented-control-item]:hover:text-foreground md:pointer-fine:**:data-[slot=segmented-control-item]:active:bg-transparent",
+          "**:data-[slot=segmented-control-item]:data-checked:bg-transparent **:data-[slot=segmented-control-item]:data-checked:ring-0 **:data-[slot=segmented-control-item]:data-checked:font-semibold **:data-[slot=segmented-control-item]:data-checked:text-foreground **:data-[slot=segmented-control-item]:data-checked:shadow-[inset_0_-2px_0_var(--foreground)]",
           "md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:bg-transparent md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:ring-0 md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:font-semibold md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:text-foreground md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:shadow-[inset_0_-2px_0_var(--foreground)]",
+          "**:data-[slot=segmented-control-item]:data-checked:hover:bg-transparent **:data-[slot=segmented-control-item]:data-checked:active:bg-transparent **:data-[slot=segmented-control-item]:data-checked:active:bg-none",
           "md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:hover:bg-transparent md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:active:bg-transparent md:pointer-fine:**:data-[slot=segmented-control-item]:data-checked:active:bg-none",
+          "**:data-[slot=segmented-control-count]:font-sans **:data-[slot=segmented-control-count]:text-[12px] **:data-[slot=segmented-control-count]:font-normal **:data-[slot=segmented-control-count]:text-foreground-muted",
           "md:pointer-fine:**:data-[slot=segmented-control-count]:font-sans md:pointer-fine:**:data-[slot=segmented-control-count]:text-[12px] md:pointer-fine:**:data-[slot=segmented-control-count]:font-normal md:pointer-fine:**:data-[slot=segmented-control-count]:text-foreground-muted",
         ],
       },

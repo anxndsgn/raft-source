@@ -30,7 +30,11 @@ function look(element: Element) {
     overlay: style.backgroundImage,
     border: clear(style.borderTopColor),
     color: style.color,
-    shadow: style.boxShadow,
+    // A shadow whose every layer is 0px draws nothing, whatever its colour (a
+    // ring-0 keeps the ring's colour).
+    shadow: style.boxShadow.split(/,(?![^(]*\))/).every((layer) => / 0px 0px 0px 0px$/.test(layer.trim()))
+      ? "none"
+      : style.boxShadow,
   };
 }
 

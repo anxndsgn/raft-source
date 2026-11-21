@@ -8,9 +8,9 @@ export const composer = tv({
       "rounded-container border-[1.5px] px-3 pt-3 pb-[calc(var(--control-embedded-inset)-1px)]",
       "border-line-field bg-layer-card text-foreground shadow-none",
       "has-focus-visible:shadow-focus",
-      // Raft redesign (Figma Composer): on a desktop the canvas with a 1px
-      // hairline, 10px top and bottom, 12px sides, 10px between its rows.
-      "md:pointer-fine:gap-2.5 md:pointer-fine:border md:pointer-fine:border-line-hairline md:pointer-fine:bg-layer-canvas",
+      // Raft redesign (Figma Composer; by touch too, mobile spec 11/21): the
+      // canvas with a 1px hairline, 10px top and bottom, 12px sides, 10px between its rows.
+      "gap-2.5 md:pointer-fine:gap-2.5 border md:pointer-fine:border border-line-hairline md:pointer-fine:border-line-hairline bg-layer-canvas md:pointer-fine:bg-layer-canvas",
       // anxndsgn 11/20 (Figmama): the buttons 8px from the left, right and
       // bottom edges (inside the 1px line: 7px), the text 14px in.
       "md:pointer-fine:px-[7px] md:pointer-fine:pt-2.5 md:pointer-fine:pb-[7px]",
@@ -44,10 +44,12 @@ export const composer = tv({
     ],
     submit: [
       "rounded-chip",
+      // A 36px send button on a phone (mobile spec 11/21).
+      "max-md:size-9",
       // Raft redesign (Figmama 11/18): the send button is an ink square; with
       // nothing to send it is the 5% fill with a muted icon, not faded.
-      "md:pointer-fine:disabled:bg-fill-medium md:pointer-fine:disabled:text-foreground-muted md:pointer-fine:disabled:opacity-100",
-      "md:pointer-fine:aria-disabled:bg-fill-medium md:pointer-fine:aria-disabled:text-foreground-muted md:pointer-fine:aria-disabled:opacity-100",
+      "disabled:bg-fill-medium md:pointer-fine:disabled:bg-fill-medium disabled:text-foreground-muted md:pointer-fine:disabled:text-foreground-muted disabled:opacity-100 md:pointer-fine:disabled:opacity-100",
+      "aria-disabled:bg-fill-medium md:pointer-fine:aria-disabled:bg-fill-medium aria-disabled:text-foreground-muted md:pointer-fine:aria-disabled:text-foreground-muted aria-disabled:opacity-100 md:pointer-fine:aria-disabled:opacity-100",
     ],
   },
   variants: {

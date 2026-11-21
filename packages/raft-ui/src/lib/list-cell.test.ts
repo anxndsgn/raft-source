@@ -46,9 +46,11 @@ test("the shape fills the row's height, inset 8px at each side, with the control
   expect(fragment).toContain("before:pointer-events-none");
 });
 
-test("the content is padded from the shape: 12px inside it at the start and the end", () => {
+test("the content is padded from the shape: 8px inside it on a phone, 12px from 768px by touch", () => {
   const fragment = listCell.join(" ");
-  expect(fragment).toContain("[--cell-pad-x:12px]");
+  // Figmama mobile spec 11/21: a phone's content edge is 16px (8 + 8).
+  expect(fragment).toContain("[--cell-pad-x:8px]");
+  expect(fragment).toContain("md:[--cell-pad-x:12px]");
   expect(fragment).toContain("pl-[calc(var(--cell-inset-x)+var(--cell-pad-x))]");
   expect(fragment).toContain("pr-[calc(var(--cell-inset-end)+var(--cell-pad-x))]");
   // The fragment owns the inline padding: no recipe sets its own, which
@@ -61,7 +63,7 @@ test("the content is padded from the shape: 12px inside it at the start and the 
   }
 });
 
-test("a heading over a list of cells starts where the cells' content starts, 20px in", () => {
+test("a heading over a list of cells starts where the cells' content starts (16px on a phone, 20px from 768px by touch)", () => {
   const headings = {
     "sidebar-section-header": sidebarSectionRecipe().sidebarSectionHeader(),
     "sidebar-section-empty": sidebarSectionRecipe().sidebarSectionEmpty(),
@@ -74,13 +76,13 @@ test("a heading over a list of cells starts where the cells' content starts, 20p
   // --surface-inset is 20px, the page inset with a mouse on a desktop (desktop-density.md).
   for (const [name, value] of Object.entries(headings)) {
     expect(
-      classesOf(value).some((cls) => ["px-5", "pl-5", "px-(--surface-inset)"].includes(cls)),
+      classesOf(value).some((cls) => ["px-5", "pl-5", "px-(--surface-inset)", "px-(--column-margin)", "pl-(--column-margin)"].includes(cls)),
       name,
     ).toBe(true);
   }
 });
 
-test("a list column sets its margin to 20px at every width; heads and toolbars pad by it", () => {
+test("a list column sets its margin to 16px on a phone, 20px from 768px by touch; heads and toolbars pad by it", () => {
   // design/patterns/lists.md#one-edge. The browser test (list-column) measures
   // the line; this pins the wiring, so dropping it fails in CI's Node run too.
   const roots = {
@@ -89,7 +91,8 @@ test("a list column sets its margin to 20px at every width; heads and toolbars p
     "search-shell-root": search().frame(),
   };
   for (const [name, value] of Object.entries(roots)) {
-    expect(classesOf(value), name).toContain("[--column-margin:20px]");
+    expect(classesOf(value), name).toContain("[--column-margin:16px]");
+    expect(classesOf(value), name).toContain("md:[--column-margin:20px]");
   }
   const padded = {
     "panel-section-header": panelHeader().sectionHeader(),
@@ -145,7 +148,8 @@ test("a settings ListRow is not a list cell: it keeps its line and row-wide fill
   const plain = classesOf(listRow({ variant: "plain" }).root());
   expect(plain).not.toContain("list-cell");
   expect(plain).toContain("before:border-t");
-  expect(plain).toContain("data-selected:bg-info-soft");
+  // Raft redesign: selected is the 5% ink (Figmama 11/21), by touch too.
+  expect(plain).toContain("data-selected:bg-fill-medium");
   expect(classesOf(listRow().group())).not.toContain("gap-0.5");
 });
 

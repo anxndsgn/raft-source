@@ -28,16 +28,16 @@ const chip = (fill: string) => [
 // icon is 16px, 4px from the label.
 const PLAIN_ON_DESKTOP = [
   // Important: it must beat the inline chip's sides for a leading mark (a :has() rule).
-  "md:pointer-fine:bg-transparent md:pointer-fine:px-0!",
-  "md:pointer-fine:[font-size:1em] md:pointer-fine:leading-[inherit] md:pointer-fine:rounded-none",
-  "md:pointer-fine:[&_svg]:size-4",
+  "bg-transparent md:pointer-fine:bg-transparent px-0! md:pointer-fine:px-0!",
+  "[font-size:1em] md:pointer-fine:[font-size:1em] leading-[inherit] md:pointer-fine:leading-[inherit] rounded-none md:pointer-fine:rounded-none",
+  "[&_svg]:size-4 md:pointer-fine:[&_svg]:size-4",
 ];
 const linkChip = (fill: string) => [
   ...chip(fill),
   "text-foreground cursor-pointer hover:overlay-medium active:overlay-medium",
   ...PLAIN_ON_DESKTOP,
-  "md:pointer-fine:hover:bg-none md:pointer-fine:active:bg-none",
-  "md:pointer-fine:decoration-foreground md:pointer-fine:decoration-[1.5px] md:pointer-fine:underline-offset-[3px] md:pointer-fine:hover:underline",
+  "hover:bg-none md:pointer-fine:hover:bg-none active:bg-none md:pointer-fine:active:bg-none",
+  "decoration-foreground md:pointer-fine:decoration-foreground decoration-[1.5px] md:pointer-fine:decoration-[1.5px] underline-offset-[3px] md:pointer-fine:underline-offset-[3px] hover:underline md:pointer-fine:hover:underline",
 ];
 
 // Where a note after the label (`msg`) is drawn. "x-height" puts the middle of
@@ -128,14 +128,14 @@ export const messageReference = tv({
           "hover:overlay-sticker-medium active:overlay-sticker-medium",
           // Raft redesign: with a mouse the frame's accent, in its ink, 2px
           // each side, the badge corner, no ink edge; the sentence's size.
-          "md:pointer-fine:bg-layer-frame md:pointer-fine:text-foreground-on-frame md:pointer-fine:inset-ring-0",
-          "md:pointer-fine:px-0.5 md:pointer-fine:rounded-sticker md:pointer-fine:[font-size:1em]",
+          "bg-layer-frame md:pointer-fine:bg-layer-frame text-foreground-on-frame md:pointer-fine:text-foreground-on-frame inset-ring-0 md:pointer-fine:inset-ring-0",
+          "px-0.5 md:pointer-fine:px-0.5 rounded-sticker md:pointer-fine:rounded-sticker [font-size:1em] md:pointer-fine:[font-size:1em]",
         ],
       },
       // Someone else: bold ink, underlined in ink on hover.
       secondary: {
         root: [
-          "inline cursor-pointer font-bold text-foreground md:pointer-fine:font-semibold",
+          "inline cursor-pointer font-bold text-foreground font-semibold md:pointer-fine:font-semibold",
           "decoration-foreground decoration-[1.5px] underline-offset-[3px] hover:underline",
         ],
       },

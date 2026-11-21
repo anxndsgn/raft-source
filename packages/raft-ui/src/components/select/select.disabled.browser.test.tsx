@@ -65,9 +65,10 @@ it.each(DISABLED_CASES)("greys the placeholder and chevron when disabled by %s",
   expect(getComputedStyle(screen.getByTestId("icon")).color).toBe(disabled);
 });
 
-it("keeps the hint ink on an enabled Select's placeholder and chevron", () => {
+it("keeps the hint ink on an enabled Select's placeholder and the muted ink on its chevron", () => {
   renderSelect({});
   const hint = inkOf("foreground-hint");
   expect(getComputedStyle(screen.getByTestId("value")).color).toBe(hint);
-  expect(getComputedStyle(screen.getByTestId("icon")).color).toBe(hint);
+  // Raft redesign: the chevron is 16 muted (by touch too, mobile spec 11/21).
+  expect(getComputedStyle(screen.getByTestId("icon")).color).toBe(inkOf("foreground-muted"));
 });

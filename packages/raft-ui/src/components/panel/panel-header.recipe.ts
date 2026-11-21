@@ -26,22 +26,23 @@ export const panelHeadActions = [
  * `header` and `sectionHeader` share one bar, expressed through
  * `compoundSlots`: a header-height row (the shell header height, 56px on a
  * phone and 44px on a desktop) with a seam under it.
- * On a phone the section head sits on the frame.
+ * On a phone the section head is on the canvas too, as every top bar (Raft
+ * redesign, Figmama mobile spec 11/21).
  */
 export const panelHeader = tv({
   slots: {
     header: [],
     sectionHeader: [],
     headerIcon: [
-      "flex size-[27px] shrink-0 items-center justify-center",
-      "md:pointer-fine:size-(--bar-button-size) md:pointer-fine:rounded-(--bar-button-radius)",
-      "rounded-sticker border-[1.5px] border-sticker-ink bg-brand text-sticker-ink ring-[1.5px] ring-sticker-edge",
-      "not-data-[icon-kind=avatar]:[&_svg]:size-3.5 not-data-[icon-kind=avatar]:[&_svg]:stroke-2",
-      // Raft redesign (Figma Channel Header): on a desktop a plain 16px glyph
-      // in the title's colour, no sticker, 2px from the title (anxndsgn 11/18).
-      "md:pointer-fine:size-auto md:pointer-fine:border-0 md:pointer-fine:bg-transparent md:pointer-fine:text-foreground md:pointer-fine:ring-0",
-      "md:pointer-fine:not-data-[icon-kind=avatar]:[&_svg]:size-4",
-      "data-[icon-kind=avatar]:size-auto data-[icon-kind=avatar]:border-transparent data-[icon-kind=avatar]:bg-transparent",
+      "flex size-auto shrink-0 items-center justify-center",
+      // Raft redesign: no sticker at any width. A phone and a touch screen show
+      // the channel's # as a muted 16px glyph right before the title (Figmama
+      // mobile spec 11/21: SB16 title, the # a muted character, 2px off);
+      // a desktop draws it in the title's colour (Figma Channel Header,
+      // anxndsgn 11/18).
+      "border-0 bg-transparent text-foreground-muted ring-0 max-md:not-data-[icon-kind=avatar]:-me-1.5",
+      "not-data-[icon-kind=avatar]:[&_svg]:size-4 not-data-[icon-kind=avatar]:[&_svg]:stroke-2",
+      "md:pointer-fine:text-foreground",
     ],
     // From 768px a head is one line, with a mouse or by touch: a subtitle
     // (PanelMeta) follows the title on its line and gives up its room first.
@@ -52,7 +53,9 @@ export const panelHeader = tv({
     ],
     heading: "flex min-w-0 items-center gap-2",
     // Raft redesign: Inter Semi Bold 15/18 on a desktop (Figma Channel Header).
-    title: "truncate font-sans text-headline font-bold text-foreground md:pointer-fine:text-head-title md:pointer-fine:font-semibold",
+    // Raft redesign: Semi Bold everywhere; 16 on a phone and a touch screen
+    // (Figmama mobile spec 11/21), Inter Semi Bold 15/18 on a desktop (Figma Channel Header).
+    title: "truncate font-sans text-[16px]/[22px] font-semibold text-foreground md:pointer-fine:text-head-title",
     meta: [
       "min-w-0 truncate font-sans text-caption text-foreground-hint",
       "md:flex-1 md:shrink-1000",
@@ -89,17 +92,6 @@ export const panelHeader = tv({
         ...barEdgePull,
         "border-b border-line-seam bg-layer-canvas text-foreground",
         "max-md:sticky max-md:top-0 max-md:z-chrome",
-      ],
-    },
-    {
-      slots: ["sectionHeader"],
-      class: [
-        "max-md:bg-layer-frame max-md:text-foreground-on-frame",
-        "max-md:*:data-[slot=panel-header-icon]:hidden",
-        "max-md:**:data-[slot=panel-title]:text-foreground-on-frame",
-        "max-md:**:data-[slot=panel-meta]:text-foreground-on-frame-muted",
-        "max-md:**:data-[slot=panel-action]:text-foreground-on-frame",
-        "max-md:**:data-[slot=panel-action]:hover:bg-fill-frame-medium max-md:**:data-[slot=panel-action]:active:bg-fill-frame-medium",
       ],
     },
   ],

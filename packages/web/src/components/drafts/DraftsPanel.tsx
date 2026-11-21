@@ -196,7 +196,7 @@ export default function DraftsPanel() {
   }, [settled, entries.length]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-layer-canvas [--column-margin:20px]">
+    <div className="flex min-h-0 flex-1 flex-col bg-layer-canvas [--column-margin:16px] md:[--column-margin:20px]">
       <PanelHeader
         title={formatMessage({ id: "drafts.header.title" })}
         subtitle={formatMessage({ id: "drafts.header.subtitle" }, { count: entries.length })}

@@ -26,7 +26,9 @@
 // highlight moves onto the shape in styles.css.
 export const listCell = [
   "list-cell relative isolate bg-transparent shadow-none outline-none",
-  "[--cell-inset-x:8px] [--cell-pad-x:12px] [--cell-radius:var(--radius-control)]",
+  // On a phone the content is 8px inside the shape too, on the 16px page edge
+  // (8 + 8, Figmama mobile spec 11/21); from 768px by touch 12px (20).
+  "[--cell-inset-x:8px] [--cell-pad-x:8px] md:[--cell-pad-x:12px] [--cell-radius:var(--radius-control)]",
   // With a mouse on a desktop the content is 8px inside the shape, so it
   // starts on the 16px page inset like the head above it (8 + 8).
   "md:pointer-fine:[--cell-pad-x:calc(var(--page-inset)-var(--cell-inset-x))]",

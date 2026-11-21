@@ -155,8 +155,8 @@ it("keeps the trailing column beside the first lines of a card on a touch screen
   const body = screen.getByTestId("card-body").getBoundingClientRect();
   // The excerpt runs the full width of the text, under the trailing column.
   expect(body.right).toBeGreaterThan(trailing.left);
-  // It ends 12px inside the shape, 20px from the row's edge.
-  expect(body.right).toBe(card.right - 20);
+  // It ends 8px inside the shape, 16px from the row's edge (mobile spec 11/21).
+  expect(body.right).toBe(card.right - 16);
   // But it starts below the trailing column and its Done action, so a taller
   // trailing column can never run over the excerpt.
   const done = screen.getByRole("button", { name: "Mark as done" }).getBoundingClientRect();
@@ -172,21 +172,20 @@ it("keeps the trailing column beside the first lines of a card on a touch screen
   expect(card.height).toBe(screen.getByTestId("reference").getBoundingClientRect().height);
 });
 
-it("leaves a mouse at phone width as it was: 32px buttons, no overhang", async () => {
+it("leaves a mouse at phone width with 32px buttons and the bar button's 2px reach", async () => {
   expect(matchMedia("(pointer: coarse)").matches).toBe(false);
   const { save, done } = renderRow();
   for (const action of [save, done]) {
     // The ::after is placed from inside the button's 1.5px border and reaches
-    // out over it (#889), so "no overhang" is an inset of -1.5px: the hit
-    // area ends at the button's own edge. (The computed border reads 1px:
-    // Chromium snaps a 1.5px border to 1px at one device pixel per CSS px.)
+    // out over it (#889). Below 768px the bar button is 40px (mobile spec
+    // 11/21), so its hit area reaches 2px past it to 44: an inset of -3.5px.
     const after = getComputedStyle(action, "::after");
     if (after.position === "absolute") {
       expect([after.top, after.right, after.bottom, after.left]).toEqual([
-        "-1.5px",
-        "-1.5px",
-        "-1.5px",
-        "-1.5px",
+        "-3.5px",
+        "-3.5px",
+        "-3.5px",
+        "-3.5px",
       ]);
     }
     expect(action.getBoundingClientRect().height).toBe(32);

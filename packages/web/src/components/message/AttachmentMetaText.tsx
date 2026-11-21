@@ -13,9 +13,10 @@ export function AttachmentMetaText({
   return (
     <MessageAttachmentMetaStart
       data-message-affordance="attachment-meta"
-      className="inline-flex max-w-full items-center gap-1.5"
+      // One space's width either side of the dot (Figmama mobile spec 11/21); the label gives way first.
+      className="inline-flex max-w-full items-center gap-1 max-md:col-start-1"
     >
-      <span data-message-affordance="attachment-meta-label" className="min-w-0 flex-1 truncate">{label}</span>
+      <span data-message-affordance="attachment-meta-label" className="min-w-0 truncate">{label}</span>
       {sizeBytes && sizeBytes > 0 ? (
         <>
           <span className="shrink-0 text-foreground-hint">·</span>

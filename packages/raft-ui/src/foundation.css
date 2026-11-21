@@ -355,9 +355,10 @@
   /* The full-width call to action across a sign-in, sign-up or setup form
      (Button xl). */
   --control-height-cta: 52px;
-  /* The icon in a control-height icon button: 16px on a desktop (anxndsgn 11/18:
-     24 in the rail, 16 everywhere else). */
-  --control-icon-size: 22px;
+  /* The icon in a control-height icon button: 20px on a phone and a touch screen
+     (Figmama mobile spec 11/21); 16px on a desktop (anxndsgn 11/18: 24 in the
+     rail, 16 everywhere else). */
+  --control-icon-size: 20px;
   /* How far a control-height button's hit area reaches past its top and bottom,
      to keep 44px. */
   --control-hit-inset: 0px;
@@ -379,17 +380,18 @@
      drawer's head, a rail head. The control height with the header air above and
      below, so the seams of a screen line up. */
   --header-height: calc(var(--control-height) + 2 * var(--header-air));
-  /* The air above and below the control in a header: one control air on a phone
-     and a touch screen (44 + 12 = 56); 6px on a desktop, so a 32px control and
-     its head make 44 (32 + 12; Raft redesign). */
-  --header-air: var(--control-air);
+  /* The air above and below the control in a header: 4px on a phone and a touch
+     screen (44 + 8 = 52, Figmama mobile spec 11/21); 6px on a desktop, so a 32px
+     control and its head make 44 (32 + 12; Raft redesign). */
+  --header-air: 4px;
   /* Every header in a window shorter than 600px. On a desktop, a bar button with
      one air above and below (28 + 12 = 40). */
   --header-height-short: 48px;
   /* An icon button in a bar: a head's actions and its x, the composer's icons, a
-     row's actions. The control height on a phone and a touch screen; 32px on a
-     desktop (Figma Icon Button, Raft redesign). Its hit area still reaches 44px. */
-  --bar-button-size: var(--control-height);
+     row's actions. 40px on a phone and a touch screen (Figmama mobile spec
+     11/21); 32px on a desktop (Figma Icon Button, Raft redesign). Its hit area
+     still reaches 44px. */
+  --bar-button-size: 40px;
   /* The corner of a bar button, about a quarter of its height: 10px at 44 on a
      phone and a touch screen, with a mouse on a desktop the control corner (Raft
      redesign, Figmama 11/21): 0 in the default square shape; the rounded shape

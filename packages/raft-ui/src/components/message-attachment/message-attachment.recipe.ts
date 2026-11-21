@@ -9,7 +9,7 @@ export const messageAttachment = tv({
       "rounded-container border border-line-hairline bg-layer-card py-2 pr-[calc(var(--control-embedded-inset)-1px)] pl-2.5 text-foreground",
       // Raft redesign (Figmama 11/20): with a mouse the artifact card's rule,
       // 5% ink with no edge (the border stays, transparent).
-      "md:pointer-fine:border-transparent md:pointer-fine:bg-fill-medium",
+      "border-transparent md:pointer-fine:border-transparent bg-fill-medium md:pointer-fine:bg-fill-medium",
       "outline-none hover:overlay-subtle active:overlay-medium focus-visible:shadow-focus",
       "[&_[data-slot=message-attachment-action]_svg]:size-4",
     ],
@@ -19,7 +19,7 @@ export const messageAttachment = tv({
     ],
     meta: [
       "mt-auto flex w-full min-w-0 max-w-full items-center justify-between",
-      "gap-2 font-mono text-mono-meta text-foreground-hint md:pointer-fine:font-sans",
+      "gap-2 font-mono text-mono-meta text-foreground-hint font-sans md:pointer-fine:font-sans",
     ],
     metaStart: "min-w-0 flex-1 truncate",
     metaEnd: [
@@ -29,7 +29,7 @@ export const messageAttachment = tv({
     summary: [
       "mt-0.5 inline-flex shrink-0 items-center whitespace-nowrap",
       "[&_svg]:shrink-0",
-      "pr-1 font-mono text-mono-meta text-foreground-hint [&_svg]:size-3.5 md:pointer-fine:font-sans",
+      "pr-1 font-mono text-mono-meta text-foreground-hint [&_svg]:size-3.5 font-sans md:pointer-fine:font-sans",
     ],
     commentSummary: "gap-[2.5px]",
     diffSummary: "gap-1.5",

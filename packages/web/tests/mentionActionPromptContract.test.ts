@@ -176,7 +176,8 @@ test("PendingMentionActionStrip renders flush with the composer width", () => {
   assert.ok(rootClass, "strip root should render a class contract");
   assert.match(rootClass, /\bw-full\b/);
   // Raft DS card surface: white surface + content hairline, never a wash.
-  assert.match(rootClass, /\bbg-layer-card\b/);
+  // Raft redesign: a card is the canvas with its hairline (by touch too, mobile spec 11/21).
+  assert.match(rootClass, /\bbg-layer-canvas\b/);
   assert.doesNotMatch(rootClass, /\bbg-(?:palette-yellow|soft-signal)\b/);
   assert.doesNotMatch(rootClass, /\bml-12\b/);
   assert.doesNotMatch(rootClass, /\bmr-2\b/);

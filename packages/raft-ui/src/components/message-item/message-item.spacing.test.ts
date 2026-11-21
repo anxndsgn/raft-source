@@ -27,10 +27,11 @@ test("rows keep 8px between groups outside a symmetric highlight", () => {
   expect(compact).toContain("min-h-0");
 });
 
-test("message avatars are var-driven (35 by default), centred in the 35 slot", () => {
+test("message avatars are var-driven (32 by default), centred in the 32 slot", () => {
+  // Raft redesign: a 32px circle at every width (mobile spec 11/21).
   const cls = messageItem().avatarSlot();
-  expect(cls).toContain("[&_[data-slot=avatar][data-size=md]]:size-(--mi-avatar,35px)");
+  expect(cls).toContain("[&_[data-slot=avatar][data-size=md]]:size-(--mi-avatar,32px)");
   // The slot centers the avatar's wrapper (the image's own mx-auto did
   // nothing — the wrapper is what occupies the slot).
-  expect(cls).toContain("flex w-[35px] justify-center");
+  expect(cls).toContain("flex w-8 justify-center");
 });

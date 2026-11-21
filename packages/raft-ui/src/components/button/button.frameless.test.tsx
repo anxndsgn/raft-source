@@ -67,8 +67,8 @@ describe("on-frame", () => {
       ]),
     );
     expect(names).not.toContain("hover:bg-fill-medium");
-    // The phone frame keeps the control-height icon button (44 on a phone).
-    expect(names).toContain("size-control");
+    // The phone frame keeps the 40px icon button (Figmama mobile spec 11/21).
+    expect(names).toContain("size-10");
   });
 
   test("a 32px icon button is the 36px frame item with a 20px icon", () => {
@@ -81,10 +81,10 @@ describe("on-frame", () => {
     expect(names).not.toContain("after:-inset-[calc(--spacing(1.5)+1.5px)]");
   });
 
-  test("a text button is the top bar's 36px item: 15/20 700, 10px each side", () => {
+  test("a text button is the top bar's 36px item: 15/20 Semi Bold, 10px each side", () => {
     const names = renderButton({ variant: "on-frame", size: "md" });
     expect(names).toEqual(
-      expect.arrayContaining(["h-(--frame-item-height)", "px-2.5", "text-subhead", "font-bold"]),
+      expect.arrayContaining(["h-(--frame-item-height)", "px-2.5", "text-subhead", "font-semibold"]),
     );
     expect(names).not.toContain("h-8");
     expect(names).not.toContain("px-3");

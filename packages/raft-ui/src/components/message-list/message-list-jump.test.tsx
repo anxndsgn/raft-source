@@ -52,10 +52,11 @@ test("the dismiss button takes its name from the consumer and shares the pill's 
   );
   const dismiss = screen.getByRole("button", { name: "Dismiss" });
   const names = classes(dismiss);
-  expect(names).toEqual(expect.arrayContaining(["border-s-0", "rounded-s-none", "size-8"]));
-  expect(names).toEqual(expect.arrayContaining(["border-line-strong", "bg-layer-card"]));
+  // Raft redesign (by touch too, mobile spec 11/21): no border of its own, the
+  // group's pill draws it; a 1px floating line before it.
+  expect(names).toEqual(expect.arrayContaining(["rounded-s-none", "rounded-e-pill", "border-0", "w-9", "h-[34px]"]));
+  expect(names).toEqual(expect.arrayContaining(["bg-transparent", "before:bg-line-floating"]));
   expect(names).toContain("[&_svg:not([class*='size-'])]:size-4");
-  expect(names).not.toContain("[&_svg:not([class*='size-'])]:size-[18px]");
   const group = dismiss.parentElement!;
   expect(group.getAttribute("data-slot")).toBe("message-list-jump-pill-group");
   expect(group.className).toContain("*:data-[slot=message-list-jump-pill]:rounded-e-none");

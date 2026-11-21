@@ -344,9 +344,9 @@ export function MembersPage() {
   };
 
   return (
-    // One 20px edge for the head, the toolbar and the rows at every width (raft-ui listColumnMargin).
+    // One edge for the head, the toolbar and the rows: 16px on a phone (mobile spec 11/21), else 20px (raft-ui listColumnMargin).
     <MemberActionsContext.Provider value={memberActions}>
-    <div ref={pageRef} className="flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:20px]" data-testid="members-page" data-layout={isDesktop ? "desktop" : "phone"}>
+    <div ref={pageRef} className="flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:16px] md:[--column-margin:16px] md:[--column-margin:20px]" data-testid="members-page" data-layout={isDesktop ? "desktop" : "phone"}>
       {/* A root of the Team tab on a phone (PRD 团队页 §8): no Back. */}
       <TeamHeader view="members" />
       <ScrollArea ref={scrollerRef} railInset={toolbarRailInset} className="min-h-0 flex-1 bg-layer-canvas pb-5 safe-bottom" data-testid="members-scroller">

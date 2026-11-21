@@ -44,10 +44,10 @@ function TileCover({ card }: { card: ArtifactCard }) {
       ) : picture?.excerpt ? (
         <ArtifactCardExcerpt text={picture.excerpt} blocks={picture.excerptBlocks} fit="frame" testId="artifacts-tile-excerpt" />
       ) : (
-        <div className="flex aspect-[16/10] w-full items-center justify-center border-b border-line-hairline bg-fill-muted md:pointer-fine:bg-fill-medium" data-testid="artifacts-tile-placeholder">
-          <span className="scale-150 md:pointer-fine:hidden" aria-hidden><KindGlyph card={card} /></span>
+        <div className="flex aspect-[16/10] w-full items-center justify-center border-b border-line-hairline bg-fill-medium" data-testid="artifacts-tile-placeholder">
+          <span className="hidden" aria-hidden><KindGlyph card={card} /></span>
           {/* Raft redesign (C19): with a mouse the plain Artifact icon on 5% ink, no kind badge. */}
-          <ArtifactIcon aria-hidden className="hidden size-6 text-foreground-hint md:pointer-fine:block" />
+          <ArtifactIcon aria-hidden className="size-6 text-foreground-hint" />
         </div>
       )}
     </MessageEmbedContent>
@@ -70,11 +70,11 @@ function TileCover({ card }: { card: ArtifactCard }) {
 const TILE_SCOPE_HIT_CLASS = "supports-[anchor-scope:all]:pointer-coarse:enabled:after:top-[calc(anchor(top)-16px)] supports-[anchor-scope:all]:pointer-coarse:enabled:after:bottom-[calc(anchor(bottom)-6px)]";
 
 // Raft redesign (C19): with a mouse the scope chip on a tile is its icon alone, no fill until pointed at.
-const TILE_SCOPE_LOOK_CLASS = "md:pointer-fine:bg-transparent md:pointer-fine:text-foreground-hint md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:hover:text-foreground md:pointer-fine:h-5 md:pointer-fine:px-0.5 md:pointer-fine:[&_svg]:size-4";
+const TILE_SCOPE_LOOK_CLASS = "bg-transparent md:pointer-fine:bg-transparent text-foreground-hint md:pointer-fine:text-foreground-hint hover:bg-fill-subtle md:pointer-fine:hover:bg-fill-subtle hover:text-foreground md:pointer-fine:hover:text-foreground h-5 md:pointer-fine:h-5 px-0.5 md:pointer-fine:px-0.5 [&_svg]:size-4 md:pointer-fine:[&_svg]:size-4";
 
 // Raft redesign (C19): with a mouse a tile is a card on the canvas with a hairline edge, no
 // grey fill; pointed at, the edge goes 15% ink (no wash over the picture).
-const TILE_CARD_CLASS = "md:pointer-fine:bg-layer-canvas md:pointer-fine:border-line-hairline md:pointer-fine:hover:bg-none! md:pointer-fine:active:bg-none! md:pointer-fine:hover:border-[color-mix(in_oklch,var(--foreground)_15%,transparent)]";
+const TILE_CARD_CLASS = "bg-layer-canvas md:pointer-fine:bg-layer-canvas border-line-hairline md:pointer-fine:border-line-hairline hover:bg-none! md:pointer-fine:hover:bg-none! active:bg-none! md:pointer-fine:active:bg-none! hover:border-[color-mix(in_oklch,var(--foreground)_15%,transparent)] md:pointer-fine:hover:border-[color-mix(in_oklch,var(--foreground)_15%,transparent)]";
 
 /**
  * One Artifact in the home page's grid (#proj-workspace:#133, design g1, c1):
@@ -123,7 +123,7 @@ export function ArtifactTile({ item, readerId, onOpen, phone }: {
             data-artifact-open=""
             data-artifact-title=""
             data-testid="artifacts-tile-title"
-            className="line-clamp-2 min-w-0 text-subhead break-words font-bold md:pointer-fine:font-semibold text-foreground no-underline outline-none after:absolute after:inset-0 after:rounded-container focus-visible:after:shadow-focus"
+            className="line-clamp-2 min-w-0 text-subhead break-words font-bold font-semibold md:pointer-fine:font-semibold text-foreground no-underline outline-none after:absolute after:inset-0 after:rounded-container focus-visible:after:shadow-focus"
           >
             {artifactShownTitle(card.title)}
           </a>

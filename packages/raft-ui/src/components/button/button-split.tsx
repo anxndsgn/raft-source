@@ -40,10 +40,10 @@ export const buttonSplitMain = tv({
 export const buttonSplitMenu = tv({
   base: [
     "min-w-0 rounded-s-none px-0", "ring-0 focus-visible:z-raised", "after:inset-s-0",
-    // Raft redesign: with a mouse a Button has no border, so the divider is a
-    // 1px start line in the part's own ink at 25%: light on the ink primary,
-    // dark on the 5% secondary.
-    "md:pointer-fine:border-s md:pointer-fine:border-s-[color-mix(in_oklch,currentColor_25%,transparent)]",
+    // Raft redesign: a Button has no border (by touch too, mobile spec 11/21),
+    // so the divider is a 1px start line in the part's own ink at 25%: light
+    // on the ink primary, dark on the 5% secondary.
+    "border-s! border-s-[color-mix(in_oklch,currentColor_25%,transparent)]",
   ],
   variants: {
     variant: {

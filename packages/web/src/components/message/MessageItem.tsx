@@ -214,6 +214,7 @@ import { openMediaPreview } from "./openMediaPreview";
 import { useMediaPreviewStore } from "../../store/mediaPreviewStore";
 import { useDocumentPreviewStore } from "../../store/documentPreviewStore";
 import { DOCUMENT_PREVIEW_LABEL_ID, INLINE_AUDIO_PREVIEW_CARD_CLASS } from "./attachmentPreviewLabels";
+import type { MessageId } from "../../i18n/messages/en";
 import { parseTimestampLabel, setPendingVideoSeek } from "./attachmentCommentAnchors";
 import {
   TASK_V2_CONVERSATIONS_FLAG_KEY,
@@ -656,6 +657,12 @@ function DiffPatchStatsLine({ preview }: { preview: DiffAttachmentPreview | null
   );
 }
 
+const DOCUMENT_KIND_LABEL_ID: Partial<Record<keyof typeof DOCUMENT_PREVIEW_LABEL_ID, MessageId>> = {
+  markdown: "message.messageItem.markdownDocument",
+  text: "message.messageItem.plainTextDocument",
+  xlsx: "message.messageItem.xlsxDocument",
+};
+
 function DocumentPreviewSummaryLine({ preview }: { preview: DocumentAttachmentPreviewState | null }) {
   const { formatMessage } = useIntl();
   if (!preview) {
@@ -797,8 +804,10 @@ function AttachmentCard({
         onClick={handleClick}
         affordance="preview"
         affordanceName="document-preview"
-        meta={<AttachmentMetaText label={documentPreview ? formatMessage({ id: DOCUMENT_PREVIEW_LABEL_ID[documentPreview.preview.kind] }) : attachment.mimeType || formatMessage({ id: "message.messageItem.metaDocument" })} sizeBytes={attachment.sizeBytes} />}
-        summary={<DocumentPreviewSummaryLine preview={documentPreview} />}
+        // A text, Markdown or spreadsheet document says its kind once, "Plain text document · 55 B" (Figmama mobile
+        // spec 11/21): its summary only repeated it. A CSV keeps its row and column count, a pending preview its label.
+        meta={<AttachmentMetaText label={documentPreview ? formatMessage({ id: DOCUMENT_KIND_LABEL_ID[documentPreview.preview.kind] ?? DOCUMENT_PREVIEW_LABEL_ID[documentPreview.preview.kind] }) : attachment.mimeType || formatMessage({ id: "message.messageItem.metaDocument" })} sizeBytes={attachment.sizeBytes} />}
+        summary={!documentPreview || documentPreview.preview.kind === "csv" ? <DocumentPreviewSummaryLine preview={documentPreview} /> : undefined}
       />
     );
   }

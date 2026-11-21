@@ -145,7 +145,7 @@ for (const mode of MODES) {
       const mainStyle = style(main);
       const menuStyle = style(menu);
 
-      // Raft redesign: with a mouse a Button has no border; the menu part's
+      // Raft redesign: a Button has no border (by touch too); the menu part's
       // start border alone is the divider.
       expect(mainStyle.borderRightWidth).toBe("0px");
       expect(Number.parseFloat(menuStyle.borderLeftWidth)).toBeGreaterThan(0);
@@ -212,7 +212,7 @@ it("Tab reaches the main part, then the menu part, each ring above its neighbour
 
 // Touch runs last: turning touch emulation off again leaves Chromium
 // reporting `pointer: none`, not `fine` (panel-action.browser.test.tsx).
-it("on a touch screen an lg split is 44px tall, with a 36px menu part", async () => {
+it("on a touch screen an lg split is 36px tall (mobile spec 11/21), with a 36px menu part", async () => {
   const { cdp } = await import("vite-plus/test/browser/context");
   await cdp().send("Emulation.setEmulatedMedia", {
     features: [{ name: "pointer", value: "coarse" }],
@@ -221,8 +221,8 @@ it("on a touch screen an lg split is 44px tall, with a 36px menu part", async ()
   const { main, menu } = renderSplit("light", "primary", "lg");
   const mainBox = main.getBoundingClientRect();
   const menuBox = menu.getBoundingClientRect();
-  expect(mainBox.height).toBe(44);
-  expect(menuBox.height).toBe(44);
+  expect(mainBox.height).toBe(36);
+  expect(menuBox.height).toBe(36);
   expect(menuBox.width).toBe(36);
   expect(menuBox.left).toBe(mainBox.right);
   expect(hitWidth(menu)).toBeGreaterThanOrEqual(44);

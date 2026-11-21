@@ -23,33 +23,33 @@ const outline = (ink: string) => [
   "hover:overlay-medium active:overlay-medium",
 ];
 
-// Raft redesign (Figmama 11/18), on a desktop (from 768px with a mouse):
+// Raft redesign (Figmama 11/18), at every width (by touch too, mobile spec 11/21):
 // primary ink with canvas text (light on dark in dark mode), 90% on hover;
 // secondary 5% ink, no border; frameless the subtle fill on hover; danger the
-// status red with white text. Disabled, a button keeps its own colours at 40%
-// (the base's grey box holds on a phone and a touch screen), so each style
-// states its colours again for both disabled paths.
+// status red with white text. Disabled, with a mouse a button keeps its own
+// colours at 40% (the base's grey box still holds on a phone and a touch
+// screen), so each style states its colours again for both disabled paths.
 // Written out in full, not built, so Tailwind's scanner sees every class.
 const primaryDesktop = [
-  "md:pointer-fine:bg-foreground md:pointer-fine:text-foreground-inverse md:pointer-fine:ring-0 md:pointer-fine:hover:bg-none md:pointer-fine:active:bg-none md:pointer-fine:hover:opacity-90 md:pointer-fine:active:opacity-90 md:pointer-fine:data-popup-open:opacity-90",
+  "bg-foreground md:pointer-fine:bg-foreground text-foreground-inverse md:pointer-fine:text-foreground-inverse ring-0 md:pointer-fine:ring-0 hover:bg-none md:pointer-fine:hover:bg-none active:bg-none md:pointer-fine:active:bg-none hover:opacity-90 md:pointer-fine:hover:opacity-90 active:opacity-90 md:pointer-fine:active:opacity-90 data-popup-open:opacity-90 md:pointer-fine:data-popup-open:opacity-90",
   "md:pointer-fine:disabled:bg-foreground md:pointer-fine:aria-disabled:bg-foreground md:pointer-fine:disabled:text-foreground-inverse md:pointer-fine:aria-disabled:text-foreground-inverse",
 ];
 const secondaryDesktop = [
-  "md:pointer-fine:bg-fill-medium md:pointer-fine:ring-0 md:pointer-fine:text-foreground md:pointer-fine:data-popup-open:overlay-subtle",
+  "bg-fill-medium md:pointer-fine:bg-fill-medium ring-0 md:pointer-fine:ring-0 text-foreground md:pointer-fine:text-foreground data-popup-open:overlay-subtle md:pointer-fine:data-popup-open:overlay-subtle",
   "md:pointer-fine:disabled:bg-fill-medium md:pointer-fine:aria-disabled:bg-fill-medium md:pointer-fine:disabled:text-foreground md:pointer-fine:aria-disabled:text-foreground",
 ];
 const dangerSecondaryDesktop = [
-  "md:pointer-fine:bg-fill-medium md:pointer-fine:ring-0 md:pointer-fine:text-danger-strong",
+  "bg-fill-medium md:pointer-fine:bg-fill-medium ring-0 md:pointer-fine:ring-0 text-danger-strong md:pointer-fine:text-danger-strong",
   "md:pointer-fine:disabled:bg-fill-medium md:pointer-fine:aria-disabled:bg-fill-medium md:pointer-fine:disabled:text-danger-strong md:pointer-fine:aria-disabled:text-danger-strong",
 ];
 const dangerDesktop = [
-  "md:pointer-fine:bg-danger md:pointer-fine:text-sticker-paper md:pointer-fine:ring-0 md:pointer-fine:hover:bg-none md:pointer-fine:active:bg-none md:pointer-fine:hover:opacity-90 md:pointer-fine:active:opacity-90",
+  "bg-danger md:pointer-fine:bg-danger text-sticker-paper md:pointer-fine:text-sticker-paper ring-0 md:pointer-fine:ring-0 hover:bg-none md:pointer-fine:hover:bg-none active:bg-none md:pointer-fine:active:bg-none hover:opacity-90 md:pointer-fine:hover:opacity-90 active:opacity-90 md:pointer-fine:active:opacity-90",
   "md:pointer-fine:disabled:bg-danger md:pointer-fine:aria-disabled:bg-danger md:pointer-fine:disabled:text-sticker-paper md:pointer-fine:aria-disabled:text-sticker-paper",
 ];
-const warningDesktop = ["md:pointer-fine:ring-0", "md:pointer-fine:disabled:bg-warning md:pointer-fine:aria-disabled:bg-warning md:pointer-fine:disabled:text-sticker-ink md:pointer-fine:aria-disabled:text-sticker-ink"];
+const warningDesktop = ["ring-0 md:pointer-fine:ring-0", "md:pointer-fine:disabled:bg-warning md:pointer-fine:aria-disabled:bg-warning md:pointer-fine:disabled:text-sticker-ink md:pointer-fine:aria-disabled:text-sticker-ink"];
 // A trigger whose menu is open keeps its hover look (anxndsgn 11/21), so you see which button opened it;
 // only a popup (data-popup-open), not an expanded panel such as the sidebar (aria-expanded).
-const ghostDesktop = ["md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:data-popup-open:bg-fill-subtle", "md:pointer-fine:disabled:bg-transparent md:pointer-fine:aria-disabled:bg-transparent md:pointer-fine:disabled:text-foreground md:pointer-fine:aria-disabled:text-foreground"];
+const ghostDesktop = ["hover:bg-fill-subtle md:pointer-fine:hover:bg-fill-subtle data-popup-open:bg-fill-subtle md:pointer-fine:data-popup-open:bg-fill-subtle", "md:pointer-fine:disabled:bg-transparent md:pointer-fine:aria-disabled:bg-transparent md:pointer-fine:disabled:text-foreground md:pointer-fine:aria-disabled:text-foreground"];
 
 // Three text sizes and two icon sizes, nothing in between, so a button reads
 // the same wherever it sits; the 32px ones (34px with a mouse on a desktop)
@@ -67,16 +67,18 @@ const ghostDesktop = ["md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:data
 // `xl` (Iconography › Sizes). A `size-` class of its own still wins.
 const textMd = [
   // Raft redesign: 32 high with a mouse too (Figmama 11/18), 12px sides, 14px.
-  "h-8 gap-2 rounded-control px-3 py-0 text-control",
+  // On a phone and a touch screen 36 high, its hit area 44 (Figmama mobile spec 11/21).
+  "h-9 md:pointer-fine:h-8 gap-2 rounded-control px-3 py-0 text-control",
   "has-data-[icon=inline-start]:pl-2.5 has-data-[icon=inline-end]:pr-2.5",
   "[&_svg:not([class*='size-'])]:size-4 [&_[data-icon]:not(svg):not([class*='size-'])]:size-4",
-  "after:absolute after:inset-x-0 after:-inset-y-[calc(--spacing(1.5)+1.5px)]",
+  "after:absolute after:inset-x-0 after:-inset-y-[calc(--spacing(1)+1.5px)]",
   "md:pointer-fine:after:-inset-y-[calc(var(--control-hit-inset)+1.5px)]",
 ];
 const iconMd = [
   // Raft redesign: 32 with a 16px icon with a mouse (anxndsgn 11/18: 24 in the rail, 16 everywhere else).
-  "size-8 rounded-control p-0 [&_svg:not([class*='size-'])]:size-[18px] md:pointer-fine:[&_svg:not([class*='size-'])]:size-4",
-  "after:absolute after:-inset-[calc(--spacing(1.5)+1.5px)]",
+  // On a phone and a touch screen an icon button is 40 with a 20px icon, its hit area 44 (Figmama mobile spec 11/21).
+  "size-10 md:pointer-fine:size-8 rounded-control p-0 [&_svg:not([class*='size-'])]:size-5 md:pointer-fine:[&_svg:not([class*='size-'])]:size-4",
+  "after:absolute after:-inset-[calc(--spacing(0.5)+1.5px)]",
   "md:pointer-fine:after:-inset-[calc(var(--control-hit-inset)+1.5px)]",
 ];
 
@@ -103,9 +105,9 @@ export const buttonVariants = tv({
       "disabled:opacity-100 aria-disabled:opacity-100",
       "disabled:border-line-hairline disabled:bg-fill-muted disabled:bg-none disabled:text-foreground-disabled disabled:ring-0",
       "aria-disabled:border-line-hairline aria-disabled:bg-fill-muted aria-disabled:bg-none aria-disabled:text-foreground-disabled aria-disabled:ring-0",
-      // Raft redesign (Figmama 11/18): on a desktop a button has no border and
+      // Raft redesign (Figmama 11/18; by touch too, 11/21): a button has no border and
       // is semibold; disabled, it keeps its colours at 40 percent, no hover.
-      "md:pointer-fine:border-0 md:pointer-fine:font-semibold",
+      "border-0 md:pointer-fine:border-0 font-semibold md:pointer-fine:font-semibold",
       "md:pointer-fine:disabled:opacity-40 md:pointer-fine:aria-disabled:opacity-40 md:pointer-fine:aria-disabled:hover:opacity-40 md:pointer-fine:aria-disabled:active:opacity-40 md:pointer-fine:disabled:border-0 md:pointer-fine:aria-disabled:border-0",
     ],
     content:
@@ -153,7 +155,8 @@ export const buttonVariants = tv({
       // Dialog and sheet footers, forms.
       lg: {
         root: [
-          "h-control gap-2 rounded-(--control-radius) px-4 py-0 text-subhead",
+          // By touch 36 high like every Button (Figmama mobile spec 11/21).
+          "h-9 gap-2 rounded-(--control-radius) px-4 py-0 text-subhead",
           // Raft redesign (Figmama 11/21): with a mouse a large Button is the
           // Button: 32px, the control corner, 12px sides, Semi Bold 14.
           "md:pointer-fine:rounded-control md:pointer-fine:px-3 md:pointer-fine:text-[14px]",
@@ -161,7 +164,7 @@ export const buttonVariants = tv({
           "md:pointer-fine:h-8 md:pointer-fine:px-3 md:pointer-fine:text-[14px]",
           "has-data-[icon=inline-start]:pl-3.5 has-data-[icon=inline-end]:pr-3.5",
           "[&_svg:not([class*='size-'])]:size-[18px] [&_[data-icon]:not(svg):not([class*='size-'])]:size-[18px]",
-          "after:absolute after:inset-x-0 after:-inset-y-[calc(var(--spacing-control-hit)+1.5px)]",
+          "after:absolute after:inset-x-0 after:-inset-y-[calc(--spacing(1)+1.5px)] md:pointer-fine:after:-inset-y-[calc(var(--spacing-control-hit)+1.5px)]",
         ],
       },
       // A full-width call to action. Its content is centred in the full
@@ -177,10 +180,11 @@ export const buttonVariants = tv({
       "icon-md": { root: iconMd },
       "icon-lg": {
         root: [
-          "size-control rounded-(--control-radius) p-0 [&_svg:not([class*='size-'])]:size-control-icon",
+          // By touch a 40px icon button (Figmama mobile spec 11/21).
+          "size-10 rounded-(--control-radius) p-0 [&_svg:not([class*='size-'])]:size-control-icon",
           "md:pointer-fine:rounded-control",
           "md:pointer-fine:size-8",
-          "after:absolute after:-inset-[calc(var(--spacing-control-hit)+1.5px)]",
+          "after:absolute after:-inset-[calc(--spacing(0.5)+1.5px)] md:pointer-fine:after:-inset-[calc(var(--spacing-control-hit)+1.5px)]",
         ],
       },
     },
@@ -201,8 +205,9 @@ export const buttonVariants = tv({
       size: ["xs", "sm", "md", "lg", "xl"],
       class: {
         root: [
-          "in-data-stacked:border-line-strong in-data-stacked:bg-layer-card",
-          "in-data-stacked:hover:bg-layer-card in-data-stacked:active:bg-layer-card",
+          // Raft redesign: default is the 5% fill (by touch too, mobile spec 11/21).
+          "in-data-stacked:border-line-strong in-data-stacked:bg-fill-medium",
+          "in-data-stacked:hover:bg-fill-medium in-data-stacked:active:bg-fill-medium",
           "in-data-stacked:hover:overlay-medium in-data-stacked:active:overlay-medium",
         ],
       },
@@ -228,10 +233,10 @@ export const buttonVariants = tv({
     {
       variant: "ghost",
       size: ["icon-xs", "icon-sm", "icon-md"],
-      // Its icon box from its edge: 7px in a 32px button; with a mouse the
-      // button is the 34px control height, so 8px.
+      // Its icon box from its edge: 10px in a 40px button by touch (mobile
+      // spec 11/21); with a mouse 8px in the 32px button.
       class: {
-        root: "[--icon-inset:calc((--spacing(8)-18px)/2)] md:pointer-fine:[--icon-inset:calc((--spacing(8)-16px)/2)]",
+        root: "[--icon-inset:calc((--spacing(10)-20px)/2)] md:pointer-fine:[--icon-inset:calc((--spacing(8)-16px)/2)]",
       },
     },
     // On the frame the controls are the frame item (`frame-item-height`: 36px, the 34px control height with a mouse) of the top bar

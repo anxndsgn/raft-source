@@ -50,19 +50,21 @@ export const headEdges = ["px-(--column-margin)", ...headEdgePull];
 
 /**
  * Sets a column of list cells' margin to the rows' content edge (lib/list-cell.ts):
- * 20px at every width by touch, the 16px page inset with a mouse. The heads
+ * 16px on a phone (Figmama mobile spec 11/21), 20px from 768px by touch, the
+ * 16px page inset with a mouse. The heads
  * and notices in it follow.
  */
 export const listColumnMargin =
-  "[--column-margin:20px] md:pointer-fine:[--column-margin:var(--page-inset)]";
+  "[--column-margin:16px] md:[--column-margin:20px] md:pointer-fine:[--column-margin:var(--page-inset)]";
 
 /**
- * The inset of a control-height icon button (a PanelAction, a Button at
- * `icon-lg`): 7px on a desktop, 11px on a phone and on a touch screen. Written
- * as the arithmetic so it follows the control tokens wherever they switch.
+ * The inset of an icon button the bar button's size (a Button at `icon-lg`):
+ * 8px on a desktop, 10px on a phone and on a touch screen (40 with a 20px icon,
+ * Figmama mobile spec 11/21). Written as the arithmetic so it follows the
+ * tokens wherever they switch.
  */
 export const controlIconInset =
-  "[--icon-inset:calc((var(--control-height)-var(--control-icon-size))/2)]";
+  "[--icon-inset:calc((var(--bar-button-size)-var(--control-icon-size))/2)]";
 
 /**
  * The inset of a bar button (a PanelAction, a head's x, a composer icon):

@@ -27,7 +27,7 @@ export const messageReplies = tv({
     reply: ["flex min-w-0 items-center", "gap-1.5 text-footnote"],
     sender: ["min-w-0 shrink truncate", "font-semibold text-foreground-muted"],
     content: ["min-w-0 flex-1 truncate", "text-foreground-hint"],
-    time: ["ml-auto shrink-0", "font-mono text-mono-meta tabular-nums text-foreground-hint"],
+    time: ["ml-auto shrink-0", "font-sans text-mono-meta tabular-nums text-foreground-hint"],
   },
 });
 

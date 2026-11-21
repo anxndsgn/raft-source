@@ -138,10 +138,11 @@ for (const s of SCREENS) {
         // 32 - 3 + 2 x (6 + 1.5) = 44. Chromium draws the 1.5px border 1px
         // wide at a device pixel ratio of 1, so there it is 45, the same as
         // the Button at `md` beside it.
-        const border = parseFloat(getComputedStyle(item).borderTopWidth);
-        expect(area.bottom - area.top).toBe(s.hit + 2 * (1.5 - border));
+        // At least the 44px target; the Button beside it is 36px by touch now
+        // (mobile spec 11/21), so the two no longer share a measure.
+        expect(area.bottom - area.top).toBeGreaterThanOrEqual(s.hit);
         const b = tapArea(button);
-        expect(area.bottom - area.top).toBe(b.bottom - b.top);
+        expect(b.bottom - b.top).toBeGreaterThanOrEqual(s.hit);
       } else {
         // With a mouse no taps past the box.
         expect(area.top).toBe(box.top);
@@ -201,7 +202,8 @@ for (const s of SCREENS) {
     if (s.touch) {
       expect(reach).toBeGreaterThan(0);
       expect(reach).toBeLessThanOrEqual(6);
-      expect(p.top - tapArea(picker).top).toBe(6);
+      // The 36px picker reaches 4px past its box to 44 (mobile spec 11/21).
+      expect(p.top - tapArea(picker).top).toBe(4);
     } else {
       expect(reach).toBeLessThan(0);
       expect(tapArea(picker).top).toBe(p.top);

@@ -107,6 +107,8 @@ export function ThreadsInbox() {
   // and its filter row pins inside the scroller (see `toolbar`).
   const isPhoneTabRoot = useMediaQuery(PHONE_MEDIA_QUERY);
   const coarsePointer = useMediaQuery("(pointer: coarse)");
+  // With a mouse the two lists are filter pills; on a phone and a touch screen underline tabs on the toolbar's seam (Figmama mobile spec 11/21).
+  const desktopPointer = useMediaQuery("(width >= 48rem) and (pointer: fine)");
   // Its scroll position across tab switches is the inbox store's
   // (`scrollTop`). Re-tapping the tab goes to the next unread item
   // (`goToNextUnread` below).
@@ -518,7 +520,7 @@ export function ThreadsInbox() {
   const headerSubtitle = formatMessage({ id: "thread.header.subtitle" }, {
     activeCount: shownTotalCount,
     unreadCount: shownTotalUnreadCount,
-    mono: (chunks: ReactNode[]) => <span key={`mono-${monoChunk++}`} className="font-mono">{chunks}</span>,
+    mono: (chunks: ReactNode[]) => <span key={`mono-${monoChunk++}`} className="tabular-nums">{chunks}</span>,
   });
 
   // Task #172 (stdrc, Option A): one Filter button opens the four lists; the
@@ -549,7 +551,9 @@ export function ThreadsInbox() {
       <div className="flex min-w-0 items-center gap-2">
         {/* Layout redesign (F4): two lists, what is waiting on me (replies to me, @me) and everything. */}
         <SegmentedControl<"mine" | "all">
-          variant="pill"
+          variant={desktopPointer ? "pill" : "underline"}
+          // By touch the tabs fill the 48px row, their line on its seam.
+          className={desktopPointer ? undefined : "[--segment-size:48px]"}
           value={activeFilter === "mentions" ? "mine" : "all"}
           onValueChange={handleTabChange}
           aria-label={formatMessage({ id: "thread.filter.ariaLabel" })}

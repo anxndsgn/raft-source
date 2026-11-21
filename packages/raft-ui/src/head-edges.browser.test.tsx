@@ -56,8 +56,8 @@ import {
 
 // The icon buttons at the two ends of a header put their icon box, not the
 // button, on the column's content margin: 16px on a phone and with a mouse, 20px from 768px by touch,
-// whatever the button's size (32px with an 18px icon with a mouse, 44px with a
-// 22px icon on a phone and a touch screen). The empty hit area hangs outward
+// whatever the button's size (32px with an 18px icon with a mouse, 40px with a
+// 20px icon on a phone and a touch screen, Figmama mobile spec 11/21). The empty hit area hangs outward
 // and the two ends mirror (design/foundations/alignment.md#the-ends-of-a-header).
 // Measured in a real browser with touch emulated through CDP; jsdom has no
 // media queries or layout.
@@ -75,20 +75,20 @@ const SCREENS = [
     width: 768,
     height: 1024,
     pointer: "coarse",
-    size: 44,
-    icon: 22,
+    size: 40,
+    icon: 20,
   },
   {
     name: "touch tablet 1024x1366",
     width: 1024,
     height: 1366,
     pointer: "coarse",
-    size: 44,
-    icon: 22,
+    size: 40,
+    icon: 20,
   },
-  { name: "phone 320x568", width: 320, height: 568, pointer: "coarse", size: 44, icon: 22 },
-  { name: "phone 390x844", width: 390, height: 844, pointer: "coarse", size: 44, icon: 22 },
-  { name: "phone 430x932", width: 430, height: 932, pointer: "coarse", size: 44, icon: 22 },
+  { name: "phone 320x568", width: 320, height: 568, pointer: "coarse", size: 40, icon: 20 },
+  { name: "phone 390x844", width: 390, height: 844, pointer: "coarse", size: 40, icon: 20 },
+  { name: "phone 430x932", width: 430, height: 932, pointer: "coarse", size: 40, icon: 20 },
 ] as const;
 
 type Screen = (typeof SCREENS)[number];
@@ -128,8 +128,8 @@ const panelMargin = (s: Screen) => (s.width < 768 || s.pointer === "fine" ? 16 :
 /** A panel's (or section's) 44px head with a mouse: its end icon buttons 6px from the edge, as from its top and
  *  bottom (Raft redesign, barEdgePull), so a 16px icon in a 32px button sits 14px in (anxndsgn 11/18: icons 16); elsewhere the column margin. */
 const panelHeadMargin = (s: Screen) => (s.width >= 768 && s.pointer === "fine" ? 14 : panelMargin(s));
-/** A dialog's inline padding: 20px, 16px with a mouse on a desktop. */
-const dialogMargin = (s: Screen) => (s.width >= 768 && s.pointer === "fine" ? 16 : 20);
+// A dialog's surface inset: 16px on a phone (mobile spec 11/21) and with a mouse, 20px from 768px by touch.
+const dialogMargin = (s: Screen) => (s.width >= 768 && s.pointer !== "fine" ? 20 : 16);
 
 type Head = {
   name: string;

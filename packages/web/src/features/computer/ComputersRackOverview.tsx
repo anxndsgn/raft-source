@@ -39,7 +39,7 @@ export function ComputersRackOverview() {
   return (
     // One 20px edge for the Team head, the toolbar, the summary and the rows, as on the Members tab (its
     // listColumnMargin), so the head stays put when the Team page's tabs switch.
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:20px] [--surface-inset:20px]" data-testid="computers-rack-overview">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:16px] md:[--column-margin:20px] [--surface-inset:16px] md:[--surface-inset:20px]" data-testid="computers-rack-overview">
       {/* The Team page's Computers tab (PRD 团队页 §5.3): the Team head over the rack, unchanged below it. */}
       <TeamHeader view="computers" />
       {/* Search, filters, grouping, sort, the view and Add computer (ComputersRackToolbar), above the

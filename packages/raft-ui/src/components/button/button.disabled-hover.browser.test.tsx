@@ -53,6 +53,8 @@ function snap(el: Element) {
     translate: cs.translate,
     boxShadow: transparentShadows(cs.boxShadow),
     textDecorationLine: cs.textDecorationLine,
+    // The redesign's filled buttons hover at 90% (by touch too, mobile spec 11/21).
+    opacity: cs.opacity,
   };
 }
 
@@ -151,7 +153,8 @@ for (const mode of MODES) {
             now.bg !== resting.bg ||
             now.bgImage !== resting.bgImage ||
             now.translate !== resting.translate ||
-            now.boxShadow !== resting.boxShadow
+            now.boxShadow !== resting.boxShadow ||
+            now.opacity !== resting.opacity
           ) {
             return true;
           }

@@ -180,16 +180,17 @@
 /* A column's content margin (design/foundations/alignment.md#usage): 16px on a
    phone, 20px from 768px (`md`) on a touch screen, 16px with a mouse. Heads, notices and footers pad by it
    (lib/head-edges.ts). A column of list cells sets it to where its rows'
-   content starts (`listColumnMargin`): 20px at every width by touch (8px shape
-   inset + 12px), the 16px page inset with a mouse (8 + 8), so its head,
+   content starts (`listColumnMargin`): 16px on a phone (8px shape inset + 8px),
+   20px from 768px by touch (8 + 12), the 16px page inset with a mouse (8 + 8), so its head,
    toolbar and rows share one line on a phone too. */
 @layer theme {
   :root,
   :host {
-    /* A surface's own padding (a dialog, a drawer, a panel section): 20px, the
-       page inset (16px) with a mouse on a desktop. One variable, so a caller's
+    /* A surface's own padding (a dialog, a drawer, a panel section): 16px on a
+       phone (Figmama mobile spec 11/21), 20px from 768px by touch, the page
+       inset (16px) with a mouse on a desktop. One variable, so a caller's
        `px-0` still replaces it (stdrc, 2026-11-05). */
-    --surface-inset: 20px;
+    --surface-inset: 16px;
     --column-margin: 16px;
     /* The sidebar's two axes with a mouse on a desktop (stdrc, 2026-11-05,
        option B): glyphs (a row's icon or avatar, a section's title) start on
@@ -202,6 +203,7 @@
     :root,
     :host {
       --column-margin: 20px;
+      --surface-inset: 20px;
     }
   }
   /* With a mouse on a desktop 16px, the page inset: the compact heads and the
@@ -1043,12 +1045,10 @@ textarea:-webkit-autofill:disabled {
   }
 }
 
-/* Raft redesign (Figmama 11/21): with a mouse, data and times are Inter, not
+/* Raft redesign (Figmama 11/21, and the mobile spec 11/21 on a phone): data and times are Inter, not
    the mono: the machine-meta type (`font-mono text-mono-meta`, counts, sizes,
    runtimes, models, times) takes the sans. Code keeps the mono
    (`text-mono-code`). */
-@media (width >= 48rem) and (pointer: fine) {
-  .font-mono.text-mono-meta {
-    font-family: var(--font-sans);
-  }
+.font-mono.text-mono-meta {
+  font-family: var(--font-sans);
 }

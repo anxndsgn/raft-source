@@ -123,12 +123,14 @@ export const inboxItem = tv({
     itemActions: [
       "pointer-events-auto flex shrink-0 items-center",
       "order-last gap-0.5",
-      "*:data-[slot=panel-action]:h-8 *:data-[slot=panel-action]:min-w-8 [&>[data-slot=panel-action]>svg]:size-[18px]",
-      "*:data-[slot=panel-toggle-action]:h-8 *:data-[slot=panel-toggle-action]:min-w-8 [&>[data-slot=panel-toggle-action]>svg]:size-[18px]",
+      "*:data-[slot=panel-action]:size-8 *:data-[slot=panel-action]:min-w-8 *:data-[slot=panel-action]:px-0 [&>[data-slot=panel-action]>svg]:size-[18px]",
+      "*:data-[slot=panel-toggle-action]:size-8 *:data-[slot=panel-toggle-action]:min-w-8 *:data-[slot=panel-toggle-action]:px-0 [&>[data-slot=panel-toggle-action]>svg]:size-[18px]",
       "[&>[data-slot=panel-toggle-action][data-pressed]]:border-transparent",
       "[&>[data-slot=panel-toggle-action][data-pressed]]:bg-transparent",
       "[&>[data-slot=panel-toggle-action][data-pressed]]:text-foreground",
       "[&>[data-slot=panel-toggle-action][data-pressed]]:hover:bg-fill-medium [&>[data-slot=panel-toggle-action][data-pressed]]:active:bg-fill-medium",
+      // A row's own icon Buttons stay 32 in its dense line (the 40px icon button is for bars), their hit area 44.
+      "*:data-[slot=button]:size-8 pointer-coarse:*:data-[slot=button]:after:-inset-1.5",
       "pointer-coarse:gap-3",
       "pointer-coarse:*:data-[slot=panel-action]:after:absolute pointer-coarse:*:data-[slot=panel-action]:after:-inset-1.5",
       "pointer-coarse:*:data-[slot=panel-toggle-action]:after:absolute pointer-coarse:*:data-[slot=panel-toggle-action]:after:-inset-1.5",

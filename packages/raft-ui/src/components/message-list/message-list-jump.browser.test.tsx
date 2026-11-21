@@ -163,22 +163,16 @@ for (const [name, setup, label] of [
 
       const pillType = type(pill);
       const buttonType = type(button);
-      if (DESKTOP()) {
-        // Raft redesign (Figmama 11/18): with a mouse the group is one 29px
-        // canvas pill with a 1px floating line; its parts draw no fill or edge.
-        const group = getComputedStyle(pill.parentElement!);
-        expect(rect(pill.parentElement!).height).toBe(29);
-        expect(group.borderTopWidth).toBe("1px");
-        expect(group.borderTopLeftRadius).toBe("999px");
-        expect(rect(pill).height).toBe(27);
-        expect(pillType).toMatchObject({ ...label, fontFamily: buttonType.fontFamily, borderTop: "0px", background: "rgba(0, 0, 0, 0)" });
-      } else {
-        // The pill's start corners are the Button's; its end joins the dismiss.
-        expect(pillType).toEqual(buttonType);
-        expect(pillType).toMatchObject({ ...label, fontWeight: "700" });
-        expect(rect(pill).height).toBe(32);
-        expect(rect(pill).height).toBe(rect(button).height);
-      }
+      // Raft redesign (Figmama 11/18; by touch too, mobile spec 11/21): the
+      // group is one canvas pill with a 1px floating line, 29px with a mouse
+      // and 36px by touch; its parts draw no fill or edge.
+      const group = getComputedStyle(pill.parentElement!);
+      const [outer, inner] = DESKTOP() ? [29, 27] : [36, 34];
+      expect(rect(pill.parentElement!).height).toBe(outer);
+      expect(group.borderTopWidth).toBe("1px");
+      expect(group.borderTopLeftRadius).toBe("999px");
+      expect(rect(pill).height).toBe(inner);
+      expect(pillType).toMatchObject({ ...label, fontFamily: buttonType.fontFamily, borderTop: "0px", background: "rgba(0, 0, 0, 0)" });
       for (const id of ["pill-icon", "button-icon"]) {
         expect(rect(screen.getByTestId(id)).width, id).toBe(16);
         expect(rect(screen.getByTestId(id)).height, id).toBe(16);
@@ -198,31 +192,15 @@ for (const [name, setup, label] of [
       expect(d.left).toBe(p.right);
       expect(d.top).toBe(p.top);
       expect(d.height).toBe(p.height);
-      if (DESKTOP()) {
-        // Raft redesign: one 1px floating line before the dismiss, 6px short
-        // of the top and bottom; neither part draws an edge of its own.
-        expect(d.width).toBe(29);
-        const before = getComputedStyle(dismiss, "::before");
-        expect(before.width).toBe("1px");
-        expect(before.top).toBe("6px");
-        expect(pillStyle.borderRightWidth).toBe("0px");
-        expect(dismissStyle.borderLeftWidth).toBe("0px");
-        return;
-      }
-      expect(d.width).toBe(32);
-      // One line between them: the pill's end edge, and none on the dismiss.
-      // (Chromium draws the 1.5px border at whole device pixels.)
-      const edge = pillStyle.borderTopWidth;
-      expect(Number.parseFloat(edge)).toBeGreaterThanOrEqual(1);
-      expect(pillStyle.borderRightWidth).toBe(edge);
+      // Raft redesign (by touch too, mobile spec 11/21): one 1px floating line
+      // before the dismiss, 6px short of the top and bottom; neither part
+      // draws an edge of its own.
+      expect(d.width).toBe(DESKTOP() ? 29 : 36);
+      const before = getComputedStyle(dismiss, "::before");
+      expect(before.width).toBe("1px");
+      expect(before.top).toBe("6px");
+      expect(pillStyle.borderRightWidth).toBe("0px");
       expect(dismissStyle.borderLeftWidth).toBe("0px");
-      expect(dismissStyle.borderTopWidth).toBe(edge);
-      expect(dismissStyle.borderRightWidth).toBe(edge);
-      expect(dismissStyle.borderTopColor).toBe(pillStyle.borderTopColor);
-      expect(pillStyle.borderTopRightRadius).toBe("0px");
-      expect(pillStyle.borderBottomRightRadius).toBe("0px");
-      expect(dismissStyle.borderTopLeftRadius).toBe("0px");
-      expect(dismissStyle.borderTopRightRadius).toBe(pillStyle.borderTopLeftRadius);
     });
 
     it(`${mode}, ${name}: every part keeps a 44px hit area, and the pills sit 8px apart and 12px up`, async () => {
@@ -257,7 +235,8 @@ for (const [name, setup, label] of [
       } else {
         // Too wide for one row on a phone: the second pill stacks 12px above
         // the first, so their hit areas don't overlap.
-        expect(b.top - p.bottom).toBe(12);
+        // (Measured from the group's pill, whose 1px line is outside the parts.)
+        expect(b.top - rect(pill.parentElement!).bottom).toBe(12);
         expect(d.right).toBeLessThanOrEqual(parent.right);
         expect(rect(controls).left).toBeGreaterThanOrEqual(parent.left);
       }

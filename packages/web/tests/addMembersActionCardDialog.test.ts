@@ -134,11 +134,13 @@ test("AddMembersDialog uses the member-list surface and submits only candidates 
   assert.doesNotMatch(screen.getByText("Wug").closest(".group")?.className ?? "", /hover:bg-fill-medium/);
 
   const removeMei = screen.getByRole("button", { name: "Remove Mei from add list" });
-  // Taking someone off the add list is reversible: a quiet icon button, not red.
-  assert.match(removeMei.className, /hover:bg-fill-medium/);
+  // Taking someone off the add list is reversible: a quiet icon button, not red
+  // (Raft redesign: a ghost button hovers with the subtle fill at every width).
+  assert.match(removeMei.className, /hover:bg-fill-subtle/);
   assert.doesNotMatch(removeMei.className, /danger/);
-  // raft-ui ghost icon-md: a 32px box whose recipe sizes the glyph (18px).
-  assert.match(removeMei.className, /(?:^|\s)size-8(?:\s|$)/);
+  // raft-ui ghost icon-md: a 40px box by touch, 32 with a mouse (mobile spec 11/21), whose recipe sizes the glyph.
+  assert.match(removeMei.className, /(?:^|\s)size-10(?:\s|$)/);
+  assert.match(removeMei.className, /md:pointer-fine:size-8/);
   assert.ok(removeMei.querySelector("svg"), "remove control renders its glyph");
   fireEvent.click(removeMei);
 
@@ -209,9 +211,11 @@ test("channel member role UI hides Member and swaps Channel Admin for hover acti
   // Icon-only now: the action carries no text, just its glyph and label.
   assert.equal(removeAction.textContent, "");
   assert.ok(removeAction.querySelector("svg"), "remove action renders its icon");
-  // Both hover actions are the DS small control (32): the role action is
-  // raft-ui's `size="md"` (h-8), the remove control is a hand-sized 32 square.
-  assert.match(roleAction.className, /(^| )h-8( |$)/);
+  // Both hover actions are the DS small control: the role action is raft-ui's
+  // `size="md"` (36 by touch, 32 with a mouse; mobile spec 11/21), the remove
+  // control is a hand-sized 32 square.
+  assert.match(roleAction.className, /(^| )h-9( |$)/);
+  assert.match(roleAction.className, /md:pointer-fine:h-8/);
   assert.match(removeAction.className, /size-8|h-8/);
   assert.doesNotMatch(removeAction.className, /(?:^|\s)mt-1(?:\s|$)/);
 

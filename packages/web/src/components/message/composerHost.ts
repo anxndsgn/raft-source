@@ -17,12 +17,13 @@ export function composerHostClassName(overlay: boolean): string {
 // a notice is exactly as wide as the frame under it (task #153). A notice
 // that took the panel's 12px instead ran 8px past the frame on each side.
 /**
- * A timeline row's inline padding: 12px, and with a mouse on a desktop the page
+ * A timeline row's inline padding: 8px on a phone, so the avatar is 16px in (Figmama mobile spec
+ * 11/21); 12px from 768px by touch, and with a mouse on a desktop the page
  * inset less the message's own 8px (raft-ui MessageItem px-2), so a message's
  * avatar starts on the 16px content edge like the head above it (stdrc,
  * 2026-11-05).
  */
-export const TIMELINE_ROW_INSET = "px-3 md:pointer-fine:px-[calc(var(--page-inset)-8px)]";
+export const TIMELINE_ROW_INSET = "px-2 md:px-3 md:pointer-fine:px-[calc(var(--page-inset)-8px)]";
 /**
  * The sender avatar's drop in a message row's gutter (MessageItem), shared
  * with the message skeleton (boot/bootSkeletons) so the placeholder's avatar

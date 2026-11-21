@@ -7,25 +7,25 @@ import { tv } from "../../lib/tv";
 
 const mobileNav = tv({
   slots: {
+    // Raft redesign (Figmama mobile spec 11/21): the canvas with a hairline
+    // over it, 56 tall plus the safe area.
     root: [
-      "grid w-full flex-none grid-flow-col auto-cols-fr items-start gap-0",
-      "border-t border-line-seam bg-layer-card px-2 pt-1.5 text-foreground-hint",
-      "pb-[max(8px,min(env(safe-area-inset-bottom,0px),34px))]",
+      "grid w-full flex-none grid-flow-col auto-cols-fr items-stretch gap-0",
+      "border-t border-line-seam bg-layer-canvas px-2 pt-0 text-foreground-muted",
+      "pb-[min(env(safe-area-inset-bottom,0px),34px)]",
     ],
+    // A 20px icon over an 11px label. The selected tab is its filled icon and
+    // a Semi Bold label in the foreground, with no fill or sticker behind it;
+    // the others are muted. A press is the subtle fill.
     item: [
-      "relative inline-flex shrink-0 items-center outline-none",
+      "relative inline-flex h-14 shrink-0 items-center outline-none",
       "disabled:pointer-events-none disabled:opacity-45",
       "[&_svg]:shrink-0",
-      "isolate min-w-0 flex-col justify-start gap-[7px] border-0 px-0 pt-1 pb-0",
-      "font-sans text-[10px]/3 font-semibold text-foreground-hint",
-      "*:relative *:z-raised [&_svg]:size-[22px] [&_svg]:stroke-2",
-      "before:pointer-events-none before:absolute before:top-0 before:left-1/2 before:z-base before:-translate-x-1/2",
-      "before:h-[30px] before:w-14 before:rounded-control before:border-[1.5px] before:border-transparent before:content-['']",
-      "active:before:bg-fill-medium",
-      "data-[selected=true]:font-bold data-[selected=true]:text-foreground",
-      "data-[selected=true]:[&_svg]:text-sticker-ink",
-      "data-[selected=true]:before:border-sticker-ink data-[selected=true]:before:bg-selected data-[selected=true]:before:ring-[1.5px] data-[selected=true]:before:ring-sticker-edge",
-      "data-[selected=true]:active:before:overlay-sticker-medium",
+      "isolate min-w-0 flex-col justify-center gap-1 border-0 px-0 py-0",
+      "font-sans text-[11px]/[14px] font-normal text-foreground-muted",
+      "*:relative *:z-raised [&_svg]:size-5",
+      "active:bg-fill-subtle",
+      "data-[selected=true]:font-semibold data-[selected=true]:text-foreground",
       "rounded-control focus-visible:shadow-focus",
     ],
     itemLabel: ["min-w-0 truncate", "max-w-full"],

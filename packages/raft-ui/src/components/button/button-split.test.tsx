@@ -96,14 +96,13 @@ test.each(["primary", "default"] as const)(
       expect.arrayContaining(["rounded-control", "rounded-e-none", "border-e-0"]),
     );
     expect(classes(main)).not.toContain("rounded-s-none");
+    // Raft redesign: no border; the menu part's divider is a 1px start line
+    // in its own ink at 25% (mobile spec 11/21: by touch too).
     expect(classes(menu)).toEqual(
-      expect.arrayContaining(["rounded-control", "rounded-s-none", "border-[1.5px]", "w-7"]),
+      expect.arrayContaining(["rounded-control", "rounded-s-none", "border-s!", "w-7"]),
     );
     expect(classes(menu)).not.toContain("rounded-e-none");
-    expect(classes(menu).some((name) => name.startsWith("border-s-"))).toBe(false);
-    expect(classes(menu)).toContain(
-      variant === "primary" ? "border-sticker-ink" : "border-line-strong",
-    );
+    expect(classes(menu)).toContain("border-s-[color-mix(in_oklch,currentColor_25%,transparent)]");
   },
 );
 
@@ -146,9 +145,10 @@ test("the open menu part keeps its variant's medium tier", () => {
 test("both parts take the same size: lg widens the menu part on a touch screen", () => {
   render(<Split size="lg" />);
   const { main, menu } = parts();
-  expect(classes(main)).toContain("h-control");
+  // 36 high by touch (Figmama mobile spec 11/21).
+  expect(classes(main)).toContain("h-9");
   expect(classes(menu)).toEqual(
-    expect.arrayContaining(["h-control", "w-9", "md:pointer-fine:w-7"]),
+    expect.arrayContaining(["h-9", "w-9", "md:pointer-fine:w-7"]),
   );
 });
 

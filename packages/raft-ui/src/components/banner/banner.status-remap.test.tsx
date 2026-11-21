@@ -37,17 +37,20 @@ test("pending is not a valid BannerStatus", () => {
   expect(_check).toBe(true);
 });
 
-test("warning takes the warning wash, not info's", () => {
+// Raft redesign (mobile spec 11/21): every banner is the 5% card at every
+// width; only a status banner's icon takes its colour.
+test("warning is the 5% card with the status icon, not info's wash", () => {
   renderBanner("warning");
   const c = cls();
-  expect(c).toContain("bg-warning-soft");
+  expect(c).toContain("bg-fill-medium");
+  expect(c).toContain("[&>svg]:text-presence-error");
   expect(c).not.toContain("bg-info-soft");
 });
 
-test("info takes the info wash, not warning's", () => {
+test("info is the 5% card, not warning's wash", () => {
   renderBanner("info");
   const c = cls();
-  expect(c).toContain("bg-info-soft");
+  expect(c).toContain("bg-fill-medium");
   expect(c).not.toContain("bg-warning-soft");
 });
 
@@ -101,11 +104,11 @@ function renderWithInlineButton() {
 
 const descCls = () => screen.getByTestId("desc").className;
 
-test("warning description sets ink text and no button colour override", () => {
-  // The description is ink like the buttons inside it, so an inline button
-  // keeps its own colour.
+test("warning description sets its own text colour and no button colour override", () => {
+  // The description is muted 13 (Raft redesign), set on itself, so an inline
+  // button keeps its own colour.
   renderWithInlineButton();
-  expect(descCls().split(/\s+/)).toContain("text-foreground");
+  expect(descCls().split(/\s+/)).toContain("text-foreground-muted");
   expect(descCls()).not.toContain("text-current");
 });
 

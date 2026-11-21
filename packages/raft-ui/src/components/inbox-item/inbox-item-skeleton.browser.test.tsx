@@ -204,7 +204,8 @@ it("a compact skeleton with line ends its heading with the time, at the row's in
   const time = row.querySelector("[data-slot=inbox-item-timestamp]")!.getBoundingClientRect();
   const heading = row.querySelector("[data-slot=inbox-item-heading]")!.getBoundingClientRect();
   expect(row.querySelector("[data-slot=inbox-item-trailing]")).toBeNull();
-  expect(row.getBoundingClientRect().right - time.right).toBe(20);
+  // 16px from the row's edge on a phone (mobile spec 11/21).
+  expect(row.getBoundingClientRect().right - time.right).toBe(16);
   // On the title's baseline, with the line held at its height. How far the time's
   // box then sits from the line's top depends on the two fonts' metrics, so its
   // place can't be exact: its middle is held to the line instead.

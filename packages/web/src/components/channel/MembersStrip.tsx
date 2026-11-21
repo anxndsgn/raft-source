@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import { useId, useState, useSyncExternalStore } from "react";
 import { useIntl } from "react-intl";
-import { ChevronRight, UserPlus } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
 import {
   TooltipProvider,
   ListRow,
@@ -28,8 +28,8 @@ import { MEMBERS_STRIP_TOOLTIP_DELAY_MS } from "./membersStripTooltipDelay";
  *  into the add flow (one hop fewer). Artea 2026-08-10: the preview may
  *  wrap to at most three rows; overflow and add always keep their slots. */
 const STRIP_MAX_ROWS = 3;
-// The avatars' size (AvatarSlot panel-header): md 35px, sm 27px with a mouse on a desktop.
-const STRIP_TILE_SIZE_PX = 35;
+// The avatars' size: 32px circles on a phone and a touch screen (Figmama mobile spec 11/21), 27px with a mouse on a desktop.
+const STRIP_TILE_SIZE_PX = 32;
 const STRIP_TILE_GAP_PX = 8;
 const STRIP_FALLBACK_COLUMNS = 7;
 // The members card is one target, the way a card that opens something as a whole is (raft-design
@@ -53,9 +53,11 @@ const MEMBERS_OPEN_CLASS = [
 ].join(" ");
 // A member's face: not a control of its own (the card is the one tab stop), but raised over the cover so its
 // name still shows on hover; a click on it opens the list, as the cover under it would.
-const STRIP_FACE_CLASS = "relative z-raised shrink-0 cursor-pointer rounded-sticker";
-// The add tile is a square button: sticker radius and the shared keyboard focus ring, over the cover.
-const STRIP_ADD_BUTTON_CLASS = "relative z-raised shrink-0 rounded-sticker outline-none focus-visible:shadow-focus";
+// Raft redesign (mobile spec 11/21): a round face with no edge, the strip's size.
+const STRIP_FACE_CLASS = "relative z-raised shrink-0 cursor-pointer rounded-full [&_[data-slot=avatar]]:size-(--strip-tile) [&_[data-slot=avatar]]:rounded-full [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none [&_[data-slot=avatar-image]]:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full";
+// The add tile is a round ghost button (Raft redesign, mobile spec 11/21): a + on no fill, the subtle fill
+// under the pointer or finger, the shared keyboard focus ring, over the cover.
+const STRIP_ADD_BUTTON_CLASS = "relative z-raised shrink-0 rounded-full outline-none focus-visible:shadow-focus";
 const STRIP_PRELOAD_LIMIT = STRIP_MAX_ROWS * STRIP_FALLBACK_COLUMNS;
 const NO_CHANNEL_EXTERNAL_MEMBERS: ChannelExternalMember[] = [];
 
@@ -208,7 +210,7 @@ export function MembersStrip({
       <TooltipProvider delay={MEMBERS_STRIP_TOOLTIP_DELAY_MS}>
         <div
           ref={columnStore.attach}
-          className="flex w-full flex-wrap content-start items-center gap-2 [--strip-tile:35px] md:pointer-fine:[--strip-tile:27px]"
+          className="flex w-full flex-wrap content-start items-center gap-2 [--strip-tile:32px] md:pointer-fine:[--strip-tile:27px]"
           aria-busy={loading}
           data-testid="channel-overflow-members-grid"
           data-max-rows={STRIP_MAX_ROWS}
@@ -303,17 +305,16 @@ export function MembersStrip({
           )}
           {onAdd && (
             <Tooltip content={formatMessage({ id: "agent.channelMembers.addMember" })}>
-              {/* DS empty identity (`rf-avatar--empty`): a dashed ink-3 square
-                  with a plus — the place a new member would take. */}
+              {/* Raft redesign (mobile spec 11/21): a round ghost button with a plus, no dashed box. */}
               <button
                 type="button"
                 onClick={onAdd}
                 disabled={loading}
                 aria-label={formatMessage({ id: "agent.channelMembers.addMember" })}
-                className={`${STRIP_ADD_BUTTON_CLASS} flex size-(--strip-tile) items-center justify-center border-[1.5px] border-dashed border-foreground-hint text-foreground-hint hover:bg-fill-medium disabled:cursor-wait disabled:border-line-hairline disabled:text-foreground-disabled`}
+                className={`${STRIP_ADD_BUTTON_CLASS} flex size-(--strip-tile) items-center justify-center text-foreground-muted hover:bg-fill-subtle active:bg-fill-subtle disabled:cursor-wait disabled:text-foreground-disabled`}
                 data-testid="channel-overflow-members-add-tile"
               >
-                <UserPlus className="size-5 md:pointer-fine:size-4" aria-hidden="true" />
+                <Plus className="size-5 md:pointer-fine:size-4" aria-hidden="true" />
               </button>
             </Tooltip>
           )}

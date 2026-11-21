@@ -141,7 +141,8 @@ describe("ListRow", () => {
     const row = screen.getByRole("button", { name: "release-review" });
     expect(row.hasAttribute("data-selected")).toBe(true);
     expect(row.getAttribute("aria-current")).toBe("true");
-    expect(classes(row)).toContain("data-selected:bg-info-soft");
+    // Raft redesign: selected is the 5% ink (Figmama 11/21), by touch too.
+    expect(classes(row)).toContain("data-selected:bg-fill-medium");
     expect(
       classes(row).filter(
         (name) => name.includes("overlay-medium") && !name.includes("not-data-selected"),
@@ -399,7 +400,8 @@ describe("ListRow", () => {
         "rounded-container",
         "border",
         "border-line-hairline",
-        "bg-layer-card",
+        // Raft redesign: a settings card is the canvas (by touch too, mobile spec 11/21).
+        "bg-layer-canvas",
       ]),
     );
   });

@@ -10,7 +10,7 @@ import { tv } from "../../lib/tv";
 // (lib/list-cell.ts), with no line, and every state is drawn on its inset
 // shape; its list spaces the rows 2px apart and pads its ends by 8px.
 const hairlineLine = [
-  "before:pointer-events-none before:absolute before:top-0 before:right-0 before:hidden",
+  "before:pointer-events-none before:absolute before:top-0 before:right-(--list-row-rule-end,0px) before:hidden",
   "before:left-(--list-row-rule-start) before:border-t before:border-line-hairline",
 ];
 const hairline = [...hairlineLine, "[[data-slot=list-row]+&]:before:block [li+li>&]:before:block"];
@@ -32,7 +32,7 @@ export const listRow = tv({
       "flex min-w-0 flex-col overflow-hidden",
       "rounded-container border border-line-hairline bg-layer-card text-foreground",
       // Raft redesign (Figmama 11/20): with a mouse a settings card is the canvas, not grey.
-      "md:pointer-fine:bg-layer-canvas",
+      "bg-layer-canvas md:pointer-fine:bg-layer-canvas",
     ],
     // The row owns its three inks and the parts read them, so the tone and the
     // disabled state are decided once, on the row: a tone never applies to a
@@ -104,7 +104,8 @@ export const listRow = tv({
       // change fails (save-status.tsx), so there is nothing to leave out:
       // with its error shown, the ends centre on the whole row, error included.
       plain: {
-        root: ["py-(--settings-row-inset)", "[--list-row-rule-start:16px]"],
+        // The line between settings rows is inset 16 at both ends, on the rows' content (Figmama 11/21).
+        root: ["py-(--settings-row-inset)", "[--list-row-rule-start:16px] [--list-row-rule-end:16px]"],
       },
       // A shortcut into another page (Search, Activity, Saved): a 20px icon and
       // a name, 48 tall. A group of them is a set of buttons, so no lines.
@@ -136,7 +137,7 @@ export const listRow = tv({
           "data-selected:bg-info-soft",
           // Raft redesign (Figmama 11/21): with a mouse a selected row reads as
           // the sidebar's selected item, 5% ink (its title is Semi Bold already).
-          "md:pointer-fine:data-selected:bg-fill-medium",
+          "data-selected:bg-fill-medium md:pointer-fine:data-selected:bg-fill-medium",
         ],
       },
       true: {

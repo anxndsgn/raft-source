@@ -68,7 +68,8 @@ it("description left edge is the same with and without BannerAction", () => {
 
 // --- inline button colour: an inline link reads the description's ink ---
 
-it("warning inline button reads the description's colour", () => {
+// Raft redesign (by touch too, mobile spec 11/21): the description is muted and a strong link in it is the ink.
+it("warning inline strong link reads the ink over the muted description", () => {
   render(
     <ThemeProvider>
       <Banner status="warning" data-testid="banner">
@@ -84,7 +85,7 @@ it("warning inline button reads the description's colour", () => {
 
   const descColor = color(screen.getByTestId("desc"));
   const btnColor = color(screen.getByTestId("inline-btn"));
-  expect(btnColor).toBe(descColor);
+  expect(btnColor).not.toBe(descColor);
 });
 
 // --- action placement: bottom right, beside the last line, or a line of their own ---
@@ -410,7 +411,8 @@ it("600px: an unbroken URL wraps inside the text column instead of running under
   );
 });
 
-it("600px: a title runs on over the actions' column, so it doesn't wrap early", () => {
+// Raft redesign (anxndsgn's card rule; by touch too, mobile spec 11/21): the title keeps to its column.
+it("600px: a title keeps to its column, beside the actions", () => {
   render(
     <ThemeProvider>
       <div style={{ width: "600px" }}>
@@ -435,7 +437,7 @@ it("600px: a title runs on over the actions' column, so it doesn't wrap early", 
   const title = screen.getByTestId("title");
   const desc = screen.getByTestId("desc");
   expect(title.getBoundingClientRect().height).toBe(lineHeight(title));
-  expect(title.getBoundingClientRect().right).toBeGreaterThan(
+  expect(title.getBoundingClientRect().right).toBeLessThanOrEqual(
     screen.getByTestId("action").getBoundingClientRect().left,
   );
   expect(Math.abs(centerY(screen.getByTestId("main")) - lastLineCenter(desc))).toBeLessThanOrEqual(
@@ -549,9 +551,9 @@ for (const [name, width, pointer] of [
       const label = fontSize(screen.getByTestId("main"));
       for (const id of ["desc", "title"]) {
         const text = fontSize(screen.getByTestId(id));
-        // Raft redesign: with a mouse the description is 13px, below the 14px title.
-        if (pointer !== "fine" || id === "title") expect(text).toBeGreaterThanOrEqual(label);
-        if (pointer !== "fine" || id === "desc") {
+        // Raft redesign: the description is 13px, below the 14px title (by touch too, mobile spec 11/21).
+        if (id === "title") expect(text).toBeGreaterThanOrEqual(label);
+        if (id === "desc") {
           expect(text).toBe(fontSize(screen.getByTestId("md-desc")));
           expect(lineHeight(screen.getByTestId(id))).toBe(lineHeight(screen.getByTestId("md-desc")));
         }

@@ -265,8 +265,9 @@ test("message refs are never the yellow sticker, which means you (#triage:71de6c
     return tag[1];
   };
 
+  // Raft redesign (by touch too, mobile spec 11/21): a reference is plain text in the sentence, no fill.
   for (const ref of ["#general msg=abc12345", "#general:abcd1234 msg=abc12345"]) {
-    assert.match(classOf(ref), /\bbg-info-soft\b/);
+    assert.match(classOf(ref), /\bbg-transparent\b/);
     assert.doesNotMatch(classOf(ref), /\bbg-you\b/);
   }
 });

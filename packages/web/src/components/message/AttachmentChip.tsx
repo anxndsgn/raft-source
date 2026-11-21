@@ -53,6 +53,12 @@ interface AttachmentChipProps {
 // (w-44 / min-w-44 / max-w-44 / shrink-0 / overflow-hidden) still live here and
 // are passed to the card as className; the contract test pins this literal.
 const COMPACT_CHIP_LAYOUT = "group/img relative inline-flex h-20 w-44 min-w-44 max-w-44 shrink-0 flex-col justify-between overflow-hidden text-left";
+// On a phone (Figmama mobile spec 11/21) two lines, the type tag and the name over the kind and the size, with the
+// card's actions at its end, centred, each 40 to the finger.
+const PHONE_CHIP_LAYOUT = "max-md:grid max-md:h-auto max-md:min-h-14 max-md:w-72 max-md:min-w-0 max-md:max-w-72 max-md:grid-cols-[minmax(0,1fr)_auto] max-md:content-center max-md:items-center max-md:gap-x-2 max-md:gap-y-0.5 max-md:py-2.5";
+const PHONE_CHIP_TEXT = "max-md:col-start-1";
+const PHONE_CHIP_ACTIONS = "max-md:col-start-2 max-md:row-start-1 max-md:row-span-2 max-md:self-center";
+const PHONE_CHIP_ACTION = "max-md:mt-0 max-md:mb-0 max-md:size-8 max-md:self-center";
 
 export function AttachmentChip({
   attachment,
@@ -97,6 +103,7 @@ export function AttachmentChip({
     <MessageAttachmentAction
       render={<div />}
       aria-hidden="true"
+      className={PHONE_CHIP_ACTION}
       data-message-affordance={affordanceName ?? "file-download"}
     >
       <Download size={16} />
@@ -105,6 +112,7 @@ export function AttachmentChip({
     <MessageAttachmentAction
       render={<div />}
       aria-hidden="true"
+      className={PHONE_CHIP_ACTION}
       data-message-affordance={affordanceName ?? "file-preview"}
     >
       <Eye size={16} />
@@ -123,11 +131,11 @@ export function AttachmentChip({
       onClick={disabled ? undefined : onClick}
       aria-busy={loading ? "true" : undefined}
       aria-label={ariaLabel ?? attachment.filename}
-      className={`${COMPACT_CHIP_LAYOUT}${stateClassName ? ` ${stateClassName}` : ""}`}
+      className={`${COMPACT_CHIP_LAYOUT} ${PHONE_CHIP_LAYOUT}${stateClassName ? ` ${stateClassName}` : ""}`}
     >
       <MessageAttachmentTitle
         data-message-affordance="attachment-text-slot"
-        className="min-w-0 overflow-hidden"
+        className={`min-w-0 overflow-hidden ${PHONE_CHIP_TEXT}`}
       >
         <span className="flex min-w-0 max-w-full items-center gap-1.5">
           <AttachmentTypeBadge
@@ -146,7 +154,7 @@ export function AttachmentChip({
       {summary ? (
         <MessageAttachmentSummary
           data-message-affordance="attachment-summary-slot"
-          className="flex min-w-0 max-w-full overflow-hidden"
+          className={`flex min-w-0 max-w-full overflow-hidden ${PHONE_CHIP_TEXT}`}
         >
           <TruncatedTooltip
             content={summary}
@@ -157,7 +165,7 @@ export function AttachmentChip({
           </TruncatedTooltip>
         </MessageAttachmentSummary>
       ) : null}
-      <MessageAttachmentMeta>
+      <MessageAttachmentMeta className="max-md:contents">
         {meta}
         {/* Scoped attachment-comment count (MVP §5): rendered inside the
             existing meta line — text-language badge, no new chip layer.
@@ -166,19 +174,20 @@ export function AttachmentChip({
         {(attachment.commentCount ?? 0) > 0
           && !attachment.mimeType?.startsWith("image/")
           && attachment.mimeType?.split(";")[0]?.trim().toLowerCase() !== "application/pdf" ? (
-          <span data-message-affordance="attachment-comment-count" className="inline-flex items-center gap-1 pl-1">
+          <span data-message-affordance="attachment-comment-count" className={`inline-flex items-center gap-1 pl-1 ${PHONE_CHIP_TEXT}`}>
             {meta ? <span>·</span> : null}
             <CommentIcon width={12} height={12} className="shrink-0" />
             {attachment.commentCount}
           </span>
         ) : null}
-        <MessageAttachmentMetaEnd>
+        <MessageAttachmentMetaEnd className={PHONE_CHIP_ACTIONS}>
           {loading ? null : isOptimistic ? (
             <Spinner size="sm" aria-label={formatMessage({ id: "common.loadingLabel" })} />
           ) : (
             <>
               {secondaryDownload ? (
                 <MessageAttachmentAction
+                  className={PHONE_CHIP_ACTION}
                   data-message-affordance={secondaryDownload.affordanceName ?? "file-download"}
                   aria-label={secondaryDownload.label}
                   onClick={handleSecondaryDownload}
@@ -188,7 +197,7 @@ export function AttachmentChip({
               ) : null}
               {affordanceIcon}
               {/* The room the menu trigger is drawn in, over the card. */}
-              {menu ? <MessageAttachmentAction render={<div />} aria-hidden="true" data-message-affordance="attachment-menu-slot" /> : null}
+              {menu ? <MessageAttachmentAction render={<div />} aria-hidden="true" className={PHONE_CHIP_ACTION} data-message-affordance="attachment-menu-slot" /> : null}
             </>
           )}
         </MessageAttachmentMetaEnd>

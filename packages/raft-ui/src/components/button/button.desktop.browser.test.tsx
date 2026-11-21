@@ -62,22 +62,22 @@ for (const mode of MODES) {
     expect(getComputedStyle(renderButton(mode)).fontSize).toBe("14px");
   });
 
-  it(`${mode}: the default Button is 32px on a phone and with a mouse (Raft redesign), with a 44px hit area`, async () => {
+  it(`${mode}: the default Button is 36px on a phone and 32px with a mouse (Raft redesign), with a 44px hit area`, async () => {
     for (const width of [390, 1280]) {
       await viewport(width);
       const button = renderButton(mode);
-      expect(height(button), `at ${width}px`).toBe(32);
+      expect(height(button), `at ${width}px`).toBe(width < 768 ? 36 : 32);
       expect(hitHeight(button), `at ${width}px`).toBeGreaterThanOrEqual(44);
       cleanup();
     }
   });
 
-  it(`${mode}: on a phone a large Button and an icon-lg button are 44px, with a 22px icon`, async () => {
+  it(`${mode}: on a phone a large Button is 36px and an icon-lg button 40px, with a 20px icon (mobile spec 11/21)`, async () => {
     await viewport(390);
-    expect(height(renderButton(mode, "lg"))).toBe(44);
+    expect(height(renderButton(mode, "lg"))).toBe(36);
     cleanup();
-    expect(height(renderButton(mode, "icon-lg"))).toBe(44);
-    expect(height(screen.getByTestId("icon"))).toBe(22);
+    expect(height(renderButton(mode, "icon-lg"))).toBe(40);
+    expect(height(screen.getByTestId("icon"))).toBe(20);
     cleanup();
     expect(height(renderButton(mode, "xl"))).toBe(52);
   });

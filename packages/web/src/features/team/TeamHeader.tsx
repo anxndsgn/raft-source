@@ -37,7 +37,7 @@ export function TeamHeader({ view, onMobileBack, mobileBackProps }: {
   ));
   return (
     // The head's own 20px edge (the Members tab's), the same on every tab.
-    <div className="flex shrink-0 flex-col [--column-margin:20px]" data-testid="team-header" data-full-page="">
+    <div className="flex shrink-0 flex-col [--column-margin:16px] md:[--column-margin:20px]" data-testid="team-header" data-full-page="">
       <PanelHeader
         containerProps={FULL_PAGE_HEAD_PROPS}
         title={formatMessage({ id: "team.page.title" })}

@@ -12,14 +12,14 @@ export const sidebarSectionRecipe = tv({
     sidebarSectionHeader: [
       "flex items-center justify-between",
       "group/section-header",
-      "my-0 h-auto gap-2 pt-4 pb-0 pl-5",
+      "my-0 h-auto gap-2 pt-4 pb-0 pl-(--column-margin)",
       // A scroller that shows a classic scrollbar publishes its width as
       // --scrollbar-size (useScrollbarSize), and the rows give it back from
       // their end inset (lib/list-cell.ts). The header gives back the same, so
       // its controls end on the rows' content edge (20px from the sidebar's
-      // outer edge by touch, 16px with a mouse) and don't move left when the
-      // scrollbar appears.
-      "pr-[calc(max(0px,calc(8px-var(--scrollbar-size,0px)))+12px)]",
+      // outer edge from 768px by touch, 16px on a phone and with a mouse) and
+      // don't move left when the scrollbar appears.
+      "pr-[calc(max(0px,calc(8px-var(--scrollbar-size,0px)))+var(--column-margin)-8px)]",
       // With a mouse on a desktop (stdrc, 2026-11-05, option B): the title
       // starts on the glyph axis, outdented from the rows' text; the chevron
       // is the last control at the end; the last control's icon ends on the

@@ -30,7 +30,8 @@ test("a field defaults to the control height", () => {
 test("`md` takes the row's button height, the control height with a mouse", () => {
   const { size, classes } = classesOf("md");
   expect(size).toBe("md");
-  expect(classes).toContain("h-8");
+  // 36px by touch, the row's Button (mobile spec 11/21).
+  expect(classes).toContain("h-9");
   expect(classes).toContain("md:pointer-fine:h-control");
   expect(classes).not.toContain("h-control");
   // It stops clipping, so its input can reach a 44px tap past the box.

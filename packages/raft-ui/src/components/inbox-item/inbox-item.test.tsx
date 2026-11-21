@@ -41,7 +41,9 @@ test("row actions keep a 44px target and spaced targets on a touch screen", () =
   }
   // A mouse keeps the 32px buttons 2px apart, whatever the width.
   expect(classes).toContain("gap-0.5");
-  expect(classes).toContain("*:data-[slot=panel-action]:h-8");
+  expect(classes).toContain("*:data-[slot=panel-action]:size-8");
+  // A row's own icon Buttons stay 32 too (the 40px icon button is for bars).
+  expect(classes).toContain("*:data-[slot=button]:size-8");
 });
 
 test("rows that don't opt in keep their parts' classes; compact and reveal only add", () => {

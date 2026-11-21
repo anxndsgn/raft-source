@@ -203,10 +203,10 @@ it("draws no divider; the leading visual and text keep their places inside the i
     row.getBoundingClientRect().top - screen.getByTestId("row-1").getBoundingClientRect().bottom,
   ).toBe(2);
   const leading = screen.getByTestId("leading-2").getBoundingClientRect();
-  // The content is padded from the shape: 8px inset + 12px inside it.
-  expect(leading.left - rowLeft).toBe(20);
+  // The content is padded from the shape: 8px inset + 8px inside it on a phone (mobile spec 11/21).
+  expect(leading.left - rowLeft).toBe(16);
   expect(leading.width).toBe(36);
-  expect(screen.getByTestId("content-2").getBoundingClientRect().left - rowLeft).toBe(68);
+  expect(screen.getByTestId("content-2").getBoundingClientRect().left - rowLeft).toBe(64);
 });
 
 it("sets a compact row on one line each for the title and the excerpt", async () => {
@@ -307,10 +307,10 @@ const display = (id: string) => getComputedStyle(screen.getByTestId(id)).display
 it("runs both lines of a compact row with no trailing column to the row's inner padding", async () => {
   render(<FullWidthRow />);
   const rowRight = rect("row").right;
-  // 8px to the shape + 12px inside it; no empty column or its gap in between.
-  expect(rowRight - rect("content").right).toBe(20);
-  expect(rowRight - rect("time").right).toBeCloseTo(20, 1);
-  expect(rowRight - rect("marks").right).toBeCloseTo(20, 1);
+  // 8px to the shape + 8px inside it on a phone; no empty column or its gap in between.
+  expect(rowRight - rect("content").right).toBe(16);
+  expect(rowRight - rect("time").right).toBeCloseTo(16, 1);
+  expect(rowRight - rect("marks").right).toBeCloseTo(16, 1);
   // On the title's baseline, with the line held at its height. How far the time's
   // box then sits from the line's top depends on the two fonts' metrics, so its
   // place can't be exact: its middle is held to the line instead.
@@ -352,7 +352,7 @@ it("centres a hover-revealed Done on the row; the time and marks stay and move o
   const row = rect("row");
   const done = rect("done");
   expect((done.top + done.bottom) / 2).toBe((row.top + row.bottom) / 2);
-  expect(row.right - done.right).toBe(20);
+  expect(row.right - done.right).toBe(16);
   // 32px button + 8px.
   expect(restRight - rect("time").right).toBeCloseTo(40, 1);
   expect(done.left - rect("time").right).toBeCloseTo(8, 1);
@@ -366,7 +366,7 @@ it("hides an older row's time at rest; it shows on hover and on keyboard focus, 
   render(<FullWidthRow older />);
   expect(display("time")).toBe("none");
   const restTitleRight = rect("title").right;
-  expect(rect("row").right - restTitleRight).toBe(20);
+  expect(rect("row").right - restTitleRight).toBe(16);
 
   await page.getByTestId("row").hover();
   await expect.poll(() => display("time")).not.toBe("none");
@@ -388,8 +388,9 @@ it("keeps an older row's time hidden on the active row until the pointer or the 
 });
 
 for (const [width, narrow] of [
-  [359, true],
-  [360, false],
+  // The rows' content is 8px wider on a phone now (16px edges, mobile spec 11/21).
+  [351, true],
+  [352, false],
 ] as const) {
   it(`shows a status ${narrow ? "by its pixel" : "with its word"} in a row ${width}px wide, whatever the window`, async () => {
     render(
@@ -473,9 +474,9 @@ it("starts a list heading on the rows' content line, 8px over its group's first 
   const next = screen.getByTestId("next");
   expect(next.tagName).toBe("H3");
   const style = getComputedStyle(next);
-  expect(style.paddingLeft).toBe("20px");
+  expect(style.paddingLeft).toBe("16px");
   expect(style.fontWeight).toBe("700");
-  expect(rect("row-a-content").left - rect("row-a").left).toBe(20);
+  expect(rect("row-a-content").left - rect("row-a").left).toBe(16);
   // 4px under the words, its 2px margin, the group's 2px gap.
   expect(rect("row-b").top - rect("next").bottom).toBe(4);
   expect(rect("row-b").top - (rect("next").bottom - Number.parseFloat(style.paddingBottom))).toBe(

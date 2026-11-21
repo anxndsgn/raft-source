@@ -124,7 +124,7 @@ it("the menu part is narrower than the main part and as tall", () => {
 
 // Touch runs last: turning touch emulation off again leaves Chromium
 // reporting `pointer: none`, not `fine` (panel-action.browser.test.tsx).
-it("on a touch screen the main part is 44px and the menu part a 24px drawing with a 44px target", async () => {
+it("on a touch screen the main part is the 40px bar button (mobile spec 11/21) and the menu part a 24px drawing with a 44px target", async () => {
   const { cdp, page } = await import("vite-plus/test/browser/context");
   await page.viewport(1280, 800);
   await cdp().send("Emulation.setEmulatedMedia", {
@@ -134,10 +134,10 @@ it("on a touch screen the main part is 44px and the menu part a 24px drawing wit
   const { main, menu } = renderSplit("light");
   const mainBox = main.getBoundingClientRect();
   const menuBox = menu.getBoundingClientRect();
-  expect(mainBox.width).toBe(44);
-  expect(mainBox.height).toBe(44);
+  expect(mainBox.width).toBe(40);
+  expect(mainBox.height).toBe(40);
   expect(menuBox.width).toBe(24);
-  expect(menuBox.height).toBe(44);
+  expect(menuBox.height).toBe(40);
   // The ::after reaches past the menu part's end (measured from inside its
   // 1.5px border) to a 44px target, into space the part keeps free.
   const after = getComputedStyle(menu, "::after");

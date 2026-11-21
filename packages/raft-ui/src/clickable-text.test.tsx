@@ -96,7 +96,8 @@ test("a mention of someone else underlines in ink only on hover", () => {
   const cls = screen.getByText("@Martin").className;
   expectHoverUnderline(cls);
   expect(tokens(cls)).toContain("decoration-foreground");
-  expect(tokens(cls)).toContain("font-bold");
+  // Raft redesign: Semi Bold at every width (mobile spec 11/21).
+  expect(tokens(cls)).toContain("font-semibold");
 });
 
 test("translation actions underline only on hover", () => {

@@ -31,7 +31,9 @@ const select = tv({
       "**:data-[slot='button-content']:w-full **:data-[slot='button-content']:justify-between",
       "[&>span[data-slot='select-trigger-content']]:min-w-0 [&>span[data-slot='select-trigger-content']]:flex-1",
       "[&_[data-slot='select-trigger-content']_svg]:shrink-0",
-      "h-control w-full gap-2 rounded-(--control-radius) pr-3 pl-3.5",
+      // Raft redesign: 36 by touch like a secondary Button, its hit area 44 (Figmama mobile spec 11/21).
+      "relative h-9 md:pointer-fine:h-control w-full gap-2 rounded-(--control-radius) pr-3 pl-3.5",
+      "after:absolute after:inset-x-0 after:-inset-y-1 after:content-[''] md:pointer-fine:after:hidden",
       "border-[1.5px] border-line-field",
       "hover:bg-none",
       "text-subhead font-semibold text-foreground",
@@ -44,9 +46,9 @@ const select = tv({
       "[&_[data-slot='select-trigger-content']_svg:not([class*='stroke-'])]:stroke-2",
       // Raft redesign (Figmama 11/20): with a mouse the secondary Button: 5%
       // ink, no edge, the control corner, 10px in; the chevron 16 muted.
-      "md:pointer-fine:border-0 md:pointer-fine:bg-fill-medium md:pointer-fine:rounded-control md:pointer-fine:pl-2.5 md:pointer-fine:pr-2 md:pointer-fine:text-[14px]",
-      "md:pointer-fine:hover:overlay-subtle md:pointer-fine:data-invalid:inset-ring md:pointer-fine:data-invalid:inset-ring-danger",
-      "md:pointer-fine:**:data-[slot='select-icon']:text-foreground-muted",
+      "border-0 md:pointer-fine:border-0 bg-fill-medium md:pointer-fine:bg-fill-medium rounded-control md:pointer-fine:rounded-control md:pointer-fine:pl-2.5 md:pointer-fine:pr-2 md:pointer-fine:text-[14px]",
+      "hover:overlay-subtle md:pointer-fine:hover:overlay-subtle data-invalid:inset-ring md:pointer-fine:data-invalid:inset-ring data-invalid:inset-ring-danger md:pointer-fine:data-invalid:inset-ring-danger",
+      "**:data-[slot='select-icon']:text-foreground-muted md:pointer-fine:**:data-[slot='select-icon']:text-foreground-muted",
     ],
     icon: [
       "ml-auto flex shrink-0 items-center justify-center transition-transform",

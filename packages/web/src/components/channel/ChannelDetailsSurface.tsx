@@ -204,10 +204,11 @@ export function ChannelDetailsIdentity({
         <IconTile size="md" aria-hidden="true">
           <ChannelIcon channel={channel} type={channel?.type} size={18} />
         </IconTile>
-        <h3 className="min-w-0 truncate text-headline font-bold text-foreground" data-testid="channel-overflow-title-text">
+        <h3 className="min-w-0 truncate text-headline font-semibold text-foreground" data-testid="channel-overflow-title-text">
           {channelName}
         </h3>
-        {tag ? <Badge appearance="outline" className="shrink-0" data-testid="channel-overflow-visibility-badge">{tag}</Badge> : null}
+        {/* Raft redesign (mobile spec 11/21): a role tag. */}
+        {tag ? <Badge appearance="soft" variant="muted" className="shrink-0" data-testid="channel-overflow-visibility-badge">{tag}</Badge> : null}
         {channel?.archivedAt ? (
           <Badge appearance="soft" variant="muted" className="shrink-0">{formatMessage({ id: "message.chatPanel.archived" })}</Badge>
         ) : null}

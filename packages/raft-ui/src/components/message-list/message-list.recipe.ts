@@ -81,24 +81,26 @@ export const messageListJump = tv({
       // round ends with it.
       // No overflow clip: it would cut the 44px hit areas. The parts round
       // their own outer ends instead.
-      "md:pointer-fine:rounded-pill md:pointer-fine:border md:pointer-fine:border-line-floating md:pointer-fine:bg-layer-canvas",
-      "md:pointer-fine:*:data-[slot=message-list-jump-pill]:h-[27px] md:pointer-fine:*:data-[slot=message-list-jump-pill]:border-0",
-      "md:pointer-fine:*:data-[slot=message-list-jump-pill]:bg-transparent md:pointer-fine:*:data-[slot=message-list-jump-pill]:hover:bg-fill-subtle",
+      // By touch the same, 36 tall (Figmama mobile spec 11/21: the x inside the unread pill).
+      "rounded-pill border border-line-floating bg-layer-canvas",
+      "*:data-[slot=message-list-jump-pill]:h-[34px] md:pointer-fine:*:data-[slot=message-list-jump-pill]:h-[27px] *:data-[slot=message-list-jump-pill]:border-0",
+      "*:data-[slot=message-list-jump-pill]:bg-transparent md:pointer-fine:*:data-[slot=message-list-jump-pill]:bg-transparent *:data-[slot=message-list-jump-pill]:hover:bg-fill-subtle md:pointer-fine:*:data-[slot=message-list-jump-pill]:hover:bg-fill-subtle",
     ],
     // Raft redesign (Figma Typing pill, the floating pill): on a desktop a
     // 29px canvas pill with a 1px floating line, no ink edge or shadow.
     pill: [
-      "md:pointer-fine:h-[29px] md:pointer-fine:rounded-pill md:pointer-fine:border md:pointer-fine:border-line-floating",
-      "md:pointer-fine:bg-layer-canvas md:pointer-fine:shadow-none md:pointer-fine:ring-0 md:pointer-fine:pr-3 md:pointer-fine:pl-2",
+      // By touch (mobile spec 11/21) the same pill 36 tall, Semi Bold 13 with a 16px icon.
+      "h-9 md:pointer-fine:h-[29px] rounded-pill border md:pointer-fine:border border-line-floating max-md:text-[13px]",
+      "bg-layer-canvas md:pointer-fine:bg-layer-canvas shadow-none ring-0 md:pointer-fine:ring-0 pr-3 pl-2.5 md:pointer-fine:pr-3 md:pointer-fine:pl-2",
       // A 29px pill (27px inside the group) still keeps a 44px hit area.
       "md:pointer-fine:after:-inset-y-[9px]",
     ],
     dismiss: [
       // On a desktop it draws no border of its own (the group's pill does):
       // one 1px floating line before it, 6px short of the top and bottom.
-      "md:pointer-fine:h-[27px] md:pointer-fine:w-[29px] md:pointer-fine:rounded-e-pill md:pointer-fine:border-0",
-      "md:pointer-fine:bg-transparent md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:shadow-none md:pointer-fine:ring-0",
-      "md:pointer-fine:before:absolute md:pointer-fine:before:inset-y-1.5 md:pointer-fine:before:left-0 md:pointer-fine:before:w-px md:pointer-fine:before:bg-line-floating md:pointer-fine:before:content-['']",
+      "h-[34px] w-9 md:pointer-fine:h-[27px] md:pointer-fine:w-[29px] rounded-e-pill border-0 md:pointer-fine:border-0",
+      "bg-transparent md:pointer-fine:bg-transparent hover:bg-fill-subtle md:pointer-fine:hover:bg-fill-subtle shadow-none ring-0 md:pointer-fine:ring-0",
+      "before:absolute before:inset-y-1.5 before:left-0 before:w-px before:bg-line-floating before:content-['']",
       "rounded-s-none border-s-0",
       "text-foreground-muted hover:text-foreground",
       "[&_svg:not([class*='size-'])]:size-4",

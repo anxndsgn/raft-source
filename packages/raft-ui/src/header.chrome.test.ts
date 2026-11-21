@@ -21,9 +21,10 @@ function tokens(cls: string): Set<string> {
 test("avatar slots opt out of the header icon chip", () => {
   // Avatar slots (profile identity) declare data-icon-kind="avatar" and drop
   // the chip entirely — the round avatar must not sit on a square.
+  // Raft redesign: no header icon draws a chip at any width (mobile spec 11/21).
   const icon = tokens(panelHeader().headerIcon());
-  expect(icon.has("data-[icon-kind=avatar]:bg-transparent")).toBe(true);
-  expect(icon.has("data-[icon-kind=avatar]:border-transparent")).toBe(true);
+  expect(icon.has("bg-transparent")).toBe(true);
+  expect(icon.has("border-0")).toBe(true);
 });
 
 test("header className wins the merge against the recipe surface (container tint contract)", () => {
@@ -49,9 +50,10 @@ test("thread panel: the dark drop-shadow class is gone", () => {
   expect(threadPanel().root()).not.toContain("shadow-[-4px");
 });
 
-test("title scale: panel titles sit on the 17px headline step", () => {
-  // One title size (17); hierarchy comes from weight and colour.
+test("title scale: panel titles are Semi Bold 16 on a phone, the head title with a mouse", () => {
+  // Raft redesign (Figmama mobile spec 11/21): one title size per device; hierarchy comes from weight and colour.
   const title = tokens(panelHeader().title());
-  expect(title.has("text-headline")).toBe(true);
-  expect(title.has("font-bold")).toBe(true);
+  expect(title.has("text-[16px]/[22px]")).toBe(true);
+  expect(title.has("font-semibold")).toBe(true);
+  expect(title.has("md:pointer-fine:text-head-title")).toBe(true);
 });

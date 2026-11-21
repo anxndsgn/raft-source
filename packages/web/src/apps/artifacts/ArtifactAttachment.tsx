@@ -222,10 +222,11 @@ function AttachmentMenu({ attachment, context }: { attachment: ArtifactAttachmen
       <Tooltip content={label}>
         <DropdownMenuTrigger
           render={(
-            // Over the card's meta row, where its own action sits (the card itself is a button).
+            // Over the card's meta row, where its own action sits (the card itself is a button); on a phone
+            // over the card's end, centred, 40 to the finger (Figmama mobile spec 11/21).
             <MessageAttachmentAction
               aria-label={label}
-              className="absolute bottom-[var(--control-embedded-inset)] right-[var(--control-embedded-inset)] m-0"
+              className="absolute bottom-[var(--control-embedded-inset)] right-[var(--control-embedded-inset)] m-0 max-md:top-1/2 max-md:bottom-auto max-md:size-8 max-md:-translate-y-1/2"
               data-testid="artifact-attachment-menu-trigger"
             >
               <EllipsisVertical />

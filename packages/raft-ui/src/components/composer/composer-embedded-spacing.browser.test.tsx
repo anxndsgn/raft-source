@@ -48,8 +48,11 @@ it("the composer's buttons sit as far apart as they sit from its edge", () => {
   const file = screen.getByRole("button", { name: "File" }).getBoundingClientRect();
   const send = screen.getByRole("button", { name: "Send" }).getBoundingClientRect();
 
-  expect(Math.round(image.left - frame.left)).toBe(6);
-  expect(Math.round(frame.bottom - image.bottom)).toBe(6);
-  expect(Math.round(frame.right - send.right)).toBe(6);
-  expect(Math.round(file.left - image.right)).toBe(6);
+  expect([
+    Math.round(image.left - frame.left),
+    // The send button is the row's tallest part (36px on a phone, mobile spec 11/21).
+    Math.round(frame.bottom - send.bottom),
+    Math.round(frame.right - send.right),
+    Math.round(file.left - image.right),
+  ]).toEqual([6, 6, 6, 6]);
 });

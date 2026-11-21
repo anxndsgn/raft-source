@@ -18,10 +18,10 @@ const it = test.skipIf(typeof window === "undefined");
 // Turning touch emulation off again leaves Chromium reporting `pointer: none`,
 // so the mouse screen runs first.
 const SCREENS = [
-  // Raft redesign: with a mouse every control is 32px (Figmama 11/20).
+  // Raft redesign: with a mouse every control is 32px (Figmama 11/20); by touch a row's controls are 36 (11/21).
   { name: "desktop 1280", width: 1280, height: 800, touch: false, row: 32, field: 32 },
-  { name: "tablet 1024", width: 1024, height: 768, touch: true, row: 32, field: 44 },
-  { name: "phone 390", width: 390, height: 844, touch: true, row: 32, field: 44 },
+  { name: "tablet 1024", width: 1024, height: 768, touch: true, row: 36, field: 44 },
+  { name: "phone 390", width: 390, height: 844, touch: true, row: 36, field: 44 },
 ] as const;
 type Screen = (typeof SCREENS)[number];
 
@@ -109,9 +109,9 @@ for (const s of SCREENS) {
     if (s.touch) {
       expect(target.height).toBeGreaterThanOrEqual(44);
       expect(target.top + target.height / 2).toBeCloseTo(box.top + box.height / 2, 1);
-      // 5px past the box, above and below, a tap still lands on the input.
-      expect(document.elementFromPoint(x, box.top - 5)).toBe(input);
-      expect(document.elementFromPoint(x, box.bottom + 5)).toBe(input);
+      // 3px past the 36px box (4px reach), above and below, a tap still lands on the input.
+      expect(document.elementFromPoint(x, box.top - 3)).toBe(input);
+      expect(document.elementFromPoint(x, box.bottom + 3)).toBe(input);
     } else {
       expect(target.top).toBeGreaterThanOrEqual(box.top);
       expect(target.bottom).toBeLessThanOrEqual(box.bottom);
@@ -141,10 +141,12 @@ it("an md field's container addons round their own outer corners", () => {
   );
   const start = getComputedStyle(screen.getByTestId("start"));
   const end = getComputedStyle(screen.getByTestId("end"));
-  expect(start.borderTopLeftRadius).toBe("6.5px");
-  expect(start.borderBottomLeftRadius).toBe("6.5px");
+  // The field has no border (Raft redesign), so an addon's outer corners are the field's own.
+  const corner = getComputedStyle(screen.getByTestId("start").parentElement!).borderTopLeftRadius;
+  expect(start.borderTopLeftRadius).toBe(corner);
+  expect(start.borderBottomLeftRadius).toBe(corner);
   expect(start.borderTopRightRadius).toBe("0px");
-  expect(end.borderTopRightRadius).toBe("6.5px");
-  expect(end.borderBottomRightRadius).toBe("6.5px");
+  expect(end.borderTopRightRadius).toBe(corner);
+  expect(end.borderBottomRightRadius).toBe(corner);
   expect(end.borderTopLeftRadius).toBe("0px");
 });

@@ -19,8 +19,8 @@ const it = test.skipIf(typeof window === "undefined");
 // so the mouse screen runs first.
 const SCREENS = [
   { name: "mouse 1280", width: 1280, height: 800, touch: false, box: 32, hit: 32 },
-  { name: "touch 1024", width: 1024, height: 768, touch: true, box: 32, hit: 44 },
-  { name: "phone 390", width: 390, height: 844, touch: true, box: 32, hit: 44 },
+  { name: "touch 1024", width: 1024, height: 768, touch: true, box: 36, hit: 44 },
+  { name: "phone 390", width: 390, height: 844, touch: true, box: 36, hit: 44 },
 ] as const;
 type Screen = (typeof SCREENS)[number];
 
@@ -92,9 +92,9 @@ for (const s of SCREENS) {
       const area = tapArea(trigger);
       expect(box.height).toBe(s.box);
       expect(area.bottom - area.top).toBe(s.hit);
-      // By touch 6px past the box above and below; with a mouse none.
-      expect(box.top - area.top).toBe(s.touch ? 6 : 0);
-      expect(area.bottom - box.bottom).toBe(s.touch ? 6 : 0);
+      // By touch 4px past the 36px box above and below (mobile spec 11/21); with a mouse none.
+      expect(box.top - area.top).toBe(s.touch ? 4 : 0);
+      expect(area.bottom - box.bottom).toBe(s.touch ? 4 : 0);
       // Never sideways.
       expect(area.left).toBe(box.left);
       expect(area.right).toBe(box.right);

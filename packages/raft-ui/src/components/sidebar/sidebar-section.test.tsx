@@ -129,8 +129,8 @@ function renderControls() {
  */
 test("the header's end padding gives back the scrollbar, as the rows do", () => {
   const header = renderControls().classes("sidebar-section-header");
-  expect(header).toContain("pr-[calc(max(0px,calc(8px-var(--scrollbar-size,0px)))+12px)]");
-  expect(header).toContain("pl-5");
+  expect(header).toContain("pr-[calc(max(0px,calc(8px-var(--scrollbar-size,0px)))+var(--column-margin)-8px)]");
+  expect(header).toContain("pl-(--column-margin)");
   expect(header).not.toContain("px-5");
 });
 
@@ -165,7 +165,8 @@ test("a control rests in the hint color and turns body color when it is the one 
     "focus-visible:text-foreground",
     "data-popup-open:text-foreground",
     "data-popup-open:bg-fill-medium",
-    "hover:bg-fill-medium",
+    // Raft redesign: a ghost control's hover is the subtle fill (by touch too, mobile spec 11/21).
+    "hover:bg-fill-subtle",
   ]) {
     expect(cls).toContain(token);
   }

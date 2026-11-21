@@ -357,7 +357,7 @@ export default function SavedPanel({ embedded = false }: {
   return (
     // A column of list cells: its head and rows share one edge, 20px at every
     // width (raft-ui --column-margin; raft-design patterns/lists.md).
-    <div className="flex min-h-0 flex-1 flex-col bg-layer-canvas [--column-margin:20px]">
+    <div className="flex min-h-0 flex-1 flex-col bg-layer-canvas [--column-margin:16px] md:[--column-margin:20px]">
       {!embedded ? (
         <PanelHeader
           title={formatMessage({ id: "saved.header.title" })}

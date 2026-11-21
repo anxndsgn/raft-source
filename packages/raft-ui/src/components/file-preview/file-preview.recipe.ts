@@ -53,8 +53,8 @@ export const filePreview = tv({
           // Raft redesign (Figmama 11/20): with a mouse a role tag: 16px, 4px
           // sides, Medium 11/14 muted on 5% ink, no edge (its ring was cut
           // off at the card's clip), as wide as its letters.
-          "md:pointer-fine:h-4 md:pointer-fine:w-auto md:pointer-fine:px-1 md:pointer-fine:ring-0 md:pointer-fine:bg-fill-medium",
-          "md:pointer-fine:font-sans md:pointer-fine:text-[11px] md:pointer-fine:leading-[14px] md:pointer-fine:font-medium",
+          "h-4 md:pointer-fine:h-4 w-auto md:pointer-fine:w-auto px-1 md:pointer-fine:px-1 ring-0 md:pointer-fine:ring-0 bg-fill-medium md:pointer-fine:bg-fill-medium",
+          "font-sans md:pointer-fine:font-sans text-[11px] md:pointer-fine:text-[11px] leading-[14px] md:pointer-fine:leading-[14px] font-medium md:pointer-fine:font-medium",
         ],
       },
     },

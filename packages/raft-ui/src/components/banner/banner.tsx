@@ -26,15 +26,15 @@ const banner = tv({
       "has-[>[data-slot=banner-title]]:[--banner-desc-row:2]",
       "has-[>[data-slot=banner-description]]:[--banner-last-row:var(--banner-desc-row,1)]",
       "has-[>[data-banner-close]]:[--banner-action-end:span_2]",
-      // Raft redesign (anxndsgn's card rule, Figmama 11/18): on a desktop no
-      // outline, the lines 2px apart.
-      "md:pointer-fine:ring-0 md:pointer-fine:gap-y-0.5 md:pointer-fine:[--banner-title-span:auto]",
-      // A 16px icon on a desktop, every size (anxndsgn 11/18: 24 in the rail, 16 everywhere else).
-      "md:pointer-fine:[--banner-icon:16px] md:pointer-fine:[&>svg]:size-4 md:pointer-fine:[&>svg]:mt-[calc((1lh-16px)/2)]",
+      // Raft redesign (anxndsgn's card rule, Figmama 11/18; by touch too, mobile
+      // spec 11/21): no outline, the lines 2px apart.
+      "ring-0 gap-y-0.5 [--banner-title-span:auto]",
+      // A 16px icon, every size (anxndsgn 11/18: 24 in the rail, 16 everywhere else).
+      "[--banner-icon:16px] [&>svg]:size-4 [&>svg]:mt-[calc((1lh-16px)/2)]",
     ],
     title: [
       "min-w-0 wrap-break-word text-foreground",
-      "row-start-1 font-bold md:pointer-fine:font-semibold",
+      "row-start-1 font-semibold",
       "col-start-(--banner-text-col,1)",
       // Raft redesign: on a desktop the buttons stand beside both lines, so the
       // title keeps to its column (the root sets --banner-title-span).
@@ -42,8 +42,8 @@ const banner = tv({
     ],
     description: [
       "min-w-0 wrap-break-word font-normal",
-      "text-foreground",
-      "md:pointer-fine:text-[13px] md:pointer-fine:text-foreground-muted",
+      // Raft redesign: 13 muted at every width (mobile spec 11/21).
+      "text-[13px] text-foreground-muted",
       "col-start-(--banner-text-col,1)",
       "row-start-(--banner-desc-row,1)",
     ],
@@ -62,19 +62,20 @@ const banner = tv({
     ],
     close: [
       "col-start-[calc(var(--banner-text-col,1)+1)] row-start-1 self-start",
-      "-my-[calc((--spacing(8)-1lh)/2)] -me-icon-inset",
+      // The 40px icon button by touch (mobile spec 11/21), 32 with a mouse.
+      "-my-[calc((--spacing(10)-1lh)/2)] md:pointer-fine:-my-[calc((--spacing(8)-1lh)/2)] -me-icon-inset",
     ],
   },
   variants: {
     status: {
-      default: { root: ["bg-fill-muted md:pointer-fine:bg-fill-medium"] },
-      // Raft redesign (Figmama 11/18): on a desktop every banner is the same
-      // card, 5% ink; only its icon takes the status colour.
-      destructive: { root: ["bg-danger-soft md:pointer-fine:bg-fill-medium md:pointer-fine:[&>svg]:text-danger"] },
-      warning: { root: ["bg-warning-soft md:pointer-fine:bg-fill-medium md:pointer-fine:[&>svg]:text-presence-error"] },
-      // Raft redesign: an informing banner is a card on a desktop, 5% ink (5% paper in dark).
-      info: { root: ["bg-info-soft md:pointer-fine:bg-fill-medium"] },
-      success: { root: ["bg-success-soft md:pointer-fine:bg-fill-medium md:pointer-fine:[&>svg]:text-presence-online"] },
+      // Raft redesign (Figmama 11/18; by touch too, mobile spec 11/21): every
+      // banner is the same card, 5% ink (5% paper in dark); only its icon takes
+      // the status colour.
+      default: { root: ["bg-fill-medium"] },
+      destructive: { root: ["bg-fill-medium [&>svg]:text-danger"] },
+      warning: { root: ["bg-fill-medium [&>svg]:text-presence-error"] },
+      info: { root: ["bg-fill-medium"] },
+      success: { root: ["bg-fill-medium [&>svg]:text-presence-online"] },
     },
     size: {
       sm: {
@@ -95,10 +96,11 @@ const banner = tv({
     {
       size: "sm",
       class: {
-        // The button beside the line is 32px.
+        // The button beside the line: 36px by touch (mobile spec 11/21), 32px with a mouse.
         root: [
-          // Raft redesign: Buttons are 32px with a mouse too.
-          "[--banner-button:--spacing(8)]",
+          "[--banner-button:--spacing(9)] md:pointer-fine:[--banner-button:--spacing(8)]",
+          // A × is the 40px icon button by touch.
+          "has-[>[data-banner-close]]:[--banner-button:--spacing(10)] md:pointer-fine:has-[>[data-banner-close]]:[--banner-button:--spacing(8)]",
           "has-[>[data-slot=banner-action],>[data-banner-close]]:py-[calc((var(--banner-button)-1lh)/2+(--spacing(1)))]",
         ],
       },

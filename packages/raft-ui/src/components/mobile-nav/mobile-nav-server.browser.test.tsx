@@ -251,16 +251,16 @@ it("rises above the tab bar, 8px from each side of it and 8px above it", async (
   expect(bar.top - popup.bottom).toBeCloseTo(8, 0);
 });
 
-it("shows the avatar at the 22px of the other tabs' icons, and opens with the press fill", async () => {
+it("shows the avatar at the 20px of the other tabs' icons (mobile spec 11/21), and opens with the press fill", async () => {
   const tab = renderPhone();
   const icon = screen.getByTestId("search").querySelector("svg")!.getBoundingClientRect();
   const avatar = screen.getByTestId("avatar").getBoundingClientRect();
-  expect(avatar.width).toBe(22);
-  expect(avatar.height).toBe(22);
+  expect(avatar.width).toBe(20);
+  expect(avatar.height).toBe(20);
   expect(avatar.top).toBeCloseTo(icon.top, 0);
-  const closed = getComputedStyle(tab, "::before").backgroundColor;
+  const closed = getComputedStyle(tab).backgroundColor;
   await tap(tab);
-  expect(getComputedStyle(tab, "::before").backgroundColor).not.toBe(closed);
+  expect(getComputedStyle(tab).backgroundColor).not.toBe(closed);
 });
 
 it("truncates a long server name inside its fifth of the bar", () => {
@@ -307,7 +307,8 @@ it("puts each server's name over its address at the two-line option height, the 
     expect(avatar.width).toBe(20);
     expect(avatar.top + avatar.height / 2).toBeCloseTo(row.top + row.height / 2, 0);
   });
-  expect(getComputedStyle(slugs[0]).fontFamily).toMatch(/Mono/i);
+  // Raft redesign: machine meta is the sans (mobile spec 11/21).
+  expect(getComputedStyle(slugs[0]).fontFamily).not.toMatch(/Mono/i);
   const destinations = [...screen.getByTestId("destinations").children].map((cell) =>
     cell.getBoundingClientRect(),
   );

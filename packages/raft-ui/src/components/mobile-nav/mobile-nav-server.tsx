@@ -34,8 +34,9 @@ const mobileNavServer = tv({
   slots: {
     item: [
       "select-none [-webkit-touch-callout:none]",
-      "*:data-[slot=avatar]:size-[22px]",
-      "data-popup-open:before:bg-fill-medium",
+      // The tab bar's 20px icon (Figmama mobile spec 11/21); open, the press fill.
+      "*:data-[slot=avatar]:size-5",
+      "data-popup-open:bg-fill-subtle",
     ],
     content: [
       "flex flex-col",

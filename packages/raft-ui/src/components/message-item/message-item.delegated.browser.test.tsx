@@ -221,12 +221,13 @@ it("the face is 19px and sticks out of the owner's avatar as far as an md presen
   // The same visible overhang past the avatar's outer edge as the presence
   // light: both rings (the light's outline, the face's shadow) are the
   // surface, so what shows is the face's own edge, 2.5px out (the browser
-  // snaps the 1.5px ink edge, so 2.5 to 3).
+  // snaps the 1.5px ink edge, so 2.5 to 3; an avatar with no edge, the
+  // redesign's round one, 4).
   const overhang = face.right - owner.right;
   expect(overhang).toBeCloseTo(light.right - agent.right, 1);
   expect(face.bottom - owner.bottom).toBeCloseTo(light.bottom - agent.bottom, 1);
   expect(overhang).toBeGreaterThanOrEqual(2.5);
-  expect(overhang).toBeLessThanOrEqual(3);
+  expect(overhang).toBeLessThanOrEqual(4);
   const style = getComputedStyle(screen.getByTestId("face"));
   expect(style.right).toBe("-4px");
   expect(style.bottom).toBe("-4px");

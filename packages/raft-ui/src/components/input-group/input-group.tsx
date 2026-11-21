@@ -27,8 +27,8 @@ const inputGroup = tv({
       // Raft redesign (Figmama 11/20): with a mouse the field look
       // (lib/field-look.ts): 5% ink, no edge, the control corner; focus a 1px
       // ink line inside, not the glow.
-      "md:pointer-fine:border-0 md:pointer-fine:bg-fill-medium md:pointer-fine:rounded-control md:pointer-fine:[--focus-ring:0_0_0_0_transparent]",
-      "md:pointer-fine:focus-within:inset-ring md:pointer-fine:focus-within:inset-ring-foreground",
+      "border-0 md:pointer-fine:border-0 bg-fill-medium md:pointer-fine:bg-fill-medium rounded-control md:pointer-fine:rounded-control [--focus-ring:0_0_0_0_transparent] md:pointer-fine:[--focus-ring:0_0_0_0_transparent]",
+      "focus-within:inset-ring md:pointer-fine:focus-within:inset-ring focus-within:inset-ring-foreground md:pointer-fine:focus-within:inset-ring-foreground",
     ],
     addon: [
       "flex shrink-0 items-center justify-center gap-2 px-3",
@@ -68,13 +68,15 @@ const inputGroup = tv({
     size: {
       md: {
         root: [
-          "h-8 md:pointer-fine:h-control rounded-control overflow-visible",
-          "[--ig-hit:calc(--spacing(1.5)+1.5px)] md:pointer-fine:[--ig-hit:0px]",
+          // Raft redesign: 36px by touch, the row's Button (mobile spec 11/21): 36 + 2 x 4 = 44.
+          "h-9 md:pointer-fine:h-control rounded-control overflow-visible",
+          "[--ig-hit:--spacing(1)] md:pointer-fine:[--ig-hit:0px]",
           "*:data-[slot=input-group-control]:-my-(--ig-hit) *:data-[slot=input-group-control]:h-[calc(100%+2*var(--ig-hit))]",
-          "[--control-embedded-size:calc(2rem-2*var(--control-embedded-inset))]",
+          "[--control-embedded-size:calc(2.25rem-2*var(--control-embedded-inset))]",
           "md:pointer-fine:[--control-embedded-size:calc(var(--control-height)-2*var(--control-embedded-inset))]",
-          "*:data-[variant=container]:data-[align=inline-start]:rounded-s-[calc(var(--radius-control)-1.5px)]",
-          "*:data-[variant=container]:data-[align=inline-end]:rounded-e-[calc(var(--radius-control)-1.5px)]",
+          // The field has no border (Raft redesign), so an addon takes the field's corner.
+          "*:data-[variant=container]:data-[align=inline-start]:rounded-s-control",
+          "*:data-[variant=container]:data-[align=inline-end]:rounded-e-control",
         ],
       },
       lg: {},

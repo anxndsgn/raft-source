@@ -14,7 +14,7 @@ import { useOtherServerMessageLink } from "../deeplinks/otherServerMessageLink";
 import { conversationPathOf, serverPathOf, useDeepLinksFlag, useLandedMessageLink, useLandingHoldsAnnouncements, useMessageLinkLandingLifetime } from "../deeplinks/deepLinksFlag";
 import { isMessageLinkLanding, isThreadMismatch, parseMessageLink } from "../../utils/messageLinkLanding";
 import { movePageLanding } from "../../utils/pageLanding";
-import { useContext, useState, useEffect, useEffectEvent, useCallback, useMemo, useRef, Suspense } from "react";
+import { cloneElement, useContext, useState, useEffect, useEffectEvent, useCallback, useMemo, useRef, Suspense } from "react";
 import type { ReactNode } from "react";
 import {
   AppShellSidebarSlot,
@@ -57,7 +57,6 @@ import { useChannelStore } from "../../store/channelStore";
 import { useAgentStore } from "../../store/agentStore";
 import { useInboxStore } from "../../store/inboxStore";
 import { useShallow } from "zustand/react/shallow";
-import AttentionDot from "../ui/AttentionDot";
 import { hasCurrentServerActivityUnread } from "../../utils/serverUnreadSummary";
 import { useTaskStore, selectChannelTaskBucket } from "../../store/taskStore";
 import { loadThreadParentTasksIfNeeded, resolveThreadHostTask } from "./threadHostTask";
@@ -86,7 +85,7 @@ import { ChannelAccessLost } from "../../features/channel/ChannelAccessLost";
 import { GuestNoChannel, NoConversation } from "../../features/channel/NoConversation";
 import { useChannelAccessLost, useChannelUnavailable } from "../../store/channelAccessLoss";
 import MobileComputersPanel from "../machine/MobileComputersPanel";
-import { MobileServerTab, TeamTabAttentionDot } from "./MobileServerTab";
+import { MobileServerTab, TabBarAttentionDot, TeamTabAttentionDot } from "./MobileServerTab";
 import { useMarkComputerAttentionSeen } from "../../hooks/useComputerAttentionDot";
 import { ThreadPanel } from "../../features/thread/DeferredThreadPanel";
 import { useProfileStore } from "../../store/profileStore";
@@ -317,7 +316,7 @@ function ActivityTabUnreadDot({ className }: { className?: string }) {
   const unread = hasCurrentServerActivityUnread({ hasAcceptedWindow, hasTotalUnread, hasPreloadActiveUnread, summaryUnreadCount });
   if (!unread) return null;
   return (
-    <AttentionDot
+    <TabBarAttentionDot
       className={className}
       role="img"
       aria-label={formatMessage({ id: "layout.leftRail.unreadActivity" })}
@@ -326,7 +325,7 @@ function ActivityTabUnreadDot({ className }: { className?: string }) {
   );
 }
 
-const MOBILE_TAB_DOT_CLASS = "absolute -top-0.5 -right-1";
+const MOBILE_TAB_DOT_CLASS = "absolute top-0 -right-0.5";
 
 /** Mobile bottom tab bar — shown only on root-level views (md:hidden).
  *  Hidden when user drills into a detail view (channel, DM, thread, member detail). */
@@ -414,7 +413,8 @@ export function MobileTabBar() {
                 the icon (the old Brutal short-viewport adaptation) would hide
                 which tab you are on. */}
             <span className={MOBILE_TAB_ICON_BOX_CLASS}>
-              <tab.icon />
+              {/* The selected tab shows its icon's filled style (Raft icons take `filled`; Figmama mobile spec 11/21). */}
+              {active ? cloneElement(<tab.icon />, { filled: true } as object) : <tab.icon />}
               {/* Raft DS › MobileNav: an attention dot, never a number, and
                   never on the selected tab. Search never has one. */}
               {active ? null : tab.id === "activity" ? <ActivityTabUnreadDot className={MOBILE_TAB_DOT_CLASS} /> : tab.id === "team" ? <TeamTabAttentionDot className={MOBILE_TAB_DOT_CLASS} /> : null}

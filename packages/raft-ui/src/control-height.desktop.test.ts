@@ -21,7 +21,7 @@ const styles = readFileSync(join(sourceDirectory, "styles.css"), "utf8");
 const PHONE = {
   "--control-height": "44px",
   "--control-height-cta": "52px",
-  "--control-icon-size": "22px",
+  "--control-icon-size": "20px",
   "--control-hit-inset": "0px",
 };
 const DESKTOP = {
@@ -39,7 +39,7 @@ function declared(css: string, name: string) {
   return css.match(new RegExp(`${name}:\\s*([^;]+);`))?.[1]?.trim();
 }
 
-test("a phone keeps 44px controls with 22px icons", () => {
+test("a phone keeps 44px controls with 20px icons (Figmama mobile spec 11/21)", () => {
   for (const [name, value] of Object.entries(PHONE)) {
     expect(declared(phone, name), name).toBe(value);
   }

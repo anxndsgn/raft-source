@@ -43,12 +43,12 @@ describe("MessageItemSavedIndicator default", () => {
   test("renders the flat state-marker chip with no shadow", () => {
     const node = renderIndicator();
     const classes = node.className.split(/\s+/);
-    // The reactions' height and the footer badges' type: one row, one weight.
-    expect(classes).toContain("h-6");
-    expect(classes).toContain("text-footnote");
-    expect(classes).toContain("font-bold");
-    expect(classes).toContain("rounded-chip");
-    expect(classes).toContain("bg-fill-muted");
+    // Raft redesign (mobile spec 11/21): a quiet line, Inter 12 muted on no fill.
+    expect(classes).toContain("h-5");
+    expect(classes).toContain("text-[12px]");
+    expect(classes).toContain("font-normal");
+    expect(classes).toContain("rounded-control");
+    expect(classes).toContain("bg-transparent");
     expect(classes.filter((name) => name.startsWith("shadow-"))).toEqual([]);
     expect(node.hasAttribute("data-icon-only")).toBe(false);
   });
@@ -78,6 +78,6 @@ describe("MessageItemSavedIndicator iconOnly prop", () => {
   test("CONTROL: the default shell is not the icon-button one", () => {
     const classes = renderIndicator().className.split(/\s+/);
     expect(classes).not.toContain("size-8");
-    expect(classes).not.toContain("bg-transparent");
+    expect(classes).toContain("h-5");
   });
 });

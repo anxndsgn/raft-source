@@ -4,7 +4,7 @@ import type { VariantProps } from "../../lib/tv";
 
 const sender = [
   "min-w-0 truncate",
-  "text-subhead font-bold text-foreground md:pointer-fine:font-semibold",
+  "text-subhead font-semibold text-foreground",
   "rounded-[2px] outline-none focus-visible:shadow-focus",
 ];
 
@@ -58,22 +58,21 @@ export const messageItem = tv({
       // input. Never the browser's own outline.
       "outline-none focus-visible:keyboard:inset-ring-2 focus-visible:keyboard:inset-ring-foreground",
     ],
-    gutter: ["relative shrink-0 self-stretch", "w-[35px] md:pointer-fine:w-8"],
+    gutter: ["relative shrink-0 self-stretch", "w-8"],
     avatarSlot: [
       "relative shrink-0 self-start",
-      "flex w-[35px] justify-center",
-      "[&_[data-slot=avatar][data-size=md]]:size-(--mi-avatar,35px)",
-      // Raft redesign (conversation spec): with a mouse a 32px circle with no
-      // edge; an initial in Semi Bold 13.
-      "md:pointer-fine:w-8 md:pointer-fine:[&_[data-slot=avatar][data-size=md]]:size-8",
-      "md:pointer-fine:[&_[data-slot=avatar]]:rounded-full md:pointer-fine:[&_[data-slot=avatar]]:border-0 md:pointer-fine:[&_[data-slot=avatar]]:shadow-none",
-      "md:pointer-fine:[&_[data-slot=avatar-image]]:rounded-full md:pointer-fine:[&_[data-slot=avatar-fallback]]:rounded-full",
-      "md:pointer-fine:[&_[data-slot=avatar-fallback]]:text-[13px] md:pointer-fine:[&_[data-slot=avatar-fallback]]:font-semibold md:pointer-fine:[&_[data-slot=avatar-fallback]]:tracking-normal",
+      "flex w-8 justify-center",
+      // Raft redesign (conversation spec; the mobile spec 11/21 on a phone): a
+      // 32px circle with no edge; an initial in Semi Bold 13.
+      "[&_[data-slot=avatar][data-size=md]]:size-(--mi-avatar,32px) md:pointer-fine:[&_[data-slot=avatar][data-size=md]]:size-8",
+      "[&_[data-slot=avatar]]:rounded-full [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none",
+      "[&_[data-slot=avatar-image]]:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full",
+      "[&_[data-slot=avatar-fallback]]:text-[13px] [&_[data-slot=avatar-fallback]]:font-semibold [&_[data-slot=avatar-fallback]]:tracking-normal",
     ],
     continuationTime: [
       "absolute right-0 select-none whitespace-nowrap tabular-nums",
       "top-[calc((var(--text-body--line-height)-var(--text-mono-meta--line-height))/2)]",
-      "font-mono text-mono-meta md:pointer-fine:font-sans",
+      "font-sans text-mono-meta",
       "text-(--mi-ct-color,transparent)",
     ],
     content: ["min-w-0 flex-1", "text-body text-foreground"],
@@ -112,6 +111,8 @@ export const messageItem = tv({
       "md:pointer-fine:[&_[data-slot=badge]]:h-4 md:pointer-fine:[&_[data-slot=badge]]:px-1 md:pointer-fine:[&_[data-slot=badge]]:py-px md:pointer-fine:[&_[data-slot=badge]]:self-center",
       "md:pointer-fine:[&_[data-slot=badge]]:text-[11px] md:pointer-fine:[&_[data-slot=badge]]:leading-[14px] md:pointer-fine:[&_[data-slot=badge]]:font-medium",
       "md:pointer-fine:[&_[data-slot=badge]]:bg-fill-medium md:pointer-fine:[&_[data-slot=badge]]:text-foreground-muted md:pointer-fine:[&_[data-slot=badge]]:rounded-sticker md:pointer-fine:[&_[data-slot=badge]]:inset-ring-0 md:pointer-fine:[&_[data-slot=badge]]:ring-0",
+      // A phone's head is the name and the time (mobile spec 11/21): no tags.
+      "max-md:[&_[data-slot=badge]]:hidden",
       "*:data-[slot=message-item-meta]:basis-0 *:data-[slot=message-item-meta]:grow",
       // The gap before the role lives inside it (a 6px spacer that is cut off
       // with it), so a role squeezed to nothing leaves no dead gap after the
@@ -126,13 +127,15 @@ export const messageItem = tv({
       "cursor-pointer",
       "decoration-[1.5px] underline-offset-[3px] hover:underline",
     ],
-    senderBadges: ["inline-flex shrink-0 items-center gap-1"],
-    meta: ["min-w-0 truncate", "text-caption text-foreground-hint"],
+    // A phone's head is the name and the time alone (Figmama mobile spec 11/21):
+    // the role and the tags (agent, model, computer, Archived) are in the profile.
+    senderBadges: ["inline-flex shrink-0 items-center gap-1", "max-md:hidden"],
+    meta: ["min-w-0 truncate", "text-caption text-foreground-hint", "max-md:hidden"],
     time: [
       "shrink-0 whitespace-nowrap",
-      "font-mono text-mono-meta tabular-nums text-foreground-hint",
-      // Raft redesign: with a mouse the time is the sans, not the mono.
-      "md:pointer-fine:font-sans",
+      // Raft redesign: the time is the sans, not the mono (with a mouse; on a
+      // phone too, mobile spec 11/21).
+      "font-sans text-mono-meta tabular-nums text-foreground-hint",
     ],
     inlineStatus: ["shrink-0", "text-caption text-foreground-hint"],
     // "sent by Friday": one step stronger than the role, so it is seen at a

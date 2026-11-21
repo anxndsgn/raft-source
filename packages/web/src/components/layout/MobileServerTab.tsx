@@ -31,7 +31,6 @@ import type { Server } from "../../store/serverStore";
 import { hasOtherServerActivityUnread } from "../../utils/serverUnreadSummary";
 import type { ServerUnreadSummary } from "../../utils/serverUnreadSummary";
 import { touchDragRegion } from "../../utils/touchDragRegion";
-import AttentionDot from "../ui/AttentionDot";
 import Banner from "../ui/Banner";
 import { ServerTabRowContent } from "./ServerTabRowContent";
 import { dismissLayerProps } from "../ui/dismissLayer";
@@ -319,8 +318,13 @@ export function MobileServerTab({ mobileTab }: { mobileTab: MobileTabId | null }
  * The phone's Team tab's dot (PRD 团队页 §8): a computer needs you, as the desktop rail's Team tab says it (the
  * attention dot, never a number, never on the selected tab; Raft DS › MobileNav).
  */
+/** A tab bar dot (Figmama mobile spec 11/21): the rail's, the danger colour with a 1px ring of the canvas. */
+export function TabBarAttentionDot({ className, ...props }: { className?: string; role?: string; "aria-label"?: string; "data-testid"?: string }) {
+  return <Status {...props} size="sm" variant="danger" className={`rounded-sticker border-0 ring-1 ring-layer-canvas ${className ?? ""}`} />;
+}
+
 export function TeamTabAttentionDot({ className }: { className?: string }) {
   const computers = useComputersPageAttention();
   if (!computers.lit) return null;
-  return <AttentionDot className={className} role="img" aria-label={computers.label} data-testid="mobile-tab-team-attention-dot" />;
+  return <TabBarAttentionDot className={className} role="img" aria-label={computers.label} data-testid="mobile-tab-team-attention-dot" />;
 }
