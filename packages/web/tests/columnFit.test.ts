@@ -14,21 +14,22 @@ test("the agreed bounds table (design lead, 2026-10-21; right-hand maxima task #
   // only the safety bound its stored width is clamped to.
   const toMainMin = GROWS_TO_MAIN_MIN_SAFETY_MAX;
   assert.deepEqual(table, {
-    sidebar: [232, 200, 400, "slock:sidebarWidth", null], // 232: Raft redesign (Figma 精修 · 组件化 Sidebar)
+    sidebar: [232, 200, toMainMin, "slock:sidebarWidth", null], // 232: Raft redesign (Figma 精修 · 组件化 Sidebar); no fixed maximum (11/21)
     // Activity's list: 240 minimum so rail + list + conversation fit 768 (stdrc).
-    list: [380, 240, 640, "slock:searchPanelWidth", null],
+    list: [380, 240, toMainMin, "slock:searchPanelWidth", null],
     // The layout row's columns go to 160; their content keeps its minimum and clips (#proj-raft-ui:#189, rule 2).
     thread: [400, 160, toMainMin, "slock:threadPanelWidth", 360],
     detail: [400, 160, toMainMin, "slock:profilePanelWidth", 320],
-    workspaceTree: [256, 180, 480, "slock:workspaceTreeWidth", null],
+    workspaceTree: [256, 180, toMainMin, "slock:workspaceTreeWidth", null],
     // Task v2 side sections: flat against the panel's edge, no gutter (task #165).
     // Layout redesign (Figmama/Anna 11/15): the side panel is 320 wide and keeps it.
     sideCards: [320, 160, toMainMin, "slock:channelSideCardsWidth", 320],
-    // Layout redesign 4.4 (11/15): Tasks, Files, Members and the info share one width, 360, dragged within 320–480.
-    sidePanel: [360, 320, 480, "raft:channelSidePanelWidth", null],
+    // Layout redesign 4.4 (11/15): Tasks, Files, Members and the info share one width, 360, at least 320; no fixed
+    // maximum (layout changes, Figmama 11/21).
+    sidePanel: [360, 320, toMainMin, "raft:channelSidePanelWidth", null],
   });
   const growing = Object.entries(COLUMN_BOUNDS).filter(([, b]) => "growsToMainMin" in b && b.growsToMainMin).map(([id]) => id);
-  assert.deepEqual(growing, ["thread", "detail", "sideCards"]);
+  assert.deepEqual(growing, ["thread", "detail", "sideCards", "sidePanel", "workspaceTree"]);
   assert.equal(MAIN_COLUMN_MIN_WIDTH, 360);
 });
 

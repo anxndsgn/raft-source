@@ -843,7 +843,7 @@ function legacyArtifactLinkResponse(request) {
 }
 
 function applySecurityHeaders(headers) {
-  headers.set("Content-Security-Policy", "base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-cg1xNnuzp5/+UMBIIFbDNhnJSBWooRwVUgF4Py/T/cI=' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://static.cloudflareinsights.com; worker-src 'self' blob:");
+  headers.set("Content-Security-Policy", "base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-P87XtS0RJKCTkZWhPG9BDu79FHLbRvda7lBPyDsMdec=' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://static.cloudflareinsights.com; worker-src 'self' blob:");
   headers.set("X-Frame-Options", "DENY");
   headers.set("Referrer-Policy", "no-referrer");
   headers.set("X-Content-Type-Options", "nosniff");

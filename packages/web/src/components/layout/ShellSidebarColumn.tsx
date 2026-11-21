@@ -8,10 +8,9 @@ import type { ColumnSnap } from "../ui/ColumnResizeHandle";
 import { setSidebarSlotHiddenKeepingFocus, useSidebarSlotHidden } from "./sidebarToggle";
 import type { SidebarSlotColumn } from "./sidebarToggle";
 
-// Beyond this much room every remembered width fits, so a wider window needs no re-render.
-const ROOM_CAP = Math.max(COLUMN_BOUNDS.sidebar.max, COLUMN_BOUNDS.list.max)
-  + MAIN_COLUMN_MIN_WIDTH
-  + Math.max(COLUMN_BOUNDS.thread.contentMin, COLUMN_BOUNDS.detail.contentMin);
+// The column has no fixed maximum (layout changes, Figmama 11/21): its handle stops where the room right of it is
+// down to the conversation's minimum and a right panel's, so the room is measured at every width.
+const ROOM_CAP = Number.MAX_SAFE_INTEGER;
 
 /**
  * The signed-in shell's sidebar slot column: the sidebar, or the Activity / Search list beside a picked item.
@@ -56,13 +55,16 @@ export default function ShellSidebarColumn({
 }) {
   const width = useColumnWidth(column);
   const ref = useRef<HTMLDivElement | null>(null);
-  // Room from this column's left edge to the window's right edge; null until laid out (and in jsdom).
+  // Room from this column's left edge to the island's (or window's) right edge; null until laid out (and in jsdom).
   const [room, setRoom] = useState<number | null>(null);
   const measure = useCallback(() => {
     const element = ref.current;
     const windowWidth = document.documentElement.clientWidth;
     if (!element || windowWidth <= 0) return;
-    setRoom(Math.min(ROOM_CAP, Math.round(windowWidth - element.getBoundingClientRect().left)));
+    // To the island's inner right edge where there is one (the gap and its border are no room), else the window's.
+    const island = element.closest<HTMLElement>("[data-slot=app-shell-island]");
+    const right = island ? island.getBoundingClientRect().right - (parseFloat(getComputedStyle(island).borderRightWidth) || 0) : windowWidth;
+    setRoom(Math.min(ROOM_CAP, Math.round(right - element.getBoundingClientRect().left)));
   }, []);
   // The room changes with the window, and also when something left of the
   // column changes width without the window resizing (the rail shown, hidden or
@@ -82,6 +84,10 @@ export default function ShellSidebarColumn({
 
   const { min } = COLUMN_BOUNDS[column];
   const shareCap = maxShare === undefined || room === null ? undefined : shareCapWidth(room, maxShare, min);
+  // The widest it may be dragged: the room less the minimums of the columns right of it (the conversation's, and a
+  // panel's beside it), never under its own minimum (11/21).
+  const roomCap = room === null ? undefined : Math.max(min, room - MAIN_COLUMN_MIN_WIDTH - rightColumnMin);
+  const dragCap = shareCap === undefined ? roomCap : roomCap === undefined ? shareCap : Math.min(shareCap, roomCap);
   const fitted = room === null ? width : fitLeadingColumnWidth(room, { width, min }, rightColumnMin);
   const renderedWidth = shareCap === undefined ? fitted : Math.min(fitted, shareCap);
   const collapsed = useSidebarSlotHidden(collapseColumn ?? "sidebar");
@@ -101,7 +107,7 @@ export default function ShellSidebarColumn({
       data-otter-dock={column}
     >
       {children}
-      {inline ? null : <ColumnResizeHandle column={column} edge="right" visibleFrom="md" maxWidth={shareCap} snap={snap} ownBorder={ownBorder} />}
+      {inline ? null : <ColumnResizeHandle column={column} edge="right" visibleFrom="md" maxWidth={dragCap} snap={snap} ownBorder={ownBorder} />}
     </div>
   );
 }

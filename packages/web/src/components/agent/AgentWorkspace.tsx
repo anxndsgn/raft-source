@@ -338,6 +338,12 @@ function isFinalLoadError(code: string | null): boolean {
   return code === "archive_workspace_unavailable" || code === "computer_access_revoked";
 }
 
+/** The file pane's minimum beside the tree (layout changes, Figmama 11/21: a workspace at least 320). */
+const WORKSPACE_FILE_MIN = 320;
+
+/** The file pane beside the tree: the tree column's next sibling. */
+const treeFilePane = (treeColumn: HTMLElement) => treeColumn.nextElementSibling instanceof HTMLElement ? treeColumn.nextElementSibling : null;
+
 export default function AgentWorkspace({ agentId, compact, hosted }: { agentId: string; compact?: boolean; hosted?: boolean }) {
   const { formatMessage } = useIntl();
   const formatMessageRef = useRef(formatMessage);
@@ -595,7 +601,8 @@ export default function AgentWorkspace({ agentId, compact, hosted }: { agentId: 
       >
         {/* Resize handle (desktop only, not in compact mode) */}
         {!compact && (
-        <ColumnResizeHandle column="workspaceTree" edge="right" className="hidden @xl/workspace:block" />
+        // The file beside it keeps the workspace's 320 (layout changes, 11/21): the tree grows into the rest.
+        <ColumnResizeHandle column="workspaceTree" edge="right" className="hidden @xl/workspace:block" mainColumn={treeFilePane} mainMin={WORKSPACE_FILE_MIN} />
         )}
         {/* Tree header */}
         {/* 12px each side; the last icon-md button is pulled out by its icon

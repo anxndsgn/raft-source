@@ -38,7 +38,9 @@ export const COLUMN_BOUNDS = {
     // Raft redesign (Figma 精修 · 组件化 Sidebar): 232.
     defaultWidth: 232,
     min: 200,
-    max: 400,
+    // Layout changes (Figmama 11/21): no fixed maximum; ShellSidebarColumn stops it where the conversation (and a
+    // panel open beside it) would go under its minimum.
+    max: GROWS_TO_MAIN_MIN_SAFETY_MAX,
     storageKey: "slock:sidebarWidth",
     legacyStorageKeys: ["slock:publicServer:channelSidebarWidth", "slock:publicServer:settingsSidebarWidth"],
   },
@@ -47,7 +49,8 @@ export const COLUMN_BOUNDS = {
   list: {
     defaultWidth: 380,
     min: 240,
-    max: 640,
+    // No fixed maximum (11/21): as the sidebar, ShellSidebarColumn stops it.
+    max: GROWS_TO_MAIN_MIN_SAFETY_MAX,
     storageKey: "slock:searchPanelWidth",
     legacyStorageKeys: ["slock:searchPanelCompactWidth"],
   },
@@ -86,12 +89,14 @@ export const COLUMN_BOUNDS = {
   },
   /**
    * Layout redesign 4.4 (11/15): the channel's side panel — Tasks, Files, Members, the channel's info — one width
-   * shared by all four, 360 by default, dragged within 320–480 (a thread keeps its own, `thread`).
+   * shared by all four, 360 by default, at least 320 (a thread keeps its own, `thread`).
    */
   sidePanel: {
     defaultWidth: 360,
     min: 320,
-    max: 480,
+    // No fixed maximum (11/21): it grows while the conversation keeps its minimum.
+    max: GROWS_TO_MAIN_MIN_SAFETY_MAX,
+    growsToMainMin: true,
     storageKey: "raft:channelSidePanelWidth",
     legacyStorageKeys: [],
   },
@@ -99,7 +104,9 @@ export const COLUMN_BOUNDS = {
   workspaceTree: {
     defaultWidth: 256,
     min: 180,
-    max: 480,
+    // No fixed maximum (11/21): it grows while the file beside it keeps the workspace's 320 (AgentWorkspace).
+    max: GROWS_TO_MAIN_MIN_SAFETY_MAX,
+    growsToMainMin: true,
     storageKey: "slock:workspaceTreeWidth",
     legacyStorageKeys: [],
   },
