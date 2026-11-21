@@ -176,7 +176,8 @@ export const AgentTypingLine = memo(function AgentTypingLine({
   return (
     <div
       data-agent-typing={shown ? "shown" : undefined}
-      className="peer/agent-typing pointer-events-none absolute inset-x-0 bottom-[var(--select-mode-reserve,0px)] z-float"
+      // The pill floats 8px above the composer (Figmama 11/21, fafe198e).
+      className="peer/agent-typing pointer-events-none absolute inset-x-0 bottom-[calc(var(--select-mode-reserve,0px)+8px)] z-float"
     >
       <span role="status" data-testid="agent-typing-status" className="sr-only">{typingSentence}</span>
       <div data-testid="agent-typing-line" className="relative h-7" hidden={!shown}>

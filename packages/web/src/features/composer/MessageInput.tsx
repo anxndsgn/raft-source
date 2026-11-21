@@ -2375,21 +2375,24 @@ export function MessageInput({
 
         {/* Reply mode: what this message will reply to, with ✕ to cancel. */}
         {replyTarget ? (
+          // Raft redesign (Figmama 11/21, fafe198e): 5% ink with no edge, the control corner, 32 tall, 10px in, 8px
+          // above the composer; a 16px muted reply icon, "Reply to X" in Semi Bold 13 ink, the quote regular 13 muted
+          // on one line, a 24px ghost x at the end. The column's gap-2 keeps it 8px above the composer.
           <div
-            className="flex min-w-0 items-center gap-1.5 rounded-md border border-line px-2 py-1 text-footnote text-foreground-muted"
+            className="flex h-8 min-w-0 items-center gap-1.5 rounded-control bg-fill-medium pr-1 pl-2.5 text-[13px] leading-[18px] text-foreground-muted"
             data-testid="composer-reply-bar"
           >
-            <CornerUpLeft size={12} aria-hidden="true" className="shrink-0" />
-            <span className="shrink-0">{formatMessage({ id: "message.reply.replyingTo" }, { name: replyTarget.senderName })}</span>
-            <span className="min-w-0 flex-1 truncate text-foreground-hint">{replyTarget.excerpt}</span>
+            <CornerUpLeft size={16} aria-hidden="true" className="size-4 shrink-0" />
+            <span className="shrink-0 font-semibold text-foreground">{formatMessage({ id: "message.reply.replyingTo" }, { name: replyTarget.senderName })}</span>
+            <span className="min-w-0 flex-1 truncate">{replyTarget.excerpt}</span>
             <button
               type="button"
-              className="shrink-0 text-foreground-hint hover:text-foreground"
+              className="flex size-6 shrink-0 items-center justify-center rounded-control text-foreground-muted outline-none hover:bg-fill-subtle hover:text-foreground focus-visible:shadow-focus"
               onClick={() => clearReplyTarget(channelId)}
               aria-label={formatMessage({ id: "message.reply.cancel" })}
               data-testid="composer-reply-bar-cancel"
             >
-              <X size={14} aria-hidden="true" />
+              <X size={16} aria-hidden="true" className="size-4" />
             </button>
           </div>
         ) : null}
