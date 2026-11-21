@@ -1215,8 +1215,8 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
 
   // Layout changes C (11/21): the server's Tasks page with a mouse on a desktop: the page head; the list view in the
   // reading column, the board across the page as before.
-  // Board and list share one 1200 frame, so switching them moves nothing (owner 94cd5094, Figmama d270abd2); the board
-  // scrolls sideways inside it.
+  // The head and toolbar in the 880 column for both views, so switching moves neither (owner 94cd5094, 838ac465); the
+  // board itself across the page, scrolling sideways there, the list in the column (Figmama f624f725).
   const listColumn = pageHead;
   const newTaskButton = (
     <Button variant="primary" size="md" onClick={openCreateDialog} data-testid="tasks-page-header-new-task">
@@ -1233,7 +1233,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
   );
   return (
     <TasksPanelRoot
-      className={`${pageHead ? `${PAGE_ROOT_CLASS} [--page-column-width:1200px]` : ""} flex min-h-0 flex-1 flex-col`}
+      className={`${pageHead ? `${PAGE_ROOT_CLASS} [--page-column-width:880px]` : ""} flex min-h-0 flex-1 flex-col`}
       data-testid={isChannelMode ? "channel-task-panel" : undefined}
       data-full-page={isChannelMode ? undefined : ""}
     >
@@ -1278,8 +1278,8 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
         contentClassName={`${VIEWPORT_CONTENT_CLASS}${isChannelMode ? "" : " mobile-nav-clearance"}${isPhoneTabRoot ? PHONE_ROOT_VIEWPORT_CLASS : ""}`}
       >
         {isPhoneTabRoot && toolbar}
-        {/* Layout changes C: the page's 1200 frame, the same for the board and the list (Figmama d270abd2). */}
-        <div className={listColumn ? `flex w-full flex-1 flex-col ${PAGE_COLUMN_CONTENT_CLASS}` : "contents"}>
+        {/* Layout changes C (Figmama f624f725): the list in the head's 880 column; the board across the page. */}
+        <div className={listColumn && viewMode !== "board" ? `flex w-full flex-1 flex-col ${PAGE_COLUMN_CONTENT_CLASS}` : "contents"}>
         {/* Loading, the board or list itself with placeholders in its lanes. */}
         {!loading && sortedTasks.length === 0 && (isChannelMode || allServerLanesLoaded) ? (
           <EmptyState

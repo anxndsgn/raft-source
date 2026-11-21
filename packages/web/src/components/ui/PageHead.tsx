@@ -150,9 +150,9 @@ export function PageNav<T extends string>({ items, value, onValueChange, label, 
  * without one, the title at its top with a line under it; the nav in the margin left of it, 40 from the content, under
  * that line, its first item level with the content's first line (its toolbar, the primary action at the toolbar's end).
  */
-export function PageWithNav({ nav, head, children }: { nav: ReactNode; head?: ReactNode; children: ReactNode }) {
+export function PageWithNav({ nav, head, form = false, children }: { nav: ReactNode; head?: ReactNode; form?: boolean; children: ReactNode }) {
   return (
-    <div className="grid min-h-0 w-full flex-1 grid-cols-[minmax(0,1fr)_minmax(0,920px)_minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] [--page-column-width:880px]" data-page-nav="">
+    <div className={`grid min-h-0 w-full flex-1 grid-rows-[auto_minmax(0,1fr)] ${form ? "grid-cols-[minmax(0,1fr)_minmax(0,760px)_minmax(0,1fr)] [--page-column-width:720px]" : "grid-cols-[minmax(0,1fr)_minmax(0,920px)_minmax(0,1fr)] [--page-column-width:880px]"}`} data-page-nav="">
       <div className="col-start-2 row-start-1 min-w-0">{head}</div>
       <div className="col-start-1 row-start-2 min-h-0 justify-self-end pr-5">{nav}</div>
       <div className="col-start-2 row-start-2 flex min-h-0 min-w-0 flex-col" data-page-nav-content="">
@@ -175,4 +175,15 @@ export function usePageElement<T extends HTMLElement>(ref?: { current: T | null 
     setElement(next);
   }, [ref]);
   return [element, set];
+}
+
+/**
+ * Settings with its directory in the page (owner, Figmama 4f0745ec): from a window whose page (without the sidebar)
+ * is at least 1240 wide, with a mouse: the 200 nav, 40, and the 720 form, centered (1240 = 2 x (200 + 40 + 20) + 720).
+ * Narrower, Settings keeps the sidebar.
+ */
+export const SETTINGS_PAGE_NAV_QUERY = "(width >= 1296px) and (pointer: fine)";
+
+export function useSettingsPageNav(): boolean {
+  return useMediaQuery(SETTINGS_PAGE_NAV_QUERY, false);
 }

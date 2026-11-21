@@ -1,4 +1,5 @@
-import { PAGE_COLUMN_CONTENT_CLASS, PAGE_ROOT_CLASS, PageHead, useDesktopMouse } from "../ui/PageHead";
+import { PAGE_COLUMN_CONTENT_CLASS, PAGE_ROOT_CLASS, PageHead, PageWithNav, useDesktopMouse, useSettingsPageNav } from "../ui/PageHead";
+import { Sidebar } from "../../features/sidebar/Sidebar";
 import { Panel, ScrollArea, Spinner } from "@botiverse/raft-ui";
 import { useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
@@ -118,33 +119,8 @@ export function SettingsPanel({
 
   // Layout changes C (11/21): with a mouse on a desktop a settings page is the page head and a 720 reading column.
   const desktopMouse = useDesktopMouse();
-  return (
-    // One seam between two regions: the settings list beside this panel
-    // already draws it, so the frame is inset and draws none of its own.
-    // Settings content sits on paper.
-    <Panel edge="inset" className={`flex min-h-0 flex-1 flex-col bg-layer-canvas text-foreground ${PAGE_ROOT_CLASS} [--page-column-width:720px]`} data-testid="settings-panel-frame" data-full-page="">
-      {!embedded && settingsTab !== "feedback" && desktopMouse && !deleteAccount ? (
-        <PageHead form testId="settings-panel-header" title={<span data-slock-settings-tab={settingsTab}>{activeLabel}</span>} />
-      ) : !embedded && settingsTab !== "feedback" && (
-        <PanelHeader
-          title={activeLabel}
-          titleSlot={deleteAccount && serverSlug ? (
-            <SettingsSubPageTitle
-              tabLabel={formatMessage({ id: "settings.tabs.account" })}
-              tabHref={`/s/${serverSlug}/settings/account`}
-              title={activeLabel}
-            />
-          ) : undefined}
-          containerProps={headerContainerProps}
-          onMobileBack={onMobileBack}
-          mobileBackProps={mobileBackProps}
-        />
-      )}
-
-      {/* Content: Feedback fills the panel and scrolls itself; every other
-          tab scrolls in a raft-ui ScrollArea, padded inside it so the
-          scrollbar stays at the panel's edge. */}
-      <SettingsContentFrame feedback={settingsTab === "feedback"}>
+  const content = (
+    <>
         {gatedTabPending && (
           <div aria-busy="true" className="flex min-h-40 items-center justify-center" data-testid="settings-tab-pending">
             <Spinner size="md" aria-label={formatMessage({ id: "common.loading" })} />
@@ -175,17 +151,78 @@ export function SettingsPanel({
         {settingsTab === "integrations" && <LinkPreviewConsentsRow guest={!canViewServerApplications(role)} />}
         {settingsTab === "about" && <AboutSection showWorkspace={showAboutWorkspace} />}
         {settingsTab === "feedback" && <LazyAboutFeedbackPanel />}
+    </>
+  );
+  // Wide, the directory is in the page (owner, Figmama 4f0745ec): 200 nav, 40, the 720 form, centered.
+  const pageNav = useSettingsPageNav() && desktopMouse && !embedded;
+  if (pageNav) {
+    return (
+      <Panel edge="inset" className={`flex min-h-0 flex-1 flex-col bg-layer-canvas text-foreground ${PAGE_ROOT_CLASS}`} data-testid="settings-panel-frame" data-full-page="">
+        <PageWithNav
+          form
+          nav={<SettingsPageNav />}
+          head={settingsTab === "feedback" ? undefined : (
+            <PageHead form withNav testId="settings-panel-header" title={<span data-slock-settings-tab={settingsTab}>{activeLabel}</span>} />
+          )}
+        >
+          <SettingsContentFrame feedback={settingsTab === "feedback"} inPageNav>
+            {content}
+          </SettingsContentFrame>
+        </PageWithNav>
+      </Panel>
+    );
+  }
+  return (
+    // One seam between two regions: the settings list beside this panel
+    // already draws it, so the frame is inset and draws none of its own.
+    // Settings content sits on paper.
+    <Panel edge="inset" className={`flex min-h-0 flex-1 flex-col bg-layer-canvas text-foreground ${PAGE_ROOT_CLASS} [--page-column-width:720px]`} data-testid="settings-panel-frame" data-full-page="">
+      {!embedded && settingsTab !== "feedback" && desktopMouse && !deleteAccount ? (
+        <PageHead form testId="settings-panel-header" title={<span data-slock-settings-tab={settingsTab}>{activeLabel}</span>} />
+      ) : !embedded && settingsTab !== "feedback" && (
+        <PanelHeader
+          title={activeLabel}
+          titleSlot={deleteAccount && serverSlug ? (
+            <SettingsSubPageTitle
+              tabLabel={formatMessage({ id: "settings.tabs.account" })}
+              tabHref={`/s/${serverSlug}/settings/account`}
+              title={activeLabel}
+            />
+          ) : undefined}
+          containerProps={headerContainerProps}
+          onMobileBack={onMobileBack}
+          mobileBackProps={mobileBackProps}
+        />
+      )}
+
+      {/* Content: Feedback fills the panel and scrolls itself; every other
+          tab scrolls in a raft-ui ScrollArea, padded inside it so the
+          scrollbar stays at the panel's edge. */}
+      <SettingsContentFrame feedback={settingsTab === "feedback"}>
+        {content}
       </SettingsContentFrame>
     </Panel>
   );
 }
 
-function SettingsContentFrame({ feedback, children }: { feedback: boolean; children: ReactNode }) {
+/** The settings directory in the page: the sidebar's own Settings list and its search, 200 wide, scrolling itself. */
+function SettingsPageNav() {
+  return (
+    // The sidebar's own 8px inset sits outside the 200 (-mx-2), so the search and the rows are the nav's width; 8 down
+    // so the search's top is level with the first block under the head's line (Figmama 671258a1).
+    <div className="-mx-2 flex h-full w-[216px] min-h-0 flex-col pt-2 [&_[data-testid=sidebar-root]]:border-0 [&_[data-testid=sidebar-root]]:bg-transparent" data-slot="page-nav" data-testid="settings-page-nav">
+      {/* No "Settings" head over it (owner 18cb0df1): the page's title is the item's. */}
+      <Sidebar hideTitle />
+    </div>
+  );
+}
+
+function SettingsContentFrame({ feedback, inPageNav = false, children }: { feedback: boolean; inPageNav?: boolean; children: ReactNode }) {
   if (feedback) return <div className="min-h-0 flex-1 bg-layer-canvas">{children}</div>;
   return (
     <ScrollArea
       className="flex-1 bg-layer-canvas text-foreground"
-      contentClassName="px-4 py-4 mobile-nav-clearance md:px-(--surface-inset) md:pointer-fine:pt-(--page-top) md:pointer-fine:pb-(--page-inset)"
+      contentClassName={inPageNav ? "px-5 pt-4 pb-(--page-inset)" : "px-4 py-4 mobile-nav-clearance md:px-(--surface-inset) md:pointer-fine:pt-(--page-top) md:pointer-fine:pb-(--page-inset)"}
     >
       <div className={PAGE_COLUMN_CONTENT_CLASS}>{children}</div>
     </ScrollArea>

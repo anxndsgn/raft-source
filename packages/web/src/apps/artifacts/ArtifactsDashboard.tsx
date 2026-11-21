@@ -376,7 +376,7 @@ export default function ArtifactsDashboard({ serverId, onMobileBack, address: ho
   return (
     // A column of list cells: its head, filter row and rows share one edge,
     // 20px at every width (raft-ui --column-margin; raft-design patterns/lists.md).
-    <div className={`relative flex min-h-0 flex-1 flex-col bg-layer-canvas [--column-margin:16px] md:[--column-margin:20px] ${PAGE_ROOT_CLASS} [--page-column-width:1200px]`} data-testid="artifacts-dashboard" data-full-page="">
+    <div className={`relative flex min-h-0 flex-1 flex-col bg-layer-canvas [--column-margin:16px] md:[--column-margin:20px] ${PAGE_ROOT_CLASS} [--page-column-width:880px]`} data-testid="artifacts-dashboard" data-full-page="">
       {/* The page under the viewer is a layer of its own (`isolate`): its header is sticky at z-chrome on
           a phone (PanelHeader). The viewer's z-cover is above that already; the isolate keeps it so.
           A pushed page covers the page under it (page structure), so the viewer is above all of it. */}
@@ -402,7 +402,8 @@ export default function ArtifactsDashboard({ serverId, onMobileBack, address: ho
           view={<ViewToggle view={prefs.view} onChange={setView} />}
           readerId={readerId}
           table={table}
-          columnClassName={desktopMouse ? PAGE_COLUMN_CLASS : ""}
+          // The grid's cards across the page, 20 in; the table in the 880 column (Figmama f624f725).
+          columnClassName={desktopMouse && layout !== "grid" ? PAGE_COLUMN_CLASS : ""}
           toolbarClassName={desktopMouse ? `${PAGE_COLUMN_INSET_CLASS} ${PAGE_TOOLBAR_PLAIN_CLASS}` : ""}
         />
       </div>

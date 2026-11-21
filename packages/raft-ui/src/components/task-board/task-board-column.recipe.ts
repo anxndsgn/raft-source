@@ -5,6 +5,8 @@ export const taskBoardColumn = tv({
     root: [
       "group flex shrink-0 self-start flex-col",
       "w-[232px] grow rounded-container p-0",
+      // Layout changes (Figmama f624f725): with a mouse a column is 280, the board as wide as the page.
+      "md:pointer-fine:w-[280px] md:pointer-fine:grow-0",
       // Layout changes (Figmama d8bb96a7): with a mouse a folded column is a 40px strip, its head standing up in it.
       "md:pointer-fine:data-closed:w-10 md:pointer-fine:data-closed:grow-0",
       "data-[drop-collapsed=true]:data-[drop-state=allowed]:[outline:1.5px_dashed_var(--line-strong)] data-[drop-collapsed=true]:data-[drop-state=allowed]:outline-offset-4",
@@ -20,7 +22,7 @@ export const taskBoardColumn = tv({
       "focus-visible:shadow-focus",
       "md:pointer-fine:group-data-closed:flex-col-reverse md:pointer-fine:group-data-closed:justify-end md:pointer-fine:group-data-closed:py-2",
     ],
-    heading: ["flex min-w-0 items-center", "gap-2", "md:pointer-fine:group-data-closed:[writing-mode:vertical-rl]"],
+    heading: ["flex min-w-0 items-center", "gap-2", "md:pointer-fine:group-data-closed:[writing-mode:vertical-rl] md:pointer-fine:group-data-closed:[text-orientation:upright]"],
     badge: [
       "inline-flex items-center gap-2 p-0",
       "font-sans text-footnote font-bold text-foreground-muted",
