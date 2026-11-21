@@ -41,8 +41,9 @@ export const choiceList = tv({
       "relative z-raised col-start-2 flex h-lh items-center self-start pr-1",
       "mt-option-inset pointer-coarse:mt-[calc((--spacing(11)-1lh)/2)]",
       "font-sans text-subhead",
-      // A row's own icon Button stays 32 in its line (the 40px icon button is for bars).
-      "*:data-[slot=button]:size-8",
+      // A row's own icon Button stays 32 in its line (the 40px icon button is
+      // for bars), its hit area 6px past it to 44.
+      "*:data-[slot=button]:size-8 *:data-[slot=button]:after:-inset-1.5",
     ],
     note: ["px-2.5 py-2 font-sans text-callout text-foreground-hint"],
     footer: ["shrink-0 border-t border-line-seam p-1"],

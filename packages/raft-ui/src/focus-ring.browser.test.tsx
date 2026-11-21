@@ -64,7 +64,9 @@ function Fields({ mode = "light" }: { mode?: "light" | "dark" }) {
 }
 
 for (const mode of ["light", "dark"] as const) {
-  it(`${mode}: a field clicked with the mouse shows no ring; Tab to it shows the ring`, async () => {
+  // Raft redesign (Figmama 11/21): a field draws its 1px ink line while the
+  // caret is in it, clicked into or tabbed to: it says which box you type in.
+  it(`${mode}: a field clicked with the mouse or tabbed to shows its line`, async () => {
     const userEvent = await context();
     render(<Fields mode={mode} />);
     for (const id of ["input", "textarea"]) {
@@ -72,7 +74,7 @@ for (const mode of ["light", "dark"] as const) {
       await userEvent.click(field);
       await settle();
       expect(document.activeElement).toBe(field);
-      expect(ringed(field), `${id} clicked`).toBe(false);
+      expect(fieldRinged(field), `${id} clicked`).toBe(true);
     }
 
     // Positive control: the same field rings when Tab reaches it.
@@ -80,20 +82,20 @@ for (const mode of ["light", "dark"] as const) {
     await userEvent.keyboard("{Tab}");
     await settle();
     expect(document.activeElement).toBe(screen.getByTestId("input"));
-    expect(ringed(screen.getByTestId("input")), "input tabbed to").toBe(true);
+    expect(fieldRinged(screen.getByTestId("input")), "input tabbed to").toBe(true);
     await userEvent.keyboard("{Tab}");
     await settle();
-    expect(ringed(screen.getByTestId("textarea")), "textarea tabbed to").toBe(true);
+    expect(fieldRinged(screen.getByTestId("textarea")), "textarea tabbed to").toBe(true);
   });
 }
 
-it("InputGroup: clicking the field or the clear button inside it shows no ring; Tab to the field does", async () => {
+it("InputGroup: the caret in its field draws its line, clicked or tabbed to (Figmama 11/21); its clear button draws none", async () => {
   const userEvent = await context();
   render(<Fields />);
   const group = screen.getByTestId("group");
   await userEvent.click(screen.getByRole("textbox", { name: "Search" }));
   await settle();
-  expect(fieldRinged(group), "field clicked").toBe(false);
+  expect(fieldRinged(group), "field clicked").toBe(true);
   await userEvent.click(screen.getByTestId("clear"));
   await settle();
   expect(document.activeElement).toBe(screen.getByTestId("clear"));
@@ -148,11 +150,11 @@ it("a dark island inside a light page is gated too", async () => {
   const field = screen.getByTestId("island-input");
   await userEvent.click(field);
   await settle();
-  expect(ringed(field), "clicked").toBe(false);
+  expect(fieldRinged(field), "clicked").toBe(true);
   await userEvent.click(screen.getByTestId("before"));
   await userEvent.keyboard("{Tab}");
   await settle();
-  expect(ringed(field), "tabbed to").toBe(true);
+  expect(fieldRinged(field), "tabbed to").toBe(true);
 });
 
 it("without the tracker (no ThemeProvider, no script) a focused field keeps its ring", async () => {
@@ -161,7 +163,7 @@ it("without the tracker (no ThemeProvider, no script) a focused field keeps its 
   expect(document.documentElement.hasAttribute("data-input-modality")).toBe(false);
   await userEvent.click(screen.getByTestId("bare"));
   await settle();
-  expect(ringed(screen.getByTestId("bare"))).toBe(true);
+  expect(fieldRinged(screen.getByTestId("bare"))).toBe(true);
 });
 
 it("without the tracker, clicking a button inside a group still does not ring the group", async () => {

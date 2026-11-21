@@ -28,10 +28,10 @@ const inputGroup = tv({
       // (lib/field-look.ts): 5% ink, no edge, the control corner; focus a 1px
       // ink line inside, not the glow.
       "border-0 bg-fill-medium rounded-control [--focus-ring:0_0_0_0_transparent]",
-      // The line shows for keyboard focus inside the box, as the glow did
-      // (the focus tracker's `keyboard:`): a click on the field or its clear
-      // button rings nothing; Tab does (states.md#focus).
-      "has-focus-visible:keyboard:inset-ring has-focus-visible:keyboard:inset-ring-foreground",
+      // The line shows while the caret is in the field, clicked into or
+      // tabbed to: it says which box you are typing in (Figmama 11/21). A
+      // button inside the box (its clear ×) rings nothing.
+      "has-[[data-slot=input-group-control]:focus]:inset-ring has-[[data-slot=input-group-control]:focus]:inset-ring-foreground",
     ],
     addon: [
       "flex shrink-0 items-center justify-center gap-2 px-3",

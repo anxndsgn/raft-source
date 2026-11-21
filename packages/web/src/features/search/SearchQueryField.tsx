@@ -49,7 +49,11 @@ export function SearchQueryField({
             type="button"
             variant="ghost"
             size="icon-md"
-            onClick={onClear}
+            // Cleared, the caret goes back into the field to type again (Figmama 11/21).
+            onClick={() => {
+              onClear();
+              inputRef.current?.focus();
+            }}
             aria-label={formatMessage({ id: "search.clearSearch" })}
           >
             <X aria-hidden />

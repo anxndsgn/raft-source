@@ -1,4 +1,4 @@
-import { useCallback, useId, useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { useIntl } from "react-intl";
 import { Info, Search, TriangleAlert, X } from "lucide-react";
@@ -58,7 +58,12 @@ export function ShortcutHelpList({ editable = false }: { editable?: boolean }) {
   const [query, setQuery] = useState("");
   const [confirmingReset, setConfirmingReset] = useState(false);
   const changeQuery = useCallback((event: ChangeEvent<HTMLInputElement>) => setQuery(event.target.value), []);
-  const clearQuery = useCallback(() => setQuery(""), []);
+  const queryRef = useRef<HTMLInputElement>(null);
+  // Cleared, the caret goes back into the field to type again (Figmama 11/21).
+  const clearQuery = useCallback(() => {
+    setQuery("");
+    queryRef.current?.focus();
+  }, []);
   const askResetAll = useCallback(() => setConfirmingReset(true), []);
   const { resetAll } = editor;
   const confirmResetAll = useCallback(() => {
@@ -112,6 +117,7 @@ export function ShortcutHelpList({ editable = false }: { editable?: boolean }) {
               <Search aria-hidden="true" />
             </InputGroupAddon>
             <InputGroupInput
+              ref={queryRef}
               type="search"
               value={query}
               onChange={changeQuery}
