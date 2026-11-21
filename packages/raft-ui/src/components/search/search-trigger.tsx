@@ -16,6 +16,8 @@ const searchTrigger = tv({
     root: [
       "relative inline-flex h-(--frame-item-height) w-[clamp(360px,32vw,520px)] max-w-full min-w-0 shrink-0 items-center gap-2 px-3",
       "rounded-control border-[1.5px] border-line-field bg-layer-card",
+      // A phone's search box is the field look (Figmama mobile spec 11/21): 5% ink, no edge.
+      "max-md:border-0 max-md:bg-fill-medium",
       "text-left font-sans text-body font-normal text-foreground-hint",
       "select-none outline-none transition-colors duration-100",
       "active:overlay-medium focus-visible:shadow-focus",

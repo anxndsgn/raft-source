@@ -33,10 +33,10 @@ const pickerTriggerButton = tv({
     // Raft redesign (Figmama 11/20): with a mouse a secondary Button, 5% ink
     // with no edge; muted regular words until a value is chosen, then Semi
     // Bold ink; icons 16, the chevron 16 muted.
-    "md:pointer-fine:bg-fill-medium md:pointer-fine:inset-ring-0 md:pointer-fine:font-normal",
-    "md:pointer-fine:hover:bg-fill-medium md:pointer-fine:hover:overlay-subtle md:pointer-fine:active:overlay-medium",
-    "md:pointer-fine:data-has-value:bg-fill-medium md:pointer-fine:data-has-value:font-semibold md:pointer-fine:data-has-value:hover:bg-fill-medium",
-    "md:pointer-fine:[&_svg:not([class*='size-'])]:size-4 md:pointer-fine:[&_[data-picker-trigger-indicator]>svg]:size-4 md:pointer-fine:**:data-picker-trigger-indicator:text-foreground-muted",
+    "bg-fill-medium md:pointer-fine:bg-fill-medium inset-ring-0 md:pointer-fine:inset-ring-0 font-normal md:pointer-fine:font-normal",
+    "hover:bg-fill-medium md:pointer-fine:hover:bg-fill-medium hover:overlay-subtle md:pointer-fine:hover:overlay-subtle active:overlay-medium md:pointer-fine:active:overlay-medium",
+    "data-has-value:bg-fill-medium md:pointer-fine:data-has-value:bg-fill-medium data-has-value:font-semibold md:pointer-fine:data-has-value:font-semibold data-has-value:hover:bg-fill-medium md:pointer-fine:data-has-value:hover:bg-fill-medium",
+    "[&_svg:not([class*='size-'])]:size-4 md:pointer-fine:[&_svg:not([class*='size-'])]:size-4 [&_[data-picker-trigger-indicator]>svg]:size-4 md:pointer-fine:[&_[data-picker-trigger-indicator]>svg]:size-4 **:data-picker-trigger-indicator:text-foreground-muted md:pointer-fine:**:data-picker-trigger-indicator:text-foreground-muted",
   ],
 });
 

@@ -14,7 +14,7 @@ export const taskBoardColumn = tv({
       "data-[panel-open]:mb-2",
       // C13: with a mouse the column head is the status square, the name in
       // Semi Bold 13 ink, the count Inter 12 muted.
-      "md:pointer-fine:text-[13px] md:pointer-fine:leading-[17px] md:pointer-fine:font-semibold md:pointer-fine:text-foreground",
+      "md:pointer-fine:text-[13px] md:pointer-fine:leading-[17px] font-semibold md:pointer-fine:font-semibold text-foreground md:pointer-fine:text-foreground",
       "focus-visible:shadow-focus",
     ],
     heading: ["flex min-w-0 items-center", "gap-2"],
@@ -22,9 +22,9 @@ export const taskBoardColumn = tv({
       "inline-flex items-center gap-2 p-0",
       "font-sans text-footnote font-bold text-foreground-muted",
       "[&>svg]:shrink-0",
-      "md:pointer-fine:text-[13px] md:pointer-fine:leading-[17px] md:pointer-fine:font-semibold md:pointer-fine:text-foreground",
+      "md:pointer-fine:text-[13px] md:pointer-fine:leading-[17px] font-semibold md:pointer-fine:font-semibold text-foreground md:pointer-fine:text-foreground",
     ],
-    count: ["font-mono text-mono-meta font-normal text-foreground-hint", "md:pointer-fine:text-foreground-muted"],
+    count: ["font-mono text-mono-meta font-normal text-foreground-hint", "text-foreground-muted md:pointer-fine:text-foreground-muted"],
     chevron: [
       "inline-flex shrink-0 -rotate-90 items-center transition-transform",
       "[&_svg]:size-3.5",
@@ -45,7 +45,7 @@ export const taskBoardColumn = tv({
       // C13: with a mouse an empty column has no fill and no frame, just its
       // line in Inter 12 hint, left on the status square, 12 under the head
       // (the open head's 8 margin and 4 here; a card dragged over still outlines it).
-      "md:pointer-fine:min-h-0 md:pointer-fine:border-0 md:pointer-fine:justify-start md:pointer-fine:text-left md:pointer-fine:px-0 md:pointer-fine:pt-1 md:pointer-fine:pb-0 md:pointer-fine:text-[12px] md:pointer-fine:leading-4",
+      "min-h-0 md:pointer-fine:min-h-0 border-0 md:pointer-fine:border-0 justify-start md:pointer-fine:justify-start text-left md:pointer-fine:text-left px-0 md:pointer-fine:px-0 pt-1 md:pointer-fine:pt-1 pb-0 md:pointer-fine:pb-0 text-[12px] md:pointer-fine:text-[12px] leading-4 md:pointer-fine:leading-4",
     ],
     emptyIdle: ["group-data-[drop-state=allowed]:hidden group-data-[drop-state=blocked]:hidden"],
     emptyAllowed: ["hidden group-data-[drop-state=allowed]:block"],

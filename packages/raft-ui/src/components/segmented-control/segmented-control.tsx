@@ -45,7 +45,7 @@ const segmentedControl = tv({
       "[--segment-size:2rem] md:pointer-fine:[--segment-size:var(--control-height)]",
       // Raft redesign (Figmama 11/20): with a mouse a 32px track of 5% ink,
       // the control corner, 2px inside, holding 28px segments.
-      "md:pointer-fine:[--segment-size:28px] md:pointer-fine:gap-0 md:pointer-fine:rounded-control md:pointer-fine:bg-fill-medium md:pointer-fine:p-0.5",
+      "md:pointer-fine:[--segment-size:28px] gap-0 md:pointer-fine:gap-0 rounded-control md:pointer-fine:rounded-control bg-fill-medium md:pointer-fine:bg-fill-medium p-0.5 md:pointer-fine:p-0.5",
       // While it scrolls, it scrolls sideways only: a segment's tap area,
       // which reaches past the track by touch, must not scroll it up and down
       // (there the tap area stops at the track's edge).
@@ -74,12 +74,12 @@ const segmentedControl = tv({
       "data-disabled:cursor-not-allowed data-disabled:text-foreground-disabled data-disabled:hover:bg-transparent",
       // Raft redesign: muted regular words, the ink on hover; the chosen one
       // the canvas with a 1px floating line, Semi Bold ink. No yellow.
-      "md:pointer-fine:border-0 md:pointer-fine:font-normal md:pointer-fine:hover:bg-transparent md:pointer-fine:hover:text-foreground md:pointer-fine:active:bg-transparent",
-      "md:pointer-fine:data-checked:bg-layer-canvas md:pointer-fine:data-checked:ring-1 md:pointer-fine:data-checked:ring-line-floating md:pointer-fine:data-checked:font-semibold md:pointer-fine:data-checked:text-foreground",
-      "md:pointer-fine:data-checked:hover:bg-layer-canvas md:pointer-fine:data-checked:active:bg-layer-canvas md:pointer-fine:data-checked:active:bg-none",
+      "border-0 md:pointer-fine:border-0 font-normal md:pointer-fine:font-normal hover:bg-transparent md:pointer-fine:hover:bg-transparent hover:text-foreground md:pointer-fine:hover:text-foreground active:bg-transparent md:pointer-fine:active:bg-transparent",
+      "data-checked:bg-layer-canvas md:pointer-fine:data-checked:bg-layer-canvas data-checked:ring-1 md:pointer-fine:data-checked:ring-1 data-checked:ring-line-floating md:pointer-fine:data-checked:ring-line-floating data-checked:font-semibold md:pointer-fine:data-checked:font-semibold data-checked:text-foreground md:pointer-fine:data-checked:text-foreground",
+      "data-checked:hover:bg-layer-canvas md:pointer-fine:data-checked:hover:bg-layer-canvas data-checked:active:bg-layer-canvas md:pointer-fine:data-checked:active:bg-layer-canvas data-checked:active:bg-none md:pointer-fine:data-checked:active:bg-none",
     ],
     label: ["truncate"],
-    count: ["font-mono", "text-mono-meta font-normal", "md:pointer-fine:font-sans"],
+    count: ["font-mono", "text-mono-meta font-normal", "font-sans md:pointer-fine:font-sans"],
   },
   variants: {
     variant: {

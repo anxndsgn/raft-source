@@ -9,7 +9,9 @@ const meter = tv({
   slots: {
     root: [
       "group/meter grid w-full min-w-0 gap-1.5",
-      "[--meter-indicator:var(--info)]",
+      // Raft redesign (C18, Progress; by touch too, mobile spec 11/21): the
+      // ink on a 5% track, 4px, no edge; a warning keeps its colour.
+      "[--meter-indicator:var(--foreground)]",
       "[--meter-value:var(--foreground-muted)]",
       "font-sans",
     ],
@@ -17,14 +19,14 @@ const meter = tv({
     label: ["min-w-0 truncate", "text-footnote font-semibold text-foreground"],
     value: ["shrink-0 text-right tabular-nums", "text-footnote text-(--meter-value)"],
     track: [
-      "relative w-full overflow-hidden bg-(--fill-muted)",
-      "h-2 group-data-[size=sm]/meter:h-1.5",
+      "relative w-full overflow-hidden bg-fill-medium",
+      "h-1 group-data-[size=sm]/meter:h-1",
       "rounded-sticker",
     ],
     indicator: [
       "block h-full bg-(--meter-indicator)",
       "transition-[width,background-color] duration-200 ease-out",
-      "rounded-[inherit] inset-ring-[1.5px] inset-ring-sticker-ink",
+      "rounded-[inherit]",
     ],
   },
   variants: {

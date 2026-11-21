@@ -157,20 +157,11 @@ for (const s of SCREENS) {
     const [first, second] = screen.getAllByRole("radio");
     const a = first!.getBoundingClientRect();
     const b = second!.getBoundingClientRect();
-    const touching = !s.touch;
-    expect(b.left - a.right).toBe(touching ? 0 : 3);
-    if (touching) {
-      // With a mouse the segments touch and take no taps past their boxes.
-      expect(tapArea(first!).right).toBeLessThanOrEqual(tapArea(second!).left);
-      return;
-    }
-    expect(tapArea(first!).right).toBeLessThan(tapArea(second!).left);
-    // The 3px between two segments, in the box and in the overhang.
-    const gap = (a.right + b.left) / 2;
-    for (const y of [a.top + a.height / 2, a.top - 4, a.bottom + 4]) {
-      expect(hits(first!, gap, y)).toBe(false);
-      expect(hits(second!, gap, y)).toBe(false);
-    }
+    // Raft redesign (by touch too, mobile spec 11/21): the segments touch, 2px
+    // inside the 5% track; their tap areas reach up and down only, never onto
+    // the neighbour.
+    expect(b.left - a.right).toBe(0);
+    expect(tapArea(first!).right).toBeLessThanOrEqual(tapArea(second!).left);
   });
 
   it(`${s.name}: in a toolbar row, the tap areas spread up and down, not onto the neighbours`, async () => {

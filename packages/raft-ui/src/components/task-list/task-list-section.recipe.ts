@@ -17,9 +17,9 @@ export const taskListSection = tv({
       "[&>svg]:shrink-0",
       // C13: with a mouse a list group's head reads as a board column's: the
       // name Semi Bold 13 ink, the count Inter 12 muted.
-      "md:pointer-fine:text-[13px] md:pointer-fine:leading-[17px] md:pointer-fine:font-semibold md:pointer-fine:text-foreground",
+      "md:pointer-fine:text-[13px] md:pointer-fine:leading-[17px] font-semibold md:pointer-fine:font-semibold text-foreground md:pointer-fine:text-foreground",
     ],
-    count: ["font-mono text-mono-meta font-normal text-foreground-hint", "md:pointer-fine:text-foreground-muted"],
+    count: ["font-mono text-mono-meta font-normal text-foreground-hint", "text-foreground-muted md:pointer-fine:text-foreground-muted"],
     chevron: [
       "inline-flex shrink-0 -rotate-90 items-center transition-transform",
       "[&_svg]:size-3.5",
@@ -37,7 +37,7 @@ export const taskListSection = tv({
       "text-center text-footnote text-foreground-hint",
       // C13: with a mouse an empty group is its line alone, Inter 12 hint, left
       // on the rows' status square, as an empty board column.
-      "md:pointer-fine:min-h-0 md:pointer-fine:border-0 md:pointer-fine:justify-start md:pointer-fine:text-left md:pointer-fine:p-0 md:pointer-fine:pl-2 md:pointer-fine:pt-0.5 md:pointer-fine:text-[12px] md:pointer-fine:leading-4",
+      "min-h-0 md:pointer-fine:min-h-0 border-0 md:pointer-fine:border-0 justify-start md:pointer-fine:justify-start text-left md:pointer-fine:text-left p-0 md:pointer-fine:p-0 pl-2 md:pointer-fine:pl-2 pt-0.5 md:pointer-fine:pt-0.5 text-[12px] md:pointer-fine:text-[12px] leading-4 md:pointer-fine:leading-4",
     ],
   },
 });

@@ -51,10 +51,10 @@ describe("Meter", () => {
     expect(value.textContent).toBe("62% used · resets in 3h");
   });
 
-  it("is empty and info when nothing is used, with no warning and no complete color", () => {
+  it("is empty and ink when nothing is used (Raft redesign), with no warning and no complete color", () => {
     const meter = renderMeter({ used: 0, valueText: "0% used" });
     expect(meter.getAttribute("data-level")).toBe("normal");
-    expect(meter.className).toContain("[--meter-indicator:var(--info)]");
+    expect(meter.className).toContain("[--meter-indicator:var(--foreground)]");
     expect(meter.className).not.toContain(WARNING);
     expect(meter.className).not.toContain("success");
     expect(indicatorWidth(meter)).toBe("0%");

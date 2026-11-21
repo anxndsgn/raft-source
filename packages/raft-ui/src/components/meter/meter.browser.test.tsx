@@ -17,6 +17,8 @@ function renderMeter(props: Omit<MeterProps, "children" | "valueText">) {
         </MeterTrack>
       </Meter>
       <div data-testid="info" style={{ background: "var(--info)" }} />
+      <div data-testid="foreground" style={{ background: "var(--foreground)" }} />
+      <div data-testid="fill-medium" style={{ background: "var(--fill-medium)" }} />
       <div data-testid="warning" style={{ background: "var(--warning)" }} />
       <div data-testid="fill-muted" style={{ background: "var(--fill-muted)" }} />
     </div>,
@@ -34,10 +36,11 @@ function token(name: string) {
   return getComputedStyle(screen.getByTestId(name)).backgroundColor;
 }
 
-it("fills the track with the share used, in the info color", () => {
+// Raft redesign (C18, by touch too): the ink on a 5% track.
+it("fills the track with the share used, in the ink", () => {
   const { share, fill } = renderMeter({ used: 62 });
   expect(share).toBeCloseTo(0.62, 2);
-  expect(fill).toBe(token("info"));
+  expect(fill).toBe(token("foreground"));
 });
 
 it("fills in the warning color from 80% used", () => {
@@ -50,7 +53,7 @@ it("is a full warning bar on the plain track when used up", () => {
   const { share, fill, trackColor } = renderMeter({ used: 100 });
   expect(share).toBeCloseTo(1, 2);
   expect(fill).toBe(token("warning"));
-  expect(trackColor).toBe(token("fill-muted"));
+  expect(trackColor).toBe(token("fill-medium"));
 });
 
 it("is an empty track when nothing is used", () => {

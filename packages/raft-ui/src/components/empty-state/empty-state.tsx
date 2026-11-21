@@ -22,19 +22,19 @@ const emptyState = tv({
       "mb-4 inline-flex items-center justify-center [&_svg]:shrink-0",
       "text-foreground-hint [&_svg]:size-9",
       // Raft redesign (Figmama 11/21): with a mouse a 24px muted icon, 12px over the title.
-      "md:pointer-fine:mb-3 md:pointer-fine:text-foreground-muted md:pointer-fine:[&_svg]:size-6",
+      "mb-3 md:pointer-fine:mb-3 text-foreground-muted md:pointer-fine:text-foreground-muted [&_svg]:size-6 md:pointer-fine:[&_svg]:size-6",
     ],
     title: [
       "mb-2 w-full max-w-full text-center text-balance",
       "font-sans text-headline font-bold text-foreground-muted",
-      "md:pointer-fine:mb-1 md:pointer-fine:text-[14px] md:pointer-fine:leading-5 md:pointer-fine:font-semibold md:pointer-fine:text-foreground",
+      "mb-1 md:pointer-fine:mb-1 md:pointer-fine:text-[14px] md:pointer-fine:leading-5 font-semibold md:pointer-fine:font-semibold text-foreground md:pointer-fine:text-foreground",
     ],
     description: [
       "mx-auto w-full text-center text-pretty",
       "[&>a]:font-semibold [&>a]:decoration-[1.5px] [&>a]:underline-offset-[3px]",
       "[&>a]:hover:text-foreground [&>a]:hover:underline",
       "max-w-[300px] text-callout text-foreground-hint",
-      "md:pointer-fine:text-[13px] md:pointer-fine:leading-[18px] md:pointer-fine:text-foreground-muted md:pointer-fine:line-clamp-2",
+      "md:pointer-fine:text-[13px] md:pointer-fine:leading-[18px] text-foreground-muted md:pointer-fine:text-foreground-muted line-clamp-2 md:pointer-fine:line-clamp-2",
     ],
     actions: ["mt-5", "md:pointer-fine:mt-3"],
   },

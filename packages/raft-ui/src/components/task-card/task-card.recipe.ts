@@ -15,15 +15,15 @@ export const taskCard = tv({
       "group-data-[dragging=true]/task-draggable:not-in-data-drag-origin:shadow-float",
       // Raft redesign (C13): with a mouse a card on the canvas with a hairline
       // edge, 10/12 in, no shadow; pointed at, only the edge goes 15% ink.
-      "md:pointer-fine:bg-layer-canvas md:pointer-fine:px-3 md:pointer-fine:py-2.5",
-      "md:pointer-fine:data-[interactive=true]:hover:bg-none! md:pointer-fine:data-[interactive=true]:active:bg-none!",
-      "md:pointer-fine:data-[interactive=true]:hover:border-[color-mix(in_oklch,var(--foreground)_15%,transparent)]",
+      "bg-layer-canvas md:pointer-fine:bg-layer-canvas md:pointer-fine:px-3 md:pointer-fine:py-2.5",
+      "data-[interactive=true]:hover:bg-none! md:pointer-fine:data-[interactive=true]:hover:bg-none! data-[interactive=true]:active:bg-none! md:pointer-fine:data-[interactive=true]:active:bg-none!",
+      "data-[interactive=true]:hover:border-[color-mix(in_oklch,var(--foreground)_15%,transparent)] md:pointer-fine:data-[interactive=true]:hover:border-[color-mix(in_oklch,var(--foreground)_15%,transparent)]",
     ],
     row: ["flex min-w-0 items-start gap-2"],
     body: ["min-w-0 flex-1"],
     meta: ["flex min-w-0 flex-nowrap items-center gap-2", "mb-2"],
-    channel: ["min-w-0 truncate", "font-mono text-mono-meta font-normal text-foreground-hint", "md:pointer-fine:text-foreground-muted"],
-    number: ["shrink-0", "font-mono text-mono-meta font-normal text-foreground-hint", "md:pointer-fine:text-foreground-muted"],
+    channel: ["min-w-0 truncate", "font-mono text-mono-meta font-normal text-foreground-hint", "text-foreground-muted md:pointer-fine:text-foreground-muted"],
+    number: ["shrink-0", "font-mono text-mono-meta font-normal text-foreground-hint", "text-foreground-muted md:pointer-fine:text-foreground-muted"],
     legacy: [
       "shrink-0",
       "inline-flex h-[22px] items-center rounded-chip px-1.5 py-0",
