@@ -5,8 +5,9 @@ export const taskBoardColumn = tv({
     root: [
       "group flex shrink-0 self-start flex-col",
       "w-[232px] grow rounded-container p-0",
-      // Layout changes (Figmama f624f725): with a mouse a column is 280, the board as wide as the page.
-      "md:pointer-fine:w-[280px] md:pointer-fine:grow-0",
+      // Layout changes (Figmama f624f725, owner aa08afe8): with a mouse a column is at least 280 and the columns share
+      // the page's width; past it the board scrolls sideways.
+      "md:pointer-fine:w-[280px]",
       // A folded column keeps the open one's width, its head's one line and no cards (owner 2b34162e, Figmama 425c94d8).
       "data-[drop-collapsed=true]:data-[drop-state=allowed]:[outline:1.5px_dashed_var(--line-strong)] data-[drop-collapsed=true]:data-[drop-state=allowed]:outline-offset-4",
     ],

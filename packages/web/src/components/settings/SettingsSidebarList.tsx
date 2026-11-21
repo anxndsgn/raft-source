@@ -1,8 +1,16 @@
 import FeedbackUnreadDot from "../../feedback/FeedbackUnreadDot";
+import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
+import { ChevronRight } from "lucide-react";
 import { SidebarGroupLabel, SidebarItem, SidebarItemContent, SidebarItemTitle } from "@botiverse/raft-ui";
 import { useIntl } from "react-intl";
 import LeavingRaftMark, { opensInNewTabAriaLabel } from "../ui/LeavingRaftMark";
+
+/**
+ * The list as Settings' own directory page (a narrow window with a mouse, Figmama 11c2866b): no row is the current one,
+ * and each row ends in a muted › (a link that leaves Raft keeps its ↗).
+ */
+export const SettingsDirectoryContext = createContext(false);
 
 export interface SettingsSidebarItem {
   id: string;
@@ -42,6 +50,7 @@ export default function SettingsSidebarList({
   activeId: string | null;
 }) {
   const { formatMessage } = useIntl();
+  const directory = useContext(SettingsDirectoryContext);
   return (
     <div data-testid="settings-sidebar-list">
       {groups.filter((group) => group.items.length > 0).map((group) => (
@@ -51,7 +60,7 @@ export default function SettingsSidebarList({
               and under the group's label (raft-design patterns/lists.md). */}
           <div className="flex flex-col gap-0.5 py-2 md:pointer-fine:pt-1">
           {group.items.map((item) => {
-            const selected = activeId === item.id;
+            const selected = !directory && activeId === item.id;
             return (
               <SidebarItem
                 key={item.id}
@@ -77,6 +86,7 @@ export default function SettingsSidebarList({
                 {item.trailing}
                 {item.href && <LeavingRaftMark className="ml-auto size-3.5 text-foreground-hint" />}
                 {item.id === "feedback" && <FeedbackUnreadDot className="ml-auto" />}
+                {directory && !item.href ? <ChevronRight aria-hidden className={`${item.id === "feedback" ? "" : "ml-auto"} size-4 shrink-0 text-foreground-muted`} /> : null}
               </SidebarItem>
             );
           })}

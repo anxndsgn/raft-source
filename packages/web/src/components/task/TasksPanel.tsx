@@ -1307,7 +1307,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
               data-testid="channel-task-board-view"
               aria-busy={loading || undefined}
             >
-              <TaskBoardRoot>
+              <TaskBoardRoot className={pageHead ? "md:pointer-fine:pr-0" : undefined}>
                 {lanes.map(({ status, tasks: statusTasks, placeholders }) => (
                   <BoardColumn
                     key={status}

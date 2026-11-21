@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Tooltip from "../ui/Tooltip";
 import { Sidebar } from "../../features/sidebar/Sidebar";
+import { SettingsDirectoryContext } from "./SettingsSidebarList";
 import { Panel, PanelAction, ScrollArea, Spinner } from "@botiverse/raft-ui";
 import { useCallback, useEffect, useMemo } from "react";
 import type { ReactNode } from "react";
@@ -171,7 +172,7 @@ export function SettingsPanel({
       <Panel edge="inset" className={`flex min-h-0 flex-1 flex-col bg-layer-canvas text-foreground ${PAGE_ROOT_CLASS} [--page-column-width:720px]`} data-testid="settings-panel-frame" data-full-page="">
         <PageHead form testId="settings-panel-header" title={formatMessage({ id: "layout.sidebar.headerSettings" })} />
         <div className={`flex min-h-0 flex-1 flex-col px-3 pt-2 ${PAGE_COLUMN_FORM_CLASS} [&_[data-testid=sidebar-root]]:border-0 [&_[data-testid=sidebar-root]]:bg-transparent`} data-testid="settings-directory-page">
-          <Sidebar hideTitle />
+          <SettingsDirectoryContext.Provider value><Sidebar hideTitle /></SettingsDirectoryContext.Provider>
         </div>
       </Panel>
     );
