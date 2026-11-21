@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import type { MouseEvent } from "react";
 import { useIntl } from "react-intl";
-import { Users } from "lucide-react";
+import { UserBot } from "../../icons/lucideShim";
 import { Popover, PopoverContent, PopoverTrigger } from "@botiverse/raft-ui";
 import type { PopoverProps } from "@botiverse/raft-ui";
 import { useWorkingAgentCount } from "../../features/team/teamWorking";
@@ -41,7 +41,7 @@ export function TeamRailTab({ dragProps, onClick, active, attentionDot, attentio
   const button = (
     <RailTabButton
       {...dragProps}
-      icon={<Users size={18} />}
+      icon={<UserBot size={18} />}
       label={label}
       active={active}
       onClick={click}

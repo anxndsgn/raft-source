@@ -75,6 +75,8 @@ export const Image = make("image", "image");
 export const Link = make("link", "link");
 export const Users = make("users", "users");
 export const UsersRound = make("users", "users-round");
+// The Team tab (Eva, owner 11/21 in #raft-icon-design): Users stays Users elsewhere.
+export const UserBot = make("user-bot", "user-bot");
 export const User = make("user", "user");
 export const UserRound = make("user", "user-round");
 export const UserPlus = make("user-plus", "user-plus");

@@ -121,6 +121,7 @@ import { useShortcut } from "../../features/shortcuts/useShortcut";
 import { focusMountedSearch, routeGlobalSearchShortcut } from "../../utils/searchFocusRequest";
 import { retapTabRoot } from "../../hooks/useTabRootScroll";
 import { ArrowLeft, ListTodo, MonitorX, UserX, Users, X, MessageSquare, Inbox } from "lucide-react";
+import { UserBot } from "../../icons/lucideShim";
 import { MembersEmptyRoute, TeamOverviewRoute } from "../../features/members/MembersEmptyRoute";
 import { useMembersProfileRedirect } from "../../features/members/useMembersProfileRedirect";
 import api from "../../api/client";
@@ -382,7 +383,7 @@ export function MobileTabBar() {
     { id: "chat", label: formatMessage({ id: "layout.leftRail.tabChat" }), icon: MessageSquare },
     { id: "activity", label: formatMessage({ id: "layout.leftRail.tabInbox" }), icon: Inbox },
     { id: "tasks", label: formatMessage({ id: "layout.mobileTabBar.tasks" }), icon: ListTodo },
-    { id: "team", label: formatMessage({ id: "team.page.title" }), icon: Users }, // Team took Search's place (PRD 团队页 §8)
+    { id: "team", label: formatMessage({ id: "team.page.title" }), icon: UserBot }, // Team took Search's place (PRD 团队页 §8)
   ] as const satisfies readonly { id: MobileTabId; label: string; icon: typeof Users }[];
 
   // In-flow (not fixed): the bar is the last child of the MainLayout flex
