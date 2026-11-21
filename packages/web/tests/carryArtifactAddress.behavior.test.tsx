@@ -1,6 +1,7 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
-import { carryArtifactAddress, readArtifactAddress, withArtifactAddress } from "../src/components/layout/artifactOpenAddress";
+import { carryArtifactAddress } from "../src/components/layout/carryArtifactAddress";
+import { readArtifactAddress, withArtifactAddress } from "../src/components/layout/artifactOpenAddress";
 import { asArtifactId } from "@botiverse/raft-shared";
 
 // owner 1b934a9e: opening a task's source message closed the Artifact open in the workspace, because the message's

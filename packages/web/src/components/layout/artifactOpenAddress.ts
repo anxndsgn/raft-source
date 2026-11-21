@@ -342,13 +342,3 @@ export function useArtifactOpenAddress(): ArtifactOpenAddress {
 
   return useMemo(() => ({ shown, open, close, showVersion }), [shown, open, close, showVersion]);
 }
-
-/** `target` with the Artifact open in the address on screen, where both are the same conversation; else `target`. */
-export function carryArtifactAddress(target: string, herePathname: string, hereSearch: string): string {
-  const open = readArtifactAddress(new URLSearchParams(hereSearch));
-  if (!open || open.legacy) return target;
-  const [pathname, query = ""] = target.split("?");
-  if (pathname !== herePathname) return target;
-  const params = withArtifactAddress(new URLSearchParams(query), { id: open.id, version: open.version, ...(open.review === undefined ? {} : { review: open.review }) });
-  return `${pathname}?${params.toString()}`;
-}

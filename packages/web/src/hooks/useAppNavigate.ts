@@ -6,7 +6,7 @@ import { useMessageStore } from "../store/messageStore";
 import { useServerStore } from "../store/serverStore";
 import { useLiveLocation } from "./useLiveLocation";
 import { buildSidebarChannelFocusState } from "../components/layout/sidebarChannelFocus";
-import { carryArtifactAddress } from "../components/layout/artifactOpenAddress";
+import { carryArtifactAddress } from "../components/layout/carryArtifactAddress";
 import { requestChannelNavigation } from "../navigation/channelSwitchGuard";
 import { prefetchConversationForPath } from "../navigation/conversationPrefetch";
 import { beginViewSwitchToPath } from "../observability/viewSwitchSpan";
