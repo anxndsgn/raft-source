@@ -373,9 +373,10 @@
      is the control height plus or minus a number of airs. */
   --control-air: 6px;
   /* The corner of a control at the control height (a field, a Select, a Button
-     at lg and icon-lg), about a quarter of its height: 10px at 44 on a phone and
-     a touch screen, 8px at 34 on a desktop. */
-  --control-radius: 10px;
+     at lg and icon-lg) and of a bar button: set once on the root by the shape
+     (styles.css: 0 square, 4px rounded), at every width. Not declared here:
+     this block also styles a `.light` island (a portal, a preview), which would
+     otherwise bring back an old corner instead of inheriting the shape's. */
   /* Every header: a panel, a sidebar or a thread head, a dialog's bar, a
      drawer's head, a rail head. The control height with the header air above and
      below, so the seams of a screen line up. */
@@ -392,11 +393,6 @@
      11/21); 32px on a desktop (Figma Icon Button, Raft redesign). Its hit area
      still reaches 44px. */
   --bar-button-size: 40px;
-  /* The corner of a bar button, about a quarter of its height: 10px at 44 on a
-     phone and a touch screen, with a mouse on a desktop the control corner (Raft
-     redesign, Figmama 11/21): 0 in the default square shape; the rounded shape
-     sets its own (styles.css). */
-  --bar-button-radius: 10px;
   /* An item on the frame: the top bar's and the title bar's buttons, the
      workspace button and the search box. 36px on a phone and a touch screen; the
      control height on a desktop, so the top bar is a header (34 + 2 x 5 = 44
@@ -697,11 +693,9 @@
     --control-icon-size: 16px;
     --control-hit-inset: 6px;
     --control-embedded-size: 22px;
-    --control-radius: 8px;
     --header-air: 6px;
     --header-height-short: calc(var(--bar-button-size) + 2 * var(--control-air));
     --bar-button-size: 32px;
-    --bar-button-radius: 0px;
     --frame-item-height: var(--control-height);
     --switch-width: 38px;
     --switch-height: 22px;

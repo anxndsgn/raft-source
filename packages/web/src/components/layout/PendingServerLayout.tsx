@@ -42,7 +42,7 @@ export function PendingServerLayout({ prerender = false, offline }: {
   /**
    * The boot shell prerendered into index.html (scripts/bootShellPlugin.ts),
    * before any script knows the window: the desktop frame, with the phone's
-   * left to the stylesheet (top bar from md up) and the thread column to the
+   * left to the stylesheet (no top bar at any width) and the thread column to the
    * boot script (`html.boot-thread`). "phone-home": the phone's Home (the
    * channel list, its bar and the tab bar), which the stylesheet shows
    * instead on a phone at a server's root (`html.boot-home`).
@@ -61,7 +61,10 @@ export function PendingServerLayout({ prerender = false, offline }: {
   const measuredDesktop = useIsDesktopShell();
   const isDesktop = prerender === "phone-home" ? false : prerender || measuredDesktop;
   const measuredTopBar = useShowsTopBar(isDesktop);
-  const showTopBar = prerender === "phone-home" ? false : prerender ? "md" : measuredTopBar;
+  // Raft redesign: the web has no top bar (shouldShowTopBar), so the
+  // prerendered boot shell draws none either, and its rail heads with the team
+  // switcher and search as the loaded one does.
+  const showTopBar = prerender ? false : measuredTopBar;
   const pathBase = pathBaseOf(pathname);
   // Offline on a phone, whatever the URL: the server's Home (its bar with
   // Offline, the reason, the channel list, the tab bar). A detail page would
