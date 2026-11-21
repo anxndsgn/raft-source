@@ -98,7 +98,7 @@ export function ThemeRadiusSlider({
         <span
           aria-hidden="true"
           className={[
-            "absolute top-[3px] -ml-[9px] size-[18px] rounded-full bg-white",
+            "absolute top-[3px] -ml-[9px] size-[18px] rounded-full bg-layer-canvas",
             "shadow-[0_0_0_1px_oklch(0_0_0/0.18),0_1px_4px_oklch(0_0_0/0.25)]",
             "group-focus-visible/radius:shadow-focus",
             `transition-[left] ${settle}`,
