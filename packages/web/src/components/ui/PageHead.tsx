@@ -22,7 +22,7 @@ export const PAGE_ROOT_CLASS = "@container/page";
 const PAGE_TOP_AIR_CLASS = "pt-5 @min-[1024px]/page:pt-10";
 
 /** A toolbar over content on a page with the page head (Figmama 670629d1): no line under it, 16 down to the content. */
-export const PAGE_TOOLBAR_PLAIN_CLASS = "md:pointer-fine:*:border-b-0! md:pointer-fine:*:pt-4! md:pointer-fine:*:pb-4!";
+export const PAGE_TOOLBAR_PLAIN_CLASS = "md:pointer-fine:*:border-b-0! md:pointer-fine:*:px-0! md:pointer-fine:*:pt-4! md:pointer-fine:*:pb-4!";
 
 /** With a mouse on a desktop: where the page head and reading column apply (the same query as `md:pointer-fine:`). */
 export const DESKTOP_MOUSE_QUERY = "(width >= 48rem) and (pointer: fine)";
@@ -59,8 +59,8 @@ export function PageHead({
   testId?: string;
 }) {
   return (
-    <div className={`${wide || withNav ? "" : form ? PAGE_COLUMN_FORM_CLASS : PAGE_COLUMN_CLASS} shrink-0 px-(--column-margin) ${PAGE_TOP_AIR_CLASS} ${tabs ? "" : withNav ? "" : "pb-3"}`} data-full-page-head="" data-page-head="" data-testid={testId}>
-      <div className={`flex min-w-0 items-center gap-4 ${withNav ? "border-b border-line-seam pb-4" : ""}`}>
+    <div className={`${wide || withNav ? "" : form ? PAGE_COLUMN_FORM_CLASS : PAGE_COLUMN_CLASS} shrink-0 px-(--column-margin) ${PAGE_TOP_AIR_CLASS} `} data-full-page-head="" data-page-head="" data-testid={testId}>
+      <div className={`flex min-w-0 items-center gap-4 ${tabs ? "" : "border-b border-line-seam pb-4"}`}>
         <div className="min-w-0 flex-1">
           <h2 className="truncate font-sans text-[24px] leading-8 font-semibold text-foreground" data-slot="page-head-title">{title}</h2>
           {subtitle ? (

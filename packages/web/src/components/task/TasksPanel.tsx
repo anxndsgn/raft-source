@@ -68,7 +68,7 @@ import { ListToolbarMore, ListViewSwitch, MoreMenuChoices } from "../ui/ListTool
 import { useTabRootScroll } from "../../hooks/useTabRootScroll";
 import { TabRootBar } from "../layout/TabRootBar";
 import { FULL_PAGE_HEAD_PROPS } from "../ui/PanelHeader";
-import { PAGE_COLUMN_CONTENT_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, PageHead, useDesktopMouse } from "../ui/PageHead";
+import { PAGE_COLUMN_CONTENT_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_TOOLBAR_PLAIN_CLASS, PAGE_ROOT_CLASS, PageHead, useDesktopMouse } from "../ui/PageHead";
 import { usePinnedHeadRailInset } from "../../hooks/usePinnedHeadRailInset";
 import { PHONE_ROOT_TOOLBAR_CLASS, PHONE_ROOT_VIEWPORT_CLASS, TOOLBAR_CLASS, VIEWPORT_CLASS, VIEWPORT_CONTENT_CLASS } from "./tasksPanelViewport";
 import { LoadMoreSentinel } from "./tasksPage/LoadMoreSentinel";
@@ -293,6 +293,14 @@ function BoardTaskItem({
  * itself never changes fill. The dragged card leaves its column while the
  * overlay carries it.
  */
+/**
+ * The board in the page's 1200 frame (Figmama d8bb96a7): its columns stay inside it, scrolling sideways there with the
+ * right edge fading while more is past it. Elsewhere the page's scroller scrolls it both ways, as before.
+ */
+function BoardFrame({ inColumn, children }: { inColumn: boolean; children: React.ReactNode }) {
+  return inColumn ? <ScrollArea orientation="horizontal" fade className="w-full" data-testid="tasks-board-frame">{children}</ScrollArea> : <>{children}</>;
+}
+
 export function BoardColumn({
   status,
   collapsed,
@@ -1120,6 +1128,9 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
 
   const clearAllLabel = formatMessage({ id: "task.panel.clearAll" });
   const newTaskLabel = formatMessage({ id: "task.board.newTask" });
+  // Layout changes C (11/21): the server's Tasks page with a mouse on a desktop: the page head; the board and the list
+  // in one 1200 frame.
+  const pageHead = useDesktopMouse() && !isChannelMode;
   const viewSwitchOptions = useMemo(() => [
     { value: "board" as const, label: formatMessage({ id: "task.view.board" }), icon: <Columns3 size={16} aria-hidden="true" />, testId: "channel-task-view-board" },
     { value: "list" as const, label: formatMessage({ id: "task.view.list" }), icon: <LayoutList size={16} aria-hidden="true" />, testId: "channel-task-view-list" },
@@ -1188,11 +1199,11 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
         >
           <ListViewSwitch value={viewMode} options={viewSwitchOptions} onValueChange={setView} label={formatMessage({ id: "task.viewAria" })} />
         </FitToolbarGroup>
-        <FitToolbarGroup firstLine className={isChannelMode ? "gap-2" : LIST_TOOLBAR_MORE_GROUP_CLASS}>
+        <FitToolbarGroup firstLine className={isChannelMode || pageHead ? "gap-2" : LIST_TOOLBAR_MORE_GROUP_CLASS}>
           <ListToolbarMore testId="tasks-toolbar-more" />
-          {/* New task: channel mode only. The server-wide board has no channel
-              to post a task in, so it offers none. */}
-          {isChannelMode && (
+          {/* New task: channel mode, and the server's page with a mouse on a desktop, where the page's primary
+              action ends the toolbar (owner f8afe4ae); elsewhere the server's page has it in its head. */}
+          {(isChannelMode || pageHead) && (
             <FitToolbarButton variant="primary" icon={<Plus />} plusOrder={LIST_TOOLBAR_STEP.primaryPlus} onClick={openCreateDialog}>
               {newTaskLabel}
             </FitToolbarButton>
@@ -1204,7 +1215,6 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
 
   // Layout changes C (11/21): the server's Tasks page with a mouse on a desktop: the page head; the list view in the
   // reading column, the board across the page as before.
-  const pageHead = useDesktopMouse() && !isChannelMode;
   // Board and list share one 1200 frame, so switching them moves nothing (owner 94cd5094, Figmama d270abd2); the board
   // scrolls sideways inside it.
   const listColumn = pageHead;
@@ -1237,7 +1247,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
           the frame on a phone, the page name its one h1 there. The Board/List
           toggle lives in the filter row, not here. */}
       {pageHead ? (
-        <PageHead title={formatMessage({ id: "task.panel.heading" })} subtitle={pageSubtitle} action={newTaskButton} />
+        <PageHead title={formatMessage({ id: "task.panel.heading" })} subtitle={pageSubtitle} />
       ) : !isChannelMode && (
         <TabRootBar
           name={formatMessage({ id: "task.panel.heading" })}
@@ -1251,7 +1261,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
         />
       )}
 
-      {isPhoneTabRoot ? null : listColumn ? <div className={`shrink-0 ${PAGE_COLUMN_INSET_CLASS}`}>{toolbar}</div> : toolbar}
+      {isPhoneTabRoot ? null : listColumn ? <div className={`shrink-0 ${PAGE_COLUMN_INSET_CLASS} ${PAGE_TOOLBAR_PLAIN_CLASS} md:pointer-fine:*:gap-0!`}>{toolbar}</div> : toolbar}
 
       {/* raft-ui ScrollArea, both ways (the board scrolls sideways); the
           scrollbars show while it is pointed at or scrolls, as on every page
@@ -1259,7 +1269,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
           vertical scrollbar starts below it (railInset). */}
       <ScrollArea
         ref={viewportRef}
-        orientation="both"
+        orientation={listColumn ? "vertical" : "both"}
         data-task-virtual-scroll
         railInset={isPhoneTabRoot ? toolbarRailInset : undefined}
         className={VIEWPORT_CLASS}
@@ -1290,6 +1300,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
             onDragEnd={boardDrag.handleDragFinish}
             onMove={boardDrag.handleMove}
           >
+            <BoardFrame inColumn={listColumn}>
             <TaskVirtualLayout
               scrollElementRef={scrollContainerRef}
               data-testid="channel-task-board-view"
@@ -1314,6 +1325,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
                 ))}
               </TaskBoardRoot>
             </TaskVirtualLayout>
+            </BoardFrame>
             {/* The board is a raft-ui ScrollArea, its own stacking context (and its scrollbar the top layer in it):
                 a copy left in place would be covered by the rail and the top bar. On the body, as sideSectionDrag does. */}
             <TaskDragOverlay container={document.body}>

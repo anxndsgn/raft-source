@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import type { ReactNode } from "react";
-import { PAGE_COLUMN_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, PageHead, useDesktopMouse } from "../../components/ui/PageHead";
+import { PAGE_COLUMN_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, PAGE_TOOLBAR_PLAIN_CLASS, PageHead, useDesktopMouse } from "../../components/ui/PageHead";
 import { useIntl } from "react-intl";
 import { ArrowLeft } from "lucide-react";
 import {
@@ -403,7 +403,7 @@ export default function ArtifactsDashboard({ serverId, onMobileBack, address: ho
           readerId={readerId}
           table={table}
           columnClassName={desktopMouse ? PAGE_COLUMN_CLASS : ""}
-          toolbarClassName={desktopMouse ? PAGE_COLUMN_INSET_CLASS : ""}
+          toolbarClassName={desktopMouse ? `${PAGE_COLUMN_INSET_CLASS} ${PAGE_TOOLBAR_PLAIN_CLASS}` : ""}
         />
       </div>
       {open ? (
