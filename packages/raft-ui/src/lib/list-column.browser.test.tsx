@@ -54,14 +54,14 @@ import { SidebarList, SidebarSection } from "../components/sidebar/sidebar-secti
 import { ThemeProvider } from "./theme/theme-provider";
 
 // One edge per list column (design/patterns/lists.md#one-edge): the column's
-// title, its toolbar and its rows' leading content start on one line, 20px
-// from the column's edge, on a phone as on a desktop. The rows put their
-// content 8px (shape) + 12px in; a list column sets `--column-margin` to the
-// same 20px, so its head and toolbar follow, where a phone column is 16px.
+// title, its toolbar and its rows' leading content start on one line, 16px
+// from the column's edge on a phone (Figmama mobile spec 11/21) and with a
+// mouse. The rows put their content 8px (shape) + 8px in; a list column sets
+// `--column-margin` to the same 16px, so its head and toolbar follow.
 
 const it = test.skipIf(typeof window === "undefined");
-/** 20px on a phone; 16px with a mouse on a desktop, the page inset (stdrc, 2026-11-05). */
-const edgeAt = (width: number) => (width < 768 ? 20 : 16);
+/** 16px on a phone (mobile spec 11/21) and with a mouse on a desktop, the page inset (stdrc, 2026-11-05). */
+const edgeAt = (_width: number) => 16;
 
 afterEach(cleanup);
 afterAll(async () => {
@@ -241,5 +241,5 @@ it("a search hit's head line in a narrow list keeps the time inside the shape's 
     row.getBoundingClientRect().right - Number.parseFloat(getComputedStyle(row, "::before").right);
   expect(
     shapeRight - screen.getByTestId("time").getBoundingClientRect().right,
-  ).toBeGreaterThanOrEqual(12);
+  ).toBeGreaterThanOrEqual(8);
 });

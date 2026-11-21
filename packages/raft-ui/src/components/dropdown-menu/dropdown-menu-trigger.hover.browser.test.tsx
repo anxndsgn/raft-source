@@ -37,6 +37,8 @@ function snap(el: Element) {
     borderColor: cs.borderColor,
     translate: cs.translate,
     boxShadow: cs.boxShadow,
+    // The redesign's filled Buttons hover at 90% (by touch too, mobile spec 11/21).
+    opacity: cs.opacity,
   };
 }
 

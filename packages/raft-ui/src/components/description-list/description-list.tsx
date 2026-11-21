@@ -65,7 +65,8 @@ const descriptionList = tv({
           "[&>[data-slot=description-item]>[data-slot=description-details]>[data-slot=badge]:first-child]:-ml-1.5",
           "[&>[data-slot=description-item]>[data-slot=description-details]>[data-slot=badge]:first-child]:max-w-[calc(100%+6px)]",
           // A task chip has no sides now (Raft redesign), so it needs no hang.
-          "[&>[data-slot=description-item]>[data-slot=description-details]>[data-slot=button]:first-child]:ml-[-7.5px]",
+          // A Button has no border now (by touch too, mobile spec 11/21): it hangs by its 6px side.
+          "[&>[data-slot=description-item]>[data-slot=description-details]>[data-slot=button]:first-child]:-ml-1.5",
           "[&>[data-slot=description-item]>[data-slot=description-details]>[data-slot=button]:first-child]:px-1.5",
         ],
       },

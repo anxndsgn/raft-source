@@ -45,7 +45,7 @@ function shape(el: HTMLElement) {
   };
 }
 
-it("results draw no hairline; the shape is inset 8px and the content 12px inside it", () => {
+it("results draw no hairline; the shape is inset 8px and the content 8px inside it", () => {
   render(
     <ThemeProvider>
       <SearchResultsList className="w-96">
@@ -63,6 +63,7 @@ it("results draw no hairline; the shape is inset 8px and the content 12px inside
     expect(cell.right, name).toBe(8);
     expect(getComputedStyle(row).borderTopWidth, name).toBe("0px");
     expect(getComputedStyle(row).borderBottomWidth, name).toBe("0px");
-    expect(Number.parseFloat(getComputedStyle(row).paddingLeft), name).toBe(20);
+    // 8px to the shape + 8px inside it on a phone (mobile spec 11/21).
+    expect(Number.parseFloat(getComputedStyle(row).paddingLeft), name).toBe(16);
   }
 });

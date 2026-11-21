@@ -24,11 +24,14 @@ const inputGroup = tv({
       "has-[[data-slot=input-group-control]:disabled]:cursor-not-allowed has-[[data-slot=input-group-control]:disabled]:border-line-hairline has-[[data-slot=input-group-control]:disabled]:bg-fill-muted",
       "has-[[data-slot=input-group-control]:disabled]:[--ig-addon-fg:var(--foreground-disabled)]",
       "has-[[data-slot=input-group-control]:disabled]:[--ig-text-fg:var(--foreground-disabled)]",
-      // Raft redesign (Figmama 11/20): with a mouse the field look
+      // Raft redesign (Figmama 11/20; by touch too, mobile spec 11/21): the field look
       // (lib/field-look.ts): 5% ink, no edge, the control corner; focus a 1px
       // ink line inside, not the glow.
-      "border-0 md:pointer-fine:border-0 bg-fill-medium md:pointer-fine:bg-fill-medium rounded-control md:pointer-fine:rounded-control [--focus-ring:0_0_0_0_transparent] md:pointer-fine:[--focus-ring:0_0_0_0_transparent]",
-      "focus-within:inset-ring md:pointer-fine:focus-within:inset-ring focus-within:inset-ring-foreground md:pointer-fine:focus-within:inset-ring-foreground",
+      "border-0 bg-fill-medium rounded-control [--focus-ring:0_0_0_0_transparent]",
+      // The line shows for keyboard focus inside the box, as the glow did
+      // (the focus tracker's `keyboard:`): a click on the field or its clear
+      // button rings nothing; Tab does (states.md#focus).
+      "has-focus-visible:keyboard:inset-ring has-focus-visible:keyboard:inset-ring-foreground",
     ],
     addon: [
       "flex shrink-0 items-center justify-center gap-2 px-3",

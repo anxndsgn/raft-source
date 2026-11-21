@@ -14,7 +14,8 @@ const appLinkCard = tv({
     // two lines and it has buttons (a Button at its default size, 32px).
     placeholderLine: ["flex h-lh items-center"],
     // The Button it stands in for is 32px (Raft redesign: with a mouse too).
-    placeholderButton: ["h-8 w-28 rounded-control"],
+    // 36px by touch (Figmama mobile spec 11/21).
+    placeholderButton: ["h-9 md:pointer-fine:h-8 w-28 rounded-control"],
   },
 });
 

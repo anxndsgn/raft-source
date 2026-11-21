@@ -117,7 +117,8 @@ it("has a pushed page's head: × at the start, the title, the commit button at t
   const title = screen.getByRole("heading", { name: "Create Channel" });
   const commit = screen.getByRole("button", { name: "Create Channel" });
   const headBox = head.getBoundingClientRect();
-  expect(headBox.height).toBe(56);
+  // Every head is 52 by touch (Figmama mobile spec 11/21).
+  expect(headBox.height).toBe(52);
   expect(headBox.top).toBe(popup().getBoundingClientRect().top);
   expect(head.contains(commit)).toBe(true);
   // × is first in the DOM, so every browser reads and tabs it first.
@@ -131,8 +132,8 @@ it("has a pushed page's head: × at the start, the title, the commit button at t
   const icon = close.querySelector("svg") as SVGElement;
   expect(Math.round(icon.getBoundingClientRect().left)).toBe(16);
   expect(Math.round(commitBox.right)).toBe(390 - 16);
-  // The commit button is the footer's at size md, 32px.
-  expect(commitBox.height).toBe(32);
+  // The commit button is the footer's at size md, 36px by touch (mobile spec 11/21).
+  expect(commitBox.height).toBe(36);
 });
 
 it("has no footer: × is Cancel", async () => {

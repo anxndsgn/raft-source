@@ -82,7 +82,8 @@ for (const mode of MODES) {
     // colour: the primary hover keeps its colour and adds an overlay.
     const reactive = (el: Element) => {
       const cs = getComputedStyle(el);
-      return `${cs.backgroundColor}|${cs.backgroundImage}|${cs.translate}|${cs.boxShadow}`;
+      // The redesign's filled Buttons hover at 90% (by touch too, mobile spec 11/21).
+      return `${cs.backgroundColor}|${cs.backgroundImage}|${cs.translate}|${cs.boxShadow}|${cs.opacity}`;
     };
     const plainResting = reactive(plainEl);
     await page.getByTestId("trigger").hover();

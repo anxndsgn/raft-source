@@ -38,8 +38,8 @@ const BANNER = {
   md: { icon: 20, gap: 10 },
   sm: { icon: 16, gap: 8 },
 } as const;
-/** Raft redesign: with a mouse every Banner's icon is 16 (anxndsgn 11/18: 24 in the rail, 16 everywhere else). */
-const bannerIcon = (size: keyof typeof BANNER, touch: boolean) => (touch ? BANNER[size].icon : 16);
+/** Raft redesign: every Banner's icon is 16 (anxndsgn 11/18: 24 in the rail, 16 everywhere else; by touch too, mobile spec 11/21). */
+const bannerIcon = (_size: keyof typeof BANNER, _touch: boolean) => 16;
 const PANEL_NOTICE_GAP = 10;
 const TOAST_COLUMN = 20;
 const TOAST_ICON = 16;

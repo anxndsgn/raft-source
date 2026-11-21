@@ -40,15 +40,15 @@ for (const [width, height] of [
   [1024, 1366],
   [768, 1024],
 ]) {
-  it(`is 48px with its start on the rail's items and its end on 20px at ${width}px`, async () => {
+  it(`is 52px (every head, mobile spec 11/21) with its start on the rail's items and its end on 20px at ${width}px`, async () => {
     await setViewport(width, height);
     const { bar, workspace, railItem, bellIcon, search } = renderBar({
       start: width > 768 ? <Avatars count={3} prefix="strip" /> : null,
     });
-    expect(bar.height).toBe(48);
+    expect(bar.height).toBe(52);
     expect(workspace.height).toBe(36);
-    expect(workspace.top - bar.top).toBe(5.5);
-    expect(bar.bottom - 1 - workspace.bottom).toBe(5.5);
+    expect(workspace.top - bar.top).toBe(7.5);
+    expect(bar.bottom - 1 - workspace.bottom).toBe(7.5);
     // Raft redesign: the start follows the rail's centred item.
     expect(railItem.left).toBeGreaterThan(0);
     expect(workspace.left).toBe(railItem.left);

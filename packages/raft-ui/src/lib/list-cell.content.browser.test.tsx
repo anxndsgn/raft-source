@@ -57,13 +57,13 @@ import { settled } from "./row-hover.test-colors";
 
 // List cells (design/patterns/lists.md#content): a cell's content is padded
 // from its state shape, not from the list. The shape is 8px from the list's
-// sides; inside it the content keeps 12px at the start and at the end, so
+// sides; inside it the content keeps 8px on a phone (mobile spec 11/21) at the start and at the end, so
 // the leading avatar or icon and the trailing time, counts, the @ sticker and
 // a hover-revealed Mark as Done never touch the shape, at rest, hovered,
 // selected, and with a classic scrollbar taking the end inset.
 
 const it = test.skipIf(typeof window === "undefined");
-const PAD = 12;
+const PAD = 8;
 
 afterEach(cleanup);
 
@@ -307,7 +307,7 @@ for (const c of cases) {
     it(`${c.name} ${where}: the content keeps ${PAD}px from the shape at both ends, at rest, hovered and selected`, async () => {
       const row = renderCase(c, undefined, overflow);
       expect(await settled(() => getComputedStyle(row, "::before").left)).toBe("8px");
-      expect(getComputedStyle(row).paddingLeft).toBe("20px");
+      expect(getComputedStyle(row).paddingLeft).toBe("16px");
 
       const rest = contentInset(row);
       expect(rest.start, `${c.name} rest start`).toBe(PAD);

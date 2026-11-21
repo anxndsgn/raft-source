@@ -36,9 +36,10 @@ function Chip({ children, id }: { children: string; id?: string }) {
 }
 
 /**
- * The list's width, from the long chip's own: 60px wider, so the chip fits a
- * line of its own, but the value column (the list less a label column of at
- * least 88px and the 16px gap) is narrower than it.
+ * The list's width, from the long chip's own: 100px wider (the role-tag chips
+ * are small since the redesign), so the chip fits a line of its own, but the
+ * value column (the list less a label column of at least 88px and the 16px
+ * gap) is narrower than it.
  */
 async function listWidth(): Promise<number> {
   await document.fonts.ready;
@@ -47,7 +48,7 @@ async function listWidth(): Promise<number> {
       <Chip id="probe">{longChip}</Chip>
     </ThemeProvider>,
   );
-  const width = Math.ceil(screen.getByTestId("probe").getBoundingClientRect().width) + 60;
+  const width = Math.ceil(screen.getByTestId("probe").getBoundingClientRect().width) + 100;
   cleanup();
   return width;
 }

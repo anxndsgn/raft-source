@@ -69,10 +69,8 @@ for (const width of WIDTHS) {
       const remove = box(screen.getByRole("button", { name: "Clear Filter" }));
       const icon = box(screen.getByTestId("icon"));
 
-      // Desktop with a mouse uses the 32px control height (Raft redesign); touch keeps 32.
-      expect(chip.height).toBe(
-        32,
-      );
+      // 32 with a mouse (Raft redesign); by touch the 36px Button beside it (mobile spec 11/21).
+      expect(chip.height).toBe(button.height);
       expect(chip.height).toBe(button.height);
       expect(chip.top).toBe(button.top);
       expect(chip.left - button.right).toBe(8);

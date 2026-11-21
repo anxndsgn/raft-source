@@ -28,7 +28,8 @@ export const webTopBar = tv({
   slots: {
     root: [
       "grid grid-cols-[1fr_auto_1fr] items-center",
-      "h-[calc(var(--frame-item-height)+2*var(--header-air))] shrink-0",
+      // Every head's height: 52 by touch (Figmama mobile spec 11/21), 44 with a mouse.
+      "h-(--header-height) shrink-0",
       "border-b border-line-seam",
       "bg-layer-frame text-foreground-on-frame frame-decor-top",
     ],

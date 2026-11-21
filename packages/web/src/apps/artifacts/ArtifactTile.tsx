@@ -123,7 +123,7 @@ export function ArtifactTile({ item, readerId, onOpen, phone }: {
             data-artifact-open=""
             data-artifact-title=""
             data-testid="artifacts-tile-title"
-            className="line-clamp-2 min-w-0 text-subhead break-words font-bold font-semibold md:pointer-fine:font-semibold text-foreground no-underline outline-none after:absolute after:inset-0 after:rounded-container focus-visible:after:shadow-focus"
+            className="line-clamp-2 min-w-0 text-subhead break-words font-semibold text-foreground no-underline outline-none after:absolute after:inset-0 after:rounded-container focus-visible:after:shadow-focus"
           >
             {artifactShownTitle(card.title)}
           </a>

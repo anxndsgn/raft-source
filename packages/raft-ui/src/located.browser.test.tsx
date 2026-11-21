@@ -117,7 +117,7 @@ function token(name: string): string {
 function Tokens() {
   return (
     <>
-      {["info-soft", "fill-subtle", "fill-cell-selected"].map((name) => (
+      {["info-soft", "fill-subtle", "fill-medium", "fill-cell-selected"].map((name) => (
         <div
           key={name}
           data-testid={`token-${name}`}
@@ -400,7 +400,8 @@ it("a cell rendered through another part (its data-slot replaced) still paints l
   );
 });
 
-it("a selected settings row (ListRow without cell) keeps info-soft and gets no located layer", () => {
+// Raft redesign (Figmama 11/21): a selected row is the 5% ink, by touch too.
+it("a selected settings row (ListRow without cell) keeps its 5% ink and gets no located layer", () => {
   render(
     <ThemeProvider>
       <Tokens />
@@ -414,7 +415,7 @@ it("a selected settings row (ListRow without cell) keeps info-soft and gets no l
   );
   const row = screen.getByTestId("row");
   seek(located(row), 1700);
-  expectSameColor(getComputedStyle(row).backgroundColor, token("info-soft"));
+  expectSameColor(getComputedStyle(row).backgroundColor, token("fill-medium"));
   expect(layer(row)).toBeNull();
   for (const id of ["current", "active"]) {
     expect(layer(screen.getByTestId(id))).toBeNull();

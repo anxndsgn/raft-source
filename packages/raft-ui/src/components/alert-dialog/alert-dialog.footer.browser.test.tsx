@@ -33,7 +33,8 @@ afterAll(async () => {
 });
 
 /** The dialog's inline padding: 20px, with a mouse too (Raft redesign C17: an AlertDialog is inset as a Dialog, 20). */
-const margin = () => 20;
+/** The surface inset: 16px on a phone (Figmama mobile spec 11/21), 20px from 768px. */
+const margin = () => (window.innerWidth < 768 ? 16 : 20);
 
 /** Whether Cancel draws a frame: an ink border and the card fill (Button, `in-data-stacked:`). */
 function framed(button: HTMLElement) {

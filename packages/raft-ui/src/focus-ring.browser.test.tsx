@@ -24,6 +24,9 @@ afterEach(cleanup);
 /** The ring is the 4px ink layer of `focus-ring`; nothing else here casts one. */
 const RING = /0px 0px 0px 4px/;
 const ringed = (el: Element) => RING.test(getComputedStyle(el).boxShadow);
+/** A field box's ring (Raft redesign, lib/field-look.ts): a 1px ink line inside, or the glow. */
+const fieldRinged = (el: Element) =>
+  RING.test(getComputedStyle(el).boxShadow) || /0px 0px 0px 1px inset/.test(getComputedStyle(el).boxShadow);
 /** The inset ring of a row that touches its container's edge (`keyboard:` variant). */
 const insetRinged = (el: Element) => /0px 0px 0px 2px inset/.test(getComputedStyle(el).boxShadow);
 
@@ -90,17 +93,17 @@ it("InputGroup: clicking the field or the clear button inside it shows no ring; 
   const group = screen.getByTestId("group");
   await userEvent.click(screen.getByRole("textbox", { name: "Search" }));
   await settle();
-  expect(ringed(group), "field clicked").toBe(false);
+  expect(fieldRinged(group), "field clicked").toBe(false);
   await userEvent.click(screen.getByTestId("clear"));
   await settle();
   expect(document.activeElement).toBe(screen.getByTestId("clear"));
-  expect(ringed(group), "clear button clicked").toBe(false);
+  expect(fieldRinged(group), "clear button clicked").toBe(false);
 
   await userEvent.click(screen.getByTestId("textarea"));
   await userEvent.keyboard("{Tab}");
   await settle();
   expect(document.activeElement).toBe(screen.getByRole("textbox", { name: "Search" }));
-  expect(ringed(group), "field tabbed to").toBe(true);
+  expect(fieldRinged(group), "field tabbed to").toBe(true);
 });
 
 it("Composer: typing after a click keeps it un-ringed; Tab into it rings it", async () => {
@@ -178,11 +181,11 @@ it("without the tracker, clicking a button inside a group still does not ring th
   await userEvent.click(screen.getByTestId("bare-clear"));
   await settle();
   expect(document.activeElement).toBe(screen.getByTestId("bare-clear"));
-  expect(ringed(screen.getByTestId("bare-group"))).toBe(false);
+  expect(fieldRinged(screen.getByTestId("bare-group"))).toBe(false);
   // Positive control: the field inside still rings the group.
   await userEvent.click(screen.getByRole("textbox", { name: "Search" }));
   await settle();
-  expect(ringed(screen.getByTestId("bare-group"))).toBe(true);
+  expect(fieldRinged(screen.getByTestId("bare-group"))).toBe(true);
 });
 
 it("focus moved by code after a click shows no ring, token or inset; after Tab it does", async () => {
