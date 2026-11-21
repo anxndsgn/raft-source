@@ -40,7 +40,11 @@ import { AllRow } from "./ArtifactDashboardRows";
  * server fixes: no sort then. Skeleton rows while the first page loads, an empty state
  * (the table keeps its header row over it), a warning with Retry when a read fails.
  */
-export function DashboardList({ all, place, onPlace, author, onAuthor, search, onSearch, query, relevant, onRelevant, sort, onSort, listRef, onOpen, layout, phone, view, readerId, table }: {
+export function DashboardList({ all, place, onPlace, author, onAuthor, search, onSearch, query, relevant, onRelevant, sort, onSort, listRef, onOpen, layout, phone, view, readerId, table, columnClassName = "", toolbarClassName = "" }: {
+  /** The page's reading column on the list's content (layout changes C, 11/21). */
+  columnClassName?: string;
+  /** …and on the toolbar's band. */
+  toolbarClassName?: string;
   all: AllArtifacts;
   place: ArtifactPlace | null;
   onPlace: (place: ArtifactPlace | null) => void;
@@ -117,8 +121,7 @@ export function DashboardList({ all, place, onPlace, author, onAuthor, search, o
     />
   );
 
-  return (
-    <>
+  const toolbar = (
       <DashboardToolbar
         phone={phone}
         view={view}
@@ -153,12 +156,16 @@ export function DashboardList({ all, place, onPlace, author, onAuthor, search, o
           </>
         )}
       />
+  );
+  return (
+    <>
+      {toolbarClassName ? <div className={`shrink-0 ${toolbarClassName}`}>{toolbar}</div> : toolbar}
       <ScrollArea
         ref={listRef}
         tabIndex={-1}
         className="min-h-0 flex-1 outline-none"
         // The content fills the area, so the empty state stays centred in it.
-        contentClassName="flex min-h-full flex-col pb-6 safe-bottom"
+        contentClassName={`flex min-h-full flex-col pb-6 safe-bottom ${columnClassName}`}
         aria-busy={state.status === "loading" || state.status === "idle" || undefined}
         data-testid="artifacts-all-list"
         data-layout={layout}

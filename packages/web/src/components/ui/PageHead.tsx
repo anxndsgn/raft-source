@@ -36,6 +36,7 @@ export function PageHead({
   action,
   tabs,
   form = false,
+  wide = false,
   testId,
 }: {
   title: ReactNode;
@@ -43,10 +44,12 @@ export function PageHead({
   action?: ReactNode;
   tabs?: ReactNode;
   form?: boolean;
+  /** A page that fills the width (the task board, the Artifacts grid): the head runs with it, 20px in. */
+  wide?: boolean;
   testId?: string;
 }) {
   return (
-    <div className={`${form ? PAGE_COLUMN_FORM_CLASS : PAGE_COLUMN_CLASS} shrink-0 px-(--column-margin) pt-5 @min-[1024px]/page:pt-10`} data-full-page-head="" data-page-head="" data-testid={testId}>
+    <div className={`${wide ? "" : form ? PAGE_COLUMN_FORM_CLASS : PAGE_COLUMN_CLASS} shrink-0 px-(--column-margin) pt-5 @min-[1024px]/page:pt-10`} data-full-page-head="" data-page-head="" data-testid={testId}>
       <div className="flex min-w-0 items-center gap-4">
         <div className="min-w-0 flex-1">
           <h2 className="truncate font-sans text-[24px] leading-8 font-semibold text-foreground" data-slot="page-head-title">{title}</h2>

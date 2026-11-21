@@ -1295,6 +1295,9 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
   const requestAddPlugin = useCallback(() => setAddPluginOpen(true), []);
   const closeAddPlugin = useCallback(() => setAddPluginOpen(false), []);
 
+  // With a mouse on a desktop (layout changes C): the page head holds the primary action and the view tabs.
+  const desktopMouse = useDesktopMouse();
+
   if (!current) return null;
   const selectedListingBotHint = selectedListing ? renderUndecidedBotHint(selectedListing.id) : null;
 
@@ -1314,7 +1317,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
   const pageTitle = formatMessage({ id: "apps.page.title" });
   // Layout changes C (11/21): with a mouse on a desktop the page's primary action (Add App, or Add plugin on the
   // Skills tab) is the page head's, not the toolbar's.
-  const pageHeadAction = useDesktopMouse() && variant === "page";
+  const pageHeadAction = desktopMouse && variant === "page";
   const addAppMenu = canManage ? (
     <RegisterAppMenu
       inToolbar={variant === "page" && !pageHeadAction}

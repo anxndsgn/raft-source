@@ -68,6 +68,7 @@ import { ListToolbarMore, ListViewSwitch, MoreMenuChoices } from "../ui/ListTool
 import { useTabRootScroll } from "../../hooks/useTabRootScroll";
 import { TabRootBar } from "../layout/TabRootBar";
 import { FULL_PAGE_HEAD_PROPS } from "../ui/PanelHeader";
+import { PAGE_COLUMN_CONTENT_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, PageHead, useDesktopMouse } from "../ui/PageHead";
 import { usePinnedHeadRailInset } from "../../hooks/usePinnedHeadRailInset";
 import { PHONE_ROOT_TOOLBAR_CLASS, PHONE_ROOT_VIEWPORT_CLASS, TOOLBAR_CLASS, VIEWPORT_CLASS, VIEWPORT_CONTENT_CLASS } from "./tasksPanelViewport";
 import { LoadMoreSentinel } from "./tasksPage/LoadMoreSentinel";
@@ -1201,9 +1202,26 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
     </TasksPanelToolbar>
   );
 
+  // Layout changes C (11/21): the server's Tasks page with a mouse on a desktop: the page head; the list view in the
+  // reading column, the board across the page as before.
+  const pageHead = useDesktopMouse() && !isChannelMode;
+  const listColumn = pageHead && viewMode !== "board";
+  const newTaskButton = (
+    <Button variant="primary" size="md" onClick={openCreateDialog} data-testid="tasks-page-header-new-task">
+      <Plus aria-hidden />
+      {newTaskLabel}
+    </Button>
+  );
+  const pageSubtitle = loading ? "\u00a0" : (
+    <span>
+      <span className="font-mono">{sortedTasks.length}</span>
+      {hasAnyFilter ? formatMessage({ id: "task.panel.ofTotal" }, { total: tasks.length }) : ""}
+      {" "}{formatMessage({ id: "task.panel.channelTasks" })}
+    </span>
+  );
   return (
     <TasksPanelRoot
-      className="flex min-h-0 flex-1 flex-col"
+      className={`${pageHead ? PAGE_ROOT_CLASS : ""} flex min-h-0 flex-1 flex-col`}
       data-testid={isChannelMode ? "channel-task-panel" : undefined}
       data-full-page={isChannelMode ? undefined : ""}
     >
@@ -1216,31 +1234,22 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
           tab roots (TabRootBar): raft-ui's section head, white on desktop and
           the frame on a phone, the page name its one h1 there. The Board/List
           toggle lives in the filter row, not here. */}
-      {!isChannelMode && (
+      {pageHead ? (
+        <PageHead title={formatMessage({ id: "task.panel.heading" })} subtitle={pageSubtitle} action={newTaskButton} wide={!listColumn} />
+      ) : !isChannelMode && (
         <TabRootBar
           name={formatMessage({ id: "task.panel.heading" })}
           headingLevel={isPhoneTabRoot ? 1 : 2}
           containerProps={FULL_PAGE_HEAD_PROPS}
           // Task #15: the page's New task, its primary action (the Create task dialog, the channel picked there).
-          actions={(
-            <Button variant="primary" size="md" onClick={openCreateDialog} data-testid="tasks-page-header-new-task">
-              <Plus aria-hidden />
-              {newTaskLabel}
-            </Button>
-          )}
+          actions={newTaskButton}
           // No count before the tasks are read ("0 channel tasks" while they
           // load): the line's box stays, empty.
-          subtitle={loading ? "\u00a0" : (
-            <span>
-              <span className="font-mono">{sortedTasks.length}</span>
-              {hasAnyFilter ? formatMessage({ id: "task.panel.ofTotal" }, { total: tasks.length }) : ""}
-              {" "}{formatMessage({ id: "task.panel.channelTasks" })}
-            </span>
-          )}
+          subtitle={pageSubtitle}
         />
       )}
 
-      {isPhoneTabRoot ? null : toolbar}
+      {isPhoneTabRoot ? null : listColumn ? <div className={`shrink-0 ${PAGE_COLUMN_INSET_CLASS}`}>{toolbar}</div> : toolbar}
 
       {/* raft-ui ScrollArea, both ways (the board scrolls sideways); the
           scrollbars show while it is pointed at or scrolls, as on every page
@@ -1316,7 +1325,8 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
         ) : (
           <TaskVirtualLayout
             scrollElementRef={scrollContainerRef}
-            className="stack-y-6"
+            // The rows keep their 8px inner edge: pulled out by it, their content sits on the column's edges.
+            className={`stack-y-6 ${listColumn ? `w-full ${PAGE_COLUMN_CONTENT_CLASS} md:pointer-fine:max-w-[896px]!` : ""}`}
             aria-busy={loading || undefined}
           >
             {lanes.map(({ status, tasks: statusTasks, placeholders }) => (
