@@ -513,7 +513,9 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
                   type="server"
                   serverAvatarUrl={server?.avatarUrl}
                   serverInitial={serverInitial}
-                  className="group-data-[selected=true]:!size-8 md:[@media(max-height:600px)]:!size-8 md:[@media(max-height:600px)]:group-data-[selected=true]:!size-7"
+                  // The desktop's 27 also by CSS: the boot shell, prerendered before any script reads the window,
+                  // otherwise draws the phone's 35 (AvatarSlot picks `sm` with a media query).
+                  className="md:pointer-fine:size-[27px] md:pointer-fine:*:text-[13px] group-data-[selected=true]:!size-8 md:[@media(max-height:600px)]:!size-8 md:[@media(max-height:600px)]:group-data-[selected=true]:!size-7"
                 />
                 {hasOtherServerUnread ? (
                   <AppRailItemAttention title={formatMessage({ id: "layout.leftRail.serverFallbackName" })} />
