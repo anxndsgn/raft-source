@@ -113,11 +113,35 @@ async function waitForExactSourceCounts(
   throw new Error(`CDC snapshot count parity timed out (${last || "no readable counts"})`);
 }
 
-async function replaceOwnedPublicationAndSlot(postgres: pg.Client): Promise<void> {
-  const slot = await postgres.query<{ active: boolean }>(
-    "SELECT active FROM pg_replication_slots WHERE slot_name = $1",
+async function replaceOwnedPublicationAndSlot(
+  postgres: pg.Client,
+  options: { releaseActiveSlot: boolean },
+): Promise<void> {
+  const readSlot = () => postgres.query<{ active: boolean; active_pid: number | null }>(
+    "SELECT active, active_pid FROM pg_replication_slots WHERE slot_name = $1",
     [RISINGWAVE_LOCAL_SLOT],
   );
+  let slot = await readSlot();
+  if (slot.rows[0]?.active && options.releaseActiveSlot) {
+    // Self-host rebuild: the CDC source was just dropped, and RisingWave lets
+    // go of its replication connection a moment later. Wait for that, and if
+    // it never comes, end the walsender that still holds the slot.
+    const deadline = Date.now() + SLOT_RELEASE_TIMEOUT_MS;
+    while (slot.rows[0]?.active && Date.now() < deadline) {
+      await sleep(1_000);
+      slot = await readSlot();
+    }
+    const pid = slot.rows[0]?.active ? slot.rows[0].active_pid : null;
+    if (pid !== null && pid !== undefined) {
+      console.error(`[rw-bootstrap] slot ${RISINGWAVE_LOCAL_SLOT} still held by pid ${pid}; terminating it`);
+      await postgres.query("SELECT pg_terminate_backend($1)", [pid]);
+      const terminateDeadline = Date.now() + 10_000;
+      do {
+        await sleep(500);
+        slot = await readSlot();
+      } while (slot.rows[0]?.active && Date.now() < terminateDeadline);
+    }
+  }
   if (slot.rows[0]?.active) {
     throw new Error(`owned replication slot ${RISINGWAVE_LOCAL_SLOT} is still active`);
   }
@@ -304,6 +328,7 @@ async function main(): Promise<void> {
   await postgres.connect();
   await risingwave.connect();
   let restoreBarrierIntervalMs: number | null = null;
+  let rebuilding = false;
   try {
     if (selfHost && await alreadyBootstrapped(risingwave)) {
       try {
@@ -317,6 +342,7 @@ async function main(): Promise<void> {
         const detail = error instanceof Error ? error.message : String(error);
         console.error(`[rw-bootstrap] the existing graph is out of date (${detail}); rebuilding it`);
         await dropSelfHostGraph(risingwave);
+        rebuilding = true;
       }
     }
     // Loopback-only (checked above): this never touches a staging or
@@ -333,7 +359,7 @@ async function main(): Promise<void> {
       throw new Error(`Postgres wal_level must be logical, got ${wal.rows[0]?.wal_level ?? "unknown"}`);
     }
 
-    await replaceOwnedPublicationAndSlot(postgres);
+    await replaceOwnedPublicationAndSlot(postgres, { releaseActiveSlot: rebuilding });
     await assertPublication(postgres);
     await createCdcSource(risingwave, {
       host: cdcHost,
@@ -415,6 +441,7 @@ async function main(): Promise<void> {
 }
 
 const CLEANUP_STEP_TIMEOUT_MS = 30_000;
+const SLOT_RELEASE_TIMEOUT_MS = 60_000;
 
 async function withinMs<T>(label: string, ms: number, work: Promise<T>): Promise<T> {
   const started = Date.now();
