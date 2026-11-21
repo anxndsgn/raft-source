@@ -15,6 +15,10 @@ import {
   SelectValue,
   Separator,
   TextLink,
+  Tabs,
+  TabsLabel,
+  TabsList,
+  TabsTab,
 } from "@botiverse/raft-ui";
 import Tooltip from "../../components/ui/Tooltip";
 import { useCallback, useState, useEffect, useEffectEvent, useId, useMemo, useRef } from "react";
@@ -57,6 +61,7 @@ import { appPermissionsChangedCurrentSet, expectedAppPermissionsBody, isAppPermi
 import { AppPermissionSetList } from "../../components/integrations/AppPermissionSetList";
 import { useIntl } from "react-intl";
 import PanelHeader, { FULL_PAGE_HEAD_PROPS } from "../../components/ui/PanelHeader";
+import { PAGE_COLUMN_CONTENT_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, PageHead, useDesktopMouse } from "../../components/ui/PageHead";
 import SectionEyebrow from "../../components/ui/SectionEyebrow";
 import SectionHeader from "../../components/ui/SectionHeader";
 import FormField from "../../components/ui/FormField";
@@ -1307,12 +1312,20 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
   ) : null;
 
   const pageTitle = formatMessage({ id: "apps.page.title" });
+  // Layout changes C (11/21): with a mouse on a desktop the page's primary action (Add App, or Add plugin on the
+  // Skills tab) is the page head's, not the toolbar's.
+  const pageHeadAction = useDesktopMouse() && variant === "page";
   const addAppMenu = canManage ? (
     <RegisterAppMenu
-      inToolbar={variant === "page"}
+      inToolbar={variant === "page" && !pageHeadAction}
       onRegisterOwnService={openRegisterDrawer}
       onRegisterMcpServer={handleRegisterMcpServer}
     />
+  ) : undefined;
+  const skillsAddAction = variant === "page" && canManage ? (
+    <Button variant="accent" size="md" onClick={requestAddPlugin} data-testid="skills-hub-add-plugin">
+      <Plus size={16} /> {formatMessage({ id: "skillsHub.action.addPlugin" })}
+    </Button>
   ) : undefined;
   const toolbar = (
     // The tabs are the toolbar's scope, at its start (Raft DS › The toolbar over a list).
@@ -1329,12 +1342,9 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
       // The Apps page is one table per tab (task #18): no grid to switch to.
       viewSwitch={variant === "page" ? undefined : <ConnectedAppsViewToggle value={connectedAppsViewMode} onValueChange={updateConnectedAppsViewMode} />}
       // The page's Add App ends its toolbar; Settings keeps it in the section header.
-      addApp={variant === "page" ? addAppMenu : undefined}
-      skillsAction={variant === "page" && canManage ? (
-        <Button variant="accent" size="md" onClick={requestAddPlugin} data-testid="skills-hub-add-plugin">
-          <Plus size={16} /> {formatMessage({ id: "skillsHub.action.addPlugin" })}
-        </Button>
-      ) : undefined}
+      addApp={variant === "page" && !pageHeadAction ? addAppMenu : undefined}
+      skillsAction={pageHeadAction ? undefined : skillsAddAction}
+      tabsInHead={pageHeadAction}
       variant={variant}
     />
   );
@@ -2256,19 +2266,40 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
     // list scrolls. On a phone it is a pushed page with Back.
     return (
       <div className="flex min-h-0 flex-1 bg-layer-canvas text-foreground" data-testid="apps-page" data-full-page="">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <PanelHeader
-            containerProps={FULL_PAGE_HEAD_PROPS}
-            title={pageTitle}
-            onMobileBack={onAppsMobileBack}
-            mobileBackProps={appsMobileBackProps}
-          />
-          <div className="shrink-0">
+        <div className={`${PAGE_ROOT_CLASS} flex min-h-0 min-w-0 flex-1 flex-col`}>
+          {pageHeadAction ? (
+            <PageHead
+              title={pageTitle}
+              action={activeTab === "skills" ? skillsAddAction : addAppMenu}
+              tabs={(
+                <Tabs<ConnectedAppsTab> value={activeTab} onValueChange={handleTabChange} className="min-w-0 -mb-px" data-testid="connected-apps-tabs">
+                  <TabsList aria-label={pageTitle}>
+                    {connectedAppsTabOptions.map((option) => (
+                      <TabsTab key={option.value} value={option.value} data-testid={option.testId}>
+                        <TabsLabel>{option.label}</TabsLabel>
+                        {option.count === null || option.count === undefined ? null : (
+                          <span className="tabular-nums text-[12px] font-normal text-foreground-muted" data-testid={option.countTestId}>{option.count}</span>
+                        )}
+                      </TabsTab>
+                    ))}
+                  </TabsList>
+                </Tabs>
+              )}
+            />
+          ) : (
+            <PanelHeader
+              containerProps={FULL_PAGE_HEAD_PROPS}
+              title={pageTitle}
+              onMobileBack={onAppsMobileBack}
+              mobileBackProps={appsMobileBackProps}
+            />
+          )}
+          <div className={`shrink-0 ${PAGE_COLUMN_INSET_CLASS}`}>
             {toolbar}
           </div>
           <ScrollArea ref={appsScrollRef} className="min-h-0 flex-1" contentClassName="px-4 py-4 safe-bottom md:px-(--surface-inset)" data-testid="apps-page-scroller">
             <PagePullToRefreshIndicator pull={appsPull} />
-            <div className="stack-y-4" data-testid="connected-apps-v3-section">
+            <div className={`stack-y-4 ${PAGE_COLUMN_CONTENT_CLASS}`} data-testid="connected-apps-v3-section">
               {body}
             </div>
           </ScrollArea>

@@ -13,6 +13,7 @@ import { useMachineStore } from "../../store/machineStore";
 import { TeamAgentLine } from "./TeamAgentLine";
 import { TeamComputerCards } from "./TeamComputerCards";
 import { TeamHeader } from "./TeamHeader";
+import { PAGE_COLUMN_CLASS, PAGE_ROOT_CLASS } from "../../components/ui/PageHead";
 import { useOpenAgentWork } from "./useOpenAgentWork";
 import { useTeamAgents } from "./useTeamAgents";
 import type { TeamAgentRow } from "./useTeamAgents";
@@ -95,13 +96,13 @@ export function TeamOverviewPage() {
   );
   const needsYou = held.length + notices.length;
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col font-sans" data-testid="team-overview-page">
+    <div className={`${PAGE_ROOT_CLASS} flex min-h-0 min-w-0 flex-1 flex-col font-sans`} data-testid="team-overview-page">
       {/* A root of the Team tab on a phone (PRD 团队页 §8): no Back. */}
       <TeamHeader view="overview" />
       {/* What each working agent is doing: their current step while the page is open. */}
       <AgentActivitySubscription agentIdKey={working.map((row) => row.agent.id).join(",")} />
       <ScrollArea className="min-h-0 flex-1 bg-layer-canvas safe-bottom" data-testid="team-overview-scroller">
-        <div className="flex flex-col gap-6 px-5 pt-4 pb-8">
+        <div className={`flex flex-col gap-6 px-5 pt-4 pb-8 ${PAGE_COLUMN_CLASS}`}>
           {needsYou > 0 ? (
             <Section title={formatMessage({ id: "team.overview.needsYou" })} count={needsYou} testId="team-overview-needs-you">
               <ListRowGroup>

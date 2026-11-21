@@ -106,6 +106,7 @@ export function AppsToolbar({
   addApp,
   skillsAction,
   variant = "page",
+  tabsInHead = false,
 }: {
   tab: ConnectedAppsTab;
   tabs: readonly ListScopeOption<ConnectedAppsTab>[];
@@ -123,6 +124,8 @@ export function AppsToolbar({
   addApp?: ReactNode;
   /** The Skills Hub tab's action (Add plugin), at the line's end. */
   skillsAction?: ReactNode;
+  /** The tabs are the page head's (layout changes C, 11/21: they switch views): not repeated here. */
+  tabsInHead?: boolean;
   /** The Apps page (a line of the toolbar over a list, edge to edge) or the Settings section (inside its column, no line of its own). */
   variant?: "page" | "settings";
 }) {
@@ -185,11 +188,12 @@ export function AppsToolbar({
   const orderedFilters = [...filterItems.filter((item) => item.applied), ...filterItems.filter((item) => !item.applied)];
   // The Skills Hub tab has its own header and actions: only the scope here.
   const scopeOnly = tab === "skills";
+  if (scopeOnly && tabsInHead && !skillsAction) return null;
 
   return (
     <div className={variant === "page" ? `px-4 md:px-(--surface-inset) ${LIST_TOOLBAR_AIR_CLASS}` : undefined} data-testid="connected-apps-filters">
       <FitToolbar aria-label={formatMessage({ id: "apps.page.title" })} wrap className="gap-2">
-        <ListScope value={tab} options={tabs} onValueChange={onTabChange} label={scopeLabel} testId="connected-apps-tabs" selectTestId="connected-apps-scope-select" />
+        {tabsInHead ? null : <ListScope value={tab} options={tabs} onValueChange={onTabChange} label={scopeLabel} testId="connected-apps-tabs" selectTestId="connected-apps-scope-select" />}
         {scopeOnly && skillsAction ? (
           <FitToolbarGroup firstLine className="ml-auto gap-2">{skillsAction}</FitToolbarGroup>
         ) : null}

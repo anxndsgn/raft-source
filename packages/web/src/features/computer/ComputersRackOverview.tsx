@@ -1,12 +1,13 @@
 import { useCallback } from "react";
 import { useIntl } from "react-intl";
-import { Monitor, RefreshCw } from "lucide-react";
+import { Monitor, Plus, RefreshCw } from "lucide-react";
 import { Button, PanelScrollViewport } from "@botiverse/raft-ui";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
 import { useComputersRackView } from "../../store/computersRackViewPreference";
 import { useMachineStore } from "../../store/machineStore";
 import EmptyState from "../../components/ui/EmptyState";
 import { TeamHeader } from "../team/TeamHeader";
+import { PAGE_COLUMN_CLASS, PAGE_COLUMN_INSET_CLASS, useDesktopMouse } from "../../components/ui/PageHead";
 import { ComputersRackList } from "./ComputersRackList";
 import { ComputersRackToolbar } from "./ComputersRackToolbar";
 import { ComputersAttentionSummary } from "./ComputersAttentionSummary";
@@ -28,6 +29,9 @@ export function ComputersRackOverview() {
   const { capabilities } = useServerPermissions();
   // Add Computer asks where the computer is first (useOpenAddComputer).
   const openAddMachine = useOpenAddComputer();
+  // Layout changes C (11/21): with a mouse on a desktop Add computer is the page head's action, the bands in the
+  // reading column.
+  const desktopMouse = useDesktopMouse();
   // On Raft Desktop the This device row shows even with no computers yet.
   const thisDeviceEntry = useThisDeviceListEntry();
   const loadedEmpty = !machinesLoading && machineLoadStatus === "loaded" && machineCount === 0 && thisDeviceEntry?.kind !== "unattached";
@@ -39,16 +43,26 @@ export function ComputersRackOverview() {
   return (
     // One 20px edge for the Team head, the toolbar, the summary and the rows, as on the Members tab (its
     // listColumnMargin), so the head stays put when the Team page's tabs switch.
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:16px] md:[--column-margin:20px] [--surface-inset:16px] md:[--surface-inset:20px]" data-testid="computers-rack-overview">
+    <div className="@container/page flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:16px] md:[--column-margin:20px] [--surface-inset:16px] md:[--surface-inset:20px]" data-testid="computers-rack-overview">
       {/* The Team page's Computers tab (PRD 团队页 §5.3): the Team head over the rack, unchanged below it. */}
-      <TeamHeader view="computers" />
+      <TeamHeader
+        view="computers"
+        action={desktopMouse && capabilities.registerMachines ? (
+          <Button variant="primary" size="md" onClick={openAddMachine} data-testid="computers-rack-add">
+            <Plus />
+            {formatMessage({ id: "machine.mobile.addComputer" })}
+          </Button>
+        ) : undefined}
+      />
       {/* Search, filters, grouping, sort, the view and Add computer (ComputersRackToolbar), above the
           scroller so they stay put while the list scrolls; the head holds only the title and the
           count (Raft DS › Page structure › A page of a list). The toolbar shows with the page, empty or
           errored too, so Add computer is always at its end. */}
-      <ComputersRackToolbar onAdd={capabilities.registerMachines ? openAddMachine : undefined} />
+      <div className={`shrink-0 ${PAGE_COLUMN_INSET_CLASS}`}>
+        <ComputersRackToolbar onAdd={capabilities.registerMachines && !desktopMouse ? openAddMachine : undefined} />
       {/* #68: what needs a person and what is waiting, from the server's summary (nothing from an older server). */}
-      <ComputersAttentionSummary />
+        <ComputersAttentionSummary />
+      </div>
       {/* The page's one scroller, the panel's raft-ui ScrollArea. Both ways:
           a list row's fixed identity and action columns can be wider than a
           narrow window, as with the native scroller before. */}
@@ -75,7 +89,7 @@ export function ComputersRackOverview() {
             description={formatMessage({ id: "machine.mobile.emptyDescription" })}
           />
         ) : (
-          <ComputersRackList variant="desktop" view={view} />
+          <div className={PAGE_COLUMN_CLASS}><ComputersRackList variant="desktop" view={view} /></div>
         )}
       </PanelScrollViewport>
     </div>

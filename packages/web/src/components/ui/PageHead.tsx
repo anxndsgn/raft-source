@@ -12,6 +12,8 @@ import { useMediaQuery } from "../../hooks/effectPrimitives";
  */
 export const PAGE_COLUMN_CLASS = "page-column";
 export const PAGE_COLUMN_FORM_CLASS = "page-column page-column-form";
+/** Content inside a band that keeps its own 20px edges (a padded scroller's content): the column's 880 alone. */
+export const PAGE_COLUMN_CONTENT_CLASS = "page-column-content";
 /** A band drawing a line under it (a toolbar): the column's width exactly, so the line is only as wide as the column. */
 export const PAGE_COLUMN_INSET_CLASS = "page-column-inset";
 export const PAGE_ROOT_CLASS = "@container/page";

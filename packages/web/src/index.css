@@ -1671,9 +1671,16 @@ html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [d
   .page-column-form {
     max-width: calc(720px + 2 * var(--column-margin, 20px));
   }
+  /* Content inside a band that already keeps its 20px edges (a scroller's padded content): the column alone. */
+  .page-column-content {
+    max-width: 880px;
+    margin-inline: auto;
+  }
   /* A band whose line under it is the column's (a toolbar): the column itself, its edges outside. */
   .page-column-inset {
-    width: calc(100% - 2 * var(--column-margin, 20px));
+    --surface-inset: 0px;
+    --column-margin: 0px;
+    width: calc(100% - 40px);
     max-width: 880px;
     margin-inline: auto;
     padding-inline: 0 !important;
