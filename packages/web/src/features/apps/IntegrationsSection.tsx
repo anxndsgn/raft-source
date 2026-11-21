@@ -61,7 +61,7 @@ import { appPermissionsChangedCurrentSet, expectedAppPermissionsBody, isAppPermi
 import { AppPermissionSetList } from "../../components/integrations/AppPermissionSetList";
 import { useIntl } from "react-intl";
 import PanelHeader, { FULL_PAGE_HEAD_PROPS } from "../../components/ui/PanelHeader";
-import { PAGE_COLUMN_CONTENT_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, PageHead, useDesktopMouse } from "../../components/ui/PageHead";
+import { PAGE_COLUMN_CONTENT_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, PageHead, PageNav, PageNavFrame, useDesktopMouse, usePageElement, usePageNavWide } from "../../components/ui/PageHead";
 import SectionEyebrow from "../../components/ui/SectionEyebrow";
 import SectionHeader from "../../components/ui/SectionHeader";
 import FormField from "../../components/ui/FormField";
@@ -1297,6 +1297,9 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
 
   // With a mouse on a desktop (layout changes C): the page head holds the primary action and the view tabs.
   const desktopMouse = useDesktopMouse();
+  // A page at least 1000 wide shows the Apps views as the vertical nav, on every view (Figmama 11/21).
+  const [appsPageElement, setAppsPageElement] = usePageElement<HTMLDivElement>();
+  const appsNavWide = usePageNavWide(appsPageElement) && variant === "page";
 
   if (!current) return null;
   const selectedListingBotHint = selectedListing ? renderUndecidedBotHint(selectedListing.id) : null;
@@ -2269,8 +2272,20 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
     // list scrolls. On a phone it is a pushed page with Back.
     return (
       <div className="flex min-h-0 flex-1 bg-layer-canvas text-foreground" data-testid="apps-page" data-full-page="">
-        <div className={`${PAGE_ROOT_CLASS} flex min-h-0 min-w-0 flex-1 flex-col`}>
-          {pageHeadAction ? (
+        <div ref={setAppsPageElement} className={`${PAGE_ROOT_CLASS} flex min-h-0 min-w-0 flex-1 flex-col`}>
+          <PageNavFrame
+            nav={appsNavWide ? (
+              <PageNav<ConnectedAppsTab>
+                label={pageTitle}
+                value={activeTab}
+                onValueChange={handleTabChange}
+                testId="connected-apps-tabs"
+                items={connectedAppsTabOptions}
+              />
+            ) : null}
+            head={pageHeadAction && appsNavWide ? (
+              <PageHead title={pageTitle} action={activeTab === "skills" ? skillsAddAction : addAppMenu} withNav />
+            ) : pageHeadAction ? (
             <PageHead
               title={pageTitle}
               action={activeTab === "skills" ? skillsAddAction : addAppMenu}
@@ -2297,6 +2312,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
               mobileBackProps={appsMobileBackProps}
             />
           )}
+          >
           <div className={`shrink-0 ${PAGE_COLUMN_INSET_CLASS}`}>
             {toolbar}
           </div>
@@ -2306,6 +2322,7 @@ export function IntegrationsSection({ variant = "settings" }: { variant?: "page"
               {body}
             </div>
           </ScrollArea>
+          </PageNavFrame>
         </div>
         {/* An MCP App's detail, a column beside the list from the head down (task #18, as the Team page's). */}
         {appsPageMcp.detailColumn}

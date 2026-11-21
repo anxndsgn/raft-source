@@ -26,7 +26,7 @@ import { MemberActionsContext } from "./memberActionsContext";
 import { useMemberActions } from "./useMemberActions";
 import { usePinnedHeadRailInset } from "../../hooks/usePinnedHeadRailInset";
 import { InviteHumanDialog } from "../../components/member/DeferredInviteHumanDialog";
-import { TeamHeader } from "../team/TeamHeader";
+import { TeamHeader, TeamPageNav } from "../team/TeamHeader";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
 import type { MessageId } from "../../i18n/messages/en";
 import { useAgentStore } from "../../store/agentStore";
@@ -41,7 +41,7 @@ import { useAgentsGrouping, writeAgentsGrouping } from "./agentsGroupingPreferen
 import { useMembersPopulation } from "./useMembersPopulation";
 import { MembersAddAgentDialogs } from "./MembersAddAgentDialogs";
 import { MembersCreateAgentButton } from "./MembersCreateAgentButton";
-import { PAGE_COLUMN_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, useDesktopMouse } from "../../components/ui/PageHead";
+import { PAGE_COLUMN_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, PageNavFrame, useDesktopMouse, usePageElement, usePageNavWide } from "../../components/ui/PageHead";
 import { useAddAgentActions } from "./useAddAgentActions";
 import type { MembersLocateState } from "./useMembersProfileRedirect";
 import type { AddAgentStep } from "./useAddAgentActions";
@@ -166,6 +166,9 @@ export function MembersPage() {
   const location = useLocation();
   const locate = (location.state as Partial<MembersLocateState> | null)?.membersLocate ?? null;
   const pageRef = useRef<HTMLDivElement>(null);
+  // Layout changes (Figmama 11/21): a page at least 1000 wide shows the Team views as a vertical nav.
+  const [pageElement, setPageElement] = usePageElement(pageRef);
+  const navWide = usePageNavWide(pageElement);
   const scrollerRef = useRef<HTMLDivElement>(null);
   // The toolbar is pinned inside the scroller: the scrollbar starts below it
   // (its height changes when the search wraps on a phone).
@@ -350,9 +353,9 @@ export function MembersPage() {
   return (
     // One edge for the head, the toolbar and the rows: 16px on a phone (mobile spec 11/21), else 20px (raft-ui listColumnMargin).
     <MemberActionsContext.Provider value={memberActions}>
-    <div ref={pageRef} className={`${PAGE_ROOT_CLASS} flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:16px] md:[--column-margin:16px] md:[--column-margin:20px]`} data-testid="members-page" data-layout={isDesktop ? "desktop" : "phone"}>
+    <div ref={setPageElement} className={`${PAGE_ROOT_CLASS} flex min-h-0 min-w-0 flex-1 flex-col font-sans [--column-margin:16px] md:[--column-margin:16px] md:[--column-margin:20px]`} data-testid="members-page" data-layout={isDesktop ? "desktop" : "phone"}>
       {/* A root of the Team tab on a phone (PRD 团队页 §8): no Back. */}
-      <TeamHeader view="members" action={desktopMouse && canCreateAgents ? <MembersCreateAgentButton actions={addAgentActions} inHead /> : undefined} />
+      <PageNavFrame nav={navWide ? <TeamPageNav view="members" /> : null} head={<TeamHeader view="members" withNav={navWide} action={desktopMouse && canCreateAgents ? <MembersCreateAgentButton actions={addAgentActions} inHead /> : undefined} />}>
       <ScrollArea ref={scrollerRef} railInset={toolbarRailInset} className="min-h-0 flex-1 bg-layer-canvas pb-5 safe-bottom" data-testid="members-scroller">
         {/* The toolbar over the list (Raft DS › The toolbar over a list), pinned under the header while the
             members scroll: the tabs, the search filling the line, the Agents tab's Group menu and Invite human,
@@ -478,6 +481,7 @@ export function MembersPage() {
             the DOM) is drawn over the sticky toolbar (raft-design lists.md: no row shows through). */}
         <div className={`isolate ${PAGE_COLUMN_CLASS}`} data-testid="members-body">{renderBody()}</div>
       </ScrollArea>
+      </PageNavFrame>
       {showInvite ? <InviteHumanDialog onClose={closeInvite} surface="members_page" /> : null}
       <MembersAddAgentDialogs step={addAgent} onStep={setAddAgent} />
       {memberDialogs}

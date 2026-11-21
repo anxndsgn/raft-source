@@ -5,7 +5,7 @@ import { Users } from "lucide-react";
 import { Tabs, TabsLabel, TabsList, TabsTab } from "@botiverse/raft-ui";
 import PanelHeader, { FULL_PAGE_HEAD_PROPS } from "../../components/ui/PanelHeader";
 import type { AppPanelHeaderProps } from "../../components/ui/PanelHeader";
-import { PageHead, useDesktopMouse } from "../../components/ui/PageHead";
+import { PageHead, PageNav, useDesktopMouse } from "../../components/ui/PageHead";
 import type { ReactNode } from "react";
 import { useMachineStore } from "../../store/machineStore";
 import { useServerStore } from "../../store/serverStore";
@@ -20,8 +20,36 @@ import type { TeamView } from "./teamWorking";
  * The Members and Computers pages are the tabs' views, so each keeps its own
  * toolbar below this head.
  */
-export function TeamHeader({ view, action, onMobileBack, mobileBackProps }: {
+/** The Team page's views as a vertical nav beside the page (Figmama 11/21, a page at least 1000 wide). */
+export function TeamPageNav({ view }: { view: TeamView }) {
+  const { formatMessage } = useIntl();
+  const navigate = useNavigate();
+  const serverSlug = useServerStore((s) => s.current?.slug);
+  const { population, loading } = useMembersPopulation();
+  const computers = useMachineStore((s) => s.machines.length);
+  const members = population.humans.length + population.agents.length;
+  const pick = useCallback((next: TeamView) => {
+    if (serverSlug && next !== view) navigate(teamViewPath(serverSlug, next));
+  }, [navigate, serverSlug, view]);
+  return (
+    <PageNav<TeamView>
+      label={formatMessage({ id: "team.page.title" })}
+      value={view}
+      onValueChange={pick}
+      testId="team-tabs"
+      items={[
+        { value: "overview", label: formatMessage({ id: "team.page.overview" }), testId: "team-tab-overview" },
+        { value: "members", label: formatMessage({ id: "members.page.title" }), count: loading ? null : members, testId: "team-tab-members" },
+        { value: "computers", label: formatMessage({ id: "machine.mobile.title" }), count: computers, testId: "team-tab-computers" },
+      ]}
+    />
+  );
+}
+
+export function TeamHeader({ view, action, withNav = false, onMobileBack, mobileBackProps }: {
   view: TeamView;
+  /** The views are the vertical nav beside the page (TeamPageNav): the head has no tabs and spans nav and column. */
+  withNav?: boolean;
   /** The tab's primary action (Members: Recruit agent), at the head's right with a mouse on a desktop (11/21). */
   action?: ReactNode;
 } & Pick<AppPanelHeaderProps, "onMobileBack" | "mobileBackProps">) {
@@ -67,7 +95,8 @@ export function TeamHeader({ view, action, onMobileBack, mobileBackProps }: {
             <span data-testid="team-counts">{formatMessage({ id: "team.page.counts" }, { members, humans, agents, computers })}</span>
           )}
           action={action}
-          tabs={tabs}
+          tabs={withNav ? undefined : tabs}
+          withNav={withNav}
         />
       </div>
     );

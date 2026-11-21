@@ -12,8 +12,8 @@ import { useProfileStore } from "../../store/profileStore";
 import { useMachineStore } from "../../store/machineStore";
 import { TeamAgentLine } from "./TeamAgentLine";
 import { TeamComputerCards } from "./TeamComputerCards";
-import { TeamHeader } from "./TeamHeader";
-import { PAGE_COLUMN_CLASS, PAGE_ROOT_CLASS } from "../../components/ui/PageHead";
+import { TeamHeader, TeamPageNav } from "./TeamHeader";
+import { PAGE_COLUMN_CLASS, PAGE_ROOT_CLASS, PageNavFrame, usePageElement, usePageNavWide } from "../../components/ui/PageHead";
 import { useOpenAgentWork } from "./useOpenAgentWork";
 import { useTeamAgents } from "./useTeamAgents";
 import type { TeamAgentRow } from "./useTeamAgents";
@@ -91,16 +91,19 @@ export function TeamOverviewPage() {
     for (const row of working) if (row.agent.machineId) counts.set(row.agent.machineId, (counts.get(row.agent.machineId) ?? 0) + 1);
     return counts;
   }, [working]);
+  // Layout changes (Figmama 11/21): a page at least 1000 wide shows the Team views as the vertical nav, on every view.
+  const [pageElement, setPageElement] = usePageElement<HTMLDivElement>();
+  const navWide = usePageNavWide(pageElement);
   const line = (row: TeamAgentRow) => (
     <TeamAgentLine key={row.agent.id} row={row} variant="page" onOpen={openAgent} onOpenWork={openWork} onOpenChannel={openChannel} testId={`team-overview-${row.state}`} />
   );
   const needsYou = held.length + notices.length;
   return (
-    <div className={`${PAGE_ROOT_CLASS} flex min-h-0 min-w-0 flex-1 flex-col font-sans`} data-testid="team-overview-page">
+    <div ref={setPageElement} className={`${PAGE_ROOT_CLASS} flex min-h-0 min-w-0 flex-1 flex-col font-sans`} data-testid="team-overview-page">
       {/* A root of the Team tab on a phone (PRD 团队页 §8): no Back. */}
-      <TeamHeader view="overview" />
       {/* What each working agent is doing: their current step while the page is open. */}
       <AgentActivitySubscription agentIdKey={working.map((row) => row.agent.id).join(",")} />
+      <PageNavFrame nav={navWide ? <TeamPageNav view="overview" /> : null} head={<TeamHeader view="overview" withNav={navWide} />}>
       <ScrollArea className="min-h-0 flex-1 bg-layer-canvas safe-bottom" data-testid="team-overview-scroller">
         <div className={`flex flex-col gap-6 px-5 pt-4 pb-8 ${PAGE_COLUMN_CLASS}`}>
           {needsYou > 0 ? (
@@ -138,6 +141,7 @@ export function TeamOverviewPage() {
           </ul>
         </div>
       </ScrollArea>
+      </PageNavFrame>
     </div>
   );
 }
