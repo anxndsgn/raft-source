@@ -47,18 +47,18 @@ test("EmptyState renders sentence-case title and frameless icon (B + C contract)
   const descriptionClass = slotClass("empty-state-description");
 
   // Title is rendered as-passed (sentence case from the callsite). No
-  // `uppercase` / `tracking-tight` CSS override. It is dimmed body copy, not
-  // the full-strength foreground.
+  // `uppercase` / `tracking-tight` CSS override. Raft redesign (Figmama,
+  // on a phone too since 11/21): a Semi Bold title in the foreground ink.
   assert.match(html, /No files yet/);
-  assert.match(titleClass, /(?:^|\s)text-foreground-muted(?:\s|$)/);
-  assert.doesNotMatch(titleClass, /(?:^|\s)text-foreground(?:-strong)?(?:\s|$)/);
+  assert.match(titleClass, /(?:^|\s)text-foreground(?:\s|$)/);
+  assert.match(titleClass, /(?:^|\s)font-semibold(?:\s|$)/);
   assert.doesNotMatch(html, /text-lg font-display font-semibold text-black"/);
   assert.doesNotMatch(html, /uppercase/);
   assert.doesNotMatch(html, /tracking-tight/);
 
   // Icon wrapper is frameless and muted — no border, no tinted box. The muted
   // colour propagates to currentColor-aware lucide icons.
-  assert.match(iconClass, /(?:^|\s)text-foreground-hint(?:\s|$)/);
+  assert.match(iconClass, /(?:^|\s)text-foreground-muted(?:\s|$)/);
   assert.doesNotMatch(iconClass, /(?:^|\s)(?:border|bg)-/);
   // The icon is decoration; the title carries the meaning (raft-ui 0.7.0).
   assert.match(html, /data-slot="empty-state-icon" aria-hidden="true"/);
@@ -67,7 +67,7 @@ test("EmptyState renders sentence-case title and frameless icon (B + C contract)
   assert.doesNotMatch(html, /text-black\/45/);
 
   // Description + action slots still work; the description is muted too.
-  assert.match(descriptionClass, /(?:^|\s)text-foreground-hint(?:\s|$)/);
+  assert.match(descriptionClass, /(?:^|\s)text-foreground-(?:hint|muted)(?:\s|$)/);
   assert.match(html, /Attach files in Chat\./);
   assert.match(html, /Add file/);
 });

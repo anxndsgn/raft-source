@@ -66,6 +66,9 @@ export const PROFILE_HANDLE_FONT_CLASS = "font-mono";
  *   internal DOM structure into PanelHeader's API surface.
  */
 export interface AppPanelHeaderProps {
+  /** A conversation's head (a channel, a DM, a thread, the assistant): it leads with the sidebar's collapse control
+   *  in the main area. Other pages there (a profile, tasks, artifacts) show only Back and × (Figmama 11/21). */
+  conversationHead?: boolean;
   /** Title — primary text or custom node. Wrapped in `<h2 truncate>`.
    *  Use `titleSlot` instead for non-text titles. */
   title?: ReactNode;
@@ -150,6 +153,7 @@ export interface AppPanelHeaderProps {
 }
 
 export default function AppPanelHeader({
+  conversationHead = false,
   title,
   titleSlot,
   titleSuffix,
@@ -177,8 +181,10 @@ export default function AppPanelHeader({
   const chrome = useContext(PanelHeadChromeContext);
   const backCrumb = useContext(PanelBackCrumbContext);
   const headStatus = useContext(PanelHeadStatusContext);
-  // The main area's head leads with the sidebar's collapse control (Raft redesign); a row region's head never does.
-  const sidebarToggle = useContext(MainHeadSidebarToggleContext);
+  // The main area's head leads with the sidebar's collapse control (Raft redesign) when it is a conversation's
+  // (Figmama 11/21); a row region's head never does.
+  const mainSidebarToggle = useContext(MainHeadSidebarToggleContext);
+  const sidebarToggle = conversationHead ? mainSidebarToggle : null;
   const drag = chrome;
   const rowTabs = chrome?.tabs ?? null;
   // HOST-SHELL EMBED: the native WebView already draws a title bar, so web must not

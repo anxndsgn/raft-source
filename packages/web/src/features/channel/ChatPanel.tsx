@@ -1837,6 +1837,7 @@ export function ChatPanel({
           stack so the title never competes with long descriptions. */}
       {!hideHeader && portalHeader(
       <PanelHeader
+        conversationHead
         onMobileBack={headerMobileBack}
         mobileBackProps={CHAT_MOBILE_BACK_PROPS}
         backButtonVisibility={contentSlotBack ? "always" : "responsive"}

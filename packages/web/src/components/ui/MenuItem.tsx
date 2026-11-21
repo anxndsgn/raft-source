@@ -51,7 +51,7 @@ const MENU_ITEM_CLASS = [
   // On a phone a menu is a bottom sheet (raft-ui lib/bottom-sheet.ts, Figmama mobile spec 11/21): a 48px row (12 + 24 +
   // 12), 16px in, a 20px icon in the foreground 12px from regular 16 text; a press is the subtle fill.
   "max-md:min-h-12 max-md:gap-3 max-md:rounded-none max-md:px-4 max-md:py-3 max-md:text-[16px] max-md:leading-6 max-md:font-normal",
-  "max-md:enabled:hover:bg-transparent max-md:enabled:active:bg-fill-subtle",
+  "max-md:pointer-coarse:enabled:hover:bg-transparent max-md:enabled:active:bg-fill-subtle",
   "max-md:[&>svg:first-child]:size-5 max-md:[&>svg:first-child]:text-foreground",
 ].join(" ");
 

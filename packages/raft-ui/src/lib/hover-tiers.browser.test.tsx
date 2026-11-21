@@ -231,9 +231,8 @@ for (const mode of ["light", "dark"] as const) {
   });
 
   // Selection is the strongest signal: a selected segment or toggle doesn't
-  // darken on hover, like a selected tab or sidebar item; pressing it lays
-  // the medium tier for a colour sticker.
-  it(`${mode}: a selected segment or toggle doesn't respond to hover, and presses medium`, async () => {
+  // darken on hover or press, like a selected tab or sidebar item.
+  it(`${mode}: a selected segment or toggle doesn't respond to hover or press`, async () => {
     const { getByTestId } = render(
       <ThemeProvider>
         <div className={`${mode} flex flex-col items-start gap-3 bg-layer-canvas p-3`}>
@@ -275,16 +274,20 @@ for (const mode of ["light", "dark"] as const) {
         clickCount: 1,
         ...at,
       });
-      const pressed = await settled(() => firstOklch(getComputedStyle(el).backgroundImage));
+      const pressed = await settled(() => {
+        const s = getComputedStyle(el);
+        return `${s.backgroundColor} | ${s.backgroundImage}`;
+      });
       await cdp().send("Input.dispatchMouseEvent", {
         type: "mouseReleased",
         button: "left",
         clickCount: 1,
         ...at,
       });
-      expect
-        .soft(alphaOf(pressed), `${mode} ${id} pressed (${pressed})`)
-        .toBeCloseTo(ALPHA.sticker[mode], 3);
+      // Raft redesign (Figmama 11/20, on a phone too since 11/21): the chosen
+      // segment is the canvas with a floating line, and pressing it lays
+      // nothing on it, as hovering doesn't.
+      expect.soft(pressed, `${mode} ${id} pressed`).toBe(rest);
     }
   });
 

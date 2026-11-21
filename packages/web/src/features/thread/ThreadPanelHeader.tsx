@@ -151,6 +151,7 @@ export function ThreadPanelHeader({
 
   return (
     <PanelHeader
+      conversationHead
       // Layout redesign (Figmama 11/15): a thread opened from the timeline or the inbox has only ×, no Back.
       leading={headerLeading}
       onMobileBack={mobileBackHandler}

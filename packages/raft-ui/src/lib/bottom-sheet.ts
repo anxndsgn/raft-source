@@ -40,7 +40,7 @@ export const sheetContent = [
 export const sheetRow = [
   // 12px above and below a 24px line make 48; a second line grows it with the same padding.
   "max-md:min-h-12 max-md:gap-3 max-md:rounded-none max-md:px-4 max-md:py-3",
-  "max-md:text-[16px] max-md:leading-6 max-md:font-normal max-md:hover:bg-transparent max-md:data-highlighted:bg-transparent max-md:active:bg-fill-subtle",
+  "max-md:text-[16px] max-md:leading-6 max-md:font-normal max-md:pointer-coarse:hover:bg-transparent max-md:pointer-coarse:data-highlighted:bg-transparent max-md:active:bg-fill-subtle",
   "max-md:data-checked:font-normal max-md:data-selected:font-normal",
   "max-md:[&>svg:not([class*='size-'])]:size-5 max-md:[&>svg]:text-foreground",
   // A destructive row (Delete, Archive: its text the danger ink) takes it for its icon too.

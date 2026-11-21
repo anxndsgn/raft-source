@@ -46,10 +46,14 @@ import type { LightboxProps } from "./lightbox";
 
 const it = test.skipIf(typeof window === "undefined");
 
+// On a phone-width window a menu or select opens as a bottom sheet that
+// slides up: wait for running transitions too, or the sheet is still below
+// the fold when hit testing looks for it.
 const frames = async (count = 3) => {
   for (let i = 0; i < count; i += 1) {
     await new Promise((resolve) => requestAnimationFrame(resolve));
   }
+  await Promise.all(document.getAnimations().map((animation) => animation.finished.catch(() => {})));
 };
 
 const browser = async () => (await import("vite-plus/test/browser/context")).userEvent;
