@@ -1700,3 +1700,9 @@ html[data-team-cover] .thread-layout-container[data-row-plan]:not(#_):not(#_) [d
     border-bottom-width: 0;
   }
 }
+
+/* Working now's rows fade in once the pill has grown into the panel (WorkingPillPanel). */
+@keyframes working-row-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

@@ -8,7 +8,8 @@ import { useAppearanceStore } from "../../store/appearanceStore";
 import { WORKING_ID_SEPARATOR } from "../../features/channel/chatPanelHelpers";
 import { useLiveAgentActivityStore } from "../../store/liveAgentActivityStore";
 import type { LiveAgentActivityItem } from "../../utils/liveAgentActivity";
-import { WorkingFaces, WorkingNowPopover } from "../layout/WorkingNowSummary";
+import { WorkingFaces } from "../layout/WorkingNowSummary";
+import { WorkingPillPanel } from "./WorkingPillPanel";
 import { useChannelWorkingAgents } from "./useChannelWorkingAgents";
 
 /**
@@ -99,7 +100,7 @@ function useAgentTypingShown(channelId: string | null | undefined, parentMessage
 export const ABOVE_AGENT_TYPING_LINE_CLASS = [
   "[--message-list-bottom-inset:var(--select-mode-reserve,0px)]",
   // The pill is 28px and floats 8px up (fafe198e): 36px of room.
-  "peer-data-[agent-typing=shown]/agent-typing:[--message-list-bottom-inset:calc(var(--select-mode-reserve,0px)+--spacing(9))]",
+  "peer-data-[agent-typing=shown]/agent-typing:[--message-list-bottom-inset:calc(var(--select-mode-reserve,0px)+--spacing(10))]",
 ].join(" ");
 
 /**
@@ -111,8 +112,8 @@ export const ABOVE_AGENT_TYPING_LINE_CLASS = [
  * jump controls above; no motion, like the line itself.
  */
 export const END_FADE_UNDER_AGENT_TYPING_LINE_CLASS = [
-  "peer-data-[agent-typing=shown]/agent-typing:h-[calc(var(--spacing-timeline-section)-(--spacing(2))+(--spacing(9)))]",
-  "peer-data-[agent-typing=shown]/agent-typing:[--tw-gradient-from-position:--spacing(9)]",
+  "peer-data-[agent-typing=shown]/agent-typing:h-[calc(var(--spacing-timeline-section)-(--spacing(2))+(--spacing(10)))]",
+  "peer-data-[agent-typing=shown]/agent-typing:[--tw-gradient-from-position:--spacing(10)]",
 ].join(" ");
 
 /**
@@ -139,7 +140,7 @@ export const END_FADE_UNDER_AGENT_TYPING_LINE_CLASS = [
  */
 // Raft redesign (Figmama 11/21, 250d9559): the line is the floating pill the typing one is, the canvas on a 10% line,
 // fully round, the agents' faces 16px circles, regular 12 muted words; it floats over the timeline above the composer.
-const WORKING_PILL_CLASS = "flex h-7 min-w-0 max-w-full items-center gap-1.5 rounded-pill border border-line-floating bg-layer-canvas pr-2.5 pl-1.5 text-[12px] leading-4 text-foreground-muted [&_[data-slot=avatar]]:size-4 [&_[data-slot=avatar]]:rounded-full [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none [&_[data-slot=avatar-image]]:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full";
+const WORKING_PILL_CLASS = "flex h-8 min-w-0 max-w-full items-center gap-1.5 rounded-pill border border-line-floating bg-layer-canvas pr-2.5 pl-1.5 text-[12px] leading-4 text-foreground-muted [&_[data-slot=avatar]]:size-5 [&_[data-slot=avatar]]:rounded-full [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none [&_[data-slot=avatar-image]]:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full";
 
 export const AgentTypingLine = memo(function AgentTypingLine({
   channelId,
@@ -187,27 +188,22 @@ export const AgentTypingLine = memo(function AgentTypingLine({
       className="peer/agent-typing pointer-events-none absolute inset-x-0 bottom-[calc(var(--select-mode-reserve,0px)+8px)] z-float"
     >
       <span role="status" data-testid="agent-typing-status" className="sr-only">{typingSentence}</span>
-      <div data-testid="agent-typing-line" className="relative h-7" hidden={!shown}>
+      <div data-testid="agent-typing-line" className="relative h-8" hidden={!shown}>
         {shown && inChannel ? (
-          <div className="absolute inset-x-5 bottom-0 flex h-7 min-w-0 items-center">
-            <WorkingNowPopover
+          <div className="absolute inset-x-5 bottom-0 flex h-8 min-w-0 items-end">
+            <WorkingPillPanel
               items={rows}
               typingAgentIds={typingIds}
               label={sentence}
-              side="top"
-              align="start"
-              testId="agent-typing-trigger"
+              faces={<WorkingFaces items={faces} still testId="agent-typing-faces" />}
               onOpenAgent={openAgentProfile}
-              className={`group pointer-events-auto ${WORKING_PILL_CLASS} text-left outline-none hover:overlay-subtle focus-visible:shadow-focus`}
-            >
-              <WorkingFaces items={faces} still testId="agent-typing-faces" />
-              <span className="min-w-0 truncate">{sentence}</span>
-            </WorkingNowPopover>
+              testId="agent-typing-pill"
+            />
           </div>
         ) : shown ? (
           <div
             aria-hidden="true"
-            className="absolute inset-x-5 bottom-0 flex h-7 min-w-0 items-center"
+            className="absolute inset-x-5 bottom-0 flex h-8 min-w-0 items-center"
           >
             <span className={WORKING_PILL_CLASS}>
               <WorkingFaces items={typing} still testId="agent-typing-faces" />
@@ -249,7 +245,7 @@ export const AgentTypingListEnd = memo(function AgentTypingListEnd({
 }) {
   const typing = useAgentTypingShown(channelId, parentMessageId);
   const working = useAnyChannelAgentWorking(workingAgentIdKey);
-  return typing || working ? <div aria-hidden="true" data-testid="agent-typing-list-end" className="h-7.5" /> : null;
+  return typing || working ? <div aria-hidden="true" data-testid="agent-typing-list-end" className="h-8.5" /> : null;
 });
 
 /** Whether any of a channel's agents is at work (false while the setting is
