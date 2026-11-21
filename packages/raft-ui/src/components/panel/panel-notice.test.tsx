@@ -36,23 +36,25 @@ function renderNotice(status?: "warning" | "destructive") {
   };
 }
 
-test("a raft panel notice is closed by the region seam, never the in-region divider", () => {
-  // The head above it draws line-seam; a lighter line under the strip made
-  // the two edges of one band read differently.
+// Raft redesign (the banner rule, Figmama 11/21 8bcdd507): a panel notice is
+// 5% ink with no edge; a status only colours its icon.
+test("a raft panel notice draws no edge of its own", () => {
   const { notice } = renderNotice();
-  expect(notice).toContain("border-b");
-  expect(notice).toContain("border-line-seam");
+  expect(notice).not.toContain("border-b");
   expect(notice).not.toContain("border-line-hairline");
 });
 
-test("a raft panel notice takes the panel's edges and a warning tint by default", () => {
+test("a raft panel notice takes the panel's edges and the 5% fill, a warning icon by default", () => {
   const { notice } = renderNotice();
   expect(notice).toContain("px-(--column-margin)");
-  expect(notice).toContain("bg-warning-soft");
+  expect(notice).toContain("bg-fill-medium");
+  expect(notice).toContain("[&>svg]:text-presence-error");
 });
 
-test("a destructive panel notice takes the danger tint", () => {
-  expect(renderNotice("destructive").notice).toContain("bg-danger-soft");
+test("a destructive panel notice takes the danger icon on the 5% fill", () => {
+  const { notice } = renderNotice("destructive");
+  expect(notice).toContain("bg-fill-medium");
+  expect(notice).toContain("[&>svg]:text-danger");
 });
 
 test("trailing actions overhang the padding so a 32px button does not grow the strip", () => {

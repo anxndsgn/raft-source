@@ -10140,6 +10140,7 @@ export const zhCn: Record<MessageId, string> = {
   "message.composer.newTaskChip": "新任务",
   "message.composer.newTaskCancel": "取消新任务",
   "message.reply.joinsTask": "会挂到 任务 #{number}",
+  "message.reply.joinsTaskLead": "会挂到",
   "message.reply.leaveTask": "这条回复不挂到任务 #{number}",
   "message.taskLinks.title": "调整任务关联",
   "message.taskLinks.description": "勾选这条消息属于的任务，它会出现在这些任务的讨论里。",

@@ -18,9 +18,11 @@ const panelNotice = tv({
   slots: {
     root: [
       "flex shrink-0 items-start",
-      "min-h-10 gap-2.5 border-b border-line-seam px-(--column-margin) py-2.5",
-      "font-sans text-callout font-semibold text-foreground",
-      "[&>svg]:lead-icon",
+      // Raft redesign (the banner rule, Figmama 11/21 8bcdd507): 5% ink with
+      // no edge, regular words, a muted icon; a status only colours its icon.
+      "min-h-10 gap-2.5 px-(--column-margin) py-2.5",
+      "font-sans text-callout font-normal text-foreground",
+      "[&>svg]:lead-icon [&>svg]:text-foreground-muted",
       // Something pending leads with a Spinner instead (Banner, "While
       // something is still pending"): centred on the first line like an icon,
       // in a 16px column (any Spinner size) so the text starts where it does after one. The
@@ -32,11 +34,11 @@ const panelNotice = tv({
   },
   variants: {
     status: {
-      default: { root: ["bg-fill-muted"] },
-      warning: { root: ["bg-warning-soft"] },
-      destructive: { root: ["bg-danger-soft"] },
-      info: { root: ["bg-info-soft"] },
-      success: { root: ["bg-success-soft"] },
+      default: { root: ["bg-fill-medium"] },
+      warning: { root: ["bg-fill-medium [&>svg]:text-presence-error"] },
+      destructive: { root: ["bg-fill-medium [&>svg]:text-danger"] },
+      info: { root: ["bg-fill-medium"] },
+      success: { root: ["bg-fill-medium [&>svg]:text-presence-online"] },
     },
   },
   defaultVariants: { status: "warning" },
