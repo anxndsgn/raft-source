@@ -74,8 +74,9 @@ export function PageHead({
   );
 }
 
-/** The page width from which a page with two levels of tabs shows its first level as a vertical nav (Figmama 11/21). */
-export const PAGE_NAV_MIN_WIDTH = 1000;
+/** The page width from which a page with two levels of tabs shows its first level as a vertical nav: the nav sits in
+ *  the margin left of the centered 920 column (880 + its 20px edges), so it needs 160 + 40 + a 20 page edge there: 1320 (owner 77d5efa6, Figmama 153b9500). */
+export const PAGE_NAV_MIN_WIDTH = 1320;
 
 /**
  * Whether the page whose root is `element` is wide enough for the vertical nav (with a mouse on a desktop, at least
@@ -145,16 +146,15 @@ export function PageNav<T extends string>({ items, value, onValueChange, label, 
 }
 
 /**
- * A page with a vertical nav (owner c4157597, Figmama 670629d1): the column is 1080 (160 + 40 + 880), centered; the
- * title at the top of the content with a line under it; the nav beside the content under that line, its first item
- * level with the content's first line (its toolbar, the primary action at the toolbar's end). The content's bands keep their own 20px edges inside the 920 beside the
- * nav, so its content is the 880.
+ * A page with a vertical nav (owner c4157597, 77d5efa6): the content is the centered 880 column, where it is on a page
+ * without one, the title at its top with a line under it; the nav in the margin left of it, 40 from the content, under
+ * that line, its first item level with the content's first line (its toolbar, the primary action at the toolbar's end).
  */
 export function PageWithNav({ nav, head, children }: { nav: ReactNode; head?: ReactNode; children: ReactNode }) {
   return (
-    <div className="mx-auto grid min-h-0 w-full max-w-[1120px] flex-1 grid-cols-[160px_minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-x-5 pl-5 [--page-column-width:880px]" data-page-nav="">
+    <div className="grid min-h-0 w-full flex-1 grid-cols-[minmax(0,1fr)_minmax(0,920px)_minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] [--page-column-width:880px]" data-page-nav="">
       <div className="col-start-2 row-start-1 min-w-0">{head}</div>
-      <div className="col-start-1 row-start-2 min-h-0">{nav}</div>
+      <div className="col-start-1 row-start-2 min-h-0 justify-self-end pr-5">{nav}</div>
       <div className="col-start-2 row-start-2 flex min-h-0 min-w-0 flex-col" data-page-nav-content="">
         {children}
       </div>

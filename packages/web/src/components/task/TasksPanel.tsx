@@ -68,7 +68,7 @@ import { ListToolbarMore, ListViewSwitch, MoreMenuChoices } from "../ui/ListTool
 import { useTabRootScroll } from "../../hooks/useTabRootScroll";
 import { TabRootBar } from "../layout/TabRootBar";
 import { FULL_PAGE_HEAD_PROPS } from "../ui/PanelHeader";
-import { PAGE_COLUMN_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, PageHead, useDesktopMouse } from "../ui/PageHead";
+import { PAGE_COLUMN_CONTENT_CLASS, PAGE_COLUMN_INSET_CLASS, PAGE_ROOT_CLASS, PageHead, useDesktopMouse } from "../ui/PageHead";
 import { usePinnedHeadRailInset } from "../../hooks/usePinnedHeadRailInset";
 import { PHONE_ROOT_TOOLBAR_CLASS, PHONE_ROOT_VIEWPORT_CLASS, TOOLBAR_CLASS, VIEWPORT_CLASS, VIEWPORT_CONTENT_CLASS } from "./tasksPanelViewport";
 import { LoadMoreSentinel } from "./tasksPage/LoadMoreSentinel";
@@ -1265,9 +1265,11 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
         className={VIEWPORT_CLASS}
         // The floating-tab-bar clearance belongs to the Tasks tab root only —
         // channel-detail panes have no capsule above them (task #678).
-        contentClassName={`${VIEWPORT_CONTENT_CLASS}${isChannelMode ? "" : " mobile-nav-clearance"}${isPhoneTabRoot ? PHONE_ROOT_VIEWPORT_CLASS : ""}${listColumn ? ` ${PAGE_COLUMN_CLASS}` : ""}`}
+        contentClassName={`${VIEWPORT_CONTENT_CLASS}${isChannelMode ? "" : " mobile-nav-clearance"}${isPhoneTabRoot ? PHONE_ROOT_VIEWPORT_CLASS : ""}`}
       >
         {isPhoneTabRoot && toolbar}
+        {/* Layout changes C: the page's 1200 frame, the same for the board and the list (Figmama d270abd2). */}
+        <div className={listColumn ? `flex w-full flex-1 flex-col ${PAGE_COLUMN_CONTENT_CLASS}` : "contents"}>
         {/* Loading, the board or list itself with placeholders in its lanes. */}
         {!loading && sortedTasks.length === 0 && (isChannelMode || allServerLanesLoaded) ? (
           <EmptyState
@@ -1348,6 +1350,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
             ))}
           </TaskVirtualLayout>
         )}
+        </div>
       </ScrollArea>
 
       {/* Board moves, in words (dnd-kit's own announcements name cards by id). */}
