@@ -146,6 +146,16 @@ function keepEntryMark(last: MutableRefObject<KeptEntry | null>, navigationType:
  * - The store is told which places the address holds, so their phone page
  *   pushes no history entry of its own (the address's is it).
  */
+/** Whether the shell shows the workspace as an island of its own (a desktop): there it outlives a conversation. */
+function workspaceIsland(): boolean {
+  return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(min-width: 48rem)").matches;
+}
+
+/** The conversation an address shows (`channel/<id>` or `dm/<id>`), or null. */
+function conversationOf(pathname: string): string | null {
+  return /\/(channel|dm)\/[^/?#]+/.exec(pathname)?.[0] ?? null;
+}
+
 export function useArtifactViewerAddress(): void {
   const location = useLocation();
   const navigate = useNavigate();
@@ -154,6 +164,8 @@ export function useArtifactViewerAddress(): void {
   const kept = useRef<KeptEntry | null>(null);
   const waiting = useRef<(() => void) | null>(null);
   const restoring = useRef(true);
+  // The conversation the address was on last time: switching to another keeps the workspace as it is.
+  const lastConversation = useRef<string | null>(null);
 
   // Address → store.
   useEffect(() => {
@@ -170,6 +182,22 @@ export function useArtifactViewerAddress(): void {
     const asked = readArtifactAddress(new URLSearchParams(location.search));
     if (asked?.legacy) return;
     writeArtifactAddress(navigate, artifactAddressTidying(entry, "link"));
+    const conversation = conversationOf(location.pathname);
+    const switched = lastConversation.current !== null && conversation !== null && conversation !== lastConversation.current;
+    lastConversation.current = conversation;
+    // The conversation and the workspace are two places (owner, 11/21 20:33): on a desktop, another conversation keeps
+    // the workspace as it is, its tabs now beside this one; the new address takes on the Artifact shown.
+    const moving = store.open;
+    if (switched && !asked && moving && moving.conversationId !== null && places.conversationId !== null && workspaceIsland()) {
+      const to = places.conversationId;
+      useArtifactViewerStore.setState((state) => ({
+        open: state.open && state.open.conversationId !== null ? { ...state.open, conversationId: to } : state.open,
+        tabs: state.tabs.map((tab) => (tab.conversationId !== null ? { ...tab, conversationId: to } : tab)),
+      }));
+      if (!moving.thread) writeArtifactAddress(navigate, artifactAddressOpening(entry, { id: moving.id, version: shownVersion(store) }, moving.source, { push: false, place: "conversation" }));
+      restoring.current = false;
+      return;
+    }
     const { open } = store;
     // Its dialog's address went first (the dialog closing): the viewer closes with the dialog.
     if (open?.cover && !places.dialog && asked?.id === open.id) return;
