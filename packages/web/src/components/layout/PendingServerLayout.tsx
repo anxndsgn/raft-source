@@ -114,9 +114,11 @@ export function PendingServerLayout({ prerender = false, offline }: {
             column={layout.searchMasterDetail ? "list" : "sidebar"}
             inline={sidebarInline}
             collapseColumn={layout.sidebarCollapsible && !sidebarInline ? layout.collapseColumn : null}
-            ownBorder={layout.searchMasterDetail}
+            // The loaded Sidebar draws its own seam on the right (Sidebar.tsx); the skeleton in its place draws the
+            // column's, so the sidebar and the conversation don't run together (Figmama 11/21).
+            ownBorder={layout.searchMasterDetail || !sidebarInline}
             rightColumnMin={thread ? COLUMN_BOUNDS.thread.contentMin : 0}
-            className={`relative h-full min-w-0 ${sidebarInline ? "flex-1 bg-layer-canvas" : "shrink-0 bg-layer-sidebar"} ${layout.searchMasterDetail ? "flex flex-col" : ""}`}
+            className={`relative h-full min-w-0 ${sidebarInline ? "flex-1 bg-layer-canvas" : "shrink-0 bg-layer-sidebar md:pointer-fine:bg-layer-canvas"} ${layout.searchMasterDetail ? "flex flex-col" : ""}`}
           >
             {sidebarInline && layout.isDefaultRoute ? <PendingHomeBar /> : null}
             {offline && showTopBar === false ? <OfflineReasonNotice /> : null}

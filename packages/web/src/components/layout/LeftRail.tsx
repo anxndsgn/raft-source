@@ -47,7 +47,6 @@ import Tooltip from "../ui/Tooltip";
 import { HelpMenu } from "./HelpMenu";
 import { HELP_MENU_TRIGGER_ID } from "../../features/keyboard-shortcuts/shortcutHelpStore";
 import { useFirstScreenDone } from "../../boot/deferredUi";
-import { PendingNotificationTrigger } from "./NotificationTrigger";
 import { useShellPending } from "./shellPending";
 import { SortableRailTabs } from "./SortableRailTabs";
 import type { RailTab, RailTabDrag } from "./SortableRailTabs";
@@ -570,8 +569,7 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
           button above the avatar); the sidebar's collapse control leads the
           main area's head (SidebarToggleHeadAction). */}
       <AppRailFooter>
-      {/* Layout redesign: the bell is part of the inbox (its head), not a rail button. */}
-      {topBar || !pending ? null : <PendingNotificationTrigger flavor="rail-bottom" />}
+      {/* Layout redesign: the bell is part of the inbox (its head), not a rail button, loading or not (Figmama 11/21). */}
       <RailTabButton
         icon={<Settings size={18} />}
         label={formatMessage({ id: "layout.leftRail.tabSettings" })}
