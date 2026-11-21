@@ -57,7 +57,7 @@ const segmentedControl = tv({
       "inline-flex min-w-0 shrink-0 items-center gap-1.5",
       "outline-none disabled:pointer-events-none",
       "[&_svg]:pointer-events-none [&_svg]:shrink-0",
-      "h-(--segment-size) justify-center rounded-control border-[1.5px] border-transparent bg-transparent px-3",
+      "h-(--segment-size) justify-center rounded-[max(0px,calc(var(--radius-control)-2px))] border-[1.5px] border-transparent bg-transparent px-3",
       // By touch a segment looks 32px and keeps a 44px tap area through an
       // overhanging ::after, as a Button at `md` does, measured from inside
       // its 1.5px border: 32 - 3 + 2 x (6 + 1.5) = 44, 3px past the track.

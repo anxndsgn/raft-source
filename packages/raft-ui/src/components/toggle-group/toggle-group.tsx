@@ -24,7 +24,7 @@ const toggleGroup = tv({
       "outline-2 outline-offset-2 outline-transparent transition-[background-color,color,box-shadow,transform] duration-100",
       "disabled:pointer-events-none data-disabled:cursor-not-allowed",
       "[&_svg]:pointer-events-none [&_svg]:shrink-0",
-      "rounded-control border-[1.5px] border-transparent bg-transparent px-3",
+      "rounded-[max(0px,calc(var(--radius-control)-2px))] border-[1.5px] border-transparent bg-transparent px-3",
       "font-sans text-callout font-semibold text-foreground-muted",
       "[&_svg:not([class*='size-'])]:size-4",
       "hover:bg-fill-medium active:bg-fill-medium",
