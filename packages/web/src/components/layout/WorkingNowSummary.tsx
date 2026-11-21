@@ -63,9 +63,12 @@ export function WorkingNowPopover({
   align,
   testId,
   className,
+  onOpenAgent,
   children,
 }: {
   items: readonly LiveAgentActivityItem[];
+  /** Opens an agent's row where the list is (a channel: its profile in the side panel); else its own page. */
+  onOpenAgent?: (agentId: string) => void;
   /** Agents about to post where the list was opened: their row says so. */
   typingAgentIds?: ReadonlySet<string>;
   /** The trigger's accessible name. */
@@ -96,17 +99,18 @@ export function WorkingNowPopover({
         >
           {/* What each of them is doing: their detail while the list is open. */}
           <AgentActivitySubscription agentIdKey={items.map((item) => item.agentId).join(",")} />
-          <WorkingNowList items={items} typingAgentIds={typingAgentIds} onNavigate={close} />
+          <WorkingNowList items={items} typingAgentIds={typingAgentIds} onNavigate={close} onOpenAgent={onOpenAgent} />
         </PopoverContent>
       ) : null}
     </Popover>
   );
 }
 
-function WorkingNowList({ items, typingAgentIds, onNavigate }: {
+function WorkingNowList({ items, typingAgentIds, onNavigate, onOpenAgent }: {
   items: readonly LiveAgentActivityItem[];
   typingAgentIds: ReadonlySet<string> | undefined;
   onNavigate: () => void;
+  onOpenAgent?: (agentId: string) => void;
 }) {
   const { formatMessage } = useIntl();
   const nav = useAppNavigate();
@@ -114,8 +118,9 @@ function WorkingNowList({ items, typingAgentIds, onNavigate }: {
     const agentId = event.currentTarget.dataset.agentId;
     if (!agentId) return;
     onNavigate();
-    nav.toAgent(agentId);
-  }, [nav, onNavigate]);
+    if (onOpenAgent) onOpenAgent(agentId);
+    else nav.toAgent(agentId);
+  }, [nav, onNavigate, onOpenAgent]);
   return (
     <div className="flex flex-col">
       <div className="flex min-h-11 items-center border-b border-line-seam px-4 text-headline">

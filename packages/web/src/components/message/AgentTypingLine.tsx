@@ -1,4 +1,5 @@
-import { memo, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
+import { useProfileStore } from "../../store/profileStore";
 import { useIntl } from "react-intl";
 import type { IntlShape } from "react-intl";
 import { selectTypingAgentIds, useAgentTyping, useAgentTypingStore } from "../../store/agentTypingStore";
@@ -156,6 +157,11 @@ export const AgentTypingLine = memo(function AgentTypingLine({
   const working = useChannelWorkingAgents(workingAgentIdKey);
   const typingSentence = formatAgentTypingSentence(formatMessage, "typing", typing.map((agent) => agent.agentName));
   const inChannel = workingAgentIdKey !== undefined;
+  // An agent picked from Working now opens beside the conversation, in its side panel, not on its own page (owner
+  // e440c49e).
+  const openAgentProfile = useCallback((agentId: string) => {
+    useProfileStore.getState().openProfile("agent", agentId, { openSource: parentMessageId ? "thread" : "channel", channelId: channelId ?? null });
+  }, [channelId, parentMessageId]);
   const { faces, rows, typingIds } = useMemo(() => {
     const typingIds = new Set(typing.map((agent) => agent.agentId));
     const workingIds = new Set(working.map((item) => item.agentId));
@@ -191,6 +197,7 @@ export const AgentTypingLine = memo(function AgentTypingLine({
               side="top"
               align="start"
               testId="agent-typing-trigger"
+              onOpenAgent={openAgentProfile}
               className={`group pointer-events-auto ${WORKING_PILL_CLASS} text-left outline-none hover:overlay-subtle focus-visible:shadow-focus`}
             >
               <WorkingFaces items={faces} still testId="agent-typing-faces" />

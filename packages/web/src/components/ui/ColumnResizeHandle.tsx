@@ -134,6 +134,9 @@ export interface ColumnResizeHandleProps {
    *  `aria-valuemax` stop there. A thread, detail or side cards column's own maximum is what the conversation beside
    *  it can give up down to its 360px (`columnDragMax`), worked out from the layout. */
   maxWidth?: number;
+  /** The widest the column may be dragged now, where the layout around it decides (the workspace island, whose drag
+   *  the columns left of it give way to): replaces the column's own maximum. */
+  dragMax?: (columnElement: HTMLElement | null) => number;
   className?: string;
   /** The handle's accessible name, where the column's own (`layout.columnResize.*`) is not specific enough. */
   label?: string;
@@ -218,6 +221,7 @@ export default function ColumnResizeHandle({
   edge,
   visibleFrom,
   maxWidth,
+  dragMax,
   className = "",
   label,
   source,
@@ -230,6 +234,7 @@ export default function ColumnResizeHandle({
   "data-testid": testId,
 }: ColumnResizeHandleProps) {
   const { formatMessage } = useIntl();
+  const maxFor = (element: HTMLElement | null) => dragMax ? dragMax(element) : columnDragMax(column, element, maxWidth, mainColumn, mainMin);
   const storeWidth = useColumnWidth(column);
   const width = source ? source.width : storeWidth;
   const min = source ? source.min : COLUMN_BOUNDS[column].min;
@@ -286,7 +291,7 @@ export default function ColumnResizeHandle({
       const measured = shownWidth(columnElement);
       setRenderedColumnWidth(measured > 0 ? Math.round(measured) : null);
       const seam = measured > 0 ? startSeamDrag(columnElement, edge, mainColumn(columnElement)) : null;
-      setMeasuredMax(measured > 0 ? seam?.max ?? columnDragMax(column, columnElement, maxWidth, mainColumn, mainMin) : null);
+      setMeasuredMax(measured > 0 ? seam?.max ?? maxFor(columnElement) : null);
       markClipped(columnElement, handleRef.current, contentMinRef.current);
       const growsToMainMin = (COLUMN_BOUNDS[column] as ColumnBounds).growsToMainMin === true;
       const main = growsToMainMin && measured > 0 ? mainColumn(columnElement) : null;
@@ -312,7 +317,7 @@ export default function ColumnResizeHandle({
     const measured = handle.parentElement?.getBoundingClientRect().width;
     return clampWidth(measured && measured > 0 ? measured : rememberedWidth());
   };
-  const maxNow = (handle: HTMLElement) => columnDragMax(column, handle.parentElement, maxWidth, mainColumn, mainMin);
+  const maxNow = (handle: HTMLElement) => maxFor(handle.parentElement);
   const rowSeam = (handle: HTMLElement) => (handle.parentElement ? startSeamDrag(handle.parentElement, edge, mainColumn(handle.parentElement)) : null);
 
   const setSnapped = (next: boolean, via: "pointer" | "keyboard"): boolean => {
@@ -360,7 +365,7 @@ export default function ColumnResizeHandle({
       return;
     }
     const columnElement = handleRef.current?.parentElement;
-    const released = releasedDragWidth(drag.startWidth, drag.last, columnElement ? columnDragMax(column, columnElement, maxWidth, mainColumn, mainMin) : drag.max, min);
+    const released = releasedDragWidth(drag.startWidth, drag.last, columnElement ? maxFor(columnElement) : drag.max, min);
     if (released !== null) commitWidth(released);
     // Dragged back to where it started: the remembered width comes back, rather than the squeezed one being saved.
     else if (drag.last !== null) previewWidth(drag.restoreWidth);

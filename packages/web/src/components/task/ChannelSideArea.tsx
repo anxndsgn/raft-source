@@ -1,4 +1,4 @@
-import { detailsTakeSidePanel, DRAWER_SECTIONS, drawerHost, inWorkspace, isSidePanelColumn, useOrWorkspaceExpanded, WORKSPACE_TIMELINE_MIN, workspaceMainColumn, sidePanelWidths, sidePanelWidthSource, threadTakesSidePanel, useWorkspaceDrawer } from "./sideAreaLayoutRedesign";
+import { detailsTakeSidePanel, DRAWER_SECTIONS, drawerHost, inWorkspace, isSidePanelColumn, useOrWorkspaceExpanded, WORKSPACE_TIMELINE_MIN, workspaceMainColumn, sidePanelWidths, sidePanelWidthSource, threadTakesSidePanel, useWorkspaceDrawer, workspaceGiveWay } from "./sideAreaLayoutRedesign";
 import { WorkspaceDrawer, WorkspaceDrawerHandle } from "./WorkspaceDrawerScrim";
 import { Fragment, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
@@ -1154,6 +1154,9 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
     reset: () => useChannelSideLayoutStore.getState().resizeColumn(widthColumn!, channelSideSectionWidth(sections[0] ?? "tasks"), true),
   } : undefined), [widthColumn, minWidth, panel, resizable, sections, width]);
 
+  // In the workspace island the columns left of it give way to its drag (owner 992f0fdf).
+  const giveWay = useMemo(() => (inIsland && source ? workspaceGiveWay(source) : null), [inIsland, source]);
+
   // The crossing of the column's left seam, or of its right one where a column stands right of it, with a seam
   // between sections: one drag moves both (StackCorner).
   const highlight = useSideHighlight((s) => (column !== undefined && s.edge === column ? s.state : undefined));
@@ -1194,7 +1197,8 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
           column={panel ? "sidePanel" : "sideCards"}
           edge="left"
           label={label}
-          source={source}
+          source={giveWay?.source ?? source}
+          dragMax={giveWay?.dragMax}
           mainColumn={panel ? rowMainColumn : workspaceMainColumn} mainMin={panel ? undefined : WORKSPACE_TIMELINE_MIN}
           highlight={highlight}
           // The column draws its left seam itself (columnClass "beside"); in the island it is resized from the gap.
@@ -1203,7 +1207,9 @@ function SideColumn({ kind, column, widthColumn, sections, titles, width, minWid
           data-testid="channel-side-column-resize"
         />
       ) : null}
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      {/* In the workspace island its content is clipped to the island's corners, the theme's (owner 2ae9f8d4); the
+          handle above stays outside, in the gap. */}
+      <div className={`flex min-h-0 min-w-0 flex-1 flex-col ${inIsland ? "overflow-clip rounded-[inherit]" : ""}`}>
         {active ? (
           <div data-testid="channel-side-switch" className="flex h-12 shrink-0 items-center border-b border-line-seam px-4 md:px-(--surface-inset) md:pointer-fine:h-panel-header">
             <Tabs<PortalSection> value={active} onValueChange={switchCard} className="w-auto min-w-0">

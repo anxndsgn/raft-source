@@ -126,3 +126,75 @@ export function drawerHost(row: HTMLElement | null): HTMLElement | null {
 export function collapseWorkspace(): void {
   useArtifactViewerStore.getState().setDrawerCollapsed(true);
 }
+
+/** The conversation's own minimum beside a workspace being dragged wider: the timeline's beside the workspace. */
+const WORKSPACE_GIVE_WAY_TIMELINE_MIN = WORKSPACE_TIMELINE_MIN;
+
+interface GiveWaySnapshot {
+  workspace: number;
+  timeline: number;
+  panel: number | null;
+}
+
+/** The columns left of the workspace island as they are when its drag starts. */
+function giveWaySnapshot(column: HTMLElement | null, workspace: number): GiveWaySnapshot {
+  const frame = column ? workspaceFrameOf(column) : null;
+  const timeline = frame?.querySelector<HTMLElement>(".thread-main-column")?.getBoundingClientRect().width ?? 0;
+  const conversation = document.querySelector<HTMLElement>("[data-testid=conversation-island]");
+  const panelElement = conversation?.querySelector<HTMLElement>('[data-testid="channel-side-column"][data-in-row="true"]');
+  return {
+    workspace,
+    timeline,
+    panel: panelElement ? panelElement.getBoundingClientRect().width : null,
+  };
+}
+
+/**
+ * Dragging the workspace island wider, the columns left of it give way (owner 992f0fdf, Figmama 13ec3927): the
+ * conversation down to its minimum beside the workspace (480), then the channel's side panel down to its 320; the drag
+ * stops only once both are at their minimums, and on release each keeps the width it gave way to. (The sidebar is not
+ * one of them: the conversation's island keeps the room of the row beside it, so a narrower sidebar gives the
+ * workspace nothing.)
+ */
+export function workspaceGiveWay(source: ColumnWidthSource): { source: ColumnWidthSource; dragMax: (column: HTMLElement | null) => number } {
+  let start: GiveWaySnapshot | null = null;
+  let element: HTMLElement | null = null;
+  // The width last shown: a release measures the room again once the others have given way, which would undo them.
+  let shown: number | null = null;
+  const room = (snapshot: GiveWaySnapshot) =>
+    Math.max(0, snapshot.timeline - WORKSPACE_GIVE_WAY_TIMELINE_MIN)
+    + (snapshot.panel === null ? 0 : Math.max(0, snapshot.panel - COLUMN_BOUNDS.sidePanel.min));
+  const layOut = (width: number, commit: boolean) => {
+    // The widths as rendered when the drag starts (the remembered one can be wider than the room let it show).
+    if (!start) start = giveWaySnapshot(element, element?.getBoundingClientRect().width || source.get());
+    let need = Math.max(0, width - start.workspace);
+    need -= Math.min(need, Math.max(0, start.timeline - WORKSPACE_GIVE_WAY_TIMELINE_MIN));
+    if (start.panel !== null) {
+      const give = Math.min(need, Math.max(0, start.panel - COLUMN_BOUNDS.sidePanel.min));
+      need -= give;
+      (commit ? commitColumnWidth : previewColumnWidth)("sidePanel", Math.round(start.panel - give));
+    }
+  };
+  return {
+    source: {
+      ...source,
+      preview: (width) => {
+        shown = width;
+        layOut(width, false);
+        source.preview(width);
+      },
+      commit: (width) => {
+        const final = shown ?? width ?? source.get();
+        layOut(final, true);
+        source.commit(final);
+        start = null;
+        shown = null;
+      },
+    },
+    dragMax: (column) => {
+      element = column;
+      const snapshot = giveWaySnapshot(column, column?.getBoundingClientRect().width ?? source.get());
+      return Math.max(source.min, Math.round(snapshot.workspace + room(snapshot)));
+    },
+  };
+}
