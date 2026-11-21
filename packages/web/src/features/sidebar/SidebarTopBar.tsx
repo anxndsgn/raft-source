@@ -120,6 +120,8 @@ export function SidebarTopBar({ mobileInline, hideTitle, data, view, sync, home 
           surfaces={UNREAD_COUNT_SURFACES}
           messageId="layout.sidebar.staleCountsNotice"
           unavailableMessageId="layout.sidebar.countsUnavailableNotice"
+          // On a phone a card on the search box's 16px edges, 8px under it (Figmama 135782db).
+          className="max-md:mx-4 max-md:mt-2 max-md:rounded-control max-md:px-3"
           data-testid="sidebar-stale-notice"
         />
       )}

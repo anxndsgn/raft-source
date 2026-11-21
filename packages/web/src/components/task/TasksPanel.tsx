@@ -1223,7 +1223,7 @@ export default function TasksPanel({ channelId }: TasksPanelProps = {}) {
           containerProps={FULL_PAGE_HEAD_PROPS}
           // Task #15: the page's New task, its primary action (the Create task dialog, the channel picked there).
           actions={(
-            <Button variant="primary" size={isPhoneTabRoot ? "md" : "sm"} onClick={openCreateDialog} data-testid="tasks-page-header-new-task">
+            <Button variant="primary" size="md" onClick={openCreateDialog} data-testid="tasks-page-header-new-task">
               <Plus aria-hidden />
               {newTaskLabel}
             </Button>

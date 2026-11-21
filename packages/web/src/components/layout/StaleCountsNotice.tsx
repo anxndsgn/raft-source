@@ -22,6 +22,7 @@ type StaleCountsNoticeProps = {
   messageId: MessageId;
   /** Said instead while one of the reads failed with 503 `rw_unconfigured`. */
   unavailableMessageId: MessageId;
+  className?: string;
   "data-testid"?: string;
 };
 
@@ -37,21 +38,21 @@ type StaleCountsNoticeProps = {
  * catch up on its own: the same notice says the reads are temporarily
  * unavailable, as a `warning` led by TriangleAlert instead of the Spinner.
  */
-export function StaleCountsNotice({ surfaces, messageId, unavailableMessageId, "data-testid": testId }: StaleCountsNoticeProps) {
+export function StaleCountsNotice({ surfaces, messageId, unavailableMessageId, className, "data-testid": testId }: StaleCountsNoticeProps) {
   const { formatMessage } = useIntl();
   const outOfDate = useRwOutOfDate(surfaces);
   const unconfigured = useRwUnconfigured(surfaces);
   if (!outOfDate) return null;
   if (unconfigured) {
     return (
-      <PanelNotice status="warning" role="status" data-testid={testId} data-reason="rw_unconfigured">
+      <PanelNotice status="warning" role="status" className={className} data-testid={testId} data-reason="rw_unconfigured">
         <TriangleAlert aria-hidden="true" />
         <PanelNoticeContent>{formatMessage({ id: unavailableMessageId })}</PanelNoticeContent>
       </PanelNotice>
     );
   }
   return (
-    <PanelNotice status="info" role="status" data-testid={testId}>
+    <PanelNotice status="info" role="status" className={className} data-testid={testId}>
       <Spinner aria-hidden="true" />
       <PanelNoticeContent>{formatMessage({ id: messageId })}</PanelNoticeContent>
     </PanelNotice>

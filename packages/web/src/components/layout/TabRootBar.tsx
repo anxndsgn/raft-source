@@ -48,7 +48,8 @@ export function TabRootBar({ name, subtitle, content, headingLevel = 1, containe
           {subtitle != null && <PanelMeta render={<p />}>{subtitle}</PanelMeta>}
         </PanelHeaderContent>
       )}
-      {actions ? <PanelActions>{actions}</PanelActions> : null}
+      {/* A filled action sits on the margin, not pulled out by a frameless icon's inset (raft-ui head-edges). */}
+      {actions ? <PanelActions className="[--icon-inset:0px]">{actions}</PanelActions> : null}
     </PanelSectionHeader>
   );
 }

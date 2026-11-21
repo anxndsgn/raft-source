@@ -183,6 +183,9 @@ export interface ListViewOption<T extends string> {
  * item), its icons alone from the first step, each word kept as its name and
  * tooltip; into ⋯ with the sort at step 6 (the group's `moreItem`).
  */
+/** On a phone the view switch is its icons alone, 32px segments in the 36px track (Figmama 135782db). */
+const PHONE_ICONS_ONLY_CLASS = "max-md:**:data-[slot=segmented-control-label]:sr-only max-md:**:data-[slot=segmented-control-item]:w-8 max-md:**:data-[slot=segmented-control-item]:px-0";
+
 export function ListViewSwitch<T extends string>({ value, options, onValueChange, label, testId }: {
   value: T;
   options: readonly ListViewOption<T>[];
@@ -197,7 +200,7 @@ export function ListViewSwitch<T extends string>({ value, options, onValueChange
     if (picked) onValueChange(picked.value);
   }, [onValueChange, options]);
   return (
-    <SegmentedControl<T> value={value} onValueChange={change} aria-label={label} className={SEGMENTED_IN_LINE_CLASS} data-testid={testId} {...item.props}>
+    <SegmentedControl<T> value={value} onValueChange={change} aria-label={label} className={`${SEGMENTED_IN_LINE_CLASS} ${PHONE_ICONS_ONLY_CLASS}`} data-testid={testId} {...item.props}>
       {options.map((option) => (
         <SegmentedControlItem key={option.value} value={option.value} data-testid={option.testId}>
           {option.icon}

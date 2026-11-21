@@ -17,10 +17,9 @@ export const conversationPanel = tv({
       // The tab row is the scroller (it spans the panel and scrolls its
       // own tabs, starting on the 20px edge the head and body keep).
       "*:data-[slot=tabs-list]:w-full *:data-[slot=tabs-list]:px-5 max-md:*:data-[slot=tabs-list]:px-4 md:pointer-fine:*:data-[slot=tabs-list]:px-(--page-inset)",
-      "*:data-[slot=tabs-list]:data-[variant=default]:py-2",
-      // On a desktop the row is a header: the underlined tabs (44px, Raft
-      // redesign) fill it, their line on the seam (Figmama 11/21, 3e5ab5bc).
-      "md:pointer-fine:*:data-[slot=tabs-list]:data-[variant=default]:py-0",
+      // The underlined tabs (44px) fill the row, their line on the seam, by
+      // touch too (Figmama mobile spec 11/21).
+      "*:data-[slot=tabs-list]:data-[variant=default]:py-0",
     ],
     footer: ["pt-0", "bg-layer-canvas"],
   },
