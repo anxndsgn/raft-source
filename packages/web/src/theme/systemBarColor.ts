@@ -108,6 +108,12 @@ export function __setSurfaceColorResolverForTests(resolver: SurfaceColorResolver
 
 function surfaceColor(surface: SystemBarSurface, mode: ResolvedThemeMode): string {
   const theme = document.documentElement.dataset.theme;
+  // A local tweak (themeTweakRoot.ts) can be any colour and changes while
+  // dragged: resolved each time, never kept.
+  if (document.documentElement.hasAttribute("data-theme-tweak")) {
+    const tweaked = resolveSurfaceColor(SYSTEM_BAR_FILLS[surface]);
+    if (tweaked) return tweaked;
+  }
   if (theme) {
     const key = `${theme}|${mode}|${surface}`;
     let themed = resolvedColors.get(key) ?? null;

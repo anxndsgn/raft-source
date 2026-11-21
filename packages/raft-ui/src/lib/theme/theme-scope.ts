@@ -40,11 +40,12 @@ export function resolveThemeScopeProps<Props extends ThemeScopeProps>(
 }
 
 /** The look attributes the app sets on the root (a server's theme, the
- *  shape, the accent). A portal's mode class starts a new `.light` / `.dark`
- *  scope, which falls back to the default look unless the portal carries
- *  them too: without them a popup's frame accent was always the default
- *  yellow under any theme (Raft redesign, Figmama 11/20). */
-const ROOT_LOOK_ATTRIBUTES = ["data-theme", "data-shape", "data-accent"] as const;
+ *  shape, the accent, a member's local tweak of the theme). A portal's mode
+ *  class starts a new `.light` / `.dark` scope, which falls back to the
+ *  default look unless the portal carries them too: without them a popup's
+ *  frame accent was always the default yellow under any theme (Raft
+ *  redesign, Figmama 11/20). */
+const ROOT_LOOK_ATTRIBUTES = ["data-theme", "data-shape", "data-accent", "data-theme-tweak"] as const;
 
 function rootLookAttributes(): Partial<Record<(typeof ROOT_LOOK_ATTRIBUTES)[number], string>> {
   if (typeof document === "undefined") return {};
