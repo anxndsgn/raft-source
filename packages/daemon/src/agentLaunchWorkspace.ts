@@ -6,6 +6,7 @@ import type { AgentConfig } from "@botiverse/raft-shared";
 import { buildCindyMemoryMd, buildCindySeedFiles } from "./cindy";
 import { initializeAgentWorkspace } from "./workspaces";
 import { syncSkillsHubWorkspace } from "./skillsHubSync";
+import { resolveAntigravitySpawn } from "./drivers/antigravity.deprecated";
 import { logger } from "./logger";
 
 const ONBOARDING_MEMORY_SEED_ENV = "SLOCK_ONBOARDING_MEMORY_SEED";
@@ -47,7 +48,10 @@ export async function initializeLaunchWorkspace(agentDataDir: string, agentId: s
   // Skills Hub: a failure here must not block the launch; the agent then runs
   // with whatever hub files the previous launch left.
   try {
-    await syncSkillsHubWorkspace(agentDataDir, config);
+    const synced = await syncSkillsHubWorkspace(agentDataDir, config, config.runtime === "antigravity" ? { agyCommand: resolveAntigravitySpawn([]).command } : {});
+    for (const failure of synced?.pluginFailures ?? []) {
+      logger.warn(`[Agent ${agentId}] Skills Hub plugin ${failure.plugin} not installed for agy: ${failure.detail}`);
+    }
   } catch (error) {
     logger.warn(`[Agent ${agentId}] Skills Hub sync failed: ${error instanceof Error ? error.message : String(error)}`);
   }

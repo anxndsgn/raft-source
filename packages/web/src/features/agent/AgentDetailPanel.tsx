@@ -988,7 +988,7 @@ export function AgentDetailPanel({ agent, onClose, onBack, onOpenProfile, activi
           canManageAgentAccess={canManageAgentAccess}
           // Skills Hub assignments are an edit surface (editAgents or creator).
           leading={canManageAgent && !isExternalAgent
-            ? <AgentSkillsHubTab key={agent.id} agentId={agent.id} agentName={agent.displayName || agent.name} />
+            ? <AgentSkillsHubTab key={agent.id} agentId={agent.id} agentName={agent.displayName || agent.name} runtime={agent.runtime} />
             : null}
         />
       ) : null}

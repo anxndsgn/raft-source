@@ -17,7 +17,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import type { FormEvent, ReactNode } from "react";
 import { useIntl } from "react-intl";
 import { ChevronDown, ChevronRight, Package, Plus, Puzzle, Sparkles, Trash2 } from "lucide-react";
-import { skillsHubPluginMarketplace } from "@botiverse/raft-shared";
+import { runtimeHonorsHostSkillsToggle, skillsHubPluginMarketplace } from "@botiverse/raft-shared";
 import type {
   SkillsHubAgentCatalogResponse,
   SkillsHubAgentItemView,
@@ -743,7 +743,9 @@ export function SkillsHubSettingsSection({
  * decide whether it may also use the config on its computer. A change
  * restarts the agent (once idle), which a toast says.
  */
-export function AgentSkillsHubTab({ agentId, agentName }: { agentId: string; agentName: string }) {
+export function AgentSkillsHubTab({ agentId, agentName, runtime }: { agentId: string; agentName: string; runtime?: string | null }) {
+  // agy always loads its computer's config, so for it the switch stays on.
+  const hostConfigLocked = !runtimeHonorsHostSkillsToggle(runtime);
   const { formatMessage } = useIntl();
   const { capabilities } = useServerPermissions();
   const canManageHub = capabilities.manageIntegrations;
@@ -803,16 +805,16 @@ export function AgentSkillsHubTab({ agentId, agentName }: { agentId: string; age
   return (
     <div className="stack-y-6" data-testid="agent-skills-hub-tab">
       <Card className="p-4">
-        <label className="flex cursor-pointer items-start gap-3">
+        <label className={`flex items-start gap-3 ${hostConfigLocked ? "" : "cursor-pointer"}`}>
           <span className="flex min-w-0 flex-1 flex-col gap-1">
             <span className="text-callout font-semibold text-foreground">{formatMessage({ id: "skillsHub.hostSkills.title" })}</span>
             <span className="text-caption text-foreground-muted">
-              {formatMessage({ id: catalog?.useHostSkills === false ? "skillsHub.hostSkills.off" : "skillsHub.hostSkills.on" })}
+              {formatMessage({ id: hostConfigLocked ? "skillsHub.hostSkills.lockedAntigravity" : catalog?.useHostSkills === false ? "skillsHub.hostSkills.off" : "skillsHub.hostSkills.on" })}
             </span>
           </span>
           <Switch
-            checked={catalog?.useHostSkills ?? true}
-            disabled={!catalog || saving}
+            checked={hostConfigLocked || (catalog?.useHostSkills ?? true)}
+            disabled={!catalog || saving || hostConfigLocked}
             onCheckedChange={(checked: boolean) => void save(enabledIds, checked)}
             data-testid="skills-hub-use-host-skills"
           />

@@ -1572,6 +1572,7 @@ export const en = {
   "skillsHub.hostSkills.on": "The Agent also loads the skills, plugins and MCP servers set up on its computer.",
   "skillsHub.hostSkills.off": "The Agent only uses what is enabled here.",
   "skillsHub.hostSkills.offCreate": "The Agent only uses the skills, plugins and MCP apps you enable for it in Capabilities.",
+  "skillsHub.hostSkills.lockedAntigravity": "Always on for Antigravity: agy always loads the skills, plugins and MCP servers set up on its computer, and can't be told not to.",
   "skillsHub.item.manual": "Added by hand",
   "skillsHub.item.githubSource": "{repo} · {ref} · {files, plural, =0 {SKILL.md only} one {# extra file} other {# extra files}}",
   "skillsHub.import.exists": "Already added",

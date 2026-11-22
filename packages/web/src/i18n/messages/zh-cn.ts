@@ -1509,6 +1509,7 @@ export const zhCn: Record<MessageId, string> = {
   "skillsHub.hostSkills.on": "Agent 会同时加载所在电脑上配置的技能、插件和 MCP。",
   "skillsHub.hostSkills.off": "Agent 只使用这里启用的内容。",
   "skillsHub.hostSkills.offCreate": "Agent 只使用你在「能力」里为它启用的技能、插件和 MCP 应用。",
+  "skillsHub.hostSkills.lockedAntigravity": "Antigravity 固定开启：agy 总会加载所在电脑上配置的技能、插件和 MCP，没法让它不加载。",
   "skillsHub.item.manual": "手动添加",
   "skillsHub.item.githubSource": "{repo} · {ref} · {files, plural, =0 {仅 SKILL.md} other {另含 # 个文件}}",
   "skillsHub.import.exists": "已添加过",

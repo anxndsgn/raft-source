@@ -176,6 +176,16 @@ export interface SkillsHubLaunchProjection {
   useHostSkills: boolean;
 }
 
+/**
+ * Whether turning "use this computer's config" off can take effect for this
+ * runtime. Antigravity (`agy`) keeps its computer-wide config under
+ * ~/.gemini/config with no way to point a session elsewhere short of a new
+ * HOME, which also drops its sign-in; so for agy the switch stays on.
+ */
+export function runtimeHonorsHostSkillsToggle(runtime: string | null | undefined): boolean {
+  return runtime !== "antigravity";
+}
+
 export function skillsHubPluginMarketplace(name: string): string {
   const at = name.lastIndexOf("@");
   return at >= 0 ? name.slice(at + 1) : "";

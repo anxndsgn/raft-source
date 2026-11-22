@@ -8,6 +8,7 @@
 import { createHash } from "node:crypto";
 import { lstat, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { syncAgyPlugins, type AgyPluginOutcome, type AgyPluginSyncDeps } from "./agyPluginSync";
 import {
   isSafeSkillFilePath,
   SKILLS_HUB_PLUGIN_NAME_PATTERN,
@@ -31,6 +32,8 @@ interface SkillsHubManifest {
   plugins: string[];
   /** `extraKnownMarketplaces` keys written by the hub. */
   marketplaces: string[];
+  /** Antigravity: plugin directories the hub put in `.agents/plugins/`. */
+  agyPlugins?: string[];
 }
 
 const EMPTY_MANIFEST: SkillsHubManifest = { version: 1, skillDirs: [], skillHashes: {}, plugins: [], marketplaces: [] };
@@ -40,11 +43,13 @@ export interface SkillsHubSyncResult {
   removed: string[];
   skipped: string[];
   pluginsChanged: boolean;
+  /** Antigravity plugin installs that failed (the agent starts without them). */
+  pluginFailures?: AgyPluginOutcome[];
 }
 
 /** Workspace-relative skill roots the runtime scans for project skills. */
 export function skillsHubSkillRoot(runtime: string | undefined): string {
-  return runtime === "codex" ? path.join(".agents", "skills") : path.join(".claude", "skills");
+  return runtime === "codex" || runtime === "antigravity" ? path.join(".agents", "skills") : path.join(".claude", "skills");
 }
 
 function stringArray(value: unknown): string[] {
@@ -87,6 +92,7 @@ async function readManifest(workspace: string): Promise<SkillsHubManifest> {
       skillHashes: stringRecord(raw.skillHashes),
       plugins: stringArray(raw.plugins),
       marketplaces: stringArray(raw.marketplaces),
+      agyPlugins: stringArray(raw.agyPlugins),
     };
   } catch {
     return { ...EMPTY_MANIFEST };
@@ -186,7 +192,11 @@ async function syncClaudePlugins(
  * server did not send the field (older server), so a daemon upgrade alone
  * never changes a workspace.
  */
-export async function syncSkillsHubWorkspace(workspace: string, config: AgentConfig): Promise<SkillsHubSyncResult | null> {
+export async function syncSkillsHubWorkspace(
+  workspace: string,
+  config: AgentConfig,
+  options: { agyCommand?: string; agyDeps?: AgyPluginSyncDeps } = {},
+): Promise<SkillsHubSyncResult | null> {
   const hub = config.skillsHub;
   if (!hub) return null;
   const previous = await readManifest(workspace);
@@ -230,14 +240,32 @@ export async function syncSkillsHubWorkspace(workspace: string, config: AgentCon
 
   let plugins = previous.plugins;
   let marketplaces = previous.marketplaces;
-  if (config.runtime !== "codex") {
+  let agyPlugins = previous.agyPlugins ?? [];
+  if (config.runtime === "antigravity") {
+    // agy reads neither .claude/settings.json nor Claude's plugin cache: its
+    // plugins go into the workspace's .agents/plugins/ (agyPluginSync.ts).
+    if (options.agyCommand) {
+      const synced = await syncAgyPlugins({ workspace, hub, previous: agyPlugins, agyCommand: options.agyCommand, deps: options.agyDeps });
+      agyPlugins = synced.plugins;
+      result.pluginsChanged = synced.changed;
+      const failures = synced.outcomes.filter((outcome) => !outcome.ok);
+      if (failures.length > 0) result.pluginFailures = failures;
+    }
+  } else if (config.runtime !== "codex") {
     const synced = await syncClaudePlugins(workspace, hub, previous);
     plugins = synced.plugins;
     marketplaces = synced.marketplaces;
     result.pluginsChanged = synced.changed;
   }
 
-  const manifest: SkillsHubManifest = { version: 1, skillDirs: nextSkillDirs, skillHashes: nextSkillHashes, plugins, marketplaces };
+  const manifest: SkillsHubManifest = {
+    version: 1,
+    skillDirs: nextSkillDirs,
+    skillHashes: nextSkillHashes,
+    plugins,
+    marketplaces,
+    ...(agyPlugins.length > 0 ? { agyPlugins } : {}),
+  };
   const manifestPath = path.join(workspace, SKILLS_HUB_MANIFEST_FILE);
   const serialized = `${JSON.stringify(manifest, null, 2)}\n`;
   if (await readIfExists(manifestPath) !== serialized) {
