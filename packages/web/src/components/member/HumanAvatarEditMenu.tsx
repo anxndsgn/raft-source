@@ -85,12 +85,12 @@ export function HumanAvatarEditMenu({
           render={(
             <button
               type="button"
-              className={`group/avatar-edit relative flex shrink-0 rounded-sticker outline-none focus-visible:shadow-focus disabled:cursor-wait ${heroRound ? "md:pointer-fine:rounded-full" : ""}`}
+              className={`group/avatar-edit relative flex shrink-0 rounded-sticker outline-none focus-visible:shadow-focus disabled:cursor-wait ${heroRound ? "md:pointer-fine:rounded-control" : ""}`}
             />
           )}
         >
           {avatar ?? <AvatarSlot context={context} type="human" humanAvatarUrl={avatarUrl} className={heroRound ? PROFILE_HERO_AVATAR_CLASS : undefined} />}
-          <AvatarEditVeil icon={Pencil} busy={busy} className={heroRound ? "md:pointer-fine:rounded-full" : ""} />
+          <AvatarEditVeil icon={Pencil} busy={busy} className={heroRound ? "md:pointer-fine:rounded-control" : ""} />
         </DropdownMenuTrigger>
         <DropdownMenuContent side="bottom" align="start" sideOffset={6} aria-label={label} data-avatar-edit-menu="">
           <DropdownMenuItem onClick={chooseFile} data-avatar-edit-action="upload">

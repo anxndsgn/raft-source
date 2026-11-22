@@ -54,10 +54,10 @@ const MEMBERS_OPEN_CLASS = [
 // A member's face: not a control of its own (the card is the one tab stop), but raised over the cover so its
 // name still shows on hover; a click on it opens the list, as the cover under it would.
 // Raft redesign (mobile spec 11/21): a round face with no edge, the strip's size.
-const STRIP_FACE_CLASS = "relative z-raised shrink-0 cursor-pointer rounded-full [&_[data-slot=avatar]]:size-(--strip-tile) [&_[data-slot=avatar]]:rounded-full [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none [&_[data-slot=avatar-image]]:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full";
+const STRIP_FACE_CLASS = "relative z-raised shrink-0 cursor-pointer rounded-control [&_[data-slot=avatar]]:size-(--strip-tile) [&_[data-slot=avatar]]:rounded-control [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none [&_[data-slot=avatar-image]]:rounded-control [&_[data-slot=avatar-fallback]]:rounded-control";
 // The add tile is a round ghost button (Raft redesign, mobile spec 11/21): a + on no fill, the subtle fill
 // under the pointer or finger, the shared keyboard focus ring, over the cover.
-const STRIP_ADD_BUTTON_CLASS = "relative z-raised shrink-0 rounded-full outline-none focus-visible:shadow-focus";
+const STRIP_ADD_BUTTON_CLASS = "relative z-raised shrink-0 rounded-control outline-none focus-visible:shadow-focus";
 const STRIP_PRELOAD_LIMIT = STRIP_MAX_ROWS * STRIP_FALLBACK_COLUMNS;
 const NO_CHANNEL_EXTERNAL_MEMBERS: ChannelExternalMember[] = [];
 

@@ -610,7 +610,7 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
                   context="compact-row"
                   type="human"
                   humanAvatarUrl={selfAvatarUrl}
-                  className="md:pointer-fine:!size-8 md:pointer-fine:rounded-full md:pointer-fine:border-0 md:pointer-fine:shadow-none md:pointer-fine:[&_[data-slot=avatar-image]]:rounded-full md:pointer-fine:[&_[data-slot=avatar-fallback]]:rounded-full"
+                  className="md:pointer-fine:!size-8 md:pointer-fine:rounded-control md:pointer-fine:border-0 md:pointer-fine:shadow-none md:pointer-fine:[&_[data-slot=avatar-image]]:rounded-control md:pointer-fine:[&_[data-slot=avatar-fallback]]:rounded-control"
                 />
                 {showMobileAppBadge ? <AppRailItemAttention title={selfLabel} /> : null}
               </AppRailItemIcon>

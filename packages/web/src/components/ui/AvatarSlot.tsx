@@ -181,7 +181,7 @@ function AvatarImageContent({
 }
 
 /** Raft redesign (C20): with a mouse a profile panel's hero avatar is 64 and round, without the sticker edge. */
-export const PROFILE_HERO_AVATAR_CLASS = "md:pointer-fine:size-16 md:pointer-fine:rounded-full md:pointer-fine:shadow-none md:pointer-fine:*:rounded-full";
+export const PROFILE_HERO_AVATAR_CLASS = "md:pointer-fine:size-16 md:pointer-fine:rounded-control md:pointer-fine:shadow-none md:pointer-fine:*:rounded-control";
 
 /** Where a panel-header or switcher-row avatar is `sm` (27): the desktop query of raft-ui's size chain. */
 const DESKTOP_MOUSE_QUERY = "(width >= 48rem) and (pointer: fine)";

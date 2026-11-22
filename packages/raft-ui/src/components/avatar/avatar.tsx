@@ -49,11 +49,11 @@ const avatar = tv({
       "group/avatar relative flex shrink-0 items-center justify-center select-none",
       "rounded-sticker border-[1.5px] border-sticker-ink",
       "text-sticker-ink shadow-[0_0_0_1.5px_var(--sticker-edge)]",
-      // Raft redesign (Figmama 11/21): with a mouse a person or an agent is a
-      // circle with no edge; an app keeps a square at the control corner; the
-      // workspace tile is left as it is.
-      "not-data-[avatar-type=server]:rounded-full md:pointer-fine:not-data-[avatar-type=server]:rounded-full not-data-[avatar-type=server]:border-0 md:pointer-fine:not-data-[avatar-type=server]:border-0 not-data-[avatar-type=server]:shadow-none md:pointer-fine:not-data-[avatar-type=server]:shadow-none",
-      "data-[avatar-type=app]:rounded-control md:pointer-fine:data-[avatar-type=app]:rounded-control",
+      // Raft redesign: a person, an agent and an app have no edge and take the
+      // control corner, so they follow the theme's corner setting (square: 0;
+      // anxndsgn 11/22, before that a circle, Figmama 11/21); the workspace
+      // tile is left as it is.
+      "not-data-[avatar-type=server]:rounded-control md:pointer-fine:not-data-[avatar-type=server]:rounded-control not-data-[avatar-type=server]:border-0 md:pointer-fine:not-data-[avatar-type=server]:border-0 not-data-[avatar-type=server]:shadow-none md:pointer-fine:not-data-[avatar-type=server]:shadow-none",
     ],
     image: ["size-full object-cover", "rounded-[2px]", "rounded-[inherit] md:pointer-fine:rounded-[inherit]"],
     fallback: [

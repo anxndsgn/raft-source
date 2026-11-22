@@ -140,7 +140,7 @@ export const END_FADE_UNDER_AGENT_TYPING_LINE_CLASS = [
  */
 // Raft redesign (Figmama 11/21, 250d9559): the line is the floating pill the typing one is, the canvas on a 10% line,
 // fully round, the agents' faces 16px circles, regular 12 muted words; it floats over the timeline above the composer.
-const WORKING_PILL_CLASS = "flex h-8 min-w-0 max-w-full items-center gap-1.5 rounded-pill border border-line-floating bg-layer-canvas pr-2.5 pl-1.5 text-[12px] leading-4 text-foreground-muted [&_[data-slot=avatar]]:size-5 [&_[data-slot=avatar]]:rounded-full [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none [&_[data-slot=avatar-image]]:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full";
+const WORKING_PILL_CLASS = "flex h-8 min-w-0 max-w-full items-center gap-1.5 rounded-pill border border-line-floating bg-layer-canvas pr-2.5 pl-1.5 text-[12px] leading-4 text-foreground-muted [&_[data-slot=avatar]]:size-5 [&_[data-slot=avatar]]:rounded-control [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none [&_[data-slot=avatar-image]]:rounded-control [&_[data-slot=avatar-fallback]]:rounded-control";
 
 export const AgentTypingLine = memo(function AgentTypingLine({
   channelId,

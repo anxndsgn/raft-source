@@ -48,7 +48,7 @@ import { messageCardFallbackText } from "../../utils/messageCardFallbackText";
 const MAX_INLINE_PREVIEWS = 3;
 // B6, desktop: the replies row; it hugs its content, 4 in, the control radius.
 const REPLIES_ROW_CLASS = "mt-1 mb-px h-6 w-fit max-w-full flex-row items-center gap-1.5 -ml-1 rounded-control px-1 py-0 md:pointer-fine:bg-transparent md:pointer-fine:hover:bg-fill-subtle md:pointer-fine:hover:bg-none md:pointer-fine:active:bg-none [&_strong]:h-auto [&_strong]:min-w-0 [&_strong]:bg-transparent [&_strong]:px-0 [&_strong]:font-sans [&_strong]:text-[12px] [&_strong]:text-danger-strong [&_strong]:inset-ring-0 [&_strong]:ring-0";
-const REPLIER_AVATAR_CLASS = "-ml-1 flex size-4 overflow-hidden rounded-full ring-1 ring-layer-canvas first:ml-0 *:size-4! *:rounded-full!";
+const REPLIER_AVATAR_CLASS = "-ml-1 flex size-4 overflow-hidden rounded-control ring-1 ring-layer-canvas first:ml-0 *:size-4! *:rounded-control!";
 
 export function hasInlineThreadReplySurface(
   replies: ThreadReplyPreview[],

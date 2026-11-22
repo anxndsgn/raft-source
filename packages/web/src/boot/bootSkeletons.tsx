@@ -66,7 +66,7 @@ function MessageRowSkeleton({ row, size }: { row: number; size: MessageBodyFontS
         <MessageItemGutter>
           <MessageItemAvatarSlot className="flex items-start">
             {/* Round, as every avatar is (Raft redesign); the loaded one's size (32 at the default message size). */}
-            <Skeleton className={`size-(--mi-avatar,32px) data-[variant=block]:rounded-full ${MESSAGE_AVATAR_OFFSET}`} />
+            <Skeleton className={`size-(--mi-avatar,32px) data-[variant=block]:rounded-control ${MESSAGE_AVATAR_OFFSET}`} />
           </MessageItemAvatarSlot>
         </MessageItemGutter>
         <MessageItemContent>

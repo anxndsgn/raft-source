@@ -164,7 +164,7 @@ export function WorkingPillPanel({
               className="flex h-11 w-full items-center gap-2.5 rounded-[12px] px-2 text-left outline-none hover:bg-fill-medium focus-visible:shadow-focus"
               data-agent-id={item.agentId}
             >
-              <span data-row-avatar="" className="flex size-6 shrink-0 will-change-transform [&_[data-slot=avatar]]:size-6 [&_[data-slot=avatar]]:rounded-full [&_[data-slot=avatar-image]]:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full">
+              <span data-row-avatar="" className="flex size-6 shrink-0 will-change-transform [&_[data-slot=avatar]]:size-6 [&_[data-slot=avatar]]:rounded-control [&_[data-slot=avatar-image]]:rounded-control [&_[data-slot=avatar-fallback]]:rounded-control">
                 <AvatarSlot context="compact-row" type="agent" agentAvatarUrl={item.agentAvatarUrl} presence={item.activity === "error" ? "error" : "busy"} />
               </span>
               <span className="flex min-w-0 flex-col motion-safe:animate-[working-row-in_160ms_80ms_both]">
@@ -183,7 +183,7 @@ export function WorkingPillPanel({
         aria-label={label}
         onClick={toggle}
         data-testid="agent-typing-trigger"
-        className={`${inFlow ? "relative" : "absolute inset-x-0 bottom-0"} flex h-8 items-center gap-1.5 pr-2.5 pl-1.5 text-left text-[12px] leading-4 whitespace-nowrap text-foreground-muted outline-none focus-visible:shadow-focus ${open ? "pointer-events-none opacity-0 transition-opacity duration-100" : "opacity-100"} [&_[data-slot=avatar]]:size-5 [&_[data-slot=avatar]]:rounded-full [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none [&_[data-slot=avatar-image]]:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full`}
+        className={`${inFlow ? "relative" : "absolute inset-x-0 bottom-0"} flex h-8 items-center gap-1.5 pr-2.5 pl-1.5 text-left text-[12px] leading-4 whitespace-nowrap text-foreground-muted outline-none focus-visible:shadow-focus ${open ? "pointer-events-none opacity-0 transition-opacity duration-100" : "opacity-100"} [&_[data-slot=avatar]]:size-5 [&_[data-slot=avatar]]:rounded-control [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none [&_[data-slot=avatar-image]]:rounded-control [&_[data-slot=avatar-fallback]]:rounded-control`}
       >
         {faces}
         <span className="min-w-0 truncate">{label}</span>

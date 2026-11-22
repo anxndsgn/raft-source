@@ -127,4 +127,4 @@ export function useMergedRowRef(focusRef: React.Ref<HTMLDivElement> | undefined,
 /** Raft redesign (Figmama 11/20): with a mouse the sender's face on an inbox
  *  row is the message head's, a circle with no edge, at 16px. */
 export const INBOX_SENDER_AVATAR_CLASS =
-  "md:pointer-fine:[&_[data-slot=avatar]]:size-4 md:pointer-fine:[&_[data-slot=avatar]]:rounded-full md:pointer-fine:[&_[data-slot=avatar]]:border-0 md:pointer-fine:[&_[data-slot=avatar]]:shadow-none md:pointer-fine:[&_[data-slot=avatar-image]]:rounded-full md:pointer-fine:[&_[data-slot=avatar-fallback]]:rounded-full";
+  "md:pointer-fine:[&_[data-slot=avatar]]:size-4 md:pointer-fine:[&_[data-slot=avatar]]:rounded-control md:pointer-fine:[&_[data-slot=avatar]]:border-0 md:pointer-fine:[&_[data-slot=avatar]]:shadow-none md:pointer-fine:[&_[data-slot=avatar-image]]:rounded-control md:pointer-fine:[&_[data-slot=avatar-fallback]]:rounded-control";

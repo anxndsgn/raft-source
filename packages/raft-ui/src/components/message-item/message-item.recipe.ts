@@ -65,8 +65,8 @@ export const messageItem = tv({
       // Raft redesign (conversation spec; the mobile spec 11/21 on a phone): a
       // 32px circle with no edge; an initial in Semi Bold 13.
       "[&_[data-slot=avatar][data-size=md]]:size-(--mi-avatar,32px) md:pointer-fine:[&_[data-slot=avatar][data-size=md]]:size-8",
-      "[&_[data-slot=avatar]]:rounded-full [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none",
-      "[&_[data-slot=avatar-image]]:rounded-full [&_[data-slot=avatar-fallback]]:rounded-full",
+      "[&_[data-slot=avatar]]:rounded-control [&_[data-slot=avatar]]:border-0 [&_[data-slot=avatar]]:shadow-none",
+      "[&_[data-slot=avatar-image]]:rounded-control [&_[data-slot=avatar-fallback]]:rounded-control",
       "[&_[data-slot=avatar-fallback]]:text-[13px] [&_[data-slot=avatar-fallback]]:font-semibold [&_[data-slot=avatar-fallback]]:tracking-normal",
     ],
     continuationTime: [

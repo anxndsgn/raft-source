@@ -31,7 +31,7 @@ export function OttieRailAvatar({ size = 28 }: { size?: 24 | 28 } = {}) {
   return (
     <span
       data-testid="ottie-rail-avatar"
-      className={`relative block ${box} shrink-0 overflow-hidden rounded-full border-[1.5px] border-sticker-ink shadow-[0_0_0_1.5px_var(--sticker-edge)]`}
+      className={`relative block ${box} shrink-0 overflow-hidden rounded-control border-[1.5px] border-sticker-ink shadow-[0_0_0_1.5px_var(--sticker-edge)]`}
     >
       <img
         src={ottieRail1x}
