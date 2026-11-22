@@ -233,6 +233,13 @@ async function dropSelfHostGraph(risingwave: pg.Client): Promise<void> {
   }
 }
 
+/**
+ * The serving graph this RisingWave holds is from another version: relations
+ * are missing or have another shape. Only this justifies a self-host rebuild;
+ * any other failure (RisingWave unreachable or busy) must not drop the graph.
+ */
+class GraphOutOfDateError extends Error {}
+
 async function assertRequiredRelations(risingwave: pg.Client): Promise<void> {
   const names = RISINGWAVE_REQUIRED_RELATIONS.map(sqlLiteral).join(", ");
   const result = await risingwave.query<{ name: string }>(
@@ -240,7 +247,7 @@ async function assertRequiredRelations(risingwave: pg.Client): Promise<void> {
   );
   const actual = new Set(result.rows.map((row) => row.name));
   const missing = RISINGWAVE_REQUIRED_RELATIONS.filter((name) => !actual.has(name));
-  if (missing.length > 0) throw new Error(`RisingWave serving graph is missing: ${missing.join(", ")}`);
+  if (missing.length > 0) throw new GraphOutOfDateError(`RisingWave serving graph is missing: ${missing.join(", ")}`);
 
   const ddl = await risingwave.query<{ count: string }>("SELECT count(*)::text AS count FROM rw_catalog.rw_ddl_progress");
   if (Number(ddl.rows[0]?.count ?? -1) !== 0) {
@@ -257,7 +264,7 @@ async function assertRequiredRelations(risingwave: pg.Client): Promise<void> {
     "activity_muted", "mute_from_seq", "prefs_version", "created_at", "updated_at",
   ];
   if (JSON.stringify(muteColumns.rows.map((row) => row.column_name)) !== JSON.stringify(expectedMuteColumns)) {
-    throw new Error("rw_inbox_target_mute_states_v2 does not have the required nine-column shape");
+    throw new GraphOutOfDateError("rw_inbox_target_mute_states_v2 does not have the required nine-column shape");
   }
 
   // Serving invariants on the view the server reads (UNIFIED_CHAIN_VIEWS.serving).
@@ -331,18 +338,32 @@ async function main(): Promise<void> {
   let rebuilding = false;
   try {
     if (selfHost && await alreadyBootstrapped(risingwave)) {
-      try {
-        await assertRequiredRelations(risingwave);
-        console.log(JSON.stringify({ ok: true, skipped: "already bootstrapped" }));
-        return;
-      } catch (error) {
-        // An upgrade whose serving graph has relations this RisingWave lacks
-        // (upstream merges add MVs): rebuild it from scratch. Everything here
-        // derives from Postgres through CDC, so nothing is lost.
-        const detail = error instanceof Error ? error.message : String(error);
-        console.error(`[rw-bootstrap] the existing graph is out of date (${detail}); rebuilding it`);
-        await dropSelfHostGraph(risingwave);
-        rebuilding = true;
+      for (let attempt = 1; ; attempt++) {
+        try {
+          await assertRequiredRelations(risingwave);
+          console.log(JSON.stringify({ ok: true, skipped: "already bootstrapped" }));
+          return;
+        } catch (error) {
+          const detail = error instanceof Error ? error.message : String(error);
+          if (error instanceof GraphOutOfDateError) {
+            // An upgrade whose serving graph has relations this RisingWave
+            // lacks (upstream merges add MVs): rebuild it from scratch.
+            // Everything here derives from Postgres through CDC, so nothing
+            // is lost.
+            console.error(`[rw-bootstrap] the existing graph is out of date (${detail}); rebuilding it`);
+            await dropSelfHostGraph(risingwave);
+            rebuilding = true;
+            break;
+          }
+          // RisingWave unreachable, overloaded or still building: never a
+          // reason to drop the graph (11-22: a meta-service timeout was read
+          // as "out of date", and the rebuild froze the host). Wait, then fail.
+          if (attempt >= SELF_HOST_CHECK_ATTEMPTS) {
+            throw new Error(`RisingWave serving graph check failed ${attempt} times; not rebuilding: ${detail}`, { cause: error });
+          }
+          console.error(`[rw-bootstrap] serving graph check failed (attempt ${attempt}/${SELF_HOST_CHECK_ATTEMPTS}), retrying: ${detail}`);
+          await sleep(SELF_HOST_CHECK_RETRY_MS);
+        }
       }
     }
     // Loopback-only (checked above): this never touches a staging or
@@ -442,6 +463,8 @@ async function main(): Promise<void> {
 
 const CLEANUP_STEP_TIMEOUT_MS = 30_000;
 const SLOT_RELEASE_TIMEOUT_MS = 60_000;
+const SELF_HOST_CHECK_ATTEMPTS = 6;
+const SELF_HOST_CHECK_RETRY_MS = 10_000;
 
 async function withinMs<T>(label: string, ms: number, work: Promise<T>): Promise<T> {
   const started = Date.now();
