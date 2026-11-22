@@ -90,6 +90,18 @@ function tabOf(kind: BesideKind): { present: boolean; group: string | null; unit
   return { present: true, group: plan.units[group[0]!]!.key, unit: plan.units[index]!.key };
 }
 
+/**
+ * What a conversation keeps beside it, of what the address names: not the
+ * Artifact. On a desktop (the only place this hook runs) the workspace is an
+ * island of its own that outlives a conversation (owner, 11/21 20:33): its
+ * tabs are the viewer store's, kept across conversations and reloads there.
+ * Remembered per conversation too, an Artifact closed in one conversation
+ * came back on entering another it was once open beside (owner, 11/22 15:59).
+ */
+function keptBeside(state: BesideState | null): BesideState {
+  return withoutBesideKinds(state ?? {}, ["artifact"]);
+}
+
 export function useBesideMemory(check: BesideVisibilityCheck = checkBesideVisibility): void {
   const location = useLocation();
   const navigate = useNavigate();
@@ -125,7 +137,7 @@ export function useBesideMemory(check: BesideVisibilityCheck = checkBesideVisibi
   commit.current = (pick = null) => {
     const current = visit.current;
     if (!current || current.key !== key || !conversationId) return;
-    const named = readBesideAddress(window.location.search, conversationId);
+    const named = keptBeside(readBesideAddress(window.location.search, conversationId));
     current.shown = nextBesideState(current.shown, named, pick ?? current.pick);
     current.pick = null;
     current.held = withoutBesideKinds(current.held, besideKindsOf(named));
@@ -148,8 +160,9 @@ export function useBesideMemory(check: BesideVisibilityCheck = checkBesideVisibi
 
     // Entering the conversation. What the address names is shown; the remembered rest is held.
     const { pathname, search } = location;
-    const named = readBesideAddress(search, conversationId);
-    const remembered = recallBeside(userId, serverId, conversationId);
+    const named = keptBeside(readBesideAddress(search, conversationId));
+    const recalled = recallBeside(userId, serverId, conversationId);
+    const remembered = recalled ? keptBeside(recalled) : null;
     const entered: Visit = {
       key,
       shown: onlyBesideKinds(remembered, besideKindsOf(named)),
