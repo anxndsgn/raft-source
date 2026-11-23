@@ -56,6 +56,8 @@ type Registration = {
   snapshot: ManagedMcpRuntimeSnapshot;
   loadSnapshot?: () => Promise<ManagedMcpRuntimeSnapshot>;
   callTool: (request: ManagedMcpCallRequest) => Promise<ManagedMcpCallResult>;
+  /** Set once the runtime has listed this endpoint's tools (`waitForManagedMcpToolsListed`). */
+  toolsListed?: boolean;
 };
 
 type ProxyState = {
@@ -64,6 +66,8 @@ type ProxyState = {
 };
 
 const registrations = new Map<string, Registration>();
+/** Waiters for a launch's first `tools/list`, keyed by `launchKey`. */
+const toolsListedWaiters = new Map<string, Set<() => void>>();
 const launchCleanups = new Map<string, Set<() => void>>();
 let proxyState: ProxyState | null = null;
 let proxyStart: Promise<ProxyState> | null = null;
@@ -353,6 +357,7 @@ function createMcpServer(registration: Registration): Server {
   );
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     const nativeTools = await loadNativeTools(registration);
+    markToolsListed(registration);
     return {
       tools: nativeTools.map(({ nativeName, tool }) => ({
         name: nativeName,
@@ -507,6 +512,21 @@ export interface ManagedMcpRuntimeEndpoint {
   token: string;
 }
 
+/**
+ * The managed MCP server's name in a runtime's config: alphanumeric, which
+ * every supported runtime's config grammar takes, and the same for every
+ * launch of one agent (task #23). A name that changed per launch made agy
+ * treat each start as a new server (a resumed conversation's earlier tool
+ * calls named one that no longer exists, and agy kept a tool cache per name),
+ * and left a leftover entry in a shared config file when launches overlapped.
+ * Different agents still get different names, so their tools never mix in a
+ * runtime's own per-name caches.
+ */
+export function managedMcpRuntimeServerName(agentId: string): string {
+  const digest = createHash("sha256").update(agentId).digest("base64url").replace(/[^a-zA-Z0-9]/g, "");
+  return `${MANAGED_MCP_RUNTIME_SERVER_NAME_PREFIX}${digest.slice(0, 6)}`;
+}
+
 export async function registerManagedMcpRuntimeProxy(
   input: Registration,
 ): Promise<ManagedMcpRuntimeEndpoint> {
@@ -514,15 +534,70 @@ export async function registerManagedMcpRuntimeProxy(
   const state = await ensureProxy();
   const token = randomBytes(32).toString("base64url");
   registrations.set(token, input);
-  const serverNameSuffix = token.replace(/[^a-zA-Z0-9]/g, "").slice(0, 6);
   return {
-    // Alphanumeric and launch-unique keeps every supported runtime's config
-    // grammar happy and cannot collide with a user's existing MCP server key.
-    name: `${MANAGED_MCP_RUNTIME_SERVER_NAME_PREFIX}${serverNameSuffix}`,
+    name: managedMcpRuntimeServerName(input.agentId),
     url: `${state.baseUrl}/mcp/${token}`,
     endpointUrl: `${state.baseUrl}/mcp`,
     token,
   };
+}
+
+function toolsListedKey(agentId: string, launchId: string | null): string {
+  return `${agentId}\u0000${launchId ?? ""}`;
+}
+
+function markToolsListed(registration: Registration): void {
+  if (registration.toolsListed) return;
+  registration.toolsListed = true;
+  const key = toolsListedKey(registration.agentId, registration.launchId);
+  const waiters = toolsListedWaiters.get(key);
+  if (!waiters) return;
+  toolsListedWaiters.delete(key);
+  for (const wake of waiters) wake();
+}
+
+export type ManagedMcpToolsListedOutcome = "ready" | "timeout" | "stopped" | "none";
+
+/**
+ * Waits until the runtime has listed the launch's managed MCP tools, at most
+ * `timeoutMs`. `none`: the launch has no managed MCP endpoint, nothing to wait
+ * for. A runtime that connects its MCP servers in the background (agy, task
+ * #23) would otherwise get its first prompt before Raft's tools are there, and
+ * that turn runs without them.
+ */
+export function waitForManagedMcpToolsListed(input: {
+  agentId: string;
+  launchId?: string | null;
+  timeoutMs: number;
+  signal?: AbortSignal;
+}): Promise<ManagedMcpToolsListedOutcome> {
+  const launchId = input.launchId ?? null;
+  let registered = false;
+  for (const registration of registrations.values()) {
+    if (registration.agentId !== input.agentId || registration.launchId !== launchId) continue;
+    if (registration.toolsListed) return Promise.resolve("ready");
+    registered = true;
+  }
+  if (!registered) return Promise.resolve("none");
+  if (input.signal?.aborted) return Promise.resolve("stopped");
+  const key = toolsListedKey(input.agentId, launchId);
+  return new Promise((resolve) => {
+    const waiters = toolsListedWaiters.get(key) ?? new Set<() => void>();
+    toolsListedWaiters.set(key, waiters);
+    const finish = (outcome: ManagedMcpToolsListedOutcome) => {
+      clearTimeout(timer);
+      input.signal?.removeEventListener("abort", onAbort);
+      waiters.delete(wake);
+      if (waiters.size === 0 && toolsListedWaiters.get(key) === waiters) toolsListedWaiters.delete(key);
+      resolve(outcome);
+    };
+    const wake = () => finish("ready");
+    const onAbort = () => finish("stopped");
+    const timer = setTimeout(() => finish("timeout"), input.timeoutMs);
+    timer.unref?.();
+    waiters.add(wake);
+    input.signal?.addEventListener("abort", onAbort, { once: true });
+  });
 }
 
 export function unregisterManagedMcpRuntimeProxyForLaunch(input: {
@@ -635,6 +710,7 @@ export async function __resetManagedMcpRuntimeProxyForTest(): Promise<void> {
     }
   }
   launchCleanups.clear();
+  toolsListedWaiters.clear();
   jsonConfigStates.clear();
   registrations.clear();
   const state = proxyState;

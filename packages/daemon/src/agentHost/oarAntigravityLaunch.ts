@@ -16,6 +16,13 @@
 // made on the Computer or from the web (OAR 0.97 `login`, runtimeAuth/
 // runtimeAuthHost.ts); the launch itself reads none of it.
 //
+// First input (task #23): `agy` connects its MCP servers in the background
+// once the session is open, about 2 s later, and a turn that starts before
+// that runs without Raft's tools. The model then reads their absence as a
+// fact, and a resumed conversation keeps it. So the first input waits, at
+// most AGY_MANAGED_MCP_READY_TIMEOUT_MS, until `agy` has listed the launch's
+// managed MCP tools at the proxy.
+//
 // Resume: OAR's `resume` is `agy`'s own session id. The driver's id is its own
 // (it resumes with `--continue`), so `agy` doesn't know it, OAR's open fails and
 // that start falls back to the driver. An agent that has one moves here once
@@ -25,7 +32,23 @@ import { hydrateRuntimeConfig, runtimeConfigToLaunchFields } from "@botiverse/ra
 import { prepareAntigravityEnvironment, resolveAntigravitySpawn } from "../drivers/index";
 import type { SpawnContext } from "../drivers/types";
 import { launchEnvOverlay } from "./oarGrokLaunch";
-import type { OarLaunch } from "./oarLaunch";
+import { waitForManagedMcpToolsListed } from "../managedMcpRuntimeProxy";
+import type { FirstInputReadiness, OarLaunch } from "./oarLaunch";
+
+/** How long the first input waits for `agy` to list Raft's managed MCP tools. */
+export const AGY_MANAGED_MCP_READY_TIMEOUT_MS = 15_000;
+
+/** The first input's wait: `agy` has listed the launch's managed MCP tools, or the wait ends. */
+export async function awaitAgyManagedMcp(
+  ctx: Pick<SpawnContext, "agentId" | "launchId">,
+  signal: AbortSignal,
+  timeoutMs: number = AGY_MANAGED_MCP_READY_TIMEOUT_MS,
+  now: () => number = Date.now,
+): Promise<FirstInputReadiness> {
+  const started = now();
+  const outcome = await waitForManagedMcpToolsListed({ agentId: ctx.agentId, launchId: ctx.launchId, timeoutMs, signal });
+  return { waitedFor: "managed_mcp", outcome: outcome === "none" ? "ready" : outcome, waitedMs: now() - started };
+}
 
 /** A prepared Antigravity launch as an OAR launch. */
 export function antigravityOarLaunch(
@@ -51,6 +74,7 @@ export function antigravityOarLaunch(
     },
     // A second native prompt steers the same loop (OAR runtimes/antigravity/session.js).
     busyDelivery: "now",
+    firstInputReady: (_session, signal) => awaitAgyManagedMcp(ctx, signal),
   };
 }
 
