@@ -108,7 +108,7 @@ jobs:
 
       - name: Copy compose files
         run: |
-          ssh -i ~/.ssh/id_deploy "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p $DEPLOY_PATH"
+          ssh -i ~/.ssh/id_deploy "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p $DEPLOY_PATH $DEPLOY_PATH/computer"
           scp -i ~/.ssh/id_deploy \
             deploy/self-host/docker-compose.yml \
             deploy/self-host/risingwave.toml \

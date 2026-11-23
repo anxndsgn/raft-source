@@ -10,6 +10,7 @@
   "packageManager": "pnpm@12.15.0",
   "scripts": {
     "computer:install": "bash scripts/dev/computer-install.sh",
+    "computer:publish": "bash scripts/dev/computer-publish.sh",
     "check:misc": "bash scripts/check-misc.sh",
     "perf:boot-profile": "node scripts/perf/boot-profile.cjs",
     "test:raftdev": "vitest run scripts/dev/",

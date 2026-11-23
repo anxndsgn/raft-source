@@ -1,6 +1,15 @@
 {$APP_HOST} {
 	encode gzip
-	reverse_proxy web:80
+	# Raft Computer builds for other machines (install.sh and binaries),
+	# uploaded by scripts/dev/computer-publish.sh to <DEPLOY_PATH>/computer.
+	handle_path /computer/* {
+		root * /srv/computer
+		header Cache-Control "no-cache"
+		file_server
+	}
+	handle {
+		reverse_proxy web:80
+	}
 }
 
 {$API_HOST} {

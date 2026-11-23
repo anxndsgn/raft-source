@@ -182,6 +182,7 @@ services:
       API_HOST: ${API_HOST:-}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./computer:/srv/computer:ro
       - caddy:/data
     ports:
       - "80:80"
