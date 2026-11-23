@@ -31,6 +31,7 @@ import api from "../../api/client";
 import { DialogActions, DialogCommit, NarrowDialogContent } from "../../components/ui/NarrowDialog";
 import SectionHeader from "../../components/ui/SectionHeader";
 import { SkillsHubTable } from "./SkillsHubTable";
+import { PluginMcpConnections, setPluginAppsForAgent } from "./PluginMcpConnections";
 import { showToast } from "../../components/toastBridge";
 import { useServerPermissions } from "../../hooks/useServerPermissions";
 
@@ -790,7 +791,13 @@ export function AgentSkillsHubTab({ agentId, agentName, runtime }: { agentId: st
   const toggleItem = (item: SkillsHubAgentItemView, enabled: boolean) => {
     if (!catalog) return;
     const next = enabled ? [...enabledIds, item.id] : enabledIds.filter((id) => id !== item.id);
-    void save(next, catalog.useHostSkills);
+    void (async () => {
+      // Task #22: the plugin's MCP Apps come and go with the plugin, for this agent only.
+      if (item.remoteMcp && item.remoteMcp.length > 0 && capabilities.manageIntegrations) {
+        await setPluginAppsForAgent(agentId, item.remoteMcp, enabled).catch(() => undefined);
+      }
+      await save(next, catalog.useHostSkills);
+    })();
   };
 
   const groups: Array<{ kind: SkillsHubItemKind; items: SkillsHubAgentItemView[] }> = useMemo(() => {
@@ -862,6 +869,15 @@ export function AgentSkillsHubTab({ agentId, agentName, runtime }: { agentId: st
                       data-testid={`skills-hub-toggle-${item.name}`}
                     />
                   </label>
+                  {item.enabled && item.remoteMcp && item.remoteMcp.length > 0 && (
+                    <PluginMcpConnections
+                      agentId={agentId}
+                      pluginName={item.name}
+                      links={item.remoteMcp}
+                      canManage={canManageHub}
+                      onChanged={() => void load()}
+                    />
+                  )}
                 </li>
               ))}
             </Card>
