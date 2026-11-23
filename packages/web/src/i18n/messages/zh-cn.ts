@@ -1515,7 +1515,7 @@ export const zhCn: Record<MessageId, string> = {
   "skillsHub.pluginMcp.served": "已通过 Raft 连接",
   "skillsHub.pluginMcp.fromPluginOnly": "目前在每台电脑上单独登录",
   "skillsHub.pluginMcp.fromPlugin": "来自插件 {plugin}",
-  "skillsHub.pluginMcp.needsKey": "{name} 需要 API Key，请在应用页添加",
+  "skillsHub.pluginMcp.needsKey": "{name} 需要填写凭证，请在应用页添加",
   "skillsHub.pluginMcp.unreachable": "{name} 现在连不上",
   "skillsHub.item.manual": "手动添加",
   "skillsHub.item.githubSource": "{repo} · {ref} · {files, plural, =0 {仅 SKILL.md} other {另含 # 个文件}}",
