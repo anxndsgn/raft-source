@@ -14,7 +14,7 @@
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
-import { cp, lstat, mkdir, mkdtemp, readdir, rename, rm } from "node:fs/promises";
+import { cp, lstat, mkdir, mkdtemp, readdir, rename, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { ambientProcessEnv } from "./processEnvPatch";
@@ -280,10 +280,52 @@ export async function syncAgyPlugins(input: {
     }
   }
 
+  // Task #22: servers an MCP App serves in Raft are taken out of the plugin's
+  // MCP config (and put back when that stops), so agy does not start its own.
+  for (const name of plugins) {
+    const outcome = await applyServedByRaft(path.join(root, name), wanted.get(name)?.mcpServersServedByRaft ?? []);
+    if (outcome) outcomes.push({ plugin: wanted.get(name)?.name ?? name, ok: outcome.ok, detail: outcome.detail });
+  }
+
   for (const name of owned) {
     if (wanted.has(name)) continue;
     await rm(path.join(root, name), { recursive: true, force: true });
     changed = true;
   }
   return { plugins, changed, outcomes };
+}
+
+const AGY_PLUGIN_MCP_CONFIG = "mcp_config.json";
+/** The plugin's MCP config as installed, kept while Raft serves some of its servers. */
+const AGY_PLUGIN_MCP_ORIGINAL = "mcp_config.raft-original.json";
+
+/**
+ * Leave out of a workspace plugin's `mcp_config.json` the servers Raft serves
+ * (task #22). The config as it was is kept beside it and restored once Raft
+ * serves none of them. Returns an outcome only when something changed or failed.
+ */
+export async function applyServedByRaft(pluginDir: string, served: string[]): Promise<{ ok: boolean; detail: string } | null> {
+  const configFile = path.join(pluginDir, AGY_PLUGIN_MCP_CONFIG);
+  const originalFile = path.join(pluginDir, AGY_PLUGIN_MCP_ORIGINAL);
+  try {
+    const hasOriginal = existsSync(originalFile);
+    if (served.length === 0) {
+      if (!hasOriginal) return null;
+      await cp(originalFile, configFile);
+      await rm(originalFile, { force: true });
+      return { ok: true, detail: "MCP servers back from the plugin" };
+    }
+    if (!hasOriginal && !existsSync(configFile)) return null;
+    const original = JSON.parse(readFileSync(hasOriginal ? originalFile : configFile, "utf8")) as { mcpServers?: Record<string, unknown> };
+    const servers = original.mcpServers ?? {};
+    const kept = Object.fromEntries(Object.entries(servers).filter(([name]) => !served.includes(name)));
+    const next = `${JSON.stringify({ ...original, mcpServers: kept }, null, 2)}\n`;
+    const current = existsSync(configFile) ? readFileSync(configFile, "utf8") : "";
+    if (hasOriginal && current === next) return null;
+    if (!hasOriginal) await cp(configFile, originalFile);
+    await writeFile(configFile, next);
+    return { ok: true, detail: `MCP servers served by Raft: ${served.filter((name) => name in servers).join(", ") || "none"}` };
+  } catch (error) {
+    return { ok: false, detail: `could not leave out MCP servers served by Raft: ${error instanceof Error ? error.message : String(error)}` };
+  }
 }

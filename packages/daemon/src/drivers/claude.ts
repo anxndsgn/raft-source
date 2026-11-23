@@ -6,6 +6,7 @@ import { ClaudeEventNormalizer } from "./claudeEventNormalizer";
 import { assertClaudeStartupPayloadWithinBudget } from "./claudeInputBudget";
 import { buildClaudeArgs, buildClaudeHostIsolationEnv, buildClaudeManagedMcpConfig, buildClaudeSpawnSpec, probeClaude, probeClaudeLaunch, resolveClaudeLaunchCommand, resolveClaudeLaunchCommandAsync, writeClaudeSystemPromptFile } from "./claudeLaunch";
 import { detectClaudeModelSource } from "./claudeModels";
+import { syncClaudePluginMcpServedByRaft } from "./claudePluginMcpServedByRaft";
 import { installMissingClaudePlugins } from "./claudePluginInstall";
 import { ProbeChildError } from "./probeChild";
 import {
@@ -179,6 +180,17 @@ export class ClaudeDriver implements RuntimeDriver {
       const message = `[Agent ${ctx.agentId}] Skills Hub plugin ${outcome.plugin}: ${outcome.ok ? "installed" : "install failed"}${outcome.detail ? ` (${outcome.detail})` : ""}`;
       if (outcome.ok) logger.info(message);
       else logger.warn(message);
+    }
+
+    // Task #22: plugin MCP servers an MCP App serves in Raft stay off in this project.
+    if (ctx.config.skillsHub) {
+      const served = syncClaudePluginMcpServedByRaft({
+        workspace: ctx.workingDirectory,
+        plugins: ctx.config.skillsHub.plugins,
+        env: spawnEnv as NodeJS.ProcessEnv,
+      });
+      if (served.error) logger.warn(`[Agent ${ctx.agentId}] Skills Hub: could not turn off plugin MCP servers served by Raft (${served.error})`);
+      else if (served.changed) logger.info(`[Agent ${ctx.agentId}] Skills Hub: plugin MCP servers served by Raft: ${served.disabled.join(", ") || "none"}`);
     }
 
     const spawnSpec = buildClaudeSpawnSpec(claudeCommand, args, { env: spawnEnv as NodeJS.ProcessEnv });
