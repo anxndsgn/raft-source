@@ -21,6 +21,7 @@ describe("remoteServersIn", () => {
         local: { command: "npx", args: ["thing"] },
         plain: { type: "http", url: "http://insecure.example.com/mcp" },
         templated: { type: "http", url: "https://${HOST}/mcp" },
+        query: { type: "http", url: "https://mcp.context7.com/mcp?client=claude-code-plugin" },
         "bad name!": { type: "http", url: "https://x.example.com/mcp" },
       },
     })).toEqual([

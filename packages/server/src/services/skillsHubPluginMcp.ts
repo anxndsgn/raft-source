@@ -135,7 +135,8 @@ export function remoteServersIn(value: unknown): SkillsHubPluginRemoteMcpServer[
     } catch {
       continue;
     }
-    if (parsed.protocol !== "https:" || url.includes("${")) continue;
+    // Raft refuses query strings on MCP endpoints (credentials go in encrypted headers).
+    if (parsed.protocol !== "https:" || parsed.search || url.includes("${")) continue;
     const headerNames = Object.keys(record(entry.headers) ?? {}).filter((h) => /^[A-Za-z0-9-]{1,100}$/.test(h));
     out.push({ name, url: parsed.toString(), headerNames });
     if (out.length >= MAX_SERVERS) break;
