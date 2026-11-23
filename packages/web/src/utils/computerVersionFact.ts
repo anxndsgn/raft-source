@@ -1,5 +1,6 @@
 import { compareComputerVersions, isComputerSemver } from "@botiverse/raft-shared";
 import type { Machine } from "../store/machineStore";
+import { selfHostedComputerFromEnv } from "./computerSetupCommand";
 
 /**
  * What the web can say about a Computer's version, before any question of
@@ -43,9 +44,14 @@ const isNewer = (candidate: string, version: string) => compareComputerVersions(
 export function getComputerVersionFact(
   machine: Pick<Machine, "computerVersion" | "computerBroadcastPolicy">,
   latestComputerVersion: string | null | undefined,
+  // A self-hosted deployment's own Computer build: its update line is that
+  // deployment's installer, not the official releases (the server sends no
+  // latest version for it either), so there is nothing to be behind.
+  selfBuilt: boolean = selfHostedComputerFromEnv() !== null,
 ): ComputerVersionFact {
   const version = machine.computerVersion?.trim() || null;
   if (!version) return { kind: "unknown" };
+  if (selfBuilt) return { kind: "current" };
   if (!isComputerSemver(version)) return { kind: "cannotCheck" };
 
   const policy = machine.computerBroadcastPolicy ?? null;

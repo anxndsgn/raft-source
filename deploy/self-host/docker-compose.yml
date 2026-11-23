@@ -12,6 +12,9 @@ x-server-env: &server-env
   SERVER_URL: ${SERVER_URL:?set SERVER_URL in .env}
   CORS_ORIGIN: ${APP_URL}
   RAFT_PRIVACY_MODE: ${RAFT_PRIVACY_MODE:-true}
+  # 1: this deployment runs its own Raft Computer build (deploy/self-host/computer);
+  # the server does not compare it with the official releases or upgrade it from the web.
+  RAFT_COMPUTER_SELF_BUILT: ${RAFT_COMPUTER_SELF_BUILT:-}
   RESEND_API_KEY: ${RESEND_API_KEY:-}
   FROM_EMAIL: ${FROM_EMAIL:-}
   # Attachments: local disk (the uploads volume) unless S3_* is filled in.

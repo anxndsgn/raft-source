@@ -11,6 +11,7 @@ import {
   STAGING_COMPUTER_SERVER_URL,
   windowsComputerInstallCommand,
 } from "../src/utils/computerSetupCommand";
+import { getComputerVersionFact } from "../src/utils/computerVersionFact";
 
 // Non-prod (staging / slockdev) commands share a per-server isolated home/bin
 // while remaining separate copy steps. Mirrors getComputerCommands' builder.
@@ -414,4 +415,12 @@ test("the self-hosted Computer is read from the build env only when both values 
   assert.equal(selfHostedComputerFromEnv({ VITE_COMPUTER_INSTALL_URL: "https://a.example/i.sh; rm -rf ~", VITE_COMPUTER_COMMAND: "x" }), null);
   assert.equal(selfHostedComputerFromEnv({ VITE_COMPUTER_INSTALL_URL: SELF_HOSTED.installUrl, VITE_COMPUTER_COMMAND: "a b" }), null);
   assert.equal(selfHostedComputerFromEnv({}), null);
+});
+
+test("a self-built Computer is never behind the official release line", () => {
+  const machine = { computerVersion: "1.25.4", computerBroadcastPolicy: null };
+  assert.deepEqual(getComputerVersionFact(machine, "1.30.0", true), { kind: "current" });
+  assert.deepEqual(getComputerVersionFact(machine, null, true), { kind: "current" });
+  assert.deepEqual(getComputerVersionFact({ computerVersion: null, computerBroadcastPolicy: null }, null, true), { kind: "unknown" });
+  assert.deepEqual(getComputerVersionFact(machine, "1.30.0", false), { kind: "outdated", availableVersion: "1.30.0" });
 });

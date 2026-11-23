@@ -49,7 +49,7 @@ import {
   getComputerLinkedMachineCreators,
   getComputerLinkedMachineIds,
 } from "../services/computerCredentialService";
-import { getLatestComputerReleaseNotes, getLatestComputerVersion } from "../services/computerVersionService";
+import { getLatestComputerReleaseNotes, getLatestComputerVersion, isComputerSelfBuilt } from "../services/computerVersionService";
 import {
   COMPUTER_UPGRADE_PAUSED_FOR_PLATFORM_CODE,
   createBatchBroadcastPolicyEvaluator,
@@ -3095,8 +3095,11 @@ export async function buildMachineList(input: {
       },
     }),
   );
+  // A self-built Computer (isComputerSelfBuilt) is never compared with the
+  // official release line: no latest version, no upgrade offer or policy.
+  const computerSelfBuilt = isComputerSelfBuilt();
   const latestComputerVersion = await tracePhase(
-    () => getLatestComputerVersion(),
+    () => computerSelfBuilt ? Promise.resolve(null) : getLatestComputerVersion(),
     (_durationMs, result) => ({
       name: "latest_computer_version.loaded",
       attrs: {
@@ -3132,6 +3135,16 @@ export async function buildMachineList(input: {
         computerUpgradeAvailable: null,
         computerBroadcastPolicy: null,
         remoteUpgradeSupported: null,
+      };
+    }
+    if (computerSelfBuilt) {
+      return {
+        ...publicMachine,
+        computerUpgradeAvailable: false,
+        computerBroadcastPolicy: null,
+        installerRepairHint: null,
+        upgradeRequest: null,
+        remoteUpgradeSupported: false,
       };
     }
     policyNow ??= new Date(agentOrchestrator.getCurrentTimeMs());
@@ -3216,7 +3229,7 @@ export async function buildMachineList(input: {
     latestComputerVersion,
     // Display-only notes for exactly `latestComputerVersion` (null when
     // unknown). Additive: older web clients ignore it.
-    latestComputerReleaseNotes: getLatestComputerReleaseNotes(),
+    latestComputerReleaseNotes: computerSelfBuilt ? null : getLatestComputerReleaseNotes(),
   };
   return { body, responseReady };
 }
@@ -3937,6 +3950,20 @@ serverRouter.post("/:id/machines/:machineId/computer/:action", async (req, res) 
       // Remote upgrade v2 (task #873): resolve the exact target, record one
       // request row, send the command. The machine's next reconnect is the only
       // readback.
+      // The official installer would replace a self-built Computer.
+      if (isComputerSelfBuilt()) {
+        addTraceEvent("computer.control.rejected", {
+          action,
+          reason: "computer_self_built",
+          server_id: req.params.id,
+          machine_id: machine.id,
+        });
+        res.status(409).json({
+          error: "This deployment runs its own Raft Computer build: upgrade it by running its install command again",
+          code: "computer_remote_upgrade_unsupported",
+        });
+        return;
+      }
       const sourceFact = await readComputerSourceFact(agentOrchestrator, machine.id);
       // Older Computers are not driven from the web (the button is greyed and
       // the panel shows the local upgrade hint); refuse here too so the state

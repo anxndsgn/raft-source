@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   getLatestComputerReleaseNotes,
   getLatestComputerVersion,
+  isComputerSelfBuilt,
   resolveComputerUpgradeAvailable,
   __resetLatestComputerVersionForTest,
 } from "./computerVersionService";
@@ -314,4 +315,13 @@ test("resolveComputerUpgradeAvailable: server asserts available/up-to-date/unkno
   assert.equal(resolveComputerUpgradeAvailable(true, "0.0.61", null), null);
   assert.equal(resolveComputerUpgradeAvailable(true, "0.0.62-rc1", "0.0.62"), null);
   assert.equal(resolveComputerUpgradeAvailable(true, "0.0.62", "latest"), null);
+});
+
+test("a self-built Computer is switched on only by an explicit RAFT_COMPUTER_SELF_BUILT", () => {
+  for (const value of ["1", "true", "YES", " on "]) {
+    assert.equal(isComputerSelfBuilt({ RAFT_COMPUTER_SELF_BUILT: value }), true, value);
+  }
+  for (const value of [undefined, "", "0", "false", "no", "off"]) {
+    assert.equal(isComputerSelfBuilt({ RAFT_COMPUTER_SELF_BUILT: value }), false, String(value));
+  }
 });

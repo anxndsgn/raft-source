@@ -120,3 +120,14 @@ export function resolveComputerUpgradeAvailable(
   }
   return isComputerOutdated(computerVersion, latestComputerVersion);
 }
+
+/**
+ * A self-hosted deployment that runs its own Computer build
+ * (deploy/self-host/computer, RAFT_COMPUTER_SELF_BUILT=1): the official release
+ * line is not its update line, so the server neither compares its Computers
+ * with the latest official version nor drives the official installer from the
+ * web. Its Computers upgrade by running the deployment's install command again.
+ */
+export function isComputerSelfBuilt(env: NodeJS.ProcessEnv = process.env): boolean {
+  return /^(1|true|yes|on)$/i.test(env.RAFT_COMPUTER_SELF_BUILT?.trim() ?? "");
+}
