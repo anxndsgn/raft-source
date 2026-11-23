@@ -133,6 +133,8 @@ export interface SkillsHubCatalogResponse {
 
 export interface SkillsHubAgentItemView extends SkillsHubItemView {
   enabled: boolean;
+  /** Plugins only: the remote MCP servers it declares and their MCP Apps (task #22). */
+  remoteMcp?: SkillsHubPluginMcpLink[];
 }
 
 export interface SkillsHubAgentCatalogResponse {
@@ -142,6 +144,28 @@ export interface SkillsHubAgentCatalogResponse {
    * (user-level runtime config such as `~/.claude`). Default true.
    */
   useHostSkills: boolean;
+}
+
+/**
+ * A remote (streamable HTTP) MCP server a plugin declares (task #22). Raft can
+ * sign in to it once as an MCP App instead of each runtime signing in itself.
+ */
+export interface SkillsHubPluginRemoteMcpServer {
+  /** The server's key in the plugin's `mcpServers`. */
+  name: string;
+  url: string;
+  /** Header names the plugin sends (values are never read). */
+  headerNames: string[];
+}
+
+/** A plugin's remote MCP server and the MCP App that serves it in Raft, if any. */
+export interface SkillsHubPluginMcpLink extends SkillsHubPluginRemoteMcpServer {
+  /** The MCP App with this endpoint on this server, or null when none yet. */
+  appId: string | null;
+  /** The App's state for this person ("ok" means its tools can be used). */
+  appState: "ok" | "needs_auth" | "unreachable" | null;
+  /** Whether this agent has the App. */
+  agentHasApp: boolean;
 }
 
 /** One enabled skill as shipped on agent:start. */
@@ -157,6 +181,11 @@ export interface SkillsHubLaunchPlugin {
   /** `<plugin>@<marketplace>` */
   name: string;
   marketplaceSource: SkillsHubMarketplaceSource | null;
+  /**
+   * Names of this plugin's MCP servers that an MCP App serves for this agent
+   * (task #22): the runtime must not start them from the plugin. Absent: none.
+   */
+  mcpServersServedByRaft?: string[];
 }
 
 /**
