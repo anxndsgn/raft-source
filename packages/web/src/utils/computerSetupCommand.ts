@@ -66,7 +66,30 @@ export function windowsComputerInstallCommand(
     : `${installEnv}irm ${COMPUTER_CDN_BASE_PROD}/install.ps1 | iex`;
 }
 
+/**
+ * A self-hosted deployment's own Computer build (deploy/self-host/computer):
+ * installed by its own script, under its own command, beside an official
+ * Computer. Set at build time with VITE_COMPUTER_INSTALL_URL and
+ * VITE_COMPUTER_COMMAND; without them every command is the official one.
+ */
+export interface SelfHostedComputer {
+  installUrl: string;
+  command: string;
+}
+
+export function selfHostedComputerFromEnv(
+  env: Record<string, string | undefined> | undefined = import.meta.env as Record<string, string | undefined> | undefined,
+): SelfHostedComputer | null {
+  const installUrl = env?.VITE_COMPUTER_INSTALL_URL?.trim();
+  const command = env?.VITE_COMPUTER_COMMAND?.trim();
+  if (!installUrl || !command) return null;
+  if (!/^https:\/\/[^\s'"`$;|&]+$/.test(installUrl) || !/^[A-Za-z0-9._-]+$/.test(command)) return null;
+  return { installUrl, command };
+}
+
 export interface ComputerSetupCommandOptions {
+  /** The deployment's own Computer; defaults to the build's (selfHostedComputerFromEnv). null: official. */
+  selfHosted?: SelfHostedComputer | null;
   // Identity-carried adoption (task #239 PR-D/PR-E): when the calling
   // surface knows WHICH machine row this computer is (machine detail
   // page), the command carries `--machine <id>` and `raft-computer setup`
@@ -133,6 +156,26 @@ export function getComputerCommands(
   const serverUrlArg = commandServerUrl ? ` --server-url ${commandServerUrl}` : "";
   const machineArg = options.machineId ? ` --machine ${options.machineId}` : "";
   const setupArgs = `${serverUrlArg}${machineArg}`;
+  const selfHosted = options.selfHosted === undefined ? selfHostedComputerFromEnv() : options.selfHosted;
+  // Its installer is macOS-only; Windows keeps the official commands.
+  if (selfHosted && platform !== "windows") {
+    // The installer also connects a new Mac (setup) and, run again, upgrades in
+    // place. `raft-computer upgrade` would install the official release over it.
+    const install = `curl -fsSL ${selfHosted.installUrl} | sh`;
+    const command = selfHosted.command;
+    return {
+      install,
+      setup: `${command} setup /${slug}${setupArgs}`,
+      installAndSetup: options.machineId ? null : install,
+      status: `${command} status`,
+      doctor: `${command} doctor`,
+      upgrade: install,
+      restartService: `${command} restart`,
+      restart: `${command} restart /${slug}`,
+      stop: `${command} stop`,
+      start: `${command} start`,
+    };
+  }
   if (deploymentEnv && ISOLATED_DEPLOYMENT_ENVS.has(deploymentEnv)) {
     // `slug` is the canonical setup slug (same one used in `setup /${slug}`),
     // so the isolated home matches across web-generated command, #105 harness,

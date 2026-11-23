@@ -7,6 +7,7 @@ import {
   getComputerCommands,
   getComputerSetupCommand,
   LEGACY_DEFAULT_COMPUTER_SERVER_URL,
+  selfHostedComputerFromEnv,
   STAGING_COMPUTER_SERVER_URL,
   windowsComputerInstallCommand,
 } from "../src/utils/computerSetupCommand";
@@ -377,4 +378,40 @@ test("staging isolated installs use the production entry script on the alpha cha
       assert.doesNotMatch(command, /cdn-staging|computer\/staging/);
     }
   }
+});
+
+const SELF_HOSTED = { installUrl: "https://raft.example.com/computer/install.sh", command: "raft-computer-customized" };
+
+test("a self-hosted Computer build gets its own install, setup and lifecycle commands", () => {
+  const install = "curl -fsSL https://raft.example.com/computer/install.sh | sh";
+  assert.deepEqual(getComputerCommands("team", "production", "https://api.example.com", { selfHosted: SELF_HOSTED }), {
+    install,
+    setup: "raft-computer-customized setup /team --server-url https://api.example.com",
+    installAndSetup: install,
+    status: "raft-computer-customized status",
+    doctor: "raft-computer-customized doctor",
+    upgrade: install,
+    restartService: "raft-computer-customized restart",
+    restart: "raft-computer-customized restart /team",
+    stop: "raft-computer-customized stop",
+    start: "raft-computer-customized start",
+  });
+  const adopt = getComputerCommands("team", "production", "https://api.example.com", { selfHosted: SELF_HOSTED, machineId: "m-1" });
+  assert.equal(adopt?.setup, "raft-computer-customized setup /team --server-url https://api.example.com --machine m-1");
+  assert.equal(adopt?.installAndSetup, null, "adopting a row needs its own setup step");
+  const windows = getComputerCommands("team", "production", "https://api.example.com", { selfHosted: SELF_HOSTED, platform: "windows" });
+  assert.match(windows?.install ?? "", /install\.ps1/, "Windows keeps the official installer");
+  assert.equal(getComputerCommands("team", "production", undefined, { selfHosted: null })?.setup, "raft-computer setup /team");
+});
+
+test("the self-hosted Computer is read from the build env only when both values are safe", () => {
+  assert.deepEqual(
+    selfHostedComputerFromEnv({ VITE_COMPUTER_INSTALL_URL: SELF_HOSTED.installUrl, VITE_COMPUTER_COMMAND: SELF_HOSTED.command }),
+    SELF_HOSTED,
+  );
+  assert.equal(selfHostedComputerFromEnv({ VITE_COMPUTER_INSTALL_URL: SELF_HOSTED.installUrl }), null);
+  assert.equal(selfHostedComputerFromEnv({ VITE_COMPUTER_INSTALL_URL: "http://raft.example.com/i.sh", VITE_COMPUTER_COMMAND: "x" }), null);
+  assert.equal(selfHostedComputerFromEnv({ VITE_COMPUTER_INSTALL_URL: "https://a.example/i.sh; rm -rf ~", VITE_COMPUTER_COMMAND: "x" }), null);
+  assert.equal(selfHostedComputerFromEnv({ VITE_COMPUTER_INSTALL_URL: SELF_HOSTED.installUrl, VITE_COMPUTER_COMMAND: "a b" }), null);
+  assert.equal(selfHostedComputerFromEnv({}), null);
 });

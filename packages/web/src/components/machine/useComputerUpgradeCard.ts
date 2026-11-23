@@ -7,6 +7,7 @@ import { useComputerVersionTier } from "../../hooks/useComputerVersionTier";
 import { useMachineStore } from "../../store/machineStore";
 import type { Machine, MachineUpgradeRequest } from "../../store/machineStore";
 import { useServerStore } from "../../store/serverStore";
+import { selfHostedComputerFromEnv } from "../../utils/computerSetupCommand";
 import { getComputerVersionFact } from "../../utils/computerVersionFact";
 import { computerUpgradeHints, upgradeRequestOutcomeStillTrue } from "./computerUpgradeHints";
 import { getLocalComputerBridge, useLocalComputerMachineId } from "./localComputer/localComputerStore";
@@ -86,7 +87,11 @@ export function useComputerUpgradeCard(machine: Machine) {
   // manual install command (the server owns platform rules). Null / absent
   // (older servers): the version gate on the client, same fail-closed shape
   // as the server guard.
-  const remoteUpgradeSupported = (machine.remoteUpgradeSupported ?? isRemoteUpgradeSupported(machine.computerVersion)) === true;
+  // A self-hosted deployment's own Computer build is never upgraded from the
+  // web: the one-click upgrade installs the official release over it. Its
+  // install command (getComputerCommands) is the upgrade instead.
+  const remoteUpgradeSupported = selfHostedComputerFromEnv() === null
+    && (machine.remoteUpgradeSupported ?? isRemoteUpgradeSupported(machine.computerVersion)) === true;
   // A refused Upgrade click holds only while every live input that decides
   // whether the one-click upgrade is offered stays the same as when it was
   // refused: this machine and version, the server's

@@ -82,6 +82,8 @@ jobs:
             VITE_API_URL=${{ vars.SERVER_URL }}
             VITE_DEPLOYMENT_ENV=production
             VITE_ARTIFACTS_CONTENT_DOMAIN=${{ vars.ARTIFACTS_CONTENT_DOMAIN }}
+            VITE_COMPUTER_INSTALL_URL=${{ vars.COMPUTER_INSTALL_URL }}
+            VITE_COMPUTER_COMMAND=${{ vars.COMPUTER_COMMAND }}
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
 

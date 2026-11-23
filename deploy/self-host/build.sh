@@ -27,7 +27,7 @@ docker build ${PLATFORM_ARGS[@]+"${PLATFORM_ARGS[@]}"} -f "$ctx/packages/server/
   --build-arg RAFT_RELEASE_SHA="$sha" --build-arg RAFT_BUILD_AT="$now" \
   -t "raft-server:$TAG" "$ctx"
 docker build ${PLATFORM_ARGS[@]+"${PLATFORM_ARGS[@]}"} -f "$ctx/packages/web/Dockerfile" \
-  --build-arg VITE_API_URL="$SERVER_URL" --build-arg VITE_DEPLOYMENT_ENV=production --build-arg VITE_ARTIFACTS_CONTENT_DOMAIN="${ARTIFACTS_CONTENT_DOMAIN:-}" --build-arg VITE_COMMIT_SHA="$sha" --build-arg VITE_BUILD_AT="$now" \
+  --build-arg VITE_API_URL="$SERVER_URL" --build-arg VITE_DEPLOYMENT_ENV=production --build-arg VITE_ARTIFACTS_CONTENT_DOMAIN="${ARTIFACTS_CONTENT_DOMAIN:-}" --build-arg VITE_COMPUTER_INSTALL_URL="${COMPUTER_INSTALL_URL:-}" --build-arg VITE_COMPUTER_COMMAND="${COMPUTER_COMMAND:-}" --build-arg VITE_COMMIT_SHA="$sha" --build-arg VITE_BUILD_AT="$now" \
   -t "raft-web:$TAG" "$ctx"
 docker build ${PLATFORM_ARGS[@]+"${PLATFORM_ARGS[@]}"} -f "$ctx/deploy/self-host/tools.Dockerfile" \
   -t "raft-tools:$TAG" "$ctx"
