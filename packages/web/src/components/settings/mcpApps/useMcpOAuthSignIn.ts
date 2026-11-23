@@ -105,14 +105,23 @@ export function useMcpOAuthSignIn({
     return true;
   }, []);
 
-  const start = useCallback(async (body: McpOAuthStartBody) => {
+  /**
+   * `prepare` (optional) runs after the window is opened in the click and returns the App to sign
+   * in to, for a caller that saves the App in the same click (task #22: a plugin's Sign in).
+   */
+  const start = useCallback(async (body: McpOAuthStartBody, prepare?: () => Promise<string>) => {
     const popup = openBlankPopup();
     const generation = ++startGenerationRef.current;
     setStarting(true);
     try {
+      const targetAppId = prepare ? await prepare() : appId;
+      if (generation !== startGenerationRef.current) {
+        popup?.close();
+        return;
+      }
       // withCredentials: the response sets the HttpOnly cookie that binds this sign-in to this
       // browser; the provider's redirect back to the API callback must carry it.
-      const { data } = await api.post<McpOAuthStartResponse>(`/mcp/apps/${appId}/connections/oauth/start`, body, { withCredentials: true });
+      const { data } = await api.post<McpOAuthStartResponse>(`/mcp/apps/${targetAppId}/connections/oauth/start`, body, { withCredentials: true });
       if (generation !== startGenerationRef.current) {
         popup?.close();
         return;

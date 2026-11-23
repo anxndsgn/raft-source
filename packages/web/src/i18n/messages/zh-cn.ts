@@ -1513,8 +1513,6 @@ export const zhCn: Record<MessageId, string> = {
   "skillsHub.pluginMcp.signIn": "登录",
   "skillsHub.pluginMcp.connect": "在 Raft 中连接",
   "skillsHub.pluginMcp.served": "已通过 Raft 连接",
-  "skillsHub.pluginMcp.needsSignIn": "需要在 Raft 里登录",
-  "skillsHub.pluginMcp.inRaftNotGranted": "Raft 里已有，未分给这个 agent",
   "skillsHub.pluginMcp.fromPluginOnly": "目前在每台电脑上单独登录",
   "skillsHub.pluginMcp.fromPlugin": "来自插件 {plugin}",
   "skillsHub.pluginMcp.needsKey": "{name} 需要 API Key，请在应用页添加",

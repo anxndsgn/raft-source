@@ -1,11 +1,11 @@
 // Task #22: a plugin's remote MCP servers, signed in once in Raft as MCP Apps.
 //
 // Under an enabled plugin, each remote server the plugin declares shows where
-// it stands for this agent: served by Raft, waiting for a sign-in, or not yet
-// in Raft. "Connect in Raft" saves an MCP App for the address (labelled with
-// the plugin) and gives it to this agent; the sign-in then opens from the
-// person's own click, as on the Apps page. Once the App is ready, the agent's
-// runtime stops starting the plugin's own copy (on its next start).
+// it stands for this agent: served by Raft, or signed in on each computer.
+// One "Sign in" saves an MCP App for the address (labelled with the plugin),
+// gives it to this agent and opens the provider's sign-in, all in one click.
+// Once the App is ready, the agent's runtime stops starting the plugin's own
+// copy (on its next start).
 
 import { useCallback, useState } from "react";
 import { useIntl } from "react-intl";
@@ -24,24 +24,80 @@ export async function setPluginAppsForAgent(agentId: string, links: SkillsHubPlu
   }
 }
 
-function SignInButton({ appId, label, onDone, onError }: { appId: string; label: string; onDone: () => void; onError: (message: string) => void }) {
+/** Save the plugin server as an App for this agent (or give the agent the existing one); returns its id. */
+async function ensureAppForAgent(agentId: string, pluginName: string, link: SkillsHubPluginMcpLink, describe: (plugin: string) => string): Promise<{ appId: string; auth: "oauth" | "none" }> {
+  if (link.appId) {
+    await setPluginAppsForAgent(agentId, [link], true);
+    return { appId: link.appId, auth: link.appState === "ok" ? "none" : "oauth" };
+  }
+  const { data: probe } = await api.post<McpProbeResult>("/mcp/probe", { endpointUrl: link.url });
+  if (probe.outcome === "unreachable" || probe.outcome === "headers") throw new PluginMcpProbeError(probe.outcome, link.name);
+  const auth = probe.outcome === "oauth" ? "oauth" : "none";
+  const { data } = await api.post<McpAppView>("/mcp/apps", {
+    source: { kind: "url", endpointUrl: link.url },
+    profile: { name: link.name, description: describe(pluginName) },
+    authKind: auth,
+    agentIds: [agentId],
+  });
+  return { appId: data.id, auth };
+}
+
+class PluginMcpProbeError extends Error {
+  constructor(readonly outcome: "unreachable" | "headers", readonly serverName: string) {
+    super(outcome);
+  }
+}
+
+/**
+ * One button (Anna 5110322f): it saves the App and gives it to the agent if needed, then opens the
+ * provider's sign-in, all from the same click. A sign-in closed half-way leaves the App, so the next
+ * click picks up from there. A server that needs no sign-in is just connected.
+ */
+function SignInButton({ agentId, pluginName, link, onDone }: {
+  agentId: string;
+  pluginName: string;
+  link: SkillsHubPluginMcpLink;
+  onDone: (error: string | null) => void;
+}) {
   const { formatMessage } = useIntl();
   const handleOutcome = useCallback((outcome: McpOAuthOutcome) => {
-    if (outcome.kind === "connected") onDone();
-    else onError(formatMessage({ id: outcome.kind === "closed" ? "apps.cap.add.signInClosed" : "apps.cap.add.signInFailed" }));
-  }, [formatMessage, onDone, onError]);
-  const handleStartError = useCallback((error: unknown) => onError(mcpAppErrorMessage(error, formatMessage)), [formatMessage, onError]);
-  const { start, openSignInPage, blockedUrl, waiting, starting } = useMcpOAuthSignIn({ appId, onOutcome: handleOutcome, onStartError: handleStartError });
+    onDone(outcome.kind === "connected" ? null : formatMessage({ id: outcome.kind === "closed" ? "apps.cap.add.signInClosed" : "apps.cap.add.signInFailed" }));
+  }, [formatMessage, onDone]);
+  const handleStartError = useCallback((error: unknown) => {
+    if (error instanceof PluginMcpProbeError) {
+      onDone(formatMessage({ id: error.outcome === "headers" ? "skillsHub.pluginMcp.needsKey" : "skillsHub.pluginMcp.unreachable" }, { name: error.serverName }));
+    } else if (error instanceof NoSignInNeeded) {
+      onDone(null);
+    } else {
+      onDone(mcpAppErrorMessage(error, formatMessage));
+    }
+  }, [formatMessage, onDone]);
+  const { start, openSignInPage, blockedUrl, waiting, starting } = useMcpOAuthSignIn({ appId: link.appId ?? "", onOutcome: handleOutcome, onStartError: handleStartError });
+  const describe = useCallback((plugin: string) => formatMessage({ id: "skillsHub.pluginMcp.fromPlugin" }, { plugin }), [formatMessage]);
   if (blockedUrl) {
     return <Button type="button" variant="outline" size="sm" onClick={openSignInPage}>{formatMessage({ id: "apps.cap.add.openSignIn" })}</Button>;
   }
   return (
-    <Button type="button" variant="outline" size="sm" disabled={waiting || starting} onClick={() => void start({ name: label, makeDefault: true })} data-testid={`plugin-mcp-signin-${label}`}>
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      disabled={waiting || starting}
+      onClick={() => void start({ name: link.name, makeDefault: true }, async () => {
+        const { appId, auth } = await ensureAppForAgent(agentId, pluginName, link, describe);
+        if (auth === "none") throw new NoSignInNeeded();
+        return appId;
+      })}
+      data-testid={`plugin-mcp-signin-${link.name}`}
+    >
       {waiting || starting ? <Spinner size="sm" aria-hidden="true" /> : null}
-      {formatMessage({ id: waiting ? "apps.cap.add.signingIn" : "skillsHub.pluginMcp.signIn" })}
+      {formatMessage({ id: waiting ? "apps.cap.add.signingIn" : link.appState === "ok" ? "skillsHub.pluginMcp.connect" : "skillsHub.pluginMcp.signIn" })}
     </Button>
   );
 }
+
+/** Not an error: the server needed no sign-in, so saving the App was all there was to do. */
+class NoSignInNeeded extends Error {}
 
 export function PluginMcpConnections({ agentId, pluginName, links, canManage, onChanged }: {
   agentId: string;
@@ -51,35 +107,11 @@ export function PluginMcpConnections({ agentId, pluginName, links, canManage, on
   onChanged: () => void;
 }) {
   const { formatMessage } = useIntl();
-  const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const connect = useCallback(async (link: SkillsHubPluginMcpLink) => {
-    setBusy(link.name);
-    setError(null);
-    try {
-      if (link.appId) {
-        await setPluginAppsForAgent(agentId, [link], true);
-      } else {
-        const { data: probe } = await api.post<McpProbeResult>("/mcp/probe", { endpointUrl: link.url });
-        if (probe.outcome === "unreachable" || probe.outcome === "headers") {
-          setError(formatMessage({ id: probe.outcome === "headers" ? "skillsHub.pluginMcp.needsKey" : "skillsHub.pluginMcp.unreachable" }, { name: link.name }));
-          return;
-        }
-        await api.post<McpAppView>("/mcp/apps", {
-          source: { kind: "url", endpointUrl: link.url },
-          profile: { name: link.name, description: formatMessage({ id: "skillsHub.pluginMcp.fromPlugin" }, { plugin: pluginName }) },
-          authKind: probe.outcome === "oauth" ? "oauth" : "none",
-          agentIds: [agentId],
-        });
-      }
-      onChanged();
-    } catch (connectError) {
-      setError(mcpAppErrorMessage(connectError, formatMessage));
-    } finally {
-      setBusy(null);
-    }
-  }, [agentId, formatMessage, onChanged, pluginName]);
+  const done = useCallback((message: string | null) => {
+    setError(message);
+    onChanged();
+  }, [onChanged]);
 
   if (links.length === 0) return null;
   return (
@@ -92,24 +124,12 @@ export function PluginMcpConnections({ agentId, pluginName, links, canManage, on
             <span className="min-w-0 flex-1 truncate text-foreground-muted">
               {link.name}
               <span className="ml-2 text-foreground-hint">
-                {formatMessage({
-                  id: served ? "skillsHub.pluginMcp.served"
-                    : link.appId && link.agentHasApp ? "skillsHub.pluginMcp.needsSignIn"
-                      : link.appId ? "skillsHub.pluginMcp.inRaftNotGranted"
-                        : "skillsHub.pluginMcp.fromPluginOnly",
-                })}
+                {formatMessage({ id: served ? "skillsHub.pluginMcp.served" : "skillsHub.pluginMcp.fromPluginOnly" })}
               </span>
             </span>
-            {served ? <CheckCircle2 size={14} className="shrink-0 text-success-strong" aria-hidden="true" /> : canManage && (
-              link.appId && link.agentHasApp
-                ? <SignInButton appId={link.appId} label={link.name} onDone={onChanged} onError={setError} />
-                : (
-                  <Button type="button" variant="outline" size="sm" disabled={busy !== null} onClick={() => void connect(link)} data-testid={`plugin-mcp-connect-${link.name}`}>
-                    {busy === link.name ? <Spinner size="sm" aria-hidden="true" /> : null}
-                    {formatMessage({ id: "skillsHub.pluginMcp.connect" })}
-                  </Button>
-                )
-            )}
+            {served
+              ? <CheckCircle2 size={14} className="shrink-0 text-success-strong" aria-hidden="true" />
+              : canManage && <SignInButton agentId={agentId} pluginName={pluginName} link={link} onDone={done} />}
           </div>
         );
       })}

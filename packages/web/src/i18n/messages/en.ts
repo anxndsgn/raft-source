@@ -1576,8 +1576,6 @@ export const en = {
   "skillsHub.pluginMcp.signIn": "Sign in",
   "skillsHub.pluginMcp.connect": "Connect in Raft",
   "skillsHub.pluginMcp.served": "Connected through Raft",
-  "skillsHub.pluginMcp.needsSignIn": "Needs sign-in in Raft",
-  "skillsHub.pluginMcp.inRaftNotGranted": "In Raft, not given to this agent",
   "skillsHub.pluginMcp.fromPluginOnly": "Signs in on each computer",
   "skillsHub.pluginMcp.fromPlugin": "From plugin {plugin}",
   "skillsHub.pluginMcp.needsKey": "{name} needs an API key: add it on the Apps page",
