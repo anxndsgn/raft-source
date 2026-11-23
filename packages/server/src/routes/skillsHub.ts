@@ -8,6 +8,7 @@ import { guardUuidPathParams } from "../lib/uuidPathParams";
 import { bumpAgentConfigRevision } from "../services/agentConfigRevision";
 import type { AgentOrchestrator } from "../services/agentOrchestrator";
 import { scanGithubMarketplace } from "../services/skillsHubGithub";
+import { withPluginMcpLinks } from "../services/skillsHubPluginMcpLinks";
 import {
   createSkillsHubItem,
   skillsHubSkillIdsByName,
@@ -183,9 +184,21 @@ skillsHubRouter.delete("/items/:itemId", requireCapability("manageIntegrations")
   }
 });
 
+/** The agent's catalog with each plugin's remote MCP servers and their Apps (task #22); without them if that lookup fails. */
+async function agentCatalogWithMcp(serverId: string, agentId: string) {
+  const catalog = await getAgentSkillsHubCatalog(serverId, agentId);
+  try {
+    return await withPluginMcpLinks(serverId, agentId, catalog);
+  } catch (error) {
+    console.warn(`[skills-hub] plugin MCP lookup for agent ${agentId} failed: ${error instanceof Error ? error.message : String(error)}`);
+    return catalog;
+  }
+}
+
 skillsHubRouter.get("/agents/:agentId", requireAgentCapabilityOrCreator("editAgents"), async (req, res, next) => {
   try {
-    res.json(await getAgentSkillsHubCatalog(req.serverId!, pathParam(req.params.agentId)));
+    const agentId = pathParam(req.params.agentId);
+    res.json(await agentCatalogWithMcp(req.serverId!, agentId));
   } catch (error) {
     sendSkillsHubError(error, res, next);
   }
@@ -208,7 +221,7 @@ skillsHubRouter.put("/agents/:agentId", requireAgentCapabilityOrCreator("editAge
       enabledItemIds: input.enabledItemIds as string[],
       ...(typeof input.useHostSkills === "boolean" ? { useHostSkills: input.useHostSkills } : {}),
     }, tx));
-    res.json(await getAgentSkillsHubCatalog(req.serverId!, agentId));
+    res.json(await agentCatalogWithMcp(req.serverId!, agentId));
     if (changed) await restartAgents(req, [agentId]);
   } catch (error) {
     sendSkillsHubError(error, res, next);

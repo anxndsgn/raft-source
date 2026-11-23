@@ -1,3 +1,4 @@
+import { withMcpServersServedByRaft } from "./skillsHubPluginMcpLinks";
 import { LocalAgentInboxes } from "./localAgentInboxes";
 import { recordAgentSystemRestart } from "./agentOperatorEvents";
 import { inboxItemsLaunch, inboxItemsOnWith } from "./inboxItemsLaunch";
@@ -16308,7 +16309,12 @@ export class AgentOrchestrator extends EventEmitter {
     // daemon materializes them into the workspace. A failure must not block
     // the start — the field stays absent and the daemon leaves files alone.
     try {
-      config.skillsHub = await buildSkillsHubLaunchProjection(agent.serverId, agent.id);
+      // Task #22: plugin MCP servers a ready MCP App serves are not started from the plugin.
+      config.skillsHub = await withMcpServersServedByRaft(
+        agent.serverId,
+        agent.id,
+        await buildSkillsHubLaunchProjection(agent.serverId, agent.id),
+      );
     } catch (err) {
       this.tracer.emitEvent("server.agent.skills_hub_projection_failed", {
         surface: "server",
