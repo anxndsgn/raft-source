@@ -23,6 +23,7 @@ import { findStoredChannel } from "../../store/storedChannel";
 import EmptyState from "../ui/EmptyState";
 import { CreateTaskDialog } from "./DeferredCreateTaskDialog";
 import { ChannelTaskDetail, TaskDetailBack } from "./ChannelTaskDetail";
+import { useCanWriteTaskChannel } from "./taskChannelWrite";
 
 const NO_ACTIONS: never[] = [];
 
@@ -79,7 +80,9 @@ export default function ChannelTasksPanel({ channelId, onClose }: { channelId: s
   const closeCreate = useCallback(() => setCreating(false), []);
 
   const newTaskLabel = formatMessage({ id: "task.board.newTask" });
-  const newTaskAction = useMemo(() => [{ id: "new-task", label: newTaskLabel, icon: <Plus />, onSelect: openCreate, testId: "channel-tasks-panel-new" }], [newTaskLabel, openCreate]);
+  // Not for a reader of a public channel they have not joined (nor in an archived one): the server refuses the create.
+  const canCreate = useCanWriteTaskChannel(channelId);
+  const newTaskAction = useMemo(() => (canCreate ? [{ id: "new-task", label: newTaskLabel, icon: <Plus />, onSelect: openCreate, testId: "channel-tasks-panel-new" }] : []), [canCreate, newTaskLabel, openCreate]);
 
   // raft-ui Tabs, pills (Raft redesign, Figma Filter Pill): each with its number of open tasks.
   const tab = (value: ChannelTasksFilter, labelId: "task.filter.tabAll" | "taskSection.tab.assigned" | "taskSection.tab.created", list: Task[]) => (

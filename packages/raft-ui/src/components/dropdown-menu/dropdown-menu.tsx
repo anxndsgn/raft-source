@@ -1,9 +1,15 @@
 import type { ComponentPropsWithRef, ReactNode } from "react";
 import { Menu as BaseMenu } from "@base-ui/react/menu";
 import { BASE_COLLISION_PADDING, usePopupCollision } from "../../lib/frame-insets";
+import {
+  PopupAnchorCloseProvider,
+  usePopupAnchorDismiss,
+  usePopupCloseAction,
+} from "../../lib/popup-anchor-dismiss";
 import { tv } from "../../lib/tv";
 import { SheetDragHandle } from "../../lib/sheet-drag-handle";
 import { sheetBackdrop, sheetContent, sheetLabel, sheetPositioner, sheetRow, sheetSeparator } from "../../lib/bottom-sheet";
+import { useMergedRef } from "../../lib/use-merged-ref";
 import { Badge } from "../badge/index";
 import type { BadgeProps } from "../badge/index";
 import { Button } from "../button/index";
@@ -11,13 +17,14 @@ import { Kbd } from "../kbd/index";
 import type { KbdProps } from "../kbd/index";
 import type { StyledProps } from "../../lib/styled-props";
 import { useThemeScopeProps } from "../../lib/theme/theme-scope";
+import { usePortalContainerProps } from "../../lib/portal-container";
 
 
 const dropdownMenu = tv({
   slots: {
     trigger: ["select-none"],
     // On a phone a bottom sheet (lib/bottom-sheet.ts).
-    positioner: ["isolate z-popup outline-none", ...sheetPositioner],
+    positioner: ["isolate z-popup outline-none", "data-anchor-hidden:invisible data-anchor-hidden:pointer-events-none", ...sheetPositioner],
     backdrop: sheetBackdrop,
     content: [
       "max-h-(--available-height) overflow-hidden",
@@ -81,14 +88,28 @@ const dropdownMenu = tv({
 
 export type DropdownMenuProps = BaseMenu.Root.Props;
 
-export function DropdownMenu(props: DropdownMenuProps) {
-  return <BaseMenu.Root data-slot="dropdown-menu" {...props} />;
+export function DropdownMenu({ actionsRef, ...props }: DropdownMenuProps) {
+  const { actionsRef: mergedActionsRef, close } = usePopupCloseAction(actionsRef);
+  return (
+    <PopupAnchorCloseProvider close={close}>
+      <BaseMenu.Root data-slot="dropdown-menu" actionsRef={mergedActionsRef} {...props} />
+    </PopupAnchorCloseProvider>
+  );
 }
 
 export type DropdownMenuSubmenuProps = BaseMenu.SubmenuRoot.Props;
 
-export function DropdownMenuSubmenu(props: DropdownMenuSubmenuProps) {
-  return <BaseMenu.SubmenuRoot data-slot="dropdown-menu-submenu" {...props} />;
+export function DropdownMenuSubmenu({ actionsRef, ...props }: DropdownMenuSubmenuProps) {
+  const { actionsRef: mergedActionsRef, close } = usePopupCloseAction(actionsRef);
+  return (
+    <PopupAnchorCloseProvider close={close}>
+      <BaseMenu.SubmenuRoot
+        data-slot="dropdown-menu-submenu"
+        actionsRef={mergedActionsRef}
+        {...props}
+      />
+    </PopupAnchorCloseProvider>
+  );
 }
 
 export type DropdownMenuTriggerProps = StyledProps<BaseMenu.Trigger.Props>;
@@ -116,7 +137,7 @@ export function DropdownMenuPortal(props: DropdownMenuPortalProps) {
     <BaseMenu.Portal
       data-slot="dropdown-menu-portal"
       data-raft-ui-overlay=""
-      {...useThemeScopeProps(props)}
+      {...useThemeScopeProps(usePortalContainerProps(props, true))}
     />
   );
 }
@@ -139,6 +160,7 @@ function DropdownMenuFramePositioner({
   collisionBoundary,
   collisionPadding,
   container,
+  ref,
   ...props
 }: DropdownMenuFramePositionerProps) {
   const collision = usePopupCollision(
@@ -149,7 +171,9 @@ function DropdownMenuFramePositioner({
     undefined,
     props.anchor,
   );
-  return <BaseMenu.Positioner {...collision} {...props} />;
+  const dismissRef = usePopupAnchorDismiss(props.anchor, "close-on-hidden");
+  const [mergedRef] = useMergedRef(collision.ref, dismissRef, ref);
+  return <BaseMenu.Positioner {...collision} {...props} ref={mergedRef} />;
 }
 
 export type DropdownMenuContentProps = StyledProps<BaseMenu.Popup.Props> &

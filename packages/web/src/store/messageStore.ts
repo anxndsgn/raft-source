@@ -6,15 +6,10 @@ import type { ReplyModeMessageFields } from "./replyModeMessage";
 import { create } from "zustand";
 import { isThreadMaximized, useUIStore } from "./uiStore";
 import { clearHiddenHistory, clearHiddenTarget, readHistoryLimitedError, recordHiddenHistory, recordHiddenTarget } from "./hiddenHistoryStore";
-import type {
-  ActionCardMetadata,
-  ArtifactReference,
-  CanonicalReactionFact,
-  ExternalMessageAuthorProjection,
-  LegacyReactionRosterDto,
-} from "@botiverse/raft-shared";
+import type { ActionCardMetadata, ArtifactReference, CanonicalReactionFact, ExternalMessageAuthorProjection, LegacyReactionRosterDto, ResolvedInlineQuotesMap } from "@botiverse/raft-shared";
+import { reportMessagesSyncGap } from "../utils/messageDeliveryTrace";
 import { ACTIVE_INPUT_WINDOW_MS, resolveMarkUnreadOutcome } from "@botiverse/raft-shared";
-import { isOlderCardRevision, messageCardRevision } from "./messageCardRevision";
+import { isOlderCardRevision, isRegressingActionCardState, messageCardRevision } from "./messageCardRevision";
 import { flushPendingDraftSnapshot, loadDrafts, loadDraftTimes, onDraftsForgotten, persistDraftSnapshotImmediately, scheduleDraftSnapshot } from "./draftStorage";
 import api from "../api/client";
 import { getRwRead } from "../api/overloadRetry";
@@ -28,6 +23,7 @@ import { forgetSkippedSeenRead, noteSkippedSeenRead, runSeenReadCatchUp } from "
 import type { ThreadSummary } from "./threadStore";
 import { setCurrentPrincipalId } from "./principalRuntime";
 import { noteOutlineMessage } from "./messageOutlineStore";
+import { hydrateLiveMessageResolvedQuotes } from "./resolvedQuotesHydrationStore";
 import { coerceWireMessageSeq, coerceWireMessageSeqs } from "./wireMessageSeq";
 import {
   captureReceiverPrivateIngressContext,
@@ -37,9 +33,7 @@ import {
   isReadForAnotherPersonHere,
   registerReceiverPrivatePrincipalReader,
 } from "./receiverPrivateIngress";
-import type {
-  ReceiverPrivateIngressContext,
-} from "./receiverPrivateIngress";
+import type { ReceiverPrivateIngressContext } from "./receiverPrivateIngress";
 import { hydrateThreadRepliesSnapshotWithSyncCore } from "./threadRepliesSyncDomain";
 import { latestPageRequest, messageWindowRequest, takeInFlightMessagePage, takeMessagePage, withLiveRowsAfter } from "./messagePagePrefetch";
 import { LATEST_PAGE_LIMIT, latestPagePath, olderPagePath } from "./channelPageQuery";
@@ -54,14 +48,16 @@ import {
   getReadStateLedgerGeneration,
   hasAcceptedReadStateChangedAfter,
   notifyChannelReadLocally,
-  rememberAcceptedReadStateProjection, projectionThroughSeq,
+  rememberAcceptedReadStateProjection,
 } from "./readStateSync";
-import type {
-  ReadStateProjection,
-} from "./readStateSync";
+import type { ReadStateProjection } from "./readStateSync";
 import { clearMarkedUnreadForRead } from "./markedUnreadStore";
+import { noteLocalReadAck } from "./inboxListRowLowered";
+import { canProjectCompleteReadState, isSelfAuthoredMessage, projectReadStateFromMessages } from "./loadedReadStateProjection";
 import { isChannelAccessLost, noteChannelReadError } from "./channelAccessLoss";
 import { gapSyncWaitsForShow } from "./hiddenOwedReads";
+import { reuseUnchangedMessages } from "./messageReuse";
+import { noteLiveHeldMessage, resetLiveHeldIds } from "./syncResumeHeldIds";
 import {
   channelOwesGapFill,
   clearPendingGapMessages,
@@ -224,6 +220,12 @@ export interface Message extends ReplyModeMessageFields {
   reactions?: MessageReaction[];
   /** Set when this message is a scoped attachment comment (MVP §5). */
   commentRef?: MessageCommentRef | null;
+  /**
+   * Ephemeral, per-viewer verified inline quote resolutions (`> <excerpt>\n> msg=<id>`)
+   * computed server-side on read/send HTTP responses (never stored in DB or carried
+   * on shared room-wide WebSocket broadcasts).
+   */
+  resolvedQuotes?: ResolvedInlineQuotesMap;
   /**
    * Optional structured metadata. v1 carries operation cards
    * (`actionMetadata.kind === "action-card"`). Renderers branch on the
@@ -446,7 +448,7 @@ export interface MessageState {
   loadUnreadCounts: () => Promise<void>;
   addMessage: (message: Message, source?: "receiver-private" | "channel-room") => void;
   updateMessage: (message: Pick<Message, "id" | "channelId"> & Partial<Message>) => void;
-  batchAddMessages: (messages: Message[]) => void;
+  batchAddMessages: (messages: Message[]) => number;
   addOptimisticMessage: (message: Message) => void;
   removeOptimisticMessage: (optimisticId: string, channelId: string) => void;
   sendMessage: (
@@ -1128,28 +1130,6 @@ function preserveUnreadSummaryForChannel(
   return { unreadCounts, mentionFlags };
 }
 
-function isSelfAuthoredMessage(message: Pick<Message, "senderType" | "senderId">, currentUserId: string | null): boolean {
-  return message.senderType === "user" && !!currentUserId && message.senderId === currentUserId;
-}
-
-function mentionsCurrentUser(message: Pick<Message, "mentions">, currentUserId: string | null): boolean {
-  // Stryker disable next-line ConditionalExpression: the following id/type predicate is already false for null currentUserId; this early return is a readability guard.
-  if (!currentUserId) return false;
-  // Stryker disable next-line ArrayDeclaration: replacing the nullish fallback with a non-mention sentinel is behavior-equivalent under the structured mention predicate.
-  return (message.mentions ?? []).some((mention) => mention.type === "user" && mention.id === currentUserId);
-}
-
-function canProjectCompleteReadState(messages: Message[] | undefined, meta: ChannelMeta | undefined, maxReadSeq: number): boolean {
-  // Stryker disable next-line ConditionalExpression,BooleanLiteral: `projectReadStateFromMessages` also fail-closes incomplete projections; this guard keeps the helper total for direct callers.
-  if (!messages || messages.length === 0) return false;
-  // Stryker disable next-line OptionalChaining: callers pass a normalized window meta object; optionality keeps the helper total for direct callers.
-  if (meta?.hasNewer) return false;
-  // Stryker disable next-line OptionalChaining: projection callers pass normalized meta; optionality only keeps direct callers total while hasGap/loadingGap behavior is pinned by RED tests.
-  if (meta?.hasGap || meta?.loadingGap) return false;
-  const minSeq = Math.min(...messages.map((message) => message.seq ?? Infinity));
-  return Number.isFinite(minSeq) && minSeq <= maxReadSeq + 1;
-}
-
 /**
  * #244: has a complete accepted read-state projection of the scope's loaded
  * messages already counted this message? addMessage projects the scope after
@@ -1164,48 +1144,6 @@ export function loadedProjectionCountsMessage(message: Pick<Message, "id" | "cha
   const bucket = state.channelMessages[message.channelId];
   if (!bucket?.some((known) => known.id === message.id)) return false;
   return canProjectCompleteReadState(bucket, selectChannelWindowMeta(state, message.channelId), readState.maxReadSeq);
-}
-
-function projectReadStateFromMessages(
-  messages: Message[] | undefined,
-  meta: ChannelMeta | undefined,
-  currentUserId: string | null,
-  maxReadSeq: number,
-): ReadStateProjection {
-  const complete = canProjectCompleteReadState(messages, meta, maxReadSeq);
-  if (!complete) {
-    return {
-      unreadCount: 0,
-      hasMention: false,
-      firstUnreadMessageId: null,
-      firstMentionMessageId: null,
-      complete: false,
-    };
-  }
-
-  let unreadCount = 0;
-  let hasMention = false;
-  let firstUnreadMessageId: string | null = null;
-  let firstMentionMessageId: string | null = null;
-  // Stryker disable next-line ArrayDeclaration: complete=true is unreachable without a concrete message array; fallback is a totality guard for direct callers.
-  for (const message of messages ?? []) {
-    const seq = message.seq ?? 0;
-    if (seq <= maxReadSeq || isSelfAuthoredMessage(message, currentUserId)) continue;
-    unreadCount += 1;
-    firstUnreadMessageId ??= message.id;
-    if (mentionsCurrentUser(message, currentUserId)) {
-      hasMention = true;
-      firstMentionMessageId ??= message.id;
-    }
-  }
-
-  return {
-    unreadCount,
-    hasMention,
-    firstUnreadMessageId,
-    firstMentionMessageId,
-    complete: true, throughSeq: projectionThroughSeq(messages ?? [], maxReadSeq),
-  };
 }
 
 function applyAcceptedReadStateProjection(
@@ -1318,8 +1256,9 @@ async function flushPendingRead(channelId: string): Promise<void> {
 
   clearMarkedUnreadForRead(channelId);
   const request = api.post(`/channels/${channelId}/read`, { seq })
-    .then(() => {
+    .then((response) => {
       forgetPendingRead(channelId, seq);
+      noteLocalReadAck(channelId, (response?.data as { maxReadSeq?: unknown } | undefined)?.maxReadSeq ?? seq); // #244
     })
     .catch(() => {
       // Keep the pending seq so the next refresh/reconnect can retry.
@@ -1438,9 +1377,17 @@ export function mergeIncomingMessage(
   incoming: Pick<Message, "id" | "channelId"> & Partial<Message>,
 ): Message {
   if (isOlderCardRevision(messageCardRevision(existing.actionMetadata), messageCardRevision(incoming.actionMetadata))) return existing; // RFC 082
+  const keepTerminalActionCard = isRegressingActionCardState(existing.actionMetadata, incoming.actionMetadata);
+  const contentChanged = incoming.content !== undefined && incoming.content !== existing.content;
   let changed = false;
   for (const [key, value] of Object.entries(incoming) as Array<[keyof Message, unknown]>) {
+    if (key === "actionMetadata" && keepTerminalActionCard) {
+      continue;
+    }
     if (key === "commentRef" && existing.commentRef && value == null) {
+      continue;
+    }
+    if (key === "resolvedQuotes" && existing.resolvedQuotes && value == null && !contentChanged) {
       continue;
     }
     if ((DELEGATION_FACT_KEYS as readonly string[]).includes(key) && value == null
@@ -1455,12 +1402,16 @@ export function mergeIncomingMessage(
   if (!changed) return existing;
 
   const merged: Message = { ...existing, ...incoming };
-  // Shared socket updates strip viewer-scoped attachment-comment metadata.
-  // If this client already received an author-visible/comment-author-visible
-  // ref through a scoped response, the stripped shared update must not erase it
-  // and force a refresh before the `re:` chip comes back.
+  if (keepTerminalActionCard) {
+    merged.actionMetadata = existing.actionMetadata;
+  }
+  // Shared socket updates strip viewer-scoped metadata (`commentRef`, `resolvedQuotes`).
+  // Preserve previously received viewer-scoped data unless the message content itself changed.
   if (existing.commentRef && incoming.commentRef == null) {
     merged.commentRef = existing.commentRef;
+  }
+  if (existing.resolvedQuotes && incoming.resolvedQuotes == null && !contentChanged) {
+    merged.resolvedQuotes = existing.resolvedQuotes;
   }
   return keepDelegationFacts(merged, existing);
 }
@@ -1785,6 +1736,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     pendingUnreadReceipts.delete(channelId);
     clearMarkedUnreadForRead(channelId);
     const { data } = await api.post(`/channels/${channelId}/read-all`);
+    noteLocalReadAck(channelId, data?.maxReadSeq ?? data?.seq);
     const seq = Number(data?.seq ?? 0);
     if (seq > 0) {
       rememberLocalReadSuppression(channelId, seq);
@@ -1805,6 +1757,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     const { applyReadStateUpdate } = await import("./applyReadStateUpdate");
     if (!isReceiverPrivateIngressContextCurrent(ingress)) return;
     for (const update of normalizeReadStateUpdatedBulk(data)) {
+      noteLocalReadAck(update.scopeId, update.maxReadSeq);
       applyReadStateUpdate(update);
       if (update.scopeId !== channelId) continue;
       const accepted = getAcceptedReadState(ingress.serverId, channelId);
@@ -2044,7 +1997,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       hydrateBundledThreadSummaries(data, ingressContext);
       const historyLimited: boolean = data.historyLimited ?? false;
       recordHiddenHistory(channelId, data);
-      const msgs = prefetched ? withLiveRowsAfter(coerced, get().channelMessages[channelId], prefetched.seqAtSend) : coerced;
+      const msgs = reuseUnchangedMessages(get().channelMessages[channelId], prefetched ? withLiveRowsAfter(coerced, get().channelMessages[channelId], prefetched.seqAtSend) : coerced);
       const hasMore = coerced.length >= limit;
       const maxSeq = Math.max(...msgs.map((m) => m.seq || 0), 0);
 
@@ -2321,7 +2274,11 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       // the same content twice should keep the second optimistic row until its
       // own server message arrives.
       const matchingOptimistic = findMatchingOptimisticMessage(bucket, message);
-      const persistedMessage = mergeOptimisticAttachmentPreviews(matchingOptimistic, message);
+      const withOptimisticAttachments = mergeOptimisticAttachmentPreviews(matchingOptimistic, message);
+      const persistedMessage =
+        matchingOptimistic?.resolvedQuotes && !withOptimisticAttachments.resolvedQuotes
+          ? { ...withOptimisticAttachments, resolvedQuotes: matchingOptimistic.resolvedQuotes }
+          : withOptimisticAttachments;
       bucket = matchingOptimistic ? bucket.filter((m) => m.id !== matchingOptimistic.id) : bucket;
       const updatedBucket = sortBySeq([...bucket, persistedMessage]);
       const newChannelMessages = { ...state.channelMessages, [message.channelId]: updatedBucket };
@@ -2409,6 +2366,13 @@ export const useMessageStore = create<MessageState>((set, get) => ({
         ...unreadUpdate,
       });
     });
+    if (source === "channel-room") {
+      const stored = get().channelMessages[message.channelId]?.find((m) => m.id === message.id);
+      // Held for the next resume only if the page keeps it (not the
+      // newer-history-unloaded branch, which leaves it to loadNewer).
+      if (stored) noteLiveHeldMessage(message.id);
+      hydrateLiveMessageResolvedQuotes(stored ?? message);
+    }
   },
 
   // Merge-only update for existing messages (e.g. task field/reaction changes).
@@ -2489,7 +2453,8 @@ export const useMessageStore = create<MessageState>((set, get) => ({
 
   // Batch-add messages in a single state update (used by sync:resume).
   // Avoids N re-renders when catching up many missed messages.
-  batchAddMessages: (wireMsgs: Message[]) =>
+  batchAddMessages: (wireMsgs: Message[]) => {
+    let addedCount = 0;
     set((state) => {
       if (wireMsgs.length === 0) return state;
       const newMsgs = coerceWireMessageSeqs(wireMsgs);
@@ -2520,6 +2485,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
           return true;
         });
         if (deduped.length > 0) {
+          addedCount += deduped.length;
           newChannelMessages[channelId] = sortBySeq([...existing, ...deduped]);
         }
         if (channelId !== state.currentChannelId
@@ -2548,7 +2514,9 @@ export const useMessageStore = create<MessageState>((set, get) => ({
         lastSeq: maxSeq,
         unreadCounts: unreadUpdates,
       }, byChannel.keys());
-    }),
+    });
+    return addedCount;
+  },
 
   sendMessage: async (channelId, content, attachmentIds, asTask, optimisticId, randomId, mentions) => {
     const ingressContext = captureReceiverPrivateIngressContext(get().currentUserId);
@@ -2825,7 +2793,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
         ingressContext,
       );
       if (!coerced) return settleStaleWindowRead(channelId, ingressContext, () => get().loadMessageWindowSilent(channelId, messageId));
-      const msgs = prefetched && !data.hasNewer ? withLiveRowsAfter(coerced, get().channelMessages[channelId], prefetched.seqAtSend) : coerced;
+      const msgs = reuseUnchangedMessages(get().channelMessages[channelId], prefetched && !data.hasNewer ? withLiveRowsAfter(coerced, get().channelMessages[channelId], prefetched.seqAtSend) : coerced);
       hydrateBundledThreadSummaries(data, ingressContext);
       const maxSeq = Math.max(...msgs.map((m) => m.seq || 0), 0);
       const historyLimited = !data.hasOlder && data.historyLimited === true;
@@ -2953,6 +2921,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
     const ingressContext = captureReceiverPrivateIngressContext(get().currentUserId);
     let outcome: "read" | "failed" | "abandoned" = "abandoned";
     let remainingPending = 0;
+    let syncedNewCount = 0;
     try {
       const limit = 200;
       let cursor = sinceSeq;
@@ -3005,6 +2974,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
             return true;
           });
           if (deduped.length > 0) {
+            syncedNewCount += deduped.length;
             newChannelMessages[chId] = sortBySeq([...existing, ...deduped]);
           }
         }
@@ -3070,6 +3040,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
           };
         });
       }
+      reportMessagesSyncGap(syncedNewCount, outcome, pendingSince !== null);
       finishGapRead(readKey, read, targetChannelId, outcome, (rerunSince) => void get().syncGap(targetChannelId, { sinceSeq: rerunSince }));
     }
   },
@@ -3142,6 +3113,11 @@ registerReceiverPrivatePrincipalReader(
 
 onCurrentServerConfirmed(() => {
   void flushAllPendingReads();
+});
+
+useMessageStore.subscribe((state, previousState) => {
+  // A new horizon starts a new held set (syncResumeHeldIds.ts, #triage:#553).
+  if (state.syncHorizon !== previousState.syncHorizon) resetLiveHeldIds();
 });
 
 // Drafts belong to the signed-in person (draftStorage.ts). Followed on

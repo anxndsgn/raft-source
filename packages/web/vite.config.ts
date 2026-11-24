@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { applyPwaAppName } from "./scripts/pwaManifestName";
 import { bootShellPlugin } from "./scripts/bootShellPlugin";
 import { catalogPartsPlugin } from "./scripts/catalogPartsPlugin";
+import { reactCompilerPlugins } from "./scripts/reactCompilerSwitch";
 import { startupCodeSplittingGroups } from "./scripts/startupChunkGroups";
 import { registeredVarFallbacksPlugin } from "./scripts/registeredVarFallbacks";
 import { resolveWebProxyTarget } from "./scripts/webProxyTarget";
@@ -31,6 +32,11 @@ const remotePreviewDefines = webProxyTarget.name === "local"
       "import.meta.env.VITE_PREVIEW_API_TARGET": JSON.stringify(process.env.VITE_PREVIEW_API_TARGET || webProxyTarget.name),
     };
 const devPort = process.env.VITE_DEV_PORT ? Number(process.env.VITE_DEV_PORT) : 5173;
+// The dev server listens on loopback only: on a shared or public host, all
+// interfaces would expose source and the dev middleware to the network.
+// Tunnels (cloudflared, ngrok) connect from this machine, so previews still
+// work. Set VITE_DEV_HOST (e.g. `0.0.0.0`) to opt in to LAN access.
+const devHost = process.env.VITE_DEV_HOST?.trim() || "127.0.0.1";
 const webRoot = dirname(fileURLToPath(import.meta.url));
 const frontendReleaseIdentity = resolveFrontendReleaseIdentity(process.env);
 const desktopManifestContract = createDesktopManifestContractAdapter(process.env);
@@ -119,6 +125,11 @@ const localRaftDesignRoot = (() => {
   const state = resolve(webRoot, "node_modules/.local-raft-ui.json");
   return existsSync(state) ? (JSON.parse(readFileSync(state, "utf8")) as { designRoot: string }).designRoot : null;
 })();
+// Diagnostic builds only: RAFT_WEB_KEEP_NAMES=1 keeps the `name` of functions
+// and classes through minification, so a render probe run against the built
+// bundle (tests/render-perf/renderWhyProbe.ts) reports component names instead
+// of minified ones. Off by default: the shipped bundle is unchanged.
+const keepNames = process.env.RAFT_WEB_KEEP_NAMES === "1";
 
 export default defineConfig({
   define: {
@@ -127,6 +138,9 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    // Nothing unless RAFT_WEB_REACT_COMPILER=1: the staging web build only
+    // (scripts/reactCompilerSwitch.ts).
+    reactCompilerPlugins(process.env, webRoot),
     // Resolve imported asset URLs before Tailwind optimizes the CSS.
     tailwindcss({ optimize: true }),
     // Rings, shadows and filters in a Chromium 111-118 WebView (#triage:#322).
@@ -150,7 +164,7 @@ export default defineConfig({
   },
   server: {
     ...(localRaftDesignRoot ? { fs: { allow: [resolve(webRoot, "../.."), localRaftDesignRoot] } } : {}),
-    host: true,
+    host: devHost,
     allowedHosts: [".trycloudflare.com", ".loca.lt"],
     port: devPort,
     // Per-commit previews expose this Vite dev server through quick tunnels
@@ -217,6 +231,7 @@ export default defineConfig({
     // `codeSplitting` groups replace it.
     rolldownOptions: {
       output: {
+        ...(keepNames ? { keepNames: true } : {}),
         codeSplitting: {
           // The startup chunk groups (scripts/startupChunkGroups.ts, shared with
           // Raft Desktop's renderer build).

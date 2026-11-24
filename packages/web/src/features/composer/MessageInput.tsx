@@ -4,8 +4,7 @@ import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo } fr
 import type { ChangeEvent } from "react";
 import { useIntl } from "react-intl";
 import { Send, Paperclip, ImagePlus, CornerUpLeft, X } from "lucide-react";
-import { ChannelIcon } from "../../components/channel/channelKindIcon";
-import { Badge, Composer, ComposerActions, ComposerAttachments, ComposerDropOverlay, ComposerDropOverlayLabel, ComposerIconButton, ComposerInput, ComposerRoot, ComposerSubmit, ComposerSuggestionAside, ComposerSuggestionContent, ComposerSuggestionGroup, ComposerSuggestionIcon, ComposerSuggestionList, ComposerSuggestionMeta, ComposerSuggestionTitle, ComposerToolbar, Separator, Spinner } from "@botiverse/raft-ui";
+import { Composer, ComposerActions, ComposerAttachments, ComposerDropOverlay, ComposerDropOverlayLabel, ComposerIconButton, ComposerInput, ComposerRoot, ComposerSubmit, ComposerToolbar, Separator, Spinner } from "@botiverse/raft-ui";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, horizontalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
@@ -29,7 +28,7 @@ import { notifyAttachmentUploadChanged, subscribeAttachmentUploadChanged } from 
 import { useAutocomplete } from "../../hooks/useAutocomplete";
 import { useRankedComposerSuggestions } from "../../hooks/useRankedComposerSuggestions";
 import { useComposerAutosize } from "../../components/message/useComposerAutosize";
-import { AutocompleteOptionRow } from "../../components/message/AutocompleteOptionRow";
+import { ChannelAutocompleteList } from "../../components/message/ChannelAutocompleteList";
 import { MentionSuggestionList } from "../../components/mention/MentionSuggestionList";
 import { useMentionPicker } from "../../components/mention/useMentionPicker";
 import { chatMentionGroups } from "../../components/message/chatMentionGroups";
@@ -60,30 +59,39 @@ import { trackUploadLimitHit } from "../../analytics/paywall";
 import { uploadQuotaRefusal } from "../../utils/monthlyUploadQuota";
 import { noteMonthlyUploadQuota } from "../../store/monthlyUploadQuotaStore";
 import { AttachmentUploadClientError, cancelAttachmentUploadSession, listActiveAttachmentUploads, uploadAttachmentFile } from "../../utils/directAttachmentUpload";
-import type { RecoveryView } from "../../utils/directAttachmentUpload";
+import type { PreparedAttachmentFile } from "../../utils/attachmentImageResize";
+import { boundChannelResolve } from "./boundedChannelResolve";
+import type { AttachmentUploadRoute, RecoveryView } from "../../utils/directAttachmentUpload";
+import { reportAttachmentUploadFinished } from "../../utils/attachmentUploadOutcomeTrace";
 import { formatComposerUploadError } from "../../utils/attachmentUploadErrorPresentation";
-import { uploadLegacyAttachmentWithIdleTimeout } from "../../utils/legacyAttachmentUpload";
+import { postLegacyAttachment } from "../../utils/legacyAttachmentUpload";
 import { SELECTED_TEXT_QUOTE_EVENT, appendQuoteToComposer } from "../../components/message/selectedTextQuote";
 import type { SelectedTextQuoteDetail } from "../../components/message/selectedTextQuote";
+import { QUOTE_REPLY_FEATURE_FLAG_KEY, useServerFeatureFlag } from "../../store/serverFeatureFlags";
+import { buildInlineQuoteSendArtifacts, buildPendingQuoteFromEvent, clearPendingComposerQuote, getPendingComposerQuote, setPendingComposerQuote, usePendingComposerQuote } from "./composerQuoteStore";
+import { ComposerQuoteBar } from "./ComposerQuoteBar";
 import { PendingMentionActionStrip } from "../../components/message/PendingMentionActionStrip";
 import type { PendingMentionActionLocalState } from "../../components/message/PendingMentionActionStrip";
 import { createOptimisticMessageDraft } from "../../components/message/optimisticMessageDraft";
 import { CHANNEL_TRIGGER } from "../../components/message/autocompleteTriggers";
 import { COMPOSER_FULL_EDGE_CLASS } from "../../components/message/composerHost";
 import { registerComposerFocusTarget } from "../../components/message/composerFocusRequest";
+import { COMPOSER_SUGGESTION_MAX_RESULTS } from "../../utils/composerSuggestionSearch";
 import type { ComposerSuggestionSearchEntry } from "../../utils/composerSuggestionSearch";
 import { getSenderMentionInsertDetail, insertMentionAtCursor, SENDER_MENTION_INSERT_EVENT } from "../../components/message/senderMentionInsert";
 import { useToastViewportFloor } from "../../components/toastViewportBottom";
-import type { AttachmentUploadResponse, ComposerReference, PendingFile } from "./composerTypes";
+import type { ComposerReference, PendingFile } from "./composerTypes";
 import { holdReload } from "../../utils/reloadHolds";
 import { adoptDraftPendingFiles, adoptFailedSendMentions, failedSendMentionsByDraftKey, getDraftPendingFiles, getDraftPendingFilesAuthScope, getDraftPendingFilesKey, markInterruptedUploads, mergeFailedSendMentions, saveDraftPendingFiles } from "./draftPendingFilesCache";
 import { formatMentionActionStatusNotice, mentionActionSucceeded, mentionStillAppears, mergeFailedSendIntoDraft, releaseSubmittedDraftIntent } from "./pendingMentionActions";
 import type { MentionUndoSnapshot, PendingMentionActionExecuteResponse } from "./pendingMentionActions";
-import { getPendingFileDisplayPreview, getPendingFileLocalPreview, isPreviewableImageFile, readLocalImageDimensions } from "./pendingFilePreview";
+import { getPendingFileDisplayPreview, getPendingFileLocalPreview, isPreviewableImageFile, pendingFileWithResizedUpload, readLocalImageDimensions } from "./pendingFilePreview";
 import { ComposerFilePickers } from "./ComposerFilePickers";
 import { RecoverableUploadCancelButton } from "./RecoverableUploadCancelButton";
 import { SortableAttachment } from "./SortableAttachment";
 import { UploadFailureBanner } from "./UploadFailureBanner";
+import { isDeadAttachmentSendError, markDeadAttachmentsForReupload } from "./deadAttachmentSend";
+import { isSendAlreadyEchoed } from "./echoedSend";
 import { preventSendButtonPointerDownBlur, preventToolbarButtonPointerDownBlur } from "./composerPointerHandlers";
 import { mayTakeFocus } from "../../utils/focusGuard";
 import { textDirection } from "../../utils/textDirection";
@@ -335,6 +343,7 @@ export function MessageInput({
     if (!el) return;
     if (el.value !== content) {
       if (el.value !== lastSyncedValueRef.current) {
+        // oxlint-disable-next-line react/immutability -- runs in the layout effect, after the callback declared further down exists. Neither can move to the other: the callback needs hooks declared after this effect, and this effect must stay ahead of the layout effect that restores the caret.
         adoptBypassedComposerValue();
         return;
       }
@@ -406,24 +415,31 @@ export function MessageInput({
     attachmentSelectionQueueRef.current = Promise.resolve();
   }, []);
 
-  const resolveDeliveryChannelId = useCallback(async () => {
+  const resolveDeliveryChannelId = useCallback(async (signal?: AbortSignal) => {
     if (!resolveChannelId) return channelId;
     if (resolvedChannelIdRef.current?.composerChannelId === channelId) {
       return resolvedChannelIdRef.current.deliveryChannelId;
     }
+    // Bounded; a hung request is dropped on timeout (boundedChannelResolve.ts). First answer wins.
+    const bounded = (promise: Promise<string>) => boundChannelResolve(promise, signal, () => {
+      if (resolvingChannelIdRef.current?.promise === promise) resolvingChannelIdRef.current = null;
+    });
     if (resolvingChannelIdRef.current?.composerChannelId === channelId) {
-      return resolvingChannelIdRef.current.promise;
+      return bounded(resolvingChannelIdRef.current.promise);
     }
+    const composerChannelId = channelId;
     const resolving = resolveChannelId()
       .then((resolved) => {
-        resolvedChannelIdRef.current = { composerChannelId: channelId, deliveryChannelId: resolved };
+        const known = resolvedChannelIdRef.current;
+        if (known?.composerChannelId === composerChannelId) return known.deliveryChannelId;
+        resolvedChannelIdRef.current = { composerChannelId, deliveryChannelId: resolved };
         return resolved;
       })
       .finally(() => {
         if (resolvingChannelIdRef.current?.promise === resolving) resolvingChannelIdRef.current = null;
       });
-    resolvingChannelIdRef.current = { composerChannelId: channelId, promise: resolving };
-    return resolving;
+    resolvingChannelIdRef.current = { composerChannelId, promise: resolving };
+    return bounded(resolving);
   }, [channelId, resolveChannelId]);
 
   // Draft restore on channel switch: `content` is seeded from the external
@@ -743,7 +759,7 @@ export function MessageInput({
   const channel = useAutocomplete(CHANNEL_TRIGGER, "#");
   // useAutocomplete returns a fresh object every render, but these are
   // useCallback-stable — depend on the functions, not the wrapper.
-  const { dismiss: dismissChannelPopover, clampIndex: clampChannelIndex, handleKeyDown: handleChannelKeyDown, detect: detectChannelTrigger } = channel;
+  const { dismiss: dismissChannelPopover, clampIndex: clampChannelIndex, buildInsert: buildChannelInsert, handleKeyDown: handleChannelKeyDown, detect: detectChannelTrigger } = channel;
 
   // Build channel member ID sets for fast lookup
   const channelMemberIds = useMemo(() => {
@@ -798,11 +814,11 @@ export function MessageInput({
     }
     for (const human of channelHumans) {
       if (currentUser && human.id === currentUser.id) continue;
-      addCandidate(channelHumanMentionCandidate(human, currentServer?.id));
+      addCandidate(channelHumanMentionCandidate(human, currentServer?.id, mentionScopeChannel));
     }
     for (const agent of channelAgents) {
       if (agent.deletedAt) continue;
-      addCandidate(channelAgentMentionCandidate(agent, currentServer?.id));
+      addCandidate(channelAgentMentionCandidate(agent, currentServer?.id, mentionScopeChannel));
     }
     for (const external of channelExternalMembers.filter(member => member.mentionable !== false)) {
       // Slack-side participant — pick the first handle; when the projection
@@ -848,7 +864,7 @@ export function MessageInput({
   const mention = useMentionPicker({ source: { local: allCandidates }, group: groupMentionCandidates });
   // The picker returns a fresh object every render, but these are
   // useCallback-stable — depend on the functions, not the wrapper.
-  const { dismiss: dismissMentionPopover, handleKeyDown: handleMentionKeyDown, detect: detectMentionTrigger } = mention;
+  const { dismiss: dismissMentionPopover, buildInsert: buildMentionInsert, handleKeyDown: handleMentionKeyDown, detect: detectMentionTrigger } = mention;
 
   // Stryker restore all
 
@@ -862,13 +878,16 @@ export function MessageInput({
   }, [channelId, dismissMentionPopover, dismissChannelPopover]);
 
   // Stryker disable all: as above, React wiring into the covered ranker.
-  const channelAutocompleteCandidates = useMemo(
-    () => channels.filter((c) => c.type === "channel" || c.type === "private" || c.type === "joint"),
-    [channels],
-  );
+  const channelAutocompleteCandidates = useMemo(() => {
+    const tierOf = (candidate: Channel): number => (candidate.archivedAt ? 2 : candidate.joined ? 0 : 1);
+    return channels
+      .filter((c) => c.type === "channel" || c.type === "private" || c.type === "joint")
+      .sort((a, b) => tierOf(a) - tierOf(b));
+  }, [channels]);
   const channelSearchEntries = useMemo(() => {
     return channelAutocompleteCandidates.map((candidate, index): ComposerSuggestionSearchEntry<Channel> => ({
       index,
+      tier: candidate.archivedAt ? 2 : candidate.joined ? 0 : 1,
       suggestion: candidate,
       fields: [
         { raw: candidate.name, priority: 0 },
@@ -876,7 +895,13 @@ export function MessageInput({
       ],
     }));
   }, [channelAutocompleteCandidates]);
-  const filteredChannels = useRankedComposerSuggestions(channel.query, channelSearchEntries);
+  const rankedChannels = useRankedComposerSuggestions(channel.query, channelSearchEntries);
+  const filteredChannels = useMemo(
+    () => (rankedChannels.length > COMPOSER_SUGGESTION_MAX_RESULTS
+      ? rankedChannels.slice(0, COMPOSER_SUGGESTION_MAX_RESULTS)
+      : rankedChannels),
+    [rankedChannels],
+  );
   // Stryker restore all
 
   // Clamp the index when the filtered list changes (the @ picker clamps its own).
@@ -906,11 +931,17 @@ export function MessageInput({
     return () => window.removeEventListener(REPLY_TARGET_FOCUS_EVENT, handler);
   }, [channelId]);
 
-  // Selection-quote v0 (#proj-chat task #32): a message's selection context
-  // menu "Quote" dispatches SELECTED_TEXT_QUOTE_EVENT with the target composer
-  // channelId. Only the composer whose channelId matches pulls it in, so a
-  // channel timeline + open thread panel (two mounted MessageInputs) route
-  // correctly. Append to live `content` (the draft-save effect persists it).
+  const quoteReplyEnabled = useServerFeatureFlag(QUOTE_REPLY_FEATURE_FLAG_KEY).enabled;
+  const pendingQuote = usePendingComposerQuote(channelId);
+  const activePendingQuote = quoteReplyEnabled && !onSendOverride ? pendingQuote : null;
+  const handleClearPendingQuote = useCallback(() => {
+    clearPendingComposerQuote(channelId);
+  }, [channelId]);
+
+  // Selection-quote v0 (#proj-chat task #32) & Quote Reply v0 (#proj-chat task #34):
+  // When quote_reply_v0 is on and the event carries a source messageId, attach
+  // a structured pending quote to this composer; otherwise keep the legacy
+  // markdown `> ...` insertion.
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<SelectedTextQuoteDetail>).detail;
@@ -920,7 +951,14 @@ export function MessageInput({
       // The cursor moves to the end once the quote has rendered.
       const textarea = textareaRef.current;
       if (textarea && document.activeElement !== textarea) textarea.focus();
-      setContent((prev) => appendQuoteToComposer(prev, detail.quote));
+      const pending = quoteReplyEnabled && !onSendOverride
+        ? buildPendingQuoteFromEvent(detail, formatMessage({ id: "message.author.userFallback" }))
+        : null;
+      if (pending) {
+        setPendingComposerQuote(channelId, pending);
+      } else if (detail.quote) {
+        setContent((prev) => appendQuoteToComposer(prev, detail.quote));
+      }
       setTimeout(() => {
         const el = textareaRef.current;
         if (el) {
@@ -933,7 +971,7 @@ export function MessageInput({
     };
     window.addEventListener(SELECTED_TEXT_QUOTE_EVENT, handler);
     return () => window.removeEventListener(SELECTED_TEXT_QUOTE_EVENT, handler);
-  }, [channelId, autoResize]);
+  }, [channelId, autoResize, formatMessage, onSendOverride, quoteReplyEnabled]);
 
   // Stryker disable all: focused behavior tests cover sender-name insertion, channel guard, cursor placement, title, and mention dedupe; remaining mutants here are React callback/timer mechanics or jsdom-defensive branches.
   const handleSenderMentionInsert = useCallback((event: Event) => {
@@ -997,18 +1035,22 @@ export function MessageInput({
   // the frame reaches the field.
   useEffect(() => registerComposerFocusTarget(channelId, () => composerFrameRef.current), [channelId]);
 
-  // Insert helpers
+  // Insert helpers — depend on stable functions + contentRef rather than the
+  // per-render `mention`/`channel` wrappers so `onSelect` stays referentially
+  // stable across ArrowUp/ArrowDown and keystrokes.
   const doInsertMention = useCallback((candidate: MentionCandidate) => {
-    const cursorPos = textareaRef.current?.selectionStart ?? content.length;
-    const insertion = mention.buildInsert(candidate.name, content, cursorPos);
+    const currentContent = textareaRef.current?.value ?? contentRef.current;
+    const cursorPos = textareaRef.current?.selectionStart ?? currentContent.length;
+    const insertion = buildMentionInsert(candidate.name, currentContent, cursorPos);
     const newCursor = insertion.newCursor;
     mentionUndoSnapshotRef.current = {
-      beforeContent: content,
+      beforeContent: currentContent,
       beforeMentions: selectedMentionsRef.current,
       beforeCursor: cursorPos,
       afterContent: insertion.newContent,
       afterCursor: insertion.newCursor,
     };
+    contentRef.current = insertion.newContent;
     setContent(insertion.newContent);
     const selected: MessageMention = {
       type: candidate.type,
@@ -1019,21 +1061,19 @@ export function MessageInput({
       const without = prev.filter((item) => item.name !== selected.name);
       return [...without, selected];
     });
-    mention.dismiss();
+    dismissMentionPopover();
     setTimeout(() => { textareaRef.current?.focus({ preventScroll: true }); textareaRef.current?.setSelectionRange(newCursor, newCursor); }, 0);
-  }, [content, mention]);
+  }, [buildMentionInsert, dismissMentionPopover]);
 
   const doInsertChannel = useCallback((ch: { name: string }) => {
-    const cursorPos = textareaRef.current?.selectionStart ?? content.length;
-    const { newContent, newCursor } = channel.buildInsert(ch.name, content, cursorPos);
+    const currentContent = textareaRef.current?.value ?? contentRef.current;
+    const cursorPos = textareaRef.current?.selectionStart ?? currentContent.length;
+    const { newContent, newCursor } = buildChannelInsert(ch.name, currentContent, cursorPos);
+    contentRef.current = newContent;
     setContent(newContent);
-    channel.dismiss();
+    dismissChannelPopover();
     setTimeout(() => { textareaRef.current?.focus({ preventScroll: true }); textareaRef.current?.setSelectionRange(newCursor, newCursor); }, 0);
-  }, [content, channel]);
-
-  const preventAutocompleteOptionMouseDown = useCallback((e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
-  }, []);
+  }, [buildChannelInsert, dismissChannelPopover]);
 
   // File handling
   const startAttachmentUpload = useCallback(async (
@@ -1042,6 +1082,8 @@ export function MessageInput({
       channelId: committedComposerOwnershipRef.current?.channelId ?? channelId,
       draftCacheKey: committedComposerOwnershipRef.current?.draftCacheKey ?? draftPendingFilesCacheKey,
     },
+    // A send-time upload: the send's snapshot of this file takes the same resized swap.
+    onResized?: (swap: (file: PendingFile) => PendingFile) => void,
   ) => {
     const directUploadId = pending.directUploadSession?.uploadId;
     const updatePendingFile = (update: (file: PendingFile) => PendingFile) => {
@@ -1074,8 +1116,21 @@ export function MessageInput({
     // thumbnail (HEIC → WebP). It is what the chip shows once the upload
     // finishes when this browser cannot decode the local file.
     let serverThumbnailUrl: string | null = null;
+    let route: AttachmentUploadRoute | null = pending.directUploadSession ? "direct" : null;
+    const uploadStartedAt = Date.now();
+    // What is sent: a large photo becomes its resized copy before any byte goes out.
+    let { file: uploadFile, preview: uploadPreview } = pending;
+    let prepared: PreparedAttachmentFile | null = null;
+    const reportFinished = (error?: unknown) => reportAttachmentUploadFinished({
+      route,
+      sizeBytes: uploadFile.size,
+      durationMs: Date.now() - uploadStartedAt,
+      error,
+      cancelled: controller.signal.aborted,
+      resize: prepared,
+    });
     try {
-      const uploadChannelId = await resolveDeliveryChannelId();
+      const uploadChannelId = await resolveDeliveryChannelId(controller.signal);
       const attachmentId = await uploadAttachmentFile({
         api,
         file: pending.file,
@@ -1083,44 +1138,36 @@ export function MessageInput({
         clientRequestId: pending.uploadClientRequestId,
         previousSession: pending.directUploadSession,
         signal: controller.signal,
+        onPreparedFile: (result) => {
+          prepared = result;
+          if (result.outcome !== "resized") return;
+          const replaced = uploadPreview;
+          const preview = replaced ? URL.createObjectURL(result.file) : null;
+          [uploadFile, uploadPreview] = [result.file, preview];
+          const swap = (file: PendingFile) => pendingFileWithResizedUpload(file, result, preview);
+          updatePendingFile(swap);
+          onResized?.(swap);
+          if (replaced) URL.revokeObjectURL(replaced);
+        },
         onSession: (directUploadSession) => {
           updatePendingFile((file) => ({ ...file, directUploadSession }));
         },
         onProgress: (uploadProgress) => {
           updatePendingFile((file) => ({ ...file, uploadProgress }));
         },
-        legacyUpload: async () => {
-          return uploadLegacyAttachmentWithIdleTimeout({
+        onRoute: (chosen) => {
+          route = chosen;
+        },
+        legacyUpload: async (legacyFile) => {
+          const uploaded = await postLegacyAttachment({
+            api,
+            channelId: uploadChannelId,
+            file: legacyFile,
             signal: controller.signal,
-            upload: async ({ signal, markProgress, markTransferComplete }) => {
-              const formData = new FormData();
-              formData.append("channelId", uploadChannelId);
-              formData.append("files", pending.file);
-              let uploadedBytes = 0;
-              const { data } = await api.post<AttachmentUploadResponse>("/attachments/upload", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-                signal,
-                onUploadProgress: (event) => {
-                  if (event.loaded <= uploadedBytes) return;
-                  uploadedBytes = event.loaded;
-                  markProgress();
-                  if (
-                    (event.total !== undefined && event.loaded >= event.total)
-                    || event.progress === 1
-                  ) {
-                    markTransferComplete();
-                  }
-                  if (!event.total) return;
-                  const progress = Math.max(1, Math.min(99, Math.round((event.loaded / event.total) * 100)));
-                  updatePendingFile((file) => ({ ...file, uploadProgress: progress }));
-                },
-              });
-              const legacyAttachmentId = data.attachments[0]?.id;
-              if (!legacyAttachmentId) throw new Error("Upload response did not include an attachment id");
-              serverThumbnailUrl = data.attachments[0]?.thumbnailUrl ?? null;
-              return legacyAttachmentId;
-            },
+            onProgress: (uploadProgress) => updatePendingFile((file) => ({ ...file, uploadProgress })),
           });
+          serverThumbnailUrl = uploaded.thumbnailUrl;
+          return uploaded.id;
         },
       });
       updatePendingFile((file) => ({
@@ -1136,8 +1183,11 @@ export function MessageInput({
       if (directUploadId) notifyAttachmentUploadChanged({ channelId: origin.channelId, uploadId: directUploadId, kind: "completed" });
       // What's left of the month went down: the upload entries' answer follows (monthlyUploadQuotaStore).
       if (currentServerIsFree()) void resolveAttachmentUploadLimits();
+      // Last, so nothing after it can throw into the catch and report twice.
+      reportFinished();
       return attachmentId;
     } catch (err) {
+      reportFinished(err);
       if (controller.signal.aborted) return null;
       // The month's quota had no room after all (another upload took it since the
       // selection was checked): the file comes off and the upgrade dialog opens,
@@ -1152,21 +1202,21 @@ export function MessageInput({
           limit: "monthly_quota",
           entry: "upload_refused",
           response: shown ? "upgrade_dialog" : "kept_unattached",
-          sizes: [pending.file.size],
+          sizes: [uploadFile.size],
         });
         if (shown) {
-          if (pending.preview) URL.revokeObjectURL(pending.preview);
+          if (uploadPreview) URL.revokeObjectURL(uploadPreview);
           setPendingFiles((prev) => prev.filter((pf) => pf.id !== pending.id));
           openUploadUpgrade("upload_monthly_quota", {
             kind: "monthly_quota",
             quota,
-            files: [{ name: pending.file.name, size: pending.file.size }],
+            files: [{ name: uploadFile.name, size: uploadFile.size }],
           });
           return null;
         }
       }
       // An unreadable file fails like a network error, but retrying cannot help.
-      const unreadable = !quota && !(err instanceof AttachmentUploadClientError) && !(await isFileReadable(pending.file));
+      const unreadable = !quota && !(err instanceof AttachmentUploadClientError) && !(await isFileReadable(uploadFile));
       updatePendingFile((file) => ({
         ...file,
         uploadStatus: "error",
@@ -1217,7 +1267,8 @@ export function MessageInput({
       if (preview) {
         void readLocalImageDimensions(preview).then((probe) => {
           setPendingFiles((prev) => prev.map((pf) => {
-            if (pf.id !== pending.id) return pf;
+            // A resized upload replaced the preview (and its size) meanwhile.
+            if (pf.id !== pending.id || pf.preview !== preview) return pf;
             return probe.decoded
               ? { ...pf, previewDecoded: true, previewWidth: probe.width, previewHeight: probe.height }
               : { ...pf, failedPreviewSrcs: [...(pf.failedPreviewSrcs ?? []), preview] };
@@ -1342,6 +1393,8 @@ export function MessageInput({
   const retryFile = useCallback((id: string) => {
     const pending = pendingFilesRef.current.find((pf) => pf.id === id);
     if (pending) {
+      // Retrying is the answer to the composer's error (e.g. "upload it again"): clear it.
+      setError("");
       void startAttachmentUpload(pending);
     }
   }, [startAttachmentUpload]);
@@ -1608,7 +1661,14 @@ export function MessageInput({
     touchSendRef.current = false;
     e.preventDefault();
     if (submitDisabled || submitBusy || readChannelConversionBlocked(membershipChannelId)) return;
-    const hasContent = content.trim().length > 0;
+    // Send what the box shows. Text written into it without an input event
+    // since the last sync (a dictation tool that writes without one) is not in
+    // `content` yet; sending `content` alone would leave that text in the box
+    // and the clear below would adopt it back together with what was just sent,
+    // which then rode along with the next message (#triage:#501).
+    const boxValue = textareaRef.current?.value;
+    const sendContent = boxValue !== undefined && boxValue !== lastSyncedValueRef.current ? boxValue : content;
+    const hasContent = sendContent.trim().length > 0;
     const hasFiles = pendingFiles.length > 0;
     if (!hasContent && !hasFiles && !(allowEmptySubmit && onSendOverride)) return;
     // A task from the message box is ⌘⇧Enter's (task #15: the visible ways open the Create task dialog).
@@ -1630,7 +1690,7 @@ export function MessageInput({
       return;
     }
 
-    const msg = content;
+    const msg = sendContent;
     // Only a message with text carries the reference: it is never sent alone.
     const sentReference = hasContent ? composerReference ?? null : null;
     const textToSend = withComposerReference(msg, sentReference);
@@ -1639,12 +1699,16 @@ export function MessageInput({
     const mentionsToSend = selectedMentions.filter((selected) => mentionStillAppears(msg, selected));
     let filesToSend = [...pendingFiles];
     // Stryker disable all: source contract pins this stale-render duplicate-submit guard; the duplicate window is same-draft event replay before React state flush.
+    const submittedPendingQuote = quoteReplyEnabled && !onSendOverride ? getPendingComposerQuote(submittedComposerChannelId) : null;
     const submittedDraftIntent = JSON.stringify({
       channelId,
       content: msg,
       attachmentIds: filesToSend.map((file) => file.attachmentId ?? `pending:${file.id}`),
       submitAsTask,
       mentions: mentionsToSend.map((mention) => `${mention.type}:${mention.id}:${mention.name}`),
+      quote: submittedPendingQuote
+        ? { messageId: submittedPendingQuote.messageId, excerpt: submittedPendingQuote.excerpt }
+        : null,
     });
     if (submittedDraftIntentRef.current === submittedDraftIntent) {
       return;
@@ -1674,10 +1738,12 @@ export function MessageInput({
     const uploadedByPendingId = new Map<string, string>();
     const queuedFiles = filesToSend.filter((file) => file.uploadStatus === "queued");
     if (queuedFiles.length > 0) {
+      // A resized photo's original preview URL is revoked: the optimistic row must use the resized file's.
+      const resizedSwaps = new Map<string, (file: PendingFile) => PendingFile>();
       const uploadedIds = await Promise.all(queuedFiles.map((file) => startAttachmentUpload(file, {
         channelId: submittedComposerChannelId,
         draftCacheKey: submittedDraftPendingFilesCacheKey,
-      })));
+      }, (swap) => resizedSwaps.set(file.id, swap))));
       for (let index = 0; index < queuedFiles.length; index += 1) {
         const attachmentId = uploadedIds[index];
         if (attachmentId) uploadedByPendingId.set(queuedFiles[index]!.id, attachmentId);
@@ -1694,8 +1760,9 @@ export function MessageInput({
         }
         return;
       }
-      filesToSend = filesToSend.map((file) => {
-        const attachmentId = uploadedByPendingId.get(file.id);
+      filesToSend = filesToSend.map((sent) => {
+        const attachmentId = uploadedByPendingId.get(sent.id);
+        const file = resizedSwaps.get(sent.id)?.(sent) ?? sent;
         return attachmentId
           ? {
               ...file,
@@ -1726,9 +1793,12 @@ export function MessageInput({
     // Enter, and a finger's tap on Send, keep the keyboard up for the next
     // message (every chat app does); a mouse click on Send lets focus go.
     const keepComposerFocused = e.type === "keydown" || sentByTouch;
+    // The box's text is taken (above): the clear below empties it rather than adopting it back.
+    lastSyncedValueRef.current = submittedTextarea.value;
     setContent("");
     setSelectedMentions([]);
     clearDraft(channelId);
+    if (submittedPendingQuote) clearPendingComposerQuote(submittedComposerChannelId);
     // Stryker disable next-line ArrayDeclaration: clearing the draft-pending cache is pinned by the remount/send DOM test; `setPendingFiles([])` also keeps the in-memory chip state clear.
     saveDraftPendingFiles(draftPendingFilesCacheKeyRef.current, []);
     setPendingFiles([]);
@@ -1772,9 +1842,13 @@ export function MessageInput({
     }
 
     // Stryker disable next-line all: attachment-only fallback copy predates the stale-submit guard; this source oracle is not a DOM copy test.
-    const messageContent = hasContent
+    const baseMessageContent = hasContent
       ? textToSend
       : formatMessage({ id: "message.composer.attachmentsOnlyBody" }, { count: filesToSend.length });
+    const { content: messageContent, optimisticResolvedQuotes } = buildInlineQuoteSendArtifacts(
+      submittedPendingQuote,
+      baseMessageContent,
+    );
     const optimisticDraft = createOptimisticMessageDraft();
     const optimisticId = optimisticDraft.id;
 
@@ -1810,6 +1884,7 @@ export function MessageInput({
         content: messageContent,
         mentions: hasContent ? mentionsToSend : undefined,
         createdAt: optimisticDraft.createdAt,
+        ...(optimisticResolvedQuotes ? { resolvedQuotes: optimisticResolvedQuotes } : {}),
         // Stryker disable next-line all: optimistic attachment shape is covered by reconciliation/attachment tests outside this mobile keyboard oracle.
         attachments: optimisticAttachments.length > 0 ? optimisticAttachments : undefined,
       });
@@ -1832,6 +1907,15 @@ export function MessageInput({
       // flash/reload when the server ack replaces the local row.
 
     } catch (err) {
+      // The echo already landed: the server has it, only the reply was lost.
+      // Treat it as sent (no sendResult, so no mention/delivery strips).
+      if (isSendAlreadyEchoed(deliveryChannelId, optimisticDraft.randomId)) {
+        removeOptimisticMessage(optimisticId, deliveryChannelId); // no-op once the echo swapped it; never leaves a row stuck sending
+        onChannelResolved?.(deliveryChannelId);
+        sentReference?.onSent();
+        console.error("Send reply failed after its echo landed:", err);
+        return;
+      }
       // Remove optimistic message on failure, restore content
       submittedDraftIntentRef.current = releaseSubmittedDraftIntent(
         submittedDraftIntentRef.current,
@@ -1844,19 +1928,26 @@ export function MessageInput({
         submittedComposerChannelId,
         submittedDraftPendingFilesCacheKey,
       );
+      if (submittedPendingQuote && !getPendingComposerQuote(submittedComposerChannelId)) {
+        setPendingComposerQuote(submittedComposerChannelId, submittedPendingQuote);
+      }
+      const response = getApiErrorResponse(err);
+      // A dead attachment id fails every resend: those files come back as failed uploads to re-upload.
+      const restoredFiles = markDeadAttachmentsForReupload(filesToSend, response, formatMessage);
       if (isCurrentComposer) {
-        setPendingFiles(filesToSend);
+        setPendingFiles(restoredFiles);
         if (mayTakeFocus(submittedTextarea)) submittedTextarea.focus();
       } else {
         saveDraftPendingFiles(
           submittedDraftPendingFilesCacheKey,
-          filesToSend,
+          restoredFiles,
         );
       }
-      const response = getApiErrorResponse(err);
       const errorMessage = response?.code === "peer_not_member"
         ? formatMessage({ id: "message.composer.peerNotMember" })
-        : response?.error ?? formatMessage({ id: "message.composer.failedToSendMessage" });
+        : isDeadAttachmentSendError(response)
+          ? formatMessage({ id: "message.composer.attachmentsNeedReupload" })
+          : response?.error ?? formatMessage({ id: "message.composer.failedToSendMessage" });
       if (isCurrentComposer) setError(errorMessage);
       console.error("Failed to send message:", err);
     }
@@ -1868,7 +1959,7 @@ export function MessageInput({
     clearDraft, dismissMentionPopover, dismissChannelPopover,
     cancelScheduledAutoResize, onWillSend, addOptimisticMessage, currentUser,
     conversionBlockedMessage, sendMessage, onChannelResolved,
-    removeOptimisticMessage,
+    removeOptimisticMessage, quoteReplyEnabled,
   ]);
 
   const clearPendingMentionActionRemovalTimers = useCallback((resolutionId?: string) => {
@@ -2403,47 +2494,13 @@ export function MessageInput({
         <MentionSuggestionList picker={mention} onSelect={handleSelectMentionCandidate} testId="mention-autocomplete-popover" />
 
         {/* #channel dropdown */}
-        {channel.show && filteredChannels.length > 0 && (
-          <ComposerSuggestionList
-            ref={channel.popupRef}
-            className="z-float"
-            data-testid="channel-autocomplete-popover"
-          >
-            <ComposerSuggestionGroup>
-              {filteredChannels.map((ch, i) => {
-                const isSelected = i === channel.index;
-                const isArchived = !!ch.archivedAt;
-                return (
-                  <AutocompleteOptionRow
-                    key={ch.id}
-                    value={ch}
-                    flatIndex={i}
-                    highlighted={isSelected}
-                    onMouseDown={preventAutocompleteOptionMouseDown}
-                    onSelect={handleSelectChannelCandidate}
-                  >
-                    <ComposerSuggestionIcon variant="framed">
-                      <ChannelIcon channel={ch} size={12} />
-                    </ComposerSuggestionIcon>
-                    <ComposerSuggestionContent>
-                      <ComposerSuggestionTitle>{ch.name}</ComposerSuggestionTitle>
-                      {ch.description && (
-                        <ComposerSuggestionMeta>{ch.description}</ComposerSuggestionMeta>
-                      )}
-                      {isArchived && (
-                        <ComposerSuggestionAside>
-                          <Badge appearance="soft" variant="muted">
-                            {formatMessage({ id: "message.composer.archivedBadge" })}
-                          </Badge>
-                        </ComposerSuggestionAside>
-                      )}
-                    </ComposerSuggestionContent>
-                  </AutocompleteOptionRow>
-                );
-              })}
-            </ComposerSuggestionGroup>
-          </ComposerSuggestionList>
-        )}
+        <ChannelAutocompleteList
+          visible={channel.show}
+          channels={filteredChannels}
+          highlightedIndex={channel.index}
+          popupRef={channel.popupRef}
+          onSelect={handleSelectChannelCandidate}
+        />
 
         {/* Focusable only from code (requestComposerFocus). Its ring is the
             frame's own focus ring, for keyboard focus only: raft-ui rings the
@@ -2463,6 +2520,12 @@ export function MessageInput({
           className="outline-none focus-visible:shadow-focus"
           data-testid="composer-frame"
         >
+          {activePendingQuote ? (
+            <ComposerQuoteBar
+              pendingQuote={activePendingQuote}
+              onClear={handleClearPendingQuote}
+            />
+          ) : null}
           <ComposerInput
             id={textareaId}
             data-testid="composer-textarea"

@@ -112,13 +112,14 @@ export function SidebarTopBar({ mobileInline, hideTitle, data, view, sync, home 
         </SidebarHeader>
       )}
 
-      {/* Task #164: the unread counts may be the last known ones; say so
-          once under the head: Home's bar on a phone, the sidebar head on a
-          desktop (behind SHOW_STALE_COUNTS_NOTICE_IN_DESKTOP_SIDEBAR). */}
+      {/* Task #164: the unread counts may be the last known ones; they
+          update silently. Only reads that cannot catch up on their own
+          (RisingWave not configured) say so, once under the head: Home's bar
+          on a phone, the sidebar head on a desktop (behind
+          SHOW_STALE_COUNTS_NOTICE_IN_DESKTOP_SIDEBAR). */}
       {railMode === "chat" && !isServerPushedPage && (mobileInline || SHOW_STALE_COUNTS_NOTICE_IN_DESKTOP_SIDEBAR) && (
         <StaleCountsNotice
           surfaces={UNREAD_COUNT_SURFACES}
-          messageId="layout.sidebar.staleCountsNotice"
           unavailableMessageId="layout.sidebar.countsUnavailableNotice"
           // On a phone a card on the search box's 16px edges, 8px under it (Figmama 135782db).
           className="max-md:mx-4 max-md:mt-2 max-md:rounded-control max-md:px-3"

@@ -20,7 +20,7 @@ import type { NotificationLevelTarget } from "../notifications/NotificationLevel
  * the channel one: a DM has no name/description form, but section and display
  * prefs apply to it unchanged (only a DM with an App bot can be muted, so the
  * mute row only ever appears when the caller passes `activityMute`). Each row is
- * its title and its control; only Mute keeps a line (who isn't notified).
+ * its title and, at its end, its control; only Mute keeps a line (who isn't notified).
  *
  * In the channel details (raft-design channel.md, stdrc 2026-11-10) it is the
  * "Your preferences" group: settings rows in a ListRowGroup under a
@@ -97,11 +97,18 @@ export function ChannelPreferencesSection({
           one line each, the title at the start and its select or switch at the end. */}
       <ListRowGroup>
         {isPanel && levelTarget && (
-          <ListRow variant="plain" interactive={false} data-testid="channel-settings-notification-level">
+          <ListRow variant="plain" interactive={false} className="@max-lg:flex-wrap" data-testid="channel-settings-notification-level">
             <ListRowBody>
               <ListRowTitle id="channel-settings-notification-level-label">
                 {formatMessage({ id: "notifications.level.menuLabel" })}
               </ListRowTitle>
+              {/* What Mute means, while it is the choice: in the row's text, not under the select at its end
+                  (DS Forms: what belongs to a setting but isn't its control goes under its text). */}
+              {levelTarget.scope === "channel" && levelTarget.mute?.muted && (
+                <ListRowDescription id="channel-settings-notification-level-note" wrap data-testid="notification-level-notes">
+                  {formatMessage({ id: "notifications.level.muteNote" })}
+                </ListRowDescription>
+              )}
             </ListRowBody>
             <NotificationLevelSelect
               fit
@@ -134,7 +141,7 @@ export function ChannelPreferencesSection({
           </ListRow>
         )}
         {!isLounge && (
-          <ListRow variant="plain" interactive={false} data-testid="channel-settings-section">
+          <ListRow variant="plain" interactive={false} className="@max-lg:flex-wrap" data-testid="channel-settings-section">
             <ListRowBody>
               <ListRowTitle id="channel-settings-section-label">
                 {formatMessage({ id: "channel.details.sidebarSection" })}

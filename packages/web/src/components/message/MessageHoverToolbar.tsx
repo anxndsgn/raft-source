@@ -3,7 +3,7 @@ import { ThreadIcon } from "@botiverse/ricons";
 import { useCallback, useEffect, useRef } from "react";
 import type { MouseEvent, PointerEvent } from "react";
 import { useIntl } from "react-intl";
-import { Bookmark, Ellipsis, BookmarkMinus, CornerUpLeft } from "lucide-react";
+import { Bookmark, Ellipsis, BookmarkMinus, CornerUpLeft, TextQuote } from "lucide-react";
 import { ForwardIcon } from "./messageForwardIcon";
 import ReactionGlyph from "./ReactionGlyph";
 import { DEFAULT_FAVORITE_REACTION } from "./reactionFavorite";
@@ -48,6 +48,8 @@ export interface MessageHoverToolbarProps {
   /** The pointer rested on the button: open the reaction picker there. */
   onReactionHoverOpen: (button: HTMLButtonElement) => void;
   onToggleSave: (e: MouseEvent) => void;
+  /** Quote-reply to this message (Quote Reply v0, gated); absent when flag is off or message isn't quotable. */
+  onQuote?: (e: MouseEvent) => void;
   /** Forward this one message (task #35); absent where it can't be forwarded. */
   onForward?: (e: MouseEvent) => void;
   /** Open this message's context menu from the toolbar; absent where there is none. */
@@ -56,11 +58,11 @@ export interface MessageHoverToolbarProps {
   moreActive?: boolean;
 }
 
-export type MessageHoverToolbarAction = "reaction" | "reply" | "thread" | "forward" | "bookmark" | "more";
+export type MessageHoverToolbarAction = "reaction" | "reply" | "thread" | "quote" | "forward" | "bookmark" | "more";
 
 /**
  * The toolbar's buttons, in order. The order follows the message context menu
- * (reaction row, Reply in Thread, Forward, Save), and More opens that menu.
+ * (reaction row, Reply in Thread, Quote when enabled, Forward, Save), and More opens that menu.
  */
 const QUICK_REACTION_HINT_TRIGGER_PROPS = { delay: QUICK_REACTION_HINT_DELAY_MS };
 // Raft redesign (Figmama 11/18): on a desktop the reaction you added is the medium fill, not yellow.
@@ -70,6 +72,7 @@ export function messageHoverToolbarActions({
   hideThreadActions,
   isSystem,
   canReact = true,
+  canQuote = false,
   canForward,
   canMore = false,
   canReply = false,
@@ -78,6 +81,7 @@ export function messageHoverToolbarActions({
   hideThreadActions?: boolean;
   isSystem?: boolean;
   canReact?: boolean;
+  canQuote?: boolean;
   canForward: boolean;
   canMore?: boolean;
 }): MessageHoverToolbarAction[] {
@@ -85,6 +89,7 @@ export function messageHoverToolbarActions({
   if (!isSystem && canReact) actions.push("reaction");
   if (canReply) actions.push("reply");
   else if (!hideThreadActions) actions.push("thread");
+  if (canQuote) actions.push("quote");
   if (canForward) actions.push("forward");
   actions.push("bookmark");
   if (canMore) actions.push("more");
@@ -101,6 +106,7 @@ export function MessageHoverToolbar({
   canReact = true,
   onReplyInThread,
   onReply,
+  onQuote,
   onReactionClick,
   onQuickReact,
   onReactionHoverOpen,
@@ -111,7 +117,7 @@ export function MessageHoverToolbar({
 }: MessageHoverToolbarProps) {
   const coarsePointer = useMediaQuery("(pointer: coarse)");
   const { formatMessage } = useIntl();
-  const actions = messageHoverToolbarActions({ hideThreadActions, isSystem, canReact, canForward: !!onForward, canMore: !!onMore, canReply: !!onReply });
+  const actions = messageHoverToolbarActions({ hideThreadActions, isSystem, canReact, canQuote: !!onQuote, canForward: !!onForward, canMore: !!onMore, canReply: !!onReply });
   const hoverOpenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cancelHoverOpen = useCallback(() => {
     if (hoverOpenTimerRef.current) clearTimeout(hoverOpenTimerRef.current);
@@ -224,6 +230,17 @@ export function MessageHoverToolbar({
                 data-message-affordance="thread"
               >
                 <ThreadIcon width={16} height={16} />
+              </MessageItemToolbarButton>
+            );
+          case "quote":
+            return (
+              <MessageItemToolbarButton
+                key={action}
+                onClick={onQuote}
+                aria-label={formatMessage({ id: "message.messageItem.quote" })}
+                data-message-affordance="quote"
+              >
+                <TextQuote size={16} />
               </MessageItemToolbarButton>
             );
           case "forward":

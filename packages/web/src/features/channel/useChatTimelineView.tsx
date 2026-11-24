@@ -1,3 +1,4 @@
+import type { HeadToggleSurface } from "./useChannelHeadToggles";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useForMeStore } from "../thread/forMeStore";
 import { createPortal } from "react-dom";
@@ -126,11 +127,12 @@ export function useConversationHeaderPortal(ownsUrl: boolean) {
  * and Settings replace each other, the same one again closes it; a thread open in this channel holds the place too,
  * and none of the four shows pressed meanwhile (Tasks and Files step aside under it and come back when it closes).
  */
-export function useThreadAwareCardToggles(channelId: string | null, cards: { tasksCardOpen: boolean; filesCardOpen: boolean; toggleTasksCard: () => void; toggleFilesCard: () => void; detailsOpen: boolean; closeDetails: (open: boolean) => void }) {
+export function useThreadAwareCardToggles(channelId: string | null, cards: { tasksCardOpen: boolean; filesCardOpen: boolean; toggleTasksCard: (surface: HeadToggleSurface, compact: boolean) => void; toggleFilesCard: (surface: HeadToggleSurface, compact: boolean) => void; detailsOpen: boolean; closeDetails: (open: boolean) => void }) {
   const { tasksCardOpen, filesCardOpen, toggleTasksCard: toggleTasks, toggleFilesCard: toggleFiles, detailsOpen, closeDetails } = cards;
   const threadHere = useThreadStore((s) => !!s.openParentMessageId && s.openParentChannelId === channelId && !s.taskModal);
   // Pressing Tasks or Files: shown alone (it closes when it was what showed).
-  const show = useCallback((card: "tasks" | "files") => {
+  // `surface` and `compact` say where it was pressed (channel_tab_selected), passed on to the card's own toggle.
+  const show = useCallback((card: "tasks" | "files", surface: HeadToggleSurface, compact: boolean) => {
     const [own, other, toggleOwn, toggleOther] = card === "tasks"
       ? [tasksCardOpen, filesCardOpen, toggleTasks, toggleFiles]
       : [filesCardOpen, tasksCardOpen, toggleFiles, toggleTasks];
@@ -140,11 +142,11 @@ export function useThreadAwareCardToggles(channelId: string | null, cards: { tas
     if (channelId) { cards.claimPanel(channelId); cards.closeTaskDetail(channelId); }
     if (detailsOpen) closeDetails(false);
     if (threadHere) useThreadStore.getState().closeThread();
-    if (other) toggleOther();
-    if (shown || !own) toggleOwn();
+    if (other) toggleOther(surface, compact);
+    if (shown || !own) toggleOwn(surface, compact);
   }, [channelId, closeDetails, detailsOpen, filesCardOpen, tasksCardOpen, threadHere, toggleFiles, toggleTasks]);
-  const showTasksCard = useCallback(() => show("tasks"), [show]);
-  const showFilesCard = useCallback(() => show("files"), [show]);
+  const showTasksCard = useCallback((surface: HeadToggleSurface, compact: boolean) => show("tasks", surface, compact), [show]);
+  const showFilesCard = useCallback((surface: HeadToggleSurface, compact: boolean) => show("files", surface, compact), [show]);
   // A thread opened here replaces the details (the details opened replace the thread: prepareChannelDetailsOpen).
   // Tasks or Files opened any other way (a message's task tag) replace the details as well.
   const cardShownAt = useChannelSideCardStore((s) => Math.max(s.cardFocusAt.tasks, s.cardFocusAt.files));

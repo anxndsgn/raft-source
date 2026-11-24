@@ -3,6 +3,8 @@ import {
   getLatestComputerReleaseNotes,
   getLatestComputerVersion,
   isComputerSelfBuilt,
+  getInstallableComputerVersion,
+  computerVersionAtLeast,
   resolveComputerUpgradeAvailable,
   __resetLatestComputerVersionForTest,
 } from "./computerVersionService";
@@ -324,4 +326,57 @@ test("a self-built Computer is switched on only by an explicit RAFT_COMPUTER_SEL
   for (const value of [undefined, "", "0", "false", "no", "off"]) {
     assert.equal(isComputerSelfBuilt({ RAFT_COMPUTER_SELF_BUILT: value }), false, String(value));
   }
+});
+
+test("getInstallableComputerVersion: a slow Hands is unknown (null) once the timeout passes, never a guess", async () => {
+  __resetLatestComputerVersionForTest();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = ((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+    init?.signal?.addEventListener("abort", () => reject(init.signal!.reason));
+  })) as typeof fetch;
+  try {
+    assert.equal(await getInstallableComputerVersion("main", 20), null);
+  } finally {
+    globalThis.fetch = originalFetch;
+    __resetLatestComputerVersionForTest();
+  }
+});
+
+test("getInstallableComputerVersion: asks Hands for the named channel and caches per channel; privacy mode asks nothing", async () => {
+  __resetLatestComputerVersionForTest();
+  const originalFetch = globalThis.fetch;
+  const urls: string[] = [];
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
+    const url = requestUrl(input);
+    urls.push(url);
+    const channel = new URL(url).searchParams.get("channel");
+    return Response.json({ release: { version: channel === "alpha" ? "1.25.8-rc.1" : "1.25.7" } });
+  }) as typeof fetch;
+  try {
+    assert.equal(await getInstallableComputerVersion("alpha"), "1.25.8-rc.1");
+    assert.equal(await getInstallableComputerVersion("main"), "1.25.7");
+    assert.equal(await getInstallableComputerVersion("alpha"), "1.25.8-rc.1");
+    assert.deepEqual(urls.map((url) => new URL(url).searchParams.get("channel")), ["alpha", "main"]);
+    __resetLatestComputerVersionForTest();
+    setPrivacyModeForTest(true);
+    try {
+      assert.equal(await getInstallableComputerVersion("main"), null);
+    } finally {
+      setPrivacyModeForTest(false);
+    }
+    assert.equal(urls.length, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+    __resetLatestComputerVersionForTest();
+  }
+});
+
+test("computerVersionAtLeast: SemVer precedence (a prerelease sorts below its release), unknown or unparseable is no", () => {
+  assert.equal(computerVersionAtLeast("1.25.8", "1.25.8"), true);
+  assert.equal(computerVersionAtLeast("1.26.0", "1.25.8"), true);
+  assert.equal(computerVersionAtLeast("1.25.8-rc.1", "1.25.8"), false);
+  assert.equal(computerVersionAtLeast("1.25.8-staging.20261119100004.sha.e006c0739be3", "1.25.8"), false);
+  assert.equal(computerVersionAtLeast("1.25.7", "1.25.8"), false);
+  assert.equal(computerVersionAtLeast(null, "1.25.8"), false);
+  assert.equal(computerVersionAtLeast("latest", "1.25.8"), false);
 });

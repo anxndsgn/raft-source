@@ -56,7 +56,8 @@ ENV VITE_COMPUTER_COMMAND=$VITE_COMPUTER_COMMAND
 RUN pnpm --filter @botiverse/raft-web run build
 
 # --- Production stage: nginx ---
-FROM nginx:alpine
+# Pinned: 1.31.9 fixes the NGINX2Root CVEs. Raise it on purpose, never below.
+FROM nginx:1.31.9-alpine
 
 # Copy built assets
 COPY --from=builder /app/packages/web/dist /usr/share/nginx/html

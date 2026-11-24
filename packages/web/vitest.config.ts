@@ -6,6 +6,16 @@ import { holdTestSlotForThisRun } from "../../scripts/vitest/testSlot";
 import { useDevRunEnv } from "../../scripts/dev/raftdev-cache";
 import { defaultTestIncludes } from "./scripts/testLocations";
 import { iconAliases } from "./scripts/iconAliases";
+import { reactCompilerPlugins } from "./scripts/reactCompilerSwitch";
+
+// Dev trace (scripts/vitest/devTraceReporter.ts): loaded lazily so that a
+// problem in it can never stop this config from loading.
+// The path is not a literal so the config's bundler leaves it alone: in this source release the reporter's own
+// import (scripts/devtrace) is missing, and a literal import failed the whole config's build (raft-customized).
+const devTraceReporterPath = "../../scripts/vitest/devTraceReporter";
+const devTrace = await import(/* @vite-ignore */ devTraceReporterPath)
+  .then((module) => [module.devTracePlugin("@botiverse/raft-web")])
+  .catch(() => []);
 
 const webRoot = fileURLToPath(new URL(".", import.meta.url));
 const dom = process.env.RAFT_WEB_TEST_DOM === "1";
@@ -66,7 +76,9 @@ const assertAliases = [
 
 export default defineConfig({
   root: webRoot,
-  plugins: ci ? [] : [runRecord],
+  // RAFT_WEB_REACT_COMPILER=1 runs the tests against compiled components, as the
+  // staging web build ships them (scripts/reactCompilerSwitch.ts); nothing otherwise.
+  plugins: [...devTrace, ...(ci ? [] : [runRecord]), reactCompilerPlugins(process.env, webRoot, { everyEnvironment: true })],
   resolve: {
     alias: [{ find: /^\.\/fakeArtifactSourceSlot$/, replacement: testFakeArtifactSourceSlot }, ...assertAliases, ...iconAliases(webRoot)],
   },

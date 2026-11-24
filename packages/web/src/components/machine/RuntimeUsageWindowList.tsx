@@ -3,6 +3,7 @@ import type { RuntimeAccountUsageWindow } from "@botiverse/raft-shared";
 import { useIntl } from "react-intl";
 import { useResumeMoment } from "../task/agentTimeText";
 import { runtimeUsagePercentUsed } from "./bulkChangeModelPlan";
+import type { RuntimeUsageListWindow } from "./runtimeUsageCredits";
 
 /** Used up by the provider's word or the ratio itself (as the usage card). */
 function windowUsedUp(window: RuntimeAccountUsageWindow): boolean {
@@ -10,7 +11,7 @@ function windowUsedUp(window: RuntimeAccountUsageWindow): boolean {
 }
 
 /** One window: the runtime (and the window's name) and its value on a line, then the bar. */
-function UsageWindowLine({ window, label }: { window: RuntimeAccountUsageWindow; label: string }) {
+function UsageWindowLine({ window, label }: { window: RuntimeUsageListWindow; label: string }) {
   const { formatMessage } = useIntl();
   const resumeMoment = useResumeMoment();
   if (window.status === "parse_unavailable") {
@@ -27,7 +28,9 @@ function UsageWindowLine({ window, label }: { window: RuntimeAccountUsageWindow;
   // (and the window, where it has several), then "60% used", or once used up when it is back ("23:00 恢复").
   const moment = usedUp ? resumeMoment(window.resetsAt) : null;
   const valueText = usedUp
-    ? moment ? formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when }) : formatMessage({ id: "machine.runtimeUsage.windowUsedUpResetUnavailable" })
+    ? window.onCredits === true
+      ? formatMessage({ id: "machine.runtimeUsage.windowUsedUpOnCreditsResetUnavailable" })
+      : moment ? formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when }) : formatMessage({ id: "machine.runtimeUsage.windowUsedUpResetUnavailable" })
     : formatMessage({ id: "machine.rack.percentUsed" }, { percent });
   return (
     <div data-testid="runtime-usage-window" data-usage-full={usedUp ? "true" : undefined}>
@@ -36,7 +39,7 @@ function UsageWindowLine({ window, label }: { window: RuntimeAccountUsageWindow;
   );
 }
 
-export function RuntimeUsageWindowList({ windows, runtimeName }: { windows: readonly RuntimeAccountUsageWindow[]; runtimeName: string }) {
+export function RuntimeUsageWindowList({ windows, runtimeName }: { windows: readonly RuntimeUsageListWindow[]; runtimeName: string }) {
   const { formatMessage } = useIntl();
   return (
     <div className="flex min-w-0 flex-col gap-3" data-testid="runtime-usage-windows">

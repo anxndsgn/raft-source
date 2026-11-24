@@ -91,7 +91,7 @@ type RunInstall = (
 ) => Promise<{ ok: boolean; detail: string }>;
 
 const runInstallWithExecFile: RunInstall = (command, args, options) => new Promise((resolve) => {
-  execFile(command, args, { ...options, maxBuffer: 4 * 1024 * 1024, windowsHide: true }, (error, stdout, stderr) => {
+  execFile(command, args, { cwd: options.cwd, env: options.env, signal: options.signal, timeout: options.timeout, maxBuffer: 4 * 1024 * 1024, windowsHide: true }, (error, stdout, stderr) => {
     const output = `${stdout ?? ""}${stderr ?? ""}`.trim().split("\n").filter(Boolean).pop() ?? "";
     resolve({ ok: !error, detail: error ? (output || error.message) : output });
   });

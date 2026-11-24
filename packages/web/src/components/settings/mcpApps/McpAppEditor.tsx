@@ -133,6 +133,8 @@ export function McpAppEditor({
     }
   }, [formatMessage, onChanged, view]);
 
+  // The server vouch answers the App view; the Profile draft being edited is kept.
+
   const handleDeleted = useCallback(() => {
     onChanged();
     onClose();

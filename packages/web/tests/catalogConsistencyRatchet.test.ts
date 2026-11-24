@@ -102,6 +102,7 @@ const KNOWN_DRIFT: ReadonlyArray<readonly [string, readonly string[]]> = [
   // is a participant TYPE (人类), not a server member. composer.actorType.human
   // and search.badgeHuman refer to MEMBERS (人类成员). Keep English Human in
   // both contexts; adding "member" would break the sibling Agent/Computer labels.
+  // (raft-customized keeps search.badgeHuman: its search rows name their kind.)
   ["Human", ["人类", "人类成员"]],
   // @cindyz 2026-10-29, #wg-announcement:b1994a43 205120c6: the sidebar
   // announcement stack's button reads "Next" in English. It moves to the next

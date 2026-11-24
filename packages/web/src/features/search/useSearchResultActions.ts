@@ -3,7 +3,8 @@ import { artifactLinkId } from "@botiverse/raft-shared";
 import type { ArtifactId } from "@botiverse/raft-shared";
 import type { Dispatch, RefObject, MouseEvent as ReactMouseEvent, SetStateAction } from "react";
 import type { Location, NavigateFunction } from "react-router-dom";
-import { placeContextMenu } from "../../components/ui/contextMenuPosition";
+import { capturePointAnchor } from "../../components/ui/popupAnchor";
+import type { PopupAnchorTarget } from "../../components/ui/popupAnchor";
 import { useMobileBack } from "../../hooks/useAppNavigate";
 import { useIsDesktopShell } from "../../components/layout/ShellFrame";
 import { ARTIFACT_OPEN_PARAM } from "../../apps/artifacts";
@@ -23,8 +24,7 @@ import { lastOpenedResultKeys } from "./searchSnapshot";
 
 export interface SearchChannelContextMenuState {
   result: SearchEntityRecord;
-  x: number;
-  y: number;
+  anchor: PopupAnchorTarget;
 }
 
 /**
@@ -522,16 +522,13 @@ export function useSearchResultActions({
   ) => {
     event.preventDefault();
     event.stopPropagation();
-    const position = placeContextMenu({
-      x: event.clientX,
-      y: event.clientY,
-      width: 192,
-      height: 40,
-    });
     setChannelContextMenu({
       result,
-      x: position.x,
-      y: position.y,
+      anchor: capturePointAnchor(
+        event.clientX,
+        event.clientY,
+        event.currentTarget instanceof Element ? event.currentTarget : null,
+      ),
     });
   }, [setChannelContextMenu]);
 

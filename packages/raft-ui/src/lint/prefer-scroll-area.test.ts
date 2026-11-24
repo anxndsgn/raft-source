@@ -143,6 +143,17 @@ new RuleTester({
       code: '// raft-ui: native-scroll a reason\n\n<div className="overflow-auto" />',
       errors: [error],
     },
+    {
+      name: "reportReasonlessEscapes flags a bare escape comment and interpolates its prefix and hint",
+      code: "// raft-ui: native-scroll\nconst x = 1;",
+      options: [{ reportReasonlessEscapes: true }],
+      errors: [
+        {
+          message:
+            'Escape directive "raft-ui: native-scroll" must include a concrete rationale (e.g. "// raft-ui: native-scroll <reason>").',
+        },
+      ],
+    },
   ],
 });
 

@@ -9,6 +9,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import http from "node:http";
+import { fetchWithRunnerCredential } from "./runnerCredentialRenewal";
 import type { AddressInfo } from "node:net";
 import path from "node:path";
 import {
@@ -25,6 +26,12 @@ import {
   type CallToolResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { logger } from "./logger";
+import { CONTINUATION_ANSWER_TOOL_NAME } from "@botiverse/raft-shared/src/continuations/index";
+import {
+  callContinuationAnswerTool,
+  continuationAnswerToolDefinition,
+  type ContinuationAnswerRunner,
+} from "./continuationAnswerTool";
 import { managedMcpRefusalGuidance } from "./managedMcpRefusal";
 import {
   confirmRuntimeTurnOrigin,
@@ -56,8 +63,14 @@ type Registration = {
   snapshot: ManagedMcpRuntimeSnapshot;
   loadSnapshot?: () => Promise<ManagedMcpRuntimeSnapshot>;
   callTool: (request: ManagedMcpCallRequest) => Promise<ManagedMcpCallResult>;
-  /** Set once the runtime has listed this endpoint's tools (`waitForManagedMcpToolsListed`). */
-  toolsListed?: boolean;
+  /**
+   * The launch offers the daemon-local `answer_continuation` tool
+   * (continuationAnswerTool.ts): who answers, with which `raft` and which
+   * environment, captured when the launch registered. Absent: the tool is
+   * neither listed nor callable. Every other tool comes from the Server's
+   * catalog and is forwarded to it; this one never is.
+   */
+  continuationRunner?: ContinuationAnswerRunner;
 };
 
 type ProxyState = {
@@ -66,8 +79,31 @@ type ProxyState = {
 };
 
 const registrations = new Map<string, Registration>();
-/** Waiters for a launch's first `tools/list`, keyed by `launchKey`. */
-const toolsListedWaiters = new Map<string, Set<() => void>>();
+/** Each registration's answer_continuation calls in flight, by JSON-RPC request id (for `notifications/cancelled`). */
+const inFlightAnswers = new WeakMap<Registration, Map<string, AbortController>>();
+
+function inFlightAnswersOf(registration: Registration): Map<string, AbortController> {
+  let inFlight = inFlightAnswers.get(registration);
+  if (!inFlight) {
+    inFlight = new Map();
+    inFlightAnswers.set(registration, inFlight);
+  }
+  return inFlight;
+}
+
+/** A `notifications/cancelled` in this POST's body (one message or a batch) aborts the answer call it names. */
+function cancelAnswersNamedIn(registration: Registration, body: unknown): void {
+  const inFlight = inFlightAnswers.get(registration);
+  if (!inFlight || inFlight.size === 0) return;
+  for (const message of Array.isArray(body) ? body : [body]) {
+    if (!message || typeof message !== "object") continue;
+    const { method, params } = message as { method?: unknown; params?: { requestId?: unknown } };
+    if (method !== "notifications/cancelled") continue;
+    const requestId = params?.requestId;
+    if (typeof requestId !== "string" && typeof requestId !== "number") continue;
+    inFlight.get(String(requestId))?.abort();
+  }
+}
 const launchCleanups = new Map<string, Set<() => void>>();
 let proxyState: ProxyState | null = null;
 let proxyStart: Promise<ProxyState> | null = null;
@@ -273,10 +309,12 @@ async function requestAgentApi<T>(input: {
   path: string;
   body?: unknown;
 }): Promise<T> {
-  const response = await fetch(new URL(input.path, input.serverUrl), {
+  // #wg-rbac:#27: the launch's runner key as renewed; a 401
+  // agent_credential_expired renews it and sends once more.
+  const response = await fetchWithRunnerCredential(input.token, (token) => fetch(new URL(input.path, input.serverUrl), {
     method: input.body === undefined ? "GET" : "POST",
     headers: {
-      Authorization: `Bearer ${input.token}`,
+      Authorization: `Bearer ${token}`,
       "X-Slock-Agent-Active-Capabilities": "mcp",
       ...(input.body === undefined
         ? {}
@@ -284,7 +322,7 @@ async function requestAgentApi<T>(input: {
     },
     ...(input.body === undefined ? {} : { body: JSON.stringify(input.body) }),
     signal: AbortSignal.timeout(25_000),
-  });
+  }));
   const payload = (await response.json().catch(() => null)) as
     | T
     | { error?: unknown; code?: unknown; connectionRequested?: unknown; suggestedNextAction?: unknown }
@@ -356,25 +394,67 @@ function createMcpServer(registration: Registration): Server {
     { capabilities: { tools: {} } },
   );
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    const nativeTools = await loadNativeTools(registration);
-    markToolsListed(registration);
+    let nativeTools: Awaited<ReturnType<typeof loadNativeTools>>;
+    try {
+      nativeTools = await loadNativeTools(registration);
+    } catch (error) {
+      // Without the answer tool a failed catalog reload fails the list, as before.
+      if (!registration.continuationRunner) throw error;
+      // The answer tool is the daemon's own and needs nothing from the Server:
+      // it stays listed while the catalog cannot be read (the runtime was told
+      // to use it, RAFT_CONTINUATION_TOOL), and the catalog tools come back at
+      // the next list.
+      logger.warn(
+        `[Agent ${registration.agentId}] Managed MCP catalog reload failed; listing only ${CONTINUATION_ANSWER_TOOL_NAME} [reason=catalog_reload_failed${managedMcpDiscoveryFailureDetail(error)}]`,
+      );
+      nativeTools = [];
+    }
     return {
-      tools: nativeTools.map(({ nativeName, tool }) => ({
-        name: nativeName,
-        ...(tool.title ? { title: tool.title } : {}),
-        description: tool.description
-          ? `${tool.description}\n\nManaged MCP source: ${tool.serverName} / ${tool.toolName}.`
-          : `Call ${tool.toolName} on ${tool.serverName}.`,
-        inputSchema: tool.inputSchema,
-        ...(tool.annotations ? { annotations: tool.annotations } : {}),
-      })),
+      tools: [
+        ...nativeTools.map(({ nativeName, tool }) => ({
+          name: nativeName,
+          ...(tool.title ? { title: tool.title } : {}),
+          description: tool.description
+            ? `${tool.description}\n\nManaged MCP source: ${tool.serverName} / ${tool.toolName}.`
+            : `Call ${tool.toolName} on ${tool.serverName}.`,
+          inputSchema: tool.inputSchema,
+          ...(tool.annotations ? { annotations: tool.annotations } : {}),
+        })),
+        // Daemon-local, unprefixed: a catalog tool is always `r<sha8>_...`, so the names cannot meet.
+        ...(registration.continuationRunner ? [continuationAnswerToolDefinition()] : []),
+      ],
     };
   });
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
     // Read the turn origin FIRST, before any await: this is the turn the runtime issued the call in.
     // It is re-confirmed just before forwarding, so a turn that ends during the snapshot reload
     // sends the call without an origin instead of with the next turn's.
     const capturedOrigin = registration.readTurnOrigin?.() ?? null;
+    // The answer tool runs here, in the daemon, as this registration's launch; it never reaches the Server.
+    if (request.params.name === CONTINUATION_ANSWER_TOOL_NAME) {
+      if (!registration.continuationRunner) {
+        return toolError(new Error(`Managed MCP tool ${CONTINUATION_ANSWER_TOOL_NAME} is not available to this Agent; answer in a shell with cont <id> <choice>`));
+      }
+      // Cancelled (an interrupted turn): the child is stopped, so a replay
+      // cannot send a message after the agent stopped waiting for it. The
+      // handler's signal aborts when this request's connection closes or its
+      // own transport is closed; a `notifications/cancelled` arrives as a
+      // separate POST in this stateless proxy, so it is matched here by
+      // request id (inFlightAnswers).
+      const controller = new AbortController();
+      const abort = (): void => controller.abort();
+      if (extra.signal.aborted) abort();
+      else extra.signal.addEventListener("abort", abort, { once: true });
+      const inFlight = inFlightAnswersOf(registration);
+      const requestKey = String(extra.requestId);
+      inFlight.set(requestKey, controller);
+      try {
+        return await callContinuationAnswerTool(registration.continuationRunner, request.params.arguments, { signal: controller.signal });
+      } finally {
+        extra.signal.removeEventListener("abort", abort);
+        if (inFlight.get(requestKey) === controller) inFlight.delete(requestKey);
+      }
+    }
     try {
       const nativeTools = await loadNativeTools(registration);
       const tool = nativeTools.find(
@@ -438,6 +518,12 @@ async function handleRequest(
   try {
     const body =
       request.method === "POST" ? await readJsonBody(request) : undefined;
+    cancelAnswersNamedIn(registration, body);
+    // The client went away before its answer (an interrupted turn aborting its
+    // fetch): closing the transport aborts this request's handler signal.
+    response.once("close", () => {
+      if (!response.writableFinished) void transport.close().catch(() => undefined);
+    });
     await server.connect(transport);
     await transport.handleRequest(request, response, body);
   } catch (error) {
@@ -542,64 +628,6 @@ export async function registerManagedMcpRuntimeProxy(
   };
 }
 
-function toolsListedKey(agentId: string, launchId: string | null): string {
-  return `${agentId}\u0000${launchId ?? ""}`;
-}
-
-function markToolsListed(registration: Registration): void {
-  if (registration.toolsListed) return;
-  registration.toolsListed = true;
-  const key = toolsListedKey(registration.agentId, registration.launchId);
-  const waiters = toolsListedWaiters.get(key);
-  if (!waiters) return;
-  toolsListedWaiters.delete(key);
-  for (const wake of waiters) wake();
-}
-
-export type ManagedMcpToolsListedOutcome = "ready" | "timeout" | "stopped" | "none";
-
-/**
- * Waits until the runtime has listed the launch's managed MCP tools, at most
- * `timeoutMs`. `none`: the launch has no managed MCP endpoint, nothing to wait
- * for. A runtime that connects its MCP servers in the background (agy, task
- * #23) would otherwise get its first prompt before Raft's tools are there, and
- * that turn runs without them.
- */
-export function waitForManagedMcpToolsListed(input: {
-  agentId: string;
-  launchId?: string | null;
-  timeoutMs: number;
-  signal?: AbortSignal;
-}): Promise<ManagedMcpToolsListedOutcome> {
-  const launchId = input.launchId ?? null;
-  let registered = false;
-  for (const registration of registrations.values()) {
-    if (registration.agentId !== input.agentId || registration.launchId !== launchId) continue;
-    if (registration.toolsListed) return Promise.resolve("ready");
-    registered = true;
-  }
-  if (!registered) return Promise.resolve("none");
-  if (input.signal?.aborted) return Promise.resolve("stopped");
-  const key = toolsListedKey(input.agentId, launchId);
-  return new Promise((resolve) => {
-    const waiters = toolsListedWaiters.get(key) ?? new Set<() => void>();
-    toolsListedWaiters.set(key, waiters);
-    const finish = (outcome: ManagedMcpToolsListedOutcome) => {
-      clearTimeout(timer);
-      input.signal?.removeEventListener("abort", onAbort);
-      waiters.delete(wake);
-      if (waiters.size === 0 && toolsListedWaiters.get(key) === waiters) toolsListedWaiters.delete(key);
-      resolve(outcome);
-    };
-    const wake = () => finish("ready");
-    const onAbort = () => finish("stopped");
-    const timer = setTimeout(() => finish("timeout"), input.timeoutMs);
-    timer.unref?.();
-    waiters.add(wake);
-    input.signal?.addEventListener("abort", onAbort, { once: true });
-  });
-}
-
 export function unregisterManagedMcpRuntimeProxyForLaunch(input: {
   agentId: string;
   launchId?: string | null;
@@ -644,6 +672,11 @@ export async function prepareManagedMcpRuntimeProxy(input: {
   agentCredentialKey?: string | null;
   onWarning?: (message: string) => void;
   /**
+   * The launch's runner for the daemon-local answer tool
+   * (continuationAnswerRunnerForLaunch), or absent when it does not offer it.
+   */
+  continuationRunner?: ContinuationAnswerRunner | null;
+  /**
    * Decides from the discovered snapshot whether this launch attaches the
    * server at all. Refused: nothing is registered and no token is minted.
    * Omitted: always attached (an empty catalog included).
@@ -674,6 +707,7 @@ export async function prepareManagedMcpRuntimeProxy(input: {
       launchId: input.launchId ?? null,
       processInstanceId: input.processInstanceId ?? null,
       ...(input.readTurnOrigin ? { readTurnOrigin: input.readTurnOrigin } : {}),
+      ...(input.continuationRunner ? { continuationRunner: input.continuationRunner } : {}),
       snapshot,
       loadSnapshot: () =>
         requestAgentApi<ManagedMcpRuntimeSnapshot>({
@@ -710,7 +744,6 @@ export async function __resetManagedMcpRuntimeProxyForTest(): Promise<void> {
     }
   }
   launchCleanups.clear();
-  toolsListedWaiters.clear();
   jsonConfigStates.clear();
   registrations.clear();
   const state = proxyState;

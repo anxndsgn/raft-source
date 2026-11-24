@@ -19,11 +19,14 @@ import type {
 import { Toast as BaseToast } from "@base-ui/react/toast";
 import { CircleCheck, Info, TriangleAlert } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { BASE_COLLISION_PADDING, usePopupCollision } from "../../lib/frame-insets";
 import { hudTextAction } from "../../lib/hud-text-action";
+import { useMergedRef } from "../../lib/use-merged-ref";
 import { tv } from "../../lib/tv";
 import type { VariantProps } from "../../lib/tv";
 import type { StyledProps } from "../../lib/styled-props";
 import { useThemeScopeProps } from "../../lib/theme/theme-scope";
+import { usePortalContainerProps } from "../../lib/portal-container";
 import { Spinner } from "../spinner/index";
 import { cn } from "../../lib/cn";
 
@@ -34,7 +37,10 @@ const toastStyles = tv({
       "outline-none",
     ],
     // raft-ui: z-index stacked toasts are ordered by --toast-index, a calc from --z-index-toast that no name can be.
-    positioner: ["isolate z-[calc(var(--z-index-toast)-var(--toast-index))] outline-none"],
+    positioner: [
+      "isolate z-[calc(var(--z-index-toast)-var(--toast-index))] outline-none",
+      "data-anchor-hidden:invisible data-anchor-hidden:pointer-events-none",
+    ],
     root: [
       "group/toast pointer-events-auto",
       "select-text",
@@ -59,8 +65,8 @@ const toastStyles = tv({
     content: [
       "relative grid grid-cols-[minmax(0,1fr)] items-center overflow-hidden",
       // The content layout keys off `data-has-*` attributes that
-      // DefaultToastItem writes at render time, instead of `:has()`: an
-      // ancestor `:has()` that styles descendants makes Chromium recalculate
+      // DefaultToastItem writes at render time, instead of a has-selector: an
+      // ancestor has-selector that styles descendants makes Chromium recalculate
       // the whole page on unrelated mutations (measured: ~55ms per text-node
       // change in a 300-message channel, #386). Manual compositions must set
       // the same attributes to keep the layout (see ToastContent).
@@ -255,11 +261,12 @@ function resolveActionTimeout(timeout: number, actionTimeout: number | undefined
   return timeout > 0 ? Math.max(timeout, DEFAULT_TOAST_ACTION_TIMEOUT_MS) : 0;
 }
 
-// The `toast` command API is bound to the default manager, so it takes its
-// timing from the ToastProvider that mounts that manager.
-const defaultManagerTiming = {
-  actionTimeout: DEFAULT_TOAST_ACTION_TIMEOUT_MS,
-};
+type ToastManager = ReturnType<typeof BaseToast.createToastManager<ToastData>>;
+
+// The command API is bound to a manager (`toast` to the default one,
+// `useToast()` to the nearest provider's), so it takes its timing from the
+// ToastProvider that mounts that manager.
+const managerTiming = new WeakMap<ToastManager, { actionTimeout: number }>();
 
 // A toast's action is a text action on the HUD (hudTextAction). It carries its own content and loading slots (a button's
 // would bring a button's fill and focus ring onto the dark toast).
@@ -322,7 +329,8 @@ type ToastCommandOptions<Data extends object = ToastData> = Omit<
 
 const defaultToastManager = createToastManager<ToastData>();
 
-function addDefaultToast(
+function addCommandToast(
+  manager: ToastManager,
   intent: ToastIntent,
   title: string,
   options: ToastCommandOptions<ToastData> = {},
@@ -340,9 +348,12 @@ function addDefaultToast(
   } = options;
   const needsTimeToAct = Boolean(action) || intent === "error";
 
-  return defaultToastManager.add({
+  const actionTimeout =
+    managerTiming.get(manager)?.actionTimeout ?? DEFAULT_TOAST_ACTION_TIMEOUT_MS;
+
+  return manager.add({
     ...toastOptions,
-    timeout: timeout ?? (needsTimeToAct ? defaultManagerTiming.actionTimeout : undefined),
+    timeout: timeout ?? (needsTimeToAct ? actionTimeout : undefined),
     actionProps: action
       ? {
           children: action.label,
@@ -363,28 +374,49 @@ function addDefaultToast(
   });
 }
 
-export const toast = {
-  add(options: ToastCommandOptions<ToastData> & { title: string; type?: ToastIntent }) {
-    const { title, type = "info", ...toastOptions } = options;
+function toastCommands(manager: ToastManager) {
+  return {
+    add(options: ToastCommandOptions<ToastData> & { title: string; type?: ToastIntent }) {
+      const { title, type = "info", ...toastOptions } = options;
 
-    return addDefaultToast(type, title, toastOptions);
-  },
-  info(title: string, options?: ToastCommandOptions<ToastData>) {
-    return addDefaultToast("info", title, options);
-  },
-  success(title: string, options?: ToastCommandOptions<ToastData>) {
-    return addDefaultToast("success", title, options);
-  },
-  warning(title: string, options?: ToastCommandOptions<ToastData>) {
-    return addDefaultToast("warning", title, options);
-  },
-  error(title: string, options?: ToastCommandOptions<ToastData>) {
-    return addDefaultToast("error", title, options);
-  },
-  dismiss(id?: string) {
-    return defaultToastManager.close(id);
-  },
-};
+      return addCommandToast(manager, type, title, toastOptions);
+    },
+    info(title: string, options?: ToastCommandOptions<ToastData>) {
+      return addCommandToast(manager, "info", title, options);
+    },
+    success(title: string, options?: ToastCommandOptions<ToastData>) {
+      return addCommandToast(manager, "success", title, options);
+    },
+    warning(title: string, options?: ToastCommandOptions<ToastData>) {
+      return addCommandToast(manager, "warning", title, options);
+    },
+    error(title: string, options?: ToastCommandOptions<ToastData>) {
+      return addCommandToast(manager, "error", title, options);
+    },
+    dismiss(id?: string) {
+      return manager.close(id);
+    },
+  };
+}
+
+/** The command API (`toast.success`, `toast.error`, …) for the default manager. */
+export const toast = toastCommands(defaultToastManager);
+
+export type ToastCommands = typeof toast;
+
+const ToastCommandsContext = createContext<ToastCommands>(toast);
+
+/**
+ * The command API of the nearest `ToastProvider`: `toast` itself under a
+ * provider on the default manager (or none), and the same commands bound to
+ * the provider's own `toastManager` otherwise. For a part of the app with a
+ * provider of its own, such as a second window (toast.md, "Toasts in another
+ * window"): a toast raised there shows there, where `toast.*` would show it
+ * in the window of the provider on the default manager.
+ */
+export function useToast(): ToastCommands {
+  return useContext(ToastCommandsContext);
+}
 
 export type ToastProviderProps = BaseToast.Provider.Props & {
   /**
@@ -393,6 +425,10 @@ export type ToastProviderProps = BaseToast.Provider.Props & {
    * longer, and to 0 when `timeout` is 0.
    */
   actionTimeout?: number;
+  /**
+   * Where the viewport renders: the nearest `PortalContainerProvider`'s
+   * container by default, else the body.
+   */
   portalContainer?: BaseToast.Portal.Props["container"];
   renderViewport?: boolean;
   viewportClassName?: string;
@@ -424,28 +460,34 @@ export function ToastProvider({
   const config = useMemo(() => ({ timeout }), [timeout]);
   const resolvedActionTimeout = resolveActionTimeout(timeout, actionTimeout);
 
+  const commands = useMemo(
+    () => (toastManager === defaultToastManager ? toast : toastCommands(toastManager)),
+    [toastManager],
+  );
+
   useLayoutEffect(() => {
-    if (toastManager !== defaultToastManager) return;
-    defaultManagerTiming.actionTimeout = resolvedActionTimeout;
+    managerTiming.set(toastManager, { actionTimeout: resolvedActionTimeout });
     return () => {
-      defaultManagerTiming.actionTimeout = DEFAULT_TOAST_ACTION_TIMEOUT_MS;
+      managerTiming.delete(toastManager);
     };
   }, [resolvedActionTimeout, toastManager]);
 
   return (
-    <ToastProviderConfigContext.Provider value={config}>
-      <BaseToast.Provider toastManager={toastManager} timeout={timeout} limit={limit} {...props}>
-        {children}
-        {renderViewport ? (
-          <DefaultToastLayer
-            placement={viewportPlacement}
-            portalContainer={portalContainer}
-            strategy={viewportStrategy}
-            viewportClassName={viewportClassName}
-          />
-        ) : null}
-      </BaseToast.Provider>
-    </ToastProviderConfigContext.Provider>
+    <ToastCommandsContext.Provider value={commands}>
+      <ToastProviderConfigContext.Provider value={config}>
+        <BaseToast.Provider toastManager={toastManager} timeout={timeout} limit={limit} {...props}>
+          {children}
+          {renderViewport ? (
+            <DefaultToastLayer
+              placement={viewportPlacement}
+              portalContainer={portalContainer}
+              strategy={viewportStrategy}
+              viewportClassName={viewportClassName}
+            />
+          ) : null}
+        </BaseToast.Provider>
+      </ToastProviderConfigContext.Provider>
+    </ToastCommandsContext.Provider>
   );
 }
 
@@ -456,7 +498,7 @@ export function ToastPortal(props: ToastPortalProps) {
     <BaseToast.Portal
       data-slot="toast-portal"
       data-raft-ui-overlay=""
-      {...useThemeScopeProps(props)}
+      {...useThemeScopeProps(usePortalContainerProps(props, false))}
     />
   );
 }
@@ -486,14 +528,33 @@ export function ToastViewport({
 
 export type ToastPositionerProps = StyledProps<BaseToast.Positioner.Props>;
 
-export function ToastPositioner({ className, ...props }: ToastPositionerProps) {
+export function ToastPositioner({
+  collisionBoundary,
+  collisionPadding,
+  positionMethod = "fixed",
+  ref,
+  className,
+  ...props
+}: ToastPositionerProps) {
   const { positioner } = toastStyles();
+  const collision = usePopupCollision(
+    collisionPadding,
+    collisionBoundary,
+    BASE_COLLISION_PADDING,
+    undefined,
+    undefined,
+    props.anchor,
+  );
+  const [mergedRef] = useMergedRef(collision.ref, ref);
 
   return (
     <BaseToast.Positioner
       data-slot="toast-positioner"
+      {...collision}
+      positionMethod={positionMethod}
       className={positioner({ className })}
       {...props}
+      ref={mergedRef}
     />
   );
 }
@@ -541,7 +602,7 @@ export type ToastContentProps = StyledProps<BaseToast.Content.Props> & {
 
 /**
  * The content layout (self-start, title-only sizing, body centering) needs to
- * know which parts actually rendered. That used to be an ancestor `:has()`
+ * know which parts actually rendered. That used to be an ancestor has-selector
  * styling descendants — a whole-page recalculation trap in Chromium (#386).
  * It measures the rendered DOM after layout instead, so wrapped parts and
  * parts that render nothing behave exactly like the old selectors did.

@@ -3,6 +3,7 @@ import type { useIntl } from "react-intl";
 import { useChannelStore } from "../../store/channelStore";
 import { findStoredChannel } from "../../store/storedChannel";
 import { documentTitleChannelLabel } from "../../utils/browserDocumentTitle";
+import { canWriteTasksInChannel } from "./taskChannelWrite";
 
 /**
  * The create's refusals a person can act on, in their language; any other shows the server's sentence.
@@ -10,7 +11,10 @@ import { documentTitleChannelLabel } from "../../utils/browserDocumentTitle";
  */
 function createRefusalMessage(code: string | undefined, formatMessage: ReturnType<typeof useIntl>["formatMessage"], asMessage: boolean): string | undefined {
   switch (code) {
+    // The server's codes since the send admission's refusals went through refuse(); the older names are what servers before that answered.
+    case "channel_membership_required":
     case "membership_required": return formatMessage({ id: "task.create.error.joinFirst" });
+    case "channel_read_only":
     case "quota_read_only": return formatMessage({ id: "task.create.error.readOnly" });
     case "channel_archived": return formatMessage({ id: "task.create.error.archived" });
     case "channel_access_changed": return formatMessage({ id: "task.create.error.accessChanged" });
@@ -46,7 +50,7 @@ export function useCreateTaskChannel(fixedChannelId: string | undefined, default
   const allChannels = useChannelStore((s) => s.channels);
   const channelOptions = useMemo<CreateTaskChannelOption[]>(() => (fixedChannelId ? [] : allChannels
     .filter((channel) => (channel.type === "channel" || channel.type === "private" || channel.type === "joint")
-      && channel.joined !== false && !channel.archivedAt && channel.canPost !== false)
+      && canWriteTasksInChannel(channel))
     .sort((a, b) => a.name.localeCompare(b.name))
     .map((channel) => ({ value: channel.id, label: channelOptionLabel(channel.name) }))), [allChannels, fixedChannelId]);
   const [pickedChannelId, setPickedChannelId] = useState<string | null>(

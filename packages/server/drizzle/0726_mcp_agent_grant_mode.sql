@@ -1,1 +1,0 @@
-ALTER TABLE "managed_mcp_servers" ADD COLUMN "agent_grant_mode" text DEFAULT 'automatic' NOT NULL;

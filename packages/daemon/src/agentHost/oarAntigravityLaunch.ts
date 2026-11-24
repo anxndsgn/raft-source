@@ -16,39 +16,26 @@
 // made on the Computer or from the web (OAR 0.97 `login`, runtimeAuth/
 // runtimeAuthHost.ts); the launch itself reads none of it.
 //
-// First input (task #23): `agy` connects its MCP servers in the background
-// once the session is open, about 2 s later, and a turn that starts before
-// that runs without Raft's tools. The model then reads their absence as a
-// fact, and a resumed conversation keeps it. So the first input waits, at
-// most AGY_MANAGED_MCP_READY_TIMEOUT_MS, until `agy` has listed the launch's
-// managed MCP tools at the proxy.
+// First input (task #23): `agy` connects the workspace `.agents/mcp_config.json`
+// servers only once the first prompt arrives, so the first turn after a start
+// runs without Raft's tools; holding the prompt does not help. Passing the
+// server on `session/new` / `session/load` would fix it but stores the token
+// in agy's database (above), which anxndsgn declined (bb3a5d8f). Workaround:
+// the next message has the tools.
 //
 // Resume: OAR's `resume` is `agy`'s own session id. The driver's id is its own
-// (it resumes with `--continue`), so `agy` doesn't know it, OAR's open fails and
-// that start falls back to the driver. An agent that has one moves here once
-// its session is reset.
+// (it resumes with `--continue`), so `agy` doesn't list it and OAR refuses the
+// resume (`ResumeCwdError`, `not_listed`). That start opens a new OAR session
+// instead of falling back (`newSessionOnResumeNotListed`): the agent moves here
+// once, losing its runtime context but not its memory or Raft history.
 
+import type { InstallationSnapshot } from "@botiverse/oar";
 import { hydrateRuntimeConfig, runtimeConfigToLaunchFields } from "@botiverse/raft-shared";
 import { prepareAntigravityEnvironment, resolveAntigravitySpawn } from "../drivers/index";
 import type { SpawnContext } from "../drivers/types";
+import { loadOarRuntime } from "../oarLoader";
 import { launchEnvOverlay } from "./oarGrokLaunch";
-import { waitForManagedMcpToolsListed } from "../managedMcpRuntimeProxy";
-import type { FirstInputReadiness, OarLaunch } from "./oarLaunch";
-
-/** How long the first input waits for `agy` to list Raft's managed MCP tools. */
-export const AGY_MANAGED_MCP_READY_TIMEOUT_MS = 15_000;
-
-/** The first input's wait: `agy` has listed the launch's managed MCP tools, or the wait ends. */
-export async function awaitAgyManagedMcp(
-  ctx: Pick<SpawnContext, "agentId" | "launchId">,
-  signal: AbortSignal,
-  timeoutMs: number = AGY_MANAGED_MCP_READY_TIMEOUT_MS,
-  now: () => number = Date.now,
-): Promise<FirstInputReadiness> {
-  const started = now();
-  const outcome = await waitForManagedMcpToolsListed({ agentId: ctx.agentId, launchId: ctx.launchId, timeoutMs, signal });
-  return { waitedFor: "managed_mcp", outcome: outcome === "none" ? "ready" : outcome, waitedMs: now() - started };
-}
+import { OarLaunchDeclined, type OarLaunch } from "./oarLaunch";
 
 /** A prepared Antigravity launch as an OAR launch. */
 export function antigravityOarLaunch(
@@ -74,11 +61,44 @@ export function antigravityOarLaunch(
     },
     // A second native prompt steers the same loop (OAR runtimes/antigravity/session.js).
     busyDelivery: "now",
-    firstInputReady: (_session, signal) => awaitAgyManagedMcp(ctx, signal),
+    newSessionOnResumeNotListed: true,
   };
+}
+
+/**
+ * Resolves the `agy` command OAR will launch: prefers OAR's own installation
+ * probe (which checks `OAR_ANTIGRAVITY_BIN`, PATH, `%LOCALAPPDATA%\agy\bin\agy.exe`
+ * on Windows / `~/.local/bin/agy` on POSIX, and rejects unsupported versions)
+ * so Windows launches pass the actual executable/shim to OAR rather than a
+ * node-host wrapper. Falls back to `resolveAntigravitySpawn` only when OAR
+ * reports no installation.
+ */
+export async function resolveAntigravityOarCommand(
+  env: NodeJS.ProcessEnv,
+  deps: {
+    readInstallation?: (env: NodeJS.ProcessEnv) => Promise<InstallationSnapshot | null>;
+    fallbackResolve?: () => string;
+  } = {},
+): Promise<string> {
+  let installation: InstallationSnapshot | null = null;
+  try {
+    installation = deps.readInstallation
+      ? await deps.readInstallation(env)
+      : await (await loadOarRuntime("antigravity")).installation?.({ env: launchEnvOverlay(env) }) ?? null;
+  } catch {
+    installation = null;
+  }
+  if (installation?.kind === "available" && installation.via === "executable") {
+    return installation.command;
+  }
+  if (installation?.kind === "unsupported") {
+    throw new OarLaunchDeclined(`antigravity_installation_unsupported:${installation.code ?? "unsupported"}`);
+  }
+  return (deps.fallbackResolve ?? (() => resolveAntigravitySpawn([]).command))();
 }
 
 export async function prepareAntigravityOarLaunch(ctx: SpawnContext): Promise<OarLaunch> {
   const env = await prepareAntigravityEnvironment(ctx);
-  return antigravityOarLaunch(ctx, { command: resolveAntigravitySpawn([]).command, env });
+  const command = await resolveAntigravityOarCommand(env);
+  return antigravityOarLaunch(ctx, { command, env });
 }

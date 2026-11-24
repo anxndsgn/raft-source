@@ -52,9 +52,12 @@ export const useForMeStore = create<ForMeState>((set, get) => ({
       api.get<{ items: ForMeQuestion[] }>("/channels/inbox/for-me/questions").catch(() => null),
     ]);
     if (get().serverId !== serverId) return;
+    // A reply without its list (an older server, a test's stub) changes nothing.
+    const doneItems = done?.data?.items;
+    const questionItems = questions?.data?.items;
     set((state) => ({
-      doneAt: done ? { ...Object.fromEntries(done.data.items.map((row) => [row.itemKey, row.doneAt])), ...pendingOnly(state.doneAt, done.data.items) } : state.doneAt,
-      questions: questions ? questions.data.items : state.questions,
+      doneAt: doneItems ? { ...Object.fromEntries(doneItems.map((row) => [row.itemKey, row.doneAt])), ...pendingOnly(state.doneAt, doneItems) } : state.doneAt,
+      questions: questionItems ?? state.questions,
     }));
   },
   markDone: async (keys) => {

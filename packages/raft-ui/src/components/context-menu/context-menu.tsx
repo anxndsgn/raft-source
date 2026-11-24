@@ -8,6 +8,7 @@ import { Kbd } from "../kbd/index";
 import type { KbdProps } from "../kbd/index";
 import type { StyledProps } from "../../lib/styled-props";
 import { useThemeScopeProps } from "../../lib/theme/theme-scope";
+import { usePortalContainerProps } from "../../lib/portal-container";
 
 const contextMenu = tv({
   slots: {
@@ -108,7 +109,7 @@ export function ContextMenuPortal(props: ContextMenuPortalProps) {
     <BaseContextMenu.Portal
       data-slot="context-menu-portal"
       data-raft-ui-overlay=""
-      {...useThemeScopeProps(props)}
+      {...useThemeScopeProps(usePortalContainerProps(props, true))}
     />
   );
 }

@@ -13,13 +13,21 @@ import { Select as BaseSelect } from "@base-ui/react/select";
 import { Check, ChevronDown } from "lucide-react";
 import type { DataAttributes } from "../../lib/data-attributes";
 import { usePopupCollision } from "../../lib/frame-insets";
+import {
+  PopupAnchorCloseProvider,
+  usePopupAnchorDismiss,
+  usePopupCloseAction,
+} from "../../lib/popup-anchor-dismiss";
 import { cn } from "../../lib/cn";
 import { tv } from "../../lib/tv";
 import { SheetDragHandle } from "../../lib/sheet-drag-handle";
 import { sheetBackdrop, sheetContent, sheetPositioner, sheetRow } from "../../lib/bottom-sheet";
+import { useMergedRef } from "../../lib/use-merged-ref";
 import { useOverflowTitle } from "../../lib/use-overflow-title";
 import type { StyledProps } from "../../lib/styled-props";
 import { useThemeScopeProps } from "../../lib/theme/theme-scope";
+import { usePortalContainerProps } from "../../lib/portal-container";
+import { isElement, ownerWindow } from "../../lib/owner-window";
 import { Button } from "../button/index";
 import { ScrollAreaGutters } from "../scroll-area/scroll-area-gutters";
 import { useScrollAreaContainer } from "../scroll-area/use-scroll-area-container";
@@ -58,7 +66,7 @@ const select = tv({
       "text-foreground-hint opacity-100",
       "[&>svg]:size-4 [&>svg]:stroke-2 [&>svg_*]:stroke-2",
     ],
-    value: ["flex min-w-0 flex-1 truncate text-left"],
+    value: ["block min-w-0 flex-1 truncate text-left"],
     fitFrame: ["grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)]"],
     sizer: [
       "col-start-1 row-start-1 flex h-0 flex-col overflow-hidden",
@@ -67,7 +75,7 @@ const select = tv({
     sizerLabel: ["whitespace-nowrap font-semibold"],
     sizerPlaceholder: ["whitespace-nowrap font-medium"],
     // On a phone the options are a bottom sheet (lib/bottom-sheet.ts).
-    positioner: ["isolate z-popup outline-none", ...sheetPositioner],
+    positioner: ["isolate z-popup outline-none", "data-anchor-hidden:invisible data-anchor-hidden:pointer-events-none", ...sheetPositioner],
     backdrop: sheetBackdrop,
     content: [
       "relative max-h-(--available-height) min-w-[max(var(--anchor-width),220px)] overflow-hidden",
@@ -266,10 +274,10 @@ type RootChangeDetails = BaseSelect.Root.ChangeEventDetails;
  */
 function keepActionHighlighted(event: Event) {
   const target = event.target;
-  if (!(target instanceof Element)) return;
+  if (!isElement(target)) return;
   const row = target.closest<HTMLElement>('[data-slot="select-action-item"]');
   if (!row) return;
-  requestAnimationFrame(() => {
+  ownerWindow(row).requestAnimationFrame(() => {
     if (!row.isConnected || row.hasAttribute("data-highlighted")) return;
     const list = row.closest<HTMLElement>('[role="listbox"]');
     const lent = list !== null && !list.hasAttribute("tabindex");
@@ -282,6 +290,7 @@ function keepActionHighlighted(event: Event) {
 
 export function Select<Value, Multiple extends boolean | undefined = false>({
   chrome = "default",
+  actionsRef,
   onValueChange,
   onOpenChange,
   isItemEqualToValue,
@@ -290,6 +299,7 @@ export function Select<Value, Multiple extends boolean | undefined = false>({
   items,
   ...props
 }: SelectProps<Value, Multiple>) {
+  const { actionsRef: mergedActionsRef, close } = usePopupCloseAction(actionsRef);
   // Whether the item press that just ran an action may close the list. Base UI
   // commits a pressed item's value, then asks to close; the value is cancelled
   // below and this decides the close that follows.
@@ -353,21 +363,24 @@ export function Select<Value, Multiple extends boolean | undefined = false>({
   );
 
   return (
-    <SelectChromeContext value={chrome}>
-      <SelectItemsContext value={items}>
-        <BaseSelect.Root
-          data-slot="select"
-          data-chrome={chrome}
-          onValueChange={handleValueChange as SelectProps<Value, Multiple>["onValueChange"]}
-          onOpenChange={handleOpenChange}
-          isItemEqualToValue={handleItemEquality}
-          itemToStringLabel={handleStringLabel}
-          itemToStringValue={handleStringValue}
-          items={items}
-          {...props}
-        />
-      </SelectItemsContext>
-    </SelectChromeContext>
+    <PopupAnchorCloseProvider close={close}>
+      <SelectChromeContext value={chrome}>
+        <SelectItemsContext value={items}>
+          <BaseSelect.Root
+            data-slot="select"
+            data-chrome={chrome}
+            actionsRef={mergedActionsRef}
+            onValueChange={handleValueChange as SelectProps<Value, Multiple>["onValueChange"]}
+            onOpenChange={handleOpenChange}
+            isItemEqualToValue={handleItemEquality}
+            itemToStringLabel={handleStringLabel}
+            itemToStringValue={handleStringValue}
+            items={items}
+            {...props}
+          />
+        </SelectItemsContext>
+      </SelectChromeContext>
+    </PopupAnchorCloseProvider>
   );
 }
 
@@ -500,7 +513,7 @@ export function SelectPortal(props: SelectPortalProps) {
     <BaseSelect.Portal
       data-slot="select-portal"
       data-raft-ui-overlay=""
-      {...useThemeScopeProps(props)}
+      {...useThemeScopeProps(usePortalContainerProps(props, true))}
     />
   );
 }
@@ -522,6 +535,7 @@ function SelectFramePositioner({
   collisionBoundary,
   collisionPadding,
   container,
+  ref,
   ...props
 }: SelectFramePositionerProps) {
   const collision = usePopupCollision(
@@ -532,7 +546,9 @@ function SelectFramePositioner({
     undefined,
     props.anchor,
   );
-  return <BaseSelect.Positioner {...collision} {...props} />;
+  const dismissRef = usePopupAnchorDismiss(props.anchor, "close-on-hidden");
+  const [mergedRef] = useMergedRef(collision.ref, dismissRef, ref);
+  return <BaseSelect.Positioner {...collision} {...props} ref={mergedRef} />;
 }
 
 export type SelectContentProps = StyledProps<BaseSelect.Popup.Props> &

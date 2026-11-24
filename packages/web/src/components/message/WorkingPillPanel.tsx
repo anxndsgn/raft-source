@@ -23,6 +23,11 @@ const EASE = "cubic-bezier(.32,.72,0,1)";
  * has). A row opens that agent beside the conversation and folds the panel back; so do Escape and a press outside.
  * Reduced motion: it switches without the transitions.
  */
+
+/** Whether the person asked for less motion (read at the moment, as the motion starts). */
+function reduced(): boolean {
+  return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 export function WorkingPillPanel({
   items,
   typingAgentIds,
@@ -75,7 +80,6 @@ export function WorkingPillPanel({
     return () => window.clearTimeout(timer);
   }, [open, items.length]);
 
-  const reduced = () => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // Each face slides from where it sat in the pill to its row's avatar (FLIP).
   const slideFaces = useCallback(() => {

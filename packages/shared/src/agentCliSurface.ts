@@ -10,6 +10,7 @@ export { agentWriteLandingTarget } from "./agentWriteLanding";
 export { formatAgentTaskWriteUnseen } from "./agentText/hold";
 export { agentApiClientResultFromRaw, createAgentApiClient } from "./agentApiClient";
 export { findIntegrationService, findListedIntegrationService } from "./integrations/findService";
+export { appReplyText, formatAppReplyTextBlock, type AppReplyText } from "./integrations/replyText";
 export { AGENT_API_RATE_LIMITED_CODE, agentApiRateLimitedSentence, parseAgentApiRateLimitedBody } from "./agentApiRateLimit";
 export { AGENT_API_CLIENT_UPGRADE_REQUIRED_CODE } from "./agentApiClientUpgrade";
 export {
@@ -61,7 +62,7 @@ export {
   AGENT_API_ARTIFACT_TEXT_CONTENT_MAX_BYTES,
 } from "./agentApiArtifactsContract";
 export { ARTIFACT_AGENT_WRITES_PER_MINUTE, ARTIFACT_COMMENT_IMAGE_MAX_BYTES, ARTIFACT_COMMENT_IMAGE_TYPE_BYTES, ARTIFACT_COMMENT_IMAGE_UPLOADS_PER_MINUTE, ARTIFACT_COMMENT_MAX_IMAGES, artifactCommentImageTypeOf } from "./artifactCommentLimits";
-export { artifactFileType } from "./artifactFiles";
+export { artifactFileType, artifactTitleFromFileName } from "./artifactFiles";
 export { isGitPathSegment, isWellFormedArtifactFilePath } from "./artifactFilePath";
 export { appEnabledPerEnv, RAFT_ENABLED_APPS_ENV } from "./enabledAppsEnv";
 export { artifactLinkId, parseArtifactRef } from "./artifactRef";
@@ -82,6 +83,7 @@ export {
   formatAgentMessageTarget,
   formatAgentMessageTaskRef,
   formatAgentSenderHandle,
+  formatAgentSenderOriginLabel,
   formatAgentSourceTasksSuffix,
   formatAgentTaskReplySuffix,
   formatAgentTaskAssigneeSuffix,
@@ -89,6 +91,8 @@ export {
   formatSenderHandleText,
   foldAgentOneLineText,
   indentAgentBodyContinuationLines,
+  parseAgentSenderOrigin,
+  replaceAgentLineBreaks,
   AGENT_BODY_CONTINUATION_PREFIX,
   AGENT_BODY_LINE_SEPARATOR,
 } from "./agentMessageText";
@@ -122,8 +126,9 @@ export {
 export { configuredRaftHome, defaultRaftHomeDirname } from "./agentOps/raftHome";
 export { userInfo } from "./agentOps/server";
 export { opError } from "./agentOps/outcome";
-export { artifactsCheck, artifactsCheckShot, artifactsComment, artifactsCommentImage, artifactsCommentImageUpload, artifactsComments, artifactsDelete, artifactsFile, artifactsFileContent, artifactsList, artifactsMatchQuery, artifactsMove, artifactsPublish, ARTIFACTS_PROBE_GRACE_MS, probeWithin, artifactsRead, artifactsReview, artifactsReviewRefusal, artifactsFollow, artifactsReopen, artifactsResolve, artifactsSaveAttachment, artifactsUnfollow, artifactUploadFailure } from "./agentOps/artifacts";
-export { ARTIFACT_PAGE_MANUAL_CONTEXT, artifactPageManualHint, formatArtifactCheck, formatArtifactCheckWaiting, formatArtifactCommented, formatArtifactCommentImageRefusal, formatArtifactCommentImageSaved, formatArtifactComments, formatArtifactDeleted, formatArtifactDownloaded, formatArtifactError, formatArtifactList, formatArtifactMoved, formatArtifactsAlsoMatch, formatArtifactNothingToPublish, formatArtifactPublished, formatArtifactPulled, formatArtifactRead, formatArtifactReviewCommentImageRefusal, formatArtifactReviewed, formatArtifactReviewTooManyImages, formatArtifactReviewTooManyWrites, formatArtifactSaved, formatArtifactSubscription, formatArtifactThreadResolution } from "./agentText/artifacts";
+export { artifactsCheck, artifactsCheckShot, artifactsComment, artifactsCommentImage, artifactsCommentImageUpload, artifactsComments, artifactsDelete, artifactsFile, artifactsFileContent, artifactsList, artifactsMatchQuery, artifactsMove, artifactsPublish, ARTIFACT_NOT_A_PAGE_HOLD_MS, ARTIFACTS_PROBE_GRACE_MS, probeWithin, artifactsRead, artifactsReview, artifactsReviewRefusal, artifactsFollow, artifactsReopen, artifactsResolve, artifactsSaveAttachment, artifactsSettle, artifactsUnfollow, artifactsUnsettle, artifactUploadFailure } from "./agentOps/artifacts";
+export { ARTIFACT_PAGE_MANUAL_CONTEXT, artifactPageManualHint, formatArtifactCheck, formatArtifactCheckWaiting, formatArtifactCommented, formatArtifactCommentImageRefusal, formatArtifactCommentImageSaved, formatArtifactComments, formatArtifactDeleted, formatArtifactDownloaded, formatArtifactError, formatArtifactList, formatArtifactMoved, formatArtifactsAlsoMatch, formatArtifactNothingToPublish, formatArtifactPublished, formatArtifactPulled, formatArtifactRead, formatArtifactReviewCommentImageRefusal, formatArtifactReviewed, formatArtifactReviewTooManyImages, formatArtifactReviewTooManyWrites, formatArtifactSaved, formatArtifactSettlement, formatArtifactSubscription, formatArtifactThreadResolution, formatAttachmentPreferArtifactHold } from "./agentText/artifacts";
+export { ATTACHMENT_TITLE_SCAN_BYTES, attachmentPrefersArtifact, holdAttachmentForArtifact, type AttachmentArtifactHold } from "./agentOps/attachmentArtifactHold";
 export { messageSearchProbesArtifacts } from "./agentOps/search";
 export {
   isExternalAgentActivityLegacyStatus,
@@ -182,6 +187,8 @@ export {
   formatAgentServerSummary,
   formatAgentUserInfo,
   formatChannelDeletedWithLastMember,
+  formatChannelMemberRoleRefusal,
+  formatChannelMemberRoleSet,
   formatLastMemberRefusal,
   LAST_MEMBER_DELETES_CHANNEL,
 } from "./agentText/server";
@@ -193,6 +200,7 @@ export {
   formatAgentTaskAssigned,
   formatAgentTaskConverted,
   formatAgentTaskDeleted,
+  formatAgentTaskEarlierDiscussion,
   formatAgentTaskHistory,
   formatAgentTaskList,
   formatAgentTasksCreated,
@@ -229,11 +237,13 @@ export {
   validateExternalRuntimeIntegrationManifest,
 } from "./externalAgentIntegration";
 export {
+  FORWARDED_RESOLVE_CAPABILITY,
   INBOX_ITEMS_CAPABILITY,
   MANUAL_CONTEXT_CAPABILITY,
   MANUAL_INDEX_COMMAND,
   PLAN_UPGRADE_CARD_CAPABILITY,
   RAFT_CLIENT_CAPABILITIES_HEADER,
+  REMINDER_APP_CLI_CAPABILITY,
   validateKnowledgeContext,
 } from "./knowledgeContext";
 export { formatManagedMcpPromptName } from "./managedMcp";
@@ -252,6 +262,8 @@ export {
 export { RAFT_CLIENT_VERSION_HEADER } from "./requestOriginHeaders";
 export { localProxyLifecycleCliCode, RAFT_CLI_ENTRY_ENV, RAFT_CLI_ENTRY_HEADER, RAFT_CLI_STABLE_ENTRY } from "./cliStableEntry";
 export {
+  formatProcMemoryLimitExit,
+  formatProcOwnerStopExit,
   isValidProcName,
   PROC_CAPABILITY,
   PROC_LOGS_DEFAULT_TAIL,
@@ -261,6 +273,8 @@ export {
   PROC_NAME_PATTERN,
 } from "./procJobs";
 export { canonicalizeOAuthClientCategory, OAUTH_CLIENT_CATEGORIES } from "./oauthClientCategories";
+export { AGENT_TOKEN_SIGNING_ALGS, isAgentTokenSigningAlg } from "./agentTokenSigningAlg";
+export { AGENT_TOKEN_TYPES, isAgentTokenType } from "./agentTokenType";
 export { guideAppCapabilities } from "./raftCliGuide";
 export { extractRaftMentionHandles, parseRaftRefTarget, structuredRaftMentionStillAppears } from "./raftRefs";
 export { TASK_CLAIM_REASON_ALREADY_CLAIMED_BY_YOU } from "./taskClaimReason";
@@ -272,4 +286,5 @@ export { TASK_CREATE_STATUSES, isTaskCreateStatus } from "./taskCreateStatus";
 export { checkTaskStatusReason } from "./taskStatusReason";
 export { checkTaskAssignReason } from "./taskAssignReason";
 export { MAX_PROFILE_AVATAR_BYTES } from "./profileAvatar";
-export { CONTINUATIONS_DRAFT_FLOW_RUNTIMES } from "./featureFlags";
+export { CONTINUATIONS_PILOT_RUNTIMES } from "./featureFlags";
+export { formatDescriptionLinkWarnings } from "./descriptionLinkWarnings";

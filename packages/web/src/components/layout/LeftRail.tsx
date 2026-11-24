@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isHostShell } from "../../embed";
 import { useIntl } from "react-intl";
-import { Blocks, CircleHelp, Search, Settings, ListTodo, Inbox } from "lucide-react";
+import { Blocks, Bookmark, CircleHelp, Search, Settings, ListTodo, Inbox } from "lucide-react";
 import { useFeedbackUnread } from "../../feedback/useFeedbackUnread";
 import { useAuthStore } from "../../store/authStore";
 import { useServerStore } from "../../store/serverStore";
@@ -13,6 +13,7 @@ import { useInboxForMeCount } from "../../features/thread/inboxForMe";
 import { SERVER_NOTIFICATION_PREFS_UPDATED_EVENT } from "../../store/events/notificationPrefsEvents";
 import type { RailMode } from "../../hooks/useSidebarTab";
 import { useRailMode } from "../../hooks/useSidebarTab";
+import { useAppNavigate } from "../../hooks/useAppNavigate";
 import { trackActivityOpen } from "../../analytics/activity";
 import { trackNavEntrySelected } from "../../analytics/navigation";
 import { OttieRailAvatar } from "../../assistant/OttieRailAvatar";
@@ -61,11 +62,10 @@ import { ThemeEditorPopover } from "../../features/theme-editor/ThemeEditorPopov
 // 1. Server avatar / switcher button (clicking opens a flyout to switch servers)
 // 2. Rail mode buttons. The selection derives from the URL.
 //
-// Rail mode is path-based: /channel/, /dm/, /threads, /tasks, /saved, /search
-// are chat; /agent/, /human/, /members are members; /computer/, /computers
-// are computers; /settings/, /release-notes are settings. Clicking a rail
-// button restores that mode's last-visited path from localStorage memory,
-// or falls back to the mode's canonical landing.
+// Rail mode is path-based, read through the route table
+// (navigation/surfaces.ts). Clicking a rail button lands on that tab's place
+// (hooks/placeMemory.ts: its last page with only the page's own params, never
+// a pane), or on the tab's home with nothing remembered.
 //
 // Hidden on mobile root inline view: mobile already has its own bottom tab bar
 // and the sidebar is the whole main area, so a second vertical rail there would
@@ -121,11 +121,16 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
   // joined channels and DMs participate in the global pink Chat attention dot.
   // Keep the channel-id projection shallow so high-frequency channel activity
   // updates do not churn this rail subscription.
-  const chatAttentionChannelIds = useChannelStore(useShallow((s) =>
-    selectChatAttentionChannelIds(s.channels, s.dmChannels),
+  // Muted rows show a quiet count, so they only light Chat where the row
+  // itself does (a muted channel's @you marker; never a muted DM).
+  const chatLoudChannelIds = useChannelStore(useShallow((s) =>
+    selectChatAttentionChannelIds(s.channels, s.dmChannels).loud,
+  ));
+  const chatMutedChannelIds = useChannelStore(useShallow((s) =>
+    selectChatAttentionChannelIds(s.channels, s.dmChannels).mutedChannels,
   ));
   const hasLocalChatUnread = useMessageStore((s) =>
-    hasChatAttentionUnread(chatAttentionChannelIds, s.unreadCounts),
+    hasChatAttentionUnread({ loud: chatLoudChannelIds, mutedChannels: chatMutedChannelIds }, s.unreadCounts, s.mentionFlags),
   );
   // Keep this subscription on 0↔nonzero / accepted-window edges rather than
   // every count. Once Activity accepts a fresh server window, totalUnreadCount
@@ -147,7 +152,17 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
     // "1 computer needs attention" (Anna 11/16: "1 / 4" read as nothing).
     ? formatMessage({ id: "readiness.attention.computers" }, { count: computerAttentionCount })
     : undefined;
-  const { railMode, currentMode, selectRailMode } = useRailMode();
+  const { railMode, currentMode, selectRailMode, savedPage } = useRailMode();
+  const nav = useAppNavigate();
+  // A Guest has no sidebar, so no Saved row in it (shellRouteLayout): its
+  // Saved list has a rail entry of its own, selected on the Saved page in
+  // place of Chat. A member's Saved stays the Chat sidebar's row.
+  const guestSavedActive = isGuest && savedPage;
+  const chatActive = railMode === "chat" && !guestSavedActive;
+  const openGuestSaved = useCallback(() => {
+    trackNavEntrySelected("saved", "rail", guestSavedActive);
+    nav.toSaved();
+  }, [guestSavedActive, nav]);
   // The Computers list is in view whenever the rail is in Computers mode
   // (the /computers root or a computer's detail): that sees its attention.
   useMarkComputerAttentionSeen(railMode === "computers" && !isGuest && !pending);
@@ -293,7 +308,7 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
     }
     const chatLabel = formatMessage({ id: "layout.leftRail.tabChat" });
     tabs.push(tab("chat", chatLabel, ({ dragProps, guardClick }) => (
-      <RailTabButton {...dragProps} icon={<MessageIcon width={18} height={18} />} label={chatLabel} active={railMode === "chat"} onClick={guardClick(railModeSelectors.chat)} showDot={hasChatUnread} dotInactiveOnly testId="left-rail-tab-chat" />
+      <RailTabButton {...dragProps} icon={<MessageIcon width={18} height={18} />} label={chatLabel} active={chatActive} onClick={guardClick(railModeSelectors.chat)} showDot={hasChatUnread} dotInactiveOnly testId="left-rail-tab-chat" />
     )));
     // Layout redesign: Activity and the bell are one inbox, its unread counted on the rail.
     const activityLabel = formatMessage({ id: "layout.leftRail.tabInbox" });
@@ -356,7 +371,7 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
       )));
     }
     return tabs;
-  }, [appsAttention.lit, computerAttentionTooltip, formatMessage, handleClassicActivityClick, hasActivityUnread, hasChatUnread, isGuest, railMode, railModeSelectors, showArtifacts, showAssistant, showComputerAttentionDot, topBar, forMeCount]);
+  }, [appsAttention.lit, chatActive, computerAttentionTooltip, formatMessage, handleClassicActivityClick, hasActivityUnread, hasChatUnread, isGuest, railMode, railModeSelectors, showArtifacts, showAssistant, showComputerAttentionDot, topBar, forMeCount]);
   const selectPublicChatMode = useCallback(() => publicProjection?.onSelectMode("chat"), [publicProjection]);
   const selectPublicSettingsMode = useCallback(() => publicProjection?.onSelectMode("settings"), [publicProjection]);
   const openPublicFeedback = useCallback(() => publicProjection?.onSelectSettingsTab("feedback"), [publicProjection]);
@@ -567,6 +582,14 @@ export function LeftRail({ hidden, topBar = false, publicProjection }: LeftRailP
           highlighted at a time. */}
       <AppRailNav className="relative w-full">
         <SortableRailTabs tabs={railTabs} />
+        {/* A Guest's Saved list (#triage:#551). Not one of the sortable tabs:
+            only a Guest has it, so it follows them rather than taking a place
+            in the account's one saved order (raft-shared RAIL_TAB_IDS). */}
+        {isGuest ? (
+          <div className="relative flex justify-center">
+            <RailTabButton icon={<Bookmark size={18} />} label={formatMessage({ id: "layout.sidebar.saved" })} active={guestSavedActive} onClick={openGuestSaved} testId="left-rail-tab-saved" />
+          </div>
+        ) : null}
       </AppRailNav>
 
       {/* Raft redesign (Figma 精修 · 组件化): the footer is Settings, then your

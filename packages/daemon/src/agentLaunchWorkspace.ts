@@ -2,12 +2,13 @@
 // (AgentProcessManager and the OAR host). Moved verbatim from
 // AgentProcessManager.
 
+import path from "node:path";
 import type { AgentConfig } from "@botiverse/raft-shared";
 import { buildCindyMemoryMd, buildCindySeedFiles } from "./cindy";
-import { initializeAgentWorkspace } from "./workspaces";
-import { syncSkillsHubWorkspace } from "./skillsHubSync";
-import { resolveAntigravitySpawn } from "./drivers/antigravity.deprecated";
 import { logger } from "./logger";
+import { initializeAgentWorkspace, writeWorkspaceOwnerMarker } from "./workspaces";
+import { syncSkillsHubWorkspace } from "./skillsHubSync";
+import { resolveAntigravitySpawn } from "./drivers/antigravity";
 
 const ONBOARDING_MEMORY_SEED_ENV = "SLOCK_ONBOARDING_MEMORY_SEED";
 const FIRST_CINDY_SEED_MODE = "first-cindy";
@@ -54,5 +55,17 @@ export async function initializeLaunchWorkspace(agentDataDir: string, agentId: s
     }
   } catch (error) {
     logger.warn(`[Agent ${agentId}] Skills Hub sync failed: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  // The server this launch serves owns the workspace (workspaces.ts,
+  // WORKSPACE_OWNER_MARKER_FILE): another server's delete of it is refused.
+  // Best effort: a launch never fails on it; without a marker a delete is
+  // judged as for a workspace from before markers.
+  const serverId = config.runtimeContext?.serverId;
+  if (serverId) {
+    try {
+      writeWorkspaceOwnerMarker(path.dirname(agentDataDir), agentId, serverId);
+    } catch (error) {
+      logger.warn(`[Agent ${agentId}] Could not write the workspace owner marker: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 }

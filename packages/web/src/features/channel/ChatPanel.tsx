@@ -7,6 +7,7 @@ import type { ComponentType, ReactNode } from "react";
 import { useIntl } from "react-intl";
 import { ArrowDown, X } from "lucide-react";
 import { useChannelHeadToggles } from "./useChannelHeadToggles";
+import type { HeadToggleSurface } from "./useChannelHeadToggles";
 import { ChatPanelNoChannel } from "./ChatPanelNoChannel";
 import {
   Badge,
@@ -37,10 +38,11 @@ import SOSDialog from "../../components/message/SOSDialog";
 import { LoungeUnarchiveAction } from "./LoungeUnarchiveAction";
 import ChannelTasksPanel from "../../components/task/ChannelTasksPanel";
 import { useChannelSideCardStore } from "../../store/channelSideCardStore";
-import { trackChannelTabSelected } from "../../analytics/entries";
+import { trackChannelTabSelected, trackConversationHeaderAction } from "../../analytics/entries";
 import type { ChannelSideCard } from "../../store/channelSideCardStore";
 import { useChannelStore } from "../../store/channelStore";
 import { findStoredChannel } from "../../store/storedChannel";
+import { useChannelPrefs } from "./useChannelPrefs";
 import { LoungeAvatar } from "../../components/agent/LoungeAvatar";
 import type { Channel } from "../../store/channelStore";
 import { slackSyncHeaderState } from "../../components/channel/slackSyncHeaderState";
@@ -69,10 +71,10 @@ import { useChannelFirstPageSettled } from "../../hooks/useChannelFirstPageSettl
 import { useJoinDeferred } from "../../store/joinDeferred";
 import { rosterHumanAsMember } from "../../utils/rosterHumanAsMember";
 import { useChannelMembers } from "../../hooks/useChannelMembers";
+import { useCurrentDay } from "../../hooks/useCurrentDay";
 import Tooltip from "../../components/ui/Tooltip";
 import AppBadge from "../../components/agent/AppBadge";
-import { useForumTimeline } from "./useForumTimeline";
-import { ChannelForumOrderBadge } from "../../components/channel/ChannelForumOrderBadge";
+import { claimChatReadOwner } from "../../store/chatReadOwner";
 import { useUIStore } from "../../store/uiStore";
 import { ThreadUnreadJumpPill } from "../../components/message/ThreadUnreadJumpPill";
 import { useVisibleMessageWindowStore, VisibleMessageTranslations } from "../../components/message/VisibleMessageTranslations";
@@ -119,6 +121,7 @@ import { useLocation } from "react-router-dom";
 import MessageLinkUnavailable from "../../components/deeplinks/MessageLinkUnavailable";
 import { OpenInAppRowSlot } from "../../components/deeplinks/OpenInAppRowSlot";
 import { ChannelAnnouncementStrip } from "../../components/channel/ChannelAnnouncementStrip";
+import { ChannelConversionStrip } from "../../components/channel/ChannelConversionStrip";
 import { CHANNEL_ANNOUNCEMENT_ROW_ID } from "../../components/channel/channelAnnouncementParts";
 import { useChannelAnnouncement } from "../../store/channelAnnouncementStore";
 import { conversationPathOf, useLandedMessageLink } from "../../components/deeplinks/deepLinksFlag";
@@ -144,9 +147,6 @@ import { useTimeFormatter } from "../../hooks/useTimeFormatter";
 import api from "../../api/client";
 import { useAttachmentPreviewGate } from "../../store/attachmentPreviewGate";
 import { useReadReceiptHydrate } from "../../hooks/useReadReceiptHydrate";
-import { useAgentReadProgress } from "../../hooks/useAgentReadProgress";
-import { AgentReadProgressContext } from "../../components/message/agentReadProgressContext";
-import { AgentReadSystemRow } from "../../components/message/AgentReadFaces";
 import { useMediaQuery } from "../../hooks/effectPrimitives";
 import { ArtifactConversationProvider, useArtifactClosed, useArtifactHeaderBack, useArtifactHost, useArtifactSideCard } from "../../apps/artifacts";
 import { useArtifactPlaceCard } from "../webPreview/useArtifactPlaceCard";
@@ -276,10 +276,17 @@ export function ChatPanel({
   const { portalHeader, desktop: isDesktopShell } = useConversationHeaderPortal(ownsUrl);
   const seqMessages = useMessageStore((s) => selectChannelMessageBucket(s, channelId));
   const channelWindowMeta = useMessageStore((s) => selectChannelWindowMeta(s, channelId));
-  const { loadingNewer, hasNewer, contextLoadError } = channelWindowMeta;
-  // Forum-style channels (#proj-chat:#24): useForumTimeline.ts.
-  const { forumChannel, forumMode, messages: timelineMessages, hasMore: timelineHasMore, historyLimited, loading: timelineLoading, loadingOlder, loadOlderActivity } = useForumTimeline(channel, seqMessages, channelWindowMeta);
-  const { view: timelineView, rows: timelineViewRowsResult, messages, hasMore, loading } = useChatTimelineView(channel, seqMessages, { messages: timelineMessages, hasMore: timelineHasMore, loading: timelineLoading });
+  const {
+    loading: windowLoading,
+    loadingOlder,
+    loadingNewer,
+    hasMore: windowHasMore,
+    hasNewer,
+    historyLimited,
+    contextLoadError,
+  } = channelWindowMeta;
+  // Reply mode's timeline views (useChatTimelineView): a view's own rows in place of the channel's while one is open.
+  const { view: timelineView, rows: timelineViewRowsResult, messages, hasMore, loading } = useChatTimelineView(channel, seqMessages, { messages: seqMessages, hasMore: windowHasMore, loading: windowLoading });
   const messagesBelongToChannel = !!channelId;
   const shouldShowMessageTimeline = messages.length > 0;
   // The timeline's visible window feeds translation through a store read by
@@ -348,7 +355,7 @@ export function ChatPanel({
     return () => clearTimeout(timer);
   }, [landedFocusId]);
   const holdForLandedLink = !landedSettledRef.current && !landedHoldExpired;
-  useChatPanelViewSwitch(channelId, { unavailable: showLinkUnavailable, held: holdForLandedLink, loading, hasMessages: shouldShowMessageTimeline, forumMode });
+  useChatPanelViewSwitch(channelId, { unavailable: showLinkUnavailable, held: holdForLandedLink, loading, hasMessages: shouldShowMessageTimeline });
   useEffect(() => {
     if (!pendingNotFoundToast || !useMessageStore.getState().pendingNotFoundToast) return;
     useMessageStore.setState({ pendingNotFoundToast: false });
@@ -449,6 +456,12 @@ export function ChatPanel({
     channel?.type !== "thread" &&
     (channel?.type === "dm" || channel?.joined === true);
 
+  const [activityMuteLoading, setActivityMuteLoading] = useState(false);
+  const [activityMuteSaving, setActivityMuteSaving] = useState(false);
+  const [activityMuteError, setActivityMuteError] = useState<ActivityMuteErrorKey | null>(null);
+  const [messageDisplayPrefsLoading, setMessageDisplayPrefsLoading] = useState(false);
+  const [messageDisplayPrefsSaving, setMessageDisplayPrefsSaving] = useState(false);
+  const [messageDisplayPrefsError, setMessageDisplayPrefsError] = useState<MessageDisplayPrefsErrorKey | null>(null);
   // External API synchronization for the selected conversation's mute setting.
   // oxlint-disable-next-line react-doctor/no-cascading-set-state
   useEffect(() => {
@@ -583,12 +596,6 @@ export function ChatPanel({
   }, [channel]);
   const openBillingSettings = useCallback(() => nav.toSettings("billing"), [nav]);
   const [showSOSDialog, setShowSOSDialog] = useState(false);
-  const [activityMuteLoading, setActivityMuteLoading] = useState(false);
-  const [activityMuteSaving, setActivityMuteSaving] = useState(false);
-  const [activityMuteError, setActivityMuteError] = useState<ActivityMuteErrorKey | null>(null);
-  const [messageDisplayPrefsLoading, setMessageDisplayPrefsLoading] = useState(false);
-  const [messageDisplayPrefsSaving, setMessageDisplayPrefsSaving] = useState(false);
-  const [messageDisplayPrefsError, setMessageDisplayPrefsError] = useState<MessageDisplayPrefsErrorKey | null>(null);
   const [newMessageCount, setNewMessageCount] = useState(0);
   const [atBottom, setAtBottom] = useState(true);
   const [expandedSystemMessageGroups, setExpandedSystemMessageGroups] = useState<Set<string>>(() => new Set());
@@ -643,6 +650,17 @@ export function ChatPanel({
     if (!threadParam) return;
     setHighlightedMessageId(null);
   }, [setHighlightedMessageId, threadParam]);
+
+  // While mounted, this panel can own the current channel (and its live
+  // auto-read); when another chat that took it over unmounts (the assistant
+  // popover closing), it is handed back here (#triage:#483).
+  useEffect(() => {
+    if (!channelId) return;
+    return claimChatReadOwner(channelId, {
+      isNearBottom: () => isNearBottomRef.current,
+      reopen: () => void openChannelWindow(channelId, focusMessageIdRef.current),
+    });
+  }, [channelId]);
 
   // Load messages on channel switch. Channel-switch reset of scroll-position
   // UI state (translation/nearBottom/atBottom/newMessageCount) + async load.
@@ -860,29 +878,19 @@ export function ChatPanel({
   const loadOlderForChannel = useCallback(() => {
     if (!channelId) return Promise.resolve();
     if (timelineView) return useTimelineViewStore.getState().loadOlder(channelId);
-    if (forumMode) return loadOlderActivity(channelId);
     return loadOlderMessages(channelId);
-  }, [channelId, forumMode, loadOlderActivity, loadOlderMessages, timelineView]);
+  }, [channelId, loadOlderMessages, timelineView]);
 
   const loadNewerForChannel = useCallback(() => {
     if (!channelId) return Promise.resolve();
     return loadNewerMessages(channelId);
   }, [channelId, loadNewerMessages]);
 
-  const storeChannel = useMemo(
-    () => {
-      if (!channelId) return undefined;
-      const state = useChannelStore.getState();
-      return findStoredChannel({ ...state, channels }, channelId);
-    },
-    [channelId, channels],
-  );
-  const channelActivityMuted = storeChannel?.activityMuted ?? (channel?.activityMuted === true);
-  const channelMuteFromSeq = storeChannel?.muteFromSeq ?? channel?.muteFromSeq ?? null;
-  const channelPrefsVersion = storeChannel?.prefsVersion ?? channel?.prefsVersion;
+  const {
+    activityMuted: channelActivityMuted, muteFromSeq: channelMuteFromSeq, prefsVersion: channelPrefsVersion,
+    collapseLongMessages: channelCollapseLongMessages, displayPrefsVersion: channelDisplayPrefsVersion,
+  } = useChannelPrefs(channelId, channel);
   const activityMuted = channelActivityMuted;
-  const channelCollapseLongMessages = storeChannel?.collapseLongMessages ?? channel?.collapseLongMessages ?? false;
-  const channelDisplayPrefsVersion = storeChannel?.displayPrefsVersion ?? channel?.displayPrefsVersion;
 
   const handleToggleActivityMute = useCallback(async () => {
     if (!activityMuteSupported || !channelId || activityMuteSaving) return;
@@ -1100,13 +1108,13 @@ export function ChatPanel({
     trackChannelTabSelected("files", "side_card_close", true);
     closeCard("files");
   }, [closeCard]);
-  const toggleTasksCard = useCallback(() => {
-    trackChannelTabSelected("tasks", "side_card_toggle", tasksCardOpen);
+  const toggleTasksCard = useCallback((surface: HeadToggleSurface, compact: boolean) => {
+    trackChannelTabSelected("tasks", surface, tasksCardOpen, compact);
     if (tasksCardOpen) closeCard("tasks");
     else setSideCardOpen("tasks", true);
   }, [closeCard, setSideCardOpen, tasksCardOpen]);
-  const toggleFilesCard = useCallback(() => {
-    trackChannelTabSelected("files", "side_card_toggle", filesCardOpen);
+  const toggleFilesCard = useCallback((surface: HeadToggleSurface, compact: boolean) => {
+    trackChannelTabSelected("files", surface, filesCardOpen, compact);
     if (filesCardOpen) closeCard("files");
     else setSideCardOpen("files", true);
   }, [closeCard, filesCardOpen, setSideCardOpen]);
@@ -1201,10 +1209,10 @@ export function ChatPanel({
     const ids = new Set<string>();
     for (const m of messages) {
       // Layout redesign: a reply starts its own block (with its quote), never merged under the message above.
-      if (forumMode || threadSummaries[m.id] || taskByMessageId.has(m.id) || m.replyToMessageId) ids.add(m.id);
+      if (threadSummaries[m.id] || taskByMessageId.has(m.id) || m.replyToMessageId) ids.add(m.id);
     }
     return ids;
-  }, [forumMode, messages, threadSummaries, taskByMessageId]);
+  }, [messages, threadSummaries, taskByMessageId]);
   const messageGrouping = useStableMessageGrouping(
     messages,
     timeFormatOptions.timeZone ?? undefined,
@@ -1260,19 +1268,6 @@ export function ChatPanel({
   const dmReadStatusMessageId = channel?.type === "dm" && !hasNewer
     ? messages[messages.length - 1]?.id ?? null
     : null;
-  // Agent read progress (agent_read_progress_v0): each agent's face on the last
-  // message it read, in a column every row reserves while it is on here, and
-  // the agents' read line under your latest message. Null model: rows as before.
-  const { model: agentReadProgress, statusMessageId: agentReadStatusMessageId } = useAgentReadProgress({
-    scope: channel,
-    messages,
-    hasNewer,
-    foldedMessageIds: channelFoldedMessageIds,
-    typingChannelId: channel?.id ?? null,
-    typingParentMessageId: null,
-    agentById,
-  });
-  const agentReadActive = agentReadProgress !== null;
   const renderChannelItemInner = useCallback((msg: Message, index: number) => {
     const systemMessageState = systemMessageRenderStates[index];
     const wrapMessageRender = (children: ReactNode) =>
@@ -1294,43 +1289,41 @@ export function ChatPanel({
           // forces the vertical clip. See MessageItem hover toolbar.
           style={{ contain: "layout style", overflow: "clip visible" }}
         >
-          <AgentReadSystemRow messageId={msg.id}>
-            <ThreadPanelSystemMessageGroupDisclosure
-              summary={systemMessageState.content}
-              expanded={expanded}
-              groupId={systemMessageState.groupId}
-              onToggleGroup={toggleSystemMessageGroup}
-            >
-              {systemMessageState.messageIndexes.map((messageIndex) => {
-                const originalMessage = messages[messageIndex];
-                if (!originalMessage) return null;
-                return (
-                  <MessageItem
-                    key={originalMessage.id}
-                    message={originalMessage}
-                    linkedTask={taskByMessageId.get(originalMessage.id)}
-                    linkedTasks={taskListsByMessageId.get(originalMessage.id)}
-                    mentionMap={mentionMap}
-                    channels={channels}
-                    previewSenderAgent={originalMessage.senderType === "agent" ? agentById.get(originalMessage.senderId) : undefined}
-                    previewSenderMember={originalMessage.senderType === "user" ? memberById.get(originalMessage.senderId) : undefined}
-                    channelParticipantAgentsById={agentById}
-                    channelParticipantMembersById={memberById}
-                    channelParticipantExternalsById={externalById}
-                    threadSummary={threadSummaries[originalMessage.id]}
-                    parentChannelId={channel?.id || ""}
-                    mentionComposerChannelId={channel?.id ?? originalMessage.channelId}
-                    hideThreadActions
-                    onBeforeOpenThread={preserveChannelAnchorForThreadOpen}
-                    onOpenThread={onOpenThread}
-                    onOpenProfile={onOpenProfile}
-                    canReact={canReactInChannel}
-                    located={originalMessage.id === locatedMessageId}
-                  />
-                );
-              })}
-            </ThreadPanelSystemMessageGroupDisclosure>
-          </AgentReadSystemRow>
+          <ThreadPanelSystemMessageGroupDisclosure
+            summary={systemMessageState.content}
+            expanded={expanded}
+            groupId={systemMessageState.groupId}
+            onToggleGroup={toggleSystemMessageGroup}
+          >
+            {systemMessageState.messageIndexes.map((messageIndex) => {
+              const originalMessage = messages[messageIndex];
+              if (!originalMessage) return null;
+              return (
+                <MessageItem
+                  key={originalMessage.id}
+                  message={originalMessage}
+                  linkedTask={taskByMessageId.get(originalMessage.id)}
+                  linkedTasks={taskListsByMessageId.get(originalMessage.id)}
+                  mentionMap={mentionMap}
+                  channels={channels}
+                  previewSenderAgent={originalMessage.senderType === "agent" ? agentById.get(originalMessage.senderId) : undefined}
+                  previewSenderMember={originalMessage.senderType === "user" ? memberById.get(originalMessage.senderId) : undefined}
+                  channelParticipantAgentsById={agentById}
+                  channelParticipantMembersById={memberById}
+                  channelParticipantExternalsById={externalById}
+                  threadSummary={threadSummaries[originalMessage.id]}
+                  parentChannelId={channel?.id || ""}
+                  mentionComposerChannelId={channel?.id ?? originalMessage.channelId}
+                  hideThreadActions
+                  onBeforeOpenThread={preserveChannelAnchorForThreadOpen}
+                  onOpenThread={onOpenThread}
+                  onOpenProfile={onOpenProfile}
+                  canReact={canReactInChannel}
+                  located={originalMessage.id === locatedMessageId}
+                />
+              );
+            })}
+          </ThreadPanelSystemMessageGroupDisclosure>
         </div>
       );
     }
@@ -1341,7 +1334,7 @@ export function ChatPanel({
       <>
         {/* Under the history paywall, the first day of the window also says
             that the last 30 days start here. */}
-        {!forumMode && groupState?.showDayDivider && <DateDivider createdAt={msg.createdAt} recentHistory={index === 0 && topHistoryState === "history_limited"} />}
+        {groupState?.showDayDivider && <DateDivider createdAt={msg.createdAt} recentHistory={index === 0 && topHistoryState === "history_limited"} />}
         <div
           className={msg.replyToMessageId ? `${TIMELINE_ROW_INSET} pt-3` : TIMELINE_ROW_INSET}
           // `overflow: clip visible` keeps the horizontal clip (wide code /
@@ -1373,14 +1366,12 @@ export function ChatPanel({
             groupState={groupState}
             followedBy={followedBy}
             showDmReadStatus={msg.id === dmReadStatusMessageId}
-            showAgentReadStatus={msg.id === agentReadStatusMessageId}
-            agentReadFaces={agentReadActive}
             located={msg.id === locatedMessageId}
           />
         </div>
       </>
     );
-  }, [forumMode, agentById, agentReadActive, agentReadStatusMessageId, canReactInChannel, channel?.id, channelId, channels, dmReadStatusMessageId, topHistoryState, expandedSystemMessageGroups, externalById, locatedMessageId, memberById, mentionMap, messageRenderScope, messages, messageGrouping, onOpenProfile, onOpenThread, preserveChannelAnchorForThreadOpen, systemMessageRenderStates, taskByMessageId, taskListsByMessageId, threadSummaries, toggleSystemMessageGroup]);
+  }, [agentById, canReactInChannel, channel?.id, channelId, channels, dmReadStatusMessageId, topHistoryState, expandedSystemMessageGroups, externalById, locatedMessageId, memberById, mentionMap, messageRenderScope, messages, messageGrouping, onOpenProfile, onOpenThread, preserveChannelAnchorForThreadOpen, systemMessageRenderStates, taskByMessageId, taskListsByMessageId, threadSummaries, toggleSystemMessageGroup]);
 
   const renderChannelItem = useViewHiddenRows(renderChannelItemInner, timelineViewRowsResult, channelId);
 
@@ -1521,6 +1512,8 @@ export function ChatPanel({
     channelMessages: messagesBelongToChannel ? messages : [],
     onUnresolvedSelection: showUnresolvedSelectionToast,
   });
+  // The date in an exported picture's filename: today's (UTC), kept current while the channel stays open.
+  const exportDay = useCurrentDay("UTC");
   const picPreviewRef = useRef<ValidatedScreenshot[] | null>(null);
   picPreviewRef.current = picPreview;
 
@@ -1693,11 +1686,18 @@ export function ChatPanel({
 
   // A DM peer's face: the live agent / member directory once it knows them (a reset included), else the DM's snapshot.
   const dmPeerAvatar = useMemo(() => resolveDmPeerAvatarFromDirectory(channel ?? {}, agents, members), [channel, agents, members]);
-  // The head always fits (#189 rule 6): its own buttons (Search, an agent DM's Lounge, Tasks, Files, Settings) fold into ⋯.
+  // The head always fits (#189 rule 6): its own buttons (Search, an agent DM's Call and Lounge, Tasks, Files, Settings) fold into ⋯.
+  // The Lounge button: an agent DM's that offers one; the icon: a channel's that is not a Lounge (channelHeaderIcon), which
+  // on a desktop is inside the title button (ChannelHeadTitleButton), not before it.
   const { mineView, openTaskCount } = useMineViewSwitch(channel, timelineView, channelTasks);
   const openInChannelAction = useOpenInChannelAction(channelId);
   const { threadHere, showTasksCard, showFilesCard } = useThreadAwareCardToggles(channelId, { tasksCardOpen, filesCardOpen, toggleTasksCard, toggleFilesCard, detailsOpen: overflowOpen, closeDetails: setOverflowOpen });
-  const { cardToggles, containerProps: headContainerProps, fit: fitHead } = useChannelHeadToggles({ cards: sideCards && supportsChannelTasks, tasksOpen: tasksCardOpen && !threadHere && !overflowOpen, filesOpen: filesCardOpen && !threadHere && !overflowOpen, onToggleTasks: showTasksCard, onToggleFiles: showFilesCard, onOpenLounge: handleOpenLounge, mineView, taskCount: openTaskCount });
+  const headDmAgent = channel?.type === "dm" && channel.peerType === "agent" && channel.peerId ? agents.find((agent) => agent.id === channel.peerId) : undefined;
+  const { cardToggles, containerProps: headContainerProps, toggles: headToggles, fold: headFold, compact: headCompact } = useChannelHeadToggles({ cards: sideCards && supportsChannelTasks, tasksOpen: tasksCardOpen && !threadHere && !overflowOpen, filesOpen: filesCardOpen && !threadHere && !overflowOpen, onToggleTasks: showTasksCard, onToggleFiles: showFilesCard, onOpenLounge: handleOpenLounge, mineView, taskCount: openTaskCount, callAgent: headDmAgent ?? null, lounge: !!(headDmAgent && loungeEnabled && agentOffersLounge(headDmAgent)), icon: !isDesktopShell && !!channel && channel.type !== "dm" && (channel.type === "thread" || !channel.loungeAgentId), phone: phoneLayout });
+  const openDetailsFromTitle = useCallback(() => {
+    if (!overflowOpen) trackConversationHeaderAction("open_details", "title", "channel", headCompact);
+    openOverflow();
+  }, [headCompact, openOverflow, overflowOpen]);
   if (!channel) return <ChatPanelNoChannel onBack={onMobileBack ?? routeMobileBack} backAlwaysVisible={Boolean(contentSlotBack)} />;
 
   const isDM = channel.type === "dm";
@@ -1764,14 +1764,13 @@ export function ChatPanel({
     ? channel.description ? <ChannelDescription description={channel.description} /> : undefined
     : undefined;
   const regularTitleSuffix = isRegularChannel && !isLounge
-    && (isArchived || activityMuted || slackSyncHeaderState(channel) || forumChannel) ? (
+    && (isArchived || activityMuted || slackSyncHeaderState(channel)) ? (
     <div className="flex items-center gap-1.5">
       {isArchived && (
         <Badge appearance="soft" variant="muted" className="shrink-0">
           {formatMessage({ id: "message.chatPanel.archived" })}
         </Badge>
       )}
-      {forumChannel && <ChannelForumOrderBadge />}
       <ChannelSlackSyncBadge channel={channel} />
       {activityMuted && <ActivityMutedBadge />}
     </div>
@@ -1789,7 +1788,6 @@ export function ChatPanel({
   ) : null;
   // Regular channels use the settings drawer; DMs share the same overflow
   // component in its DM mode (task #703).
-  const { toggles: headToggles, fold: headFold } = fitHead(!!(isAgentDM && loungeEnabled && dmAgent && agentOffersLounge(dmAgent)), !!channelHeaderIcon);
   const channelHeaderActions = isJoinableChannel ? (
     <ChannelOverflowMenu
       channelId={channel.id}
@@ -1800,6 +1798,8 @@ export function ChatPanel({
       middleActions={cardToggles.nodes}
       middleItems={cardToggles.items}
       fold={headFold}
+      conversation="channel"
+      compact={headCompact}
       activityMute={overflowActivityMute}
       collapseLongMessages={overflowCollapseLongMessages}
       showMembers={!hideAllChannelMembersButton}
@@ -1823,6 +1823,8 @@ export function ChatPanel({
       middleActions={headToggles.nodes}
       middleItems={headToggles.items}
       fold={headFold}
+      conversation={isDM ? "dm" : "channel"}
+      compact={headCompact}
       activityMute={overflowActivityMute}
       collapseLongMessages={overflowCollapseLongMessages}
     />
@@ -1853,7 +1855,7 @@ export function ChatPanel({
               icon={isDesktopShell ? channelHeaderIcon : undefined}
               label={formatMessage({ id: "channelHead.infoAndSettings" })}
               open={overflowOpen}
-              onOpen={openOverflow}
+              onOpen={openDetailsFromTitle}
             />
           ) : channel.name
         ) : undefined}
@@ -1983,6 +1985,10 @@ export function ChatPanel({
         <div ref={panelBodyRef} className="relative flex min-h-0 flex-1" {...(artifactHostChannelId ? { [WEB_PREVIEW_HOST_ATTRIBUTE]: artifactHostChannelId } : null)}>
         {/* The conversation the side cards take their width from (ColumnResizeHandle MAIN_COLUMN_ATTRIBUTE). */}
         <div ref={conversationColumnRef} className="flex min-h-0 min-w-0 flex-1 flex-col" data-main-column="" inert={sideColumnCovering || undefined}>
+          {/* A conversion to an external channel under way: before the announcement, which stays next to the messages. */}
+          {!hideHeader && !isDM && !isThread && !isLounge ? (
+            <ChannelConversionStrip key={channel.id} channelId={channel.id} channelName={channel.name} />
+          ) : null}
           {/* The channel's announcement: last of the top regions, right above the timeline (raft-design channel.md). */}
           {channelAnnouncement && !showLinkUnavailable ? (
             <ChannelAnnouncementStrip
@@ -2038,7 +2044,7 @@ export function ChatPanel({
             ) : (
               <MessageForwardContext.Provider value={showForwardAction ? forwardSingleMessage : null}>
               {/* Select mode: a row's toggle or range (Shift+click), in this timeline's order. */}
-              <AgentReadProgressContext.Provider value={agentReadProgress}><MessageSelectIntentProvider timelineRef={timelineRef}>
+              <MessageSelectIntentProvider timelineRef={timelineRef}>
               <MessageTimeline
                 key={timelineView ? `${channel.id}:view:${timelineView.key}` : channel.id}
                 ref={timelineRef}
@@ -2051,11 +2057,11 @@ export function ChatPanel({
                 onAtBottomChange={handleAtBottomStateChange}
                 onVisibleMessageWindowChange={translationWindow.set}
                 onViewportChange={selectToHere.onViewportChange}
-                persistKey={timelineView ? `channel-view:${channel.id}:${timelineView.key}` : forumMode ? `channel-forum:${channel.id}` : `channel:${channel.id}`}
+                persistKey={timelineView ? `channel-view:${channel.id}:${timelineView.key}` : `channel:${channel.id}`}
                 className="h-full"
                 sparseAnchor="bottom"
               />
-              </MessageSelectIntentProvider></AgentReadProgressContext.Provider>
+              </MessageSelectIntentProvider>
               </MessageForwardContext.Provider>
             )}
             {/* The list's bottom edge fades over the composer (raft-ui
@@ -2233,7 +2239,7 @@ export function ChatPanel({
           <ForwardComposerDialog
             sourceMessages={forwardComposer.messages}
             sourceChannel={channel}
-            channelActivity={useChannelStore.getState().channelActivity}
+            orderByChannelActivity
             skippedCount={forwardComposer.skippedCount}
             nestedForwardCount={forwardComposer.nestedForwardCount}
             onClose={closeForwardComposer}
@@ -2253,7 +2259,7 @@ export function ChatPanel({
       {picPreview && (
         <SelectShareLightbox
           images={picPreview}
-          filename={`slock-${channel.name || "export"}-${new Date().toISOString().slice(0, 10)}.png`}
+          filename={`slock-${channel.name || "export"}-${exportDay}.png`}
           onClose={handleClosePicPreview}
           onSaved={handlePicPreviewSaved}
         />
