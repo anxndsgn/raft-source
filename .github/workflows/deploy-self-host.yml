@@ -139,6 +139,17 @@ jobs:
           export RAFT_WEB_IMAGE=ghcr.io/$owner/raft-web:${{ github.sha }}
           export RAFT_TOOLS_IMAGE=ghcr.io/$owner/raft-tools:${{ github.sha }}
           docker compose --profile caddy pull --quiet
+          # A wedged RisingWave (11-22, 11-24: long uptime, host low on memory)
+          # still reports healthy but never answers risingwave-bootstrap's
+          # first query, and the server waits on that step forever. Ask it a
+          # catalog query first; if it can't answer in 60 s, restart it.
+          if docker compose ps --status running --services | grep -qx risingwave; then
+            if ! timeout 60 docker compose exec -T postgres \
+                psql -h risingwave -p 4566 -U root -d dev -tAc 'select count(*) from rw_catalog.rw_materialized_views' >/dev/null; then
+              echo "::warning::RisingWave did not answer in 60 s; restarting it before the deploy"
+              docker compose restart risingwave
+            fi
+          fi
           docker compose --profile caddy up -d --remove-orphans
           docker image prune -f >/dev/null
           docker compose ps
