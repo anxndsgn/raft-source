@@ -190,9 +190,10 @@ const PLACES: ReadonlyArray<readonly [string, string, RailMode, string]> = [
   ["Computers with a profile, its filter kept", `${BASE}/computers?filter=attention&profile=computer%3Am1`, "computers", `${BASE}/computers?filter=attention`],
   ["This device", `${BASE}/computers/this-device?section=troubleshoot&profile=computer%3Am1`, "computers", `${BASE}/computers/this-device`],
   ["a phone-era computer page (phone → desktop)", `${BASE}/computer/m1`, "computers", `${BASE}/computers`],
-  ["Members with a profile", `${BASE}/members?profile=human%3Au1`, "members", `${BASE}/members`],
-  ["an agent page", `${BASE}/agent/a1?agentTab=activity`, "members", `${BASE}/members`],
-  ["a person's page", `${BASE}/human/u1`, "members", `${BASE}/members`],
+  // raft-customized: the Team entry lands on the Team page's Overview (Team page PRD §4).
+  ["Members with a profile", `${BASE}/members?profile=human%3Au1`, "members", `${BASE}/team`],
+  ["an agent page", `${BASE}/agent/a1?agentTab=activity`, "members", `${BASE}/team`],
+  ["a person's page", `${BASE}/human/u1`, "members", `${BASE}/team`],
   ["Apps with a link's scope", `${BASE}/apps?tab=bots`, "apps", `${BASE}/apps`],
   ["a Settings page with a dialog", `${BASE}/settings/notifications?open=change-password`, "settings", `${BASE}/settings/notifications`],
   ["Artifacts with one open", `${BASE}/artifacts?artifact=x1`, "artifacts", `${BASE}/artifacts`],
@@ -229,7 +230,7 @@ for (const address of [`${CHANNEL}?msg=m1&thread=c1%3Ap1`, COMPUTER_PANEL, `${BA
 test("place: with nothing remembered, each rail tab lands on its home, a server switch on the server's root", async () => {
   await mount(`${BASE}/raftbench`);
   const homes: Record<RailMode, string> = {
-    search: `${BASE}/search`, activity: `${BASE}/activity`, chat: BASE, members: `${BASE}/members`,
+    search: `${BASE}/search`, activity: `${BASE}/activity`, chat: BASE, members: `${BASE}/team`,
     computers: `${BASE}/computers`, apps: `${BASE}/apps`, tasks: `${BASE}/tasks`, settings: `${BASE}/settings/account`,
     assistant: `${BASE}/assistant`, artifacts: `${BASE}/artifacts`,
   };
@@ -298,10 +299,11 @@ test("place: with no viewer given, a Guest on the target server (server store ro
 test("place: the route table — rail tab and phone tab of every server page", () => {
   const rows: ReadonlyArray<readonly [string, RailMode, string | null]> = [
     ["", "chat", "chat"], ["/channel/c1", "chat", "chat"], ["/dm/d1", "chat", "chat"], ["/saved", "chat", "chat"],
-    ["/search", "search", "search"], ["/activity", "activity", "activity"], ["/inbox", "activity", "activity"],
+    // raft-customized: Team took Search's phone tab; the Team page's three views are its roots.
+    ["/search", "search", null], ["/team", "members", "team"], ["/activity", "activity", "activity"], ["/inbox", "activity", "activity"],
     ["/tasks", "tasks", "tasks"], ["/assistant", "assistant", "chat"], ["/artifacts", "artifacts", null],
-    ["/apps", "apps", null], ["/members", "members", null], ["/agent/a1", "members", null], ["/human/u1", "members", null],
-    ["/computers", "computers", null], ["/computers/this-device", "computers", null], ["/computer/m1", "computers", null],
+    ["/apps", "apps", null], ["/members", "members", "team"], ["/agent/a1", "members", null], ["/human/u1", "members", null],
+    ["/computers", "computers", "team"], ["/computers/this-device", "computers", null], ["/computer/m1", "computers", null],
     ["/machine/m1", "computers", null], ["/settings/account", "settings", null], ["/release-notes", "settings", null],
     ["/keyboard-shortcuts", "settings", null], ["/raftbench", "settings", null], ["/migrations", "chat", "chat"],
   ];
@@ -363,7 +365,8 @@ for (const [list, panel, rail] of [
     await mount(panel, {}, "store");
     await settle();
     fireEvent.click(screen.getByTestId(`rail-${rail}`));
-    await waitFor(() => assert.equal(location(), panel.split("?", 1)[0]));
+    // raft-customized: the Team entry lands on the Team page's Overview, not the Members list.
+    await waitFor(() => assert.equal(location(), rail === "members" ? `${BASE}/team` : panel.split("?", 1)[0]));
     await waitFor(() => assert.equal(useProfileStore.getState().profileId, null));
   });
 }

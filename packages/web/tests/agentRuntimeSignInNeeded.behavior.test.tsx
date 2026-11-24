@@ -339,7 +339,9 @@ test("reverse: any other failed start keeps the grey light and the daemon's text
     );
     assert.equal(lightOf(screen.getByTestId("badge")), "offline", source);
     assert.ok(screen.queryByTestId("sidebar-agent-sign-in-needed") === null);
-    assert.equal(screen.getByTestId("sidebar-agent-runtime").textContent, "Kimi Code");
+    // raft-customized (task #10 item 8): an agent's DM row shows no runtime, only the state mark while it works or is
+    // stuck; a failed start that is not a sign-in draws nothing at its end.
+    assert.ok(screen.queryByTestId("sidebar-agent-runtime") === null);
     sidebar.unmount();
 
     const member = mount(memberRow());

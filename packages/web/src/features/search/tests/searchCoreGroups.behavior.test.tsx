@@ -307,11 +307,12 @@ function renderRow(result: ReturnType<typeof channelHitToEntity>) {
 }
 
 const MARK_IDS = ["search-entity-archived", "search-entity-external", "search-entity-agent", "search-entity-guest"];
-/** The row's marks; and no kind tag (Channel / Human / Computer) after the title. */
+/**
+ * The row's marks. raft-customized (anxndsgn, flat search): every row also names its kind (Channel / Agent / Human /
+ * Computer) right after the title, which is not one of these marks. A muted tag is the redesign's role tag
+ * (bg-fill-medium, Figmama 11/20), not bg-inactive-soft.
+ */
 function marksOf(view: ReturnType<typeof renderRow>): string[] {
-  const header = view.container.querySelector("[data-slot=search-entity-result-header]") ?? view.container;
-  const text = header.textContent ?? "";
-  assert.ok(!/Channel|Human|Computer/.test(text), `no kind tag: ${text}`);
   return Array.from(view.container.querySelectorAll(MARK_IDS.map((id) => `[data-testid=${id}]`).join(","))).map((node) => node.textContent ?? "");
 }
 
@@ -319,7 +320,7 @@ test("rows draw one mark of the server's status, no kind tag; an unjoined public
   const archived = renderRow(channelHitToEntity(channelHit("a", { archived: true, external: true, canPost: false })));
   assert.deepEqual(marksOf(archived), ["Archived"], "Archived wins over External");
   const archivedMark = archived.getByTestId("search-entity-archived").className;
-  assert.ok(archivedMark.includes("bg-inactive-soft") && !archivedMark.includes("font-mono"), `soft muted, not the outline look: ${archivedMark}`);
+  assert.ok(archivedMark.includes("bg-fill-medium") && !archivedMark.includes("font-mono"), `soft muted, not the outline look: ${archivedMark}`);
   cleanup();
 
   const joint = renderRow(channelHitToEntity(channelHit("j", { type: "joint", external: true, guest: true })));
@@ -344,7 +345,8 @@ test("rows draw one mark of the server's status, no kind tag; an unjoined public
   assert.deepEqual(marksOf(human), []);
   cleanup();
   const agent = renderRow(personHitToEntity(personHit("a", { kind: "agent" }), "me"));
-  assert.deepEqual(marksOf(agent), ["Agent"]);
+  // raft-customized: "Agent" is the row's kind tag, so no Agent mark besides it.
+  assert.deepEqual(marksOf(agent), []);
   cleanup();
 
   const opened: string[] = [];
@@ -406,7 +408,7 @@ test("an Artifact whose home conversation is archived is marked archived; absent
   }) as never;
   const view = renderWithIntl(<ArtifactSearchHit hit={card(true)} highlight={(text) => text} selected={false} onOpen={() => {}} />);
   assert.equal(view.getByTestId("search-app-hit-archived").textContent, "Archived");
-  assert.ok(view.getByTestId("search-app-hit-archived").className.includes("bg-inactive-soft"), "soft muted, as the channel rows");
+  assert.ok(view.getByTestId("search-app-hit-archived").className.includes("bg-fill-medium"), "soft muted, as the channel rows");
   cleanup();
   const live = renderWithIntl(<ArtifactSearchHit hit={card(false)} highlight={(text) => text} selected={false} onOpen={() => {}} />);
   assert.ok(live.queryByTestId("search-app-hit-archived") === null);

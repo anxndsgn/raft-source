@@ -127,24 +127,25 @@ export function useConversationHeaderPortal(ownsUrl: boolean) {
  * and Settings replace each other, the same one again closes it; a thread open in this channel holds the place too,
  * and none of the four shows pressed meanwhile (Tasks and Files step aside under it and come back when it closes).
  */
-export function useThreadAwareCardToggles(channelId: string | null, cards: { tasksCardOpen: boolean; filesCardOpen: boolean; toggleTasksCard: (surface: HeadToggleSurface, compact: boolean) => void; toggleFilesCard: (surface: HeadToggleSurface, compact: boolean) => void; detailsOpen: boolean; closeDetails: (open: boolean) => void }) {
-  const { tasksCardOpen, filesCardOpen, toggleTasksCard: toggleTasks, toggleFilesCard: toggleFiles, detailsOpen, closeDetails } = cards;
+export function useThreadAwareCardToggles(channelId: string | null, cards: { tasksCardOpen: boolean; filesCardOpen: boolean; toggleTasksCard: (surface: HeadToggleSurface, compact: boolean) => void; toggleFilesCard: (surface: HeadToggleSurface, compact: boolean) => void; detailsOpen: boolean; closeDetails: (open: boolean) => void; closeCard: (card: "tasks" | "files") => void }) {
+  const { tasksCardOpen, filesCardOpen, toggleTasksCard: toggleTasks, toggleFilesCard: toggleFiles, detailsOpen, closeDetails, closeCard } = cards;
   const threadHere = useThreadStore((s) => !!s.openParentMessageId && s.openParentChannelId === channelId && !s.taskModal);
   // Pressing Tasks or Files: shown alone (it closes when it was what showed).
   // `surface` and `compact` say where it was pressed (channel_tab_selected), passed on to the card's own toggle.
   const show = useCallback((card: "tasks" | "files", surface: HeadToggleSurface, compact: boolean) => {
-    const [own, other, toggleOwn, toggleOther] = card === "tasks"
-      ? [tasksCardOpen, filesCardOpen, toggleTasks, toggleFiles]
-      : [filesCardOpen, tasksCardOpen, toggleFiles, toggleTasks];
+    const [own, other, toggleOwn] = card === "tasks"
+      ? [tasksCardOpen, filesCardOpen, toggleTasks]
+      : [filesCardOpen, tasksCardOpen, toggleFiles];
     const shown = own && !detailsOpen && !threadHere;
     const cards = useChannelSideCardStore.getState();
     // A press starts the panel afresh (4.5): Tasks shows its list, not the details last open in it.
     if (channelId) { cards.claimPanel(channelId); cards.closeTaskDetail(channelId); }
     if (detailsOpen) closeDetails(false);
     if (threadHere) useThreadStore.getState().closeThread();
-    if (other) toggleOther(surface, compact);
+    // The other card gives way: not a choice of that tab, so it records nothing (channel_tab_selected is the pressed one's).
+    if (other) closeCard(card === "tasks" ? "files" : "tasks");
     if (shown || !own) toggleOwn(surface, compact);
-  }, [channelId, closeDetails, detailsOpen, filesCardOpen, tasksCardOpen, threadHere, toggleFiles, toggleTasks]);
+  }, [channelId, closeCard, closeDetails, detailsOpen, filesCardOpen, tasksCardOpen, threadHere, toggleFiles, toggleTasks]);
   const showTasksCard = useCallback((surface: HeadToggleSurface, compact: boolean) => show("tasks", surface, compact), [show]);
   const showFilesCard = useCallback((surface: HeadToggleSurface, compact: boolean) => show("files", surface, compact), [show]);
   // A thread opened here replaces the details (the details opened replace the thread: prepareChannelDetailsOpen).

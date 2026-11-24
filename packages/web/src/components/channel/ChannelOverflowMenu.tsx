@@ -355,6 +355,15 @@ export default function ChannelOverflowMenu({
     if (open && view === "root") guardedClose();
     else { handleBackToRoot(); if (!open) handleOpen(); }
   }, [guardedClose, handleBackToRoot, handleOpen, open, view]);
+  // Info and settings opening the details is `open_details` (as Settings is): from the head's toggle or from ⋯.
+  const headInfo = useCallback(() => {
+    if (!open) trackConversationHeaderAction("open_details", "header", conversation, compact);
+    toggleInfo();
+  }, [compact, conversation, open, toggleInfo]);
+  const menuInfo = useCallback(() => {
+    if (!open) trackConversationHeaderAction("open_details", "more_menu", conversation, compact);
+    toggleInfo();
+  }, [compact, conversation, open, toggleInfo]);
   const toggleMembers = useCallback(() => {
     if (open && view === "members") guardedClose();
     else { handleOpenMembers(); setMembersFromInfo(false); if (!open) handleOpen(); }
@@ -401,9 +410,9 @@ export default function ChannelOverflowMenu({
     // Members, then Info and settings, where the head had both (a channel's): on a phone, in ⋯ too.
     ...(showMembers ? [
       { id: "members", label: membersLabel, icon: <Users />, onSelect: toggleMembers, testId: "channel-header-overflow-members" },
-      { id: "settings", label: infoLabel, icon: <Settings />, onSelect: toggleInfo, testId: "channel-header-overflow-settings" },
+      { id: "settings", label: infoLabel, icon: <Settings />, onSelect: menuInfo, testId: "channel-header-overflow-settings" },
     ] : [{ id: "settings", label: settingsItemLabel, icon: <Settings />, onSelect: handleMenuSettings, testId: "channel-header-overflow-settings" }]),
-  ].slice(showMembers && shown === total ? total + 1 : shown)], [handleMenuSearch, handleMenuSettings, infoLabel, leadItem, membersLabel, middleItems, searchLabel, settingsItemLabel, showMembers, shown, toggleInfo, toggleMembers, total]);
+  ].slice(showMembers && shown === total ? total + 1 : shown)], [handleMenuSearch, handleMenuSettings, infoLabel, leadItem, membersLabel, middleItems, menuInfo, searchLabel, settingsItemLabel, showMembers, shown, toggleMembers, total]);
 
   const membersStrip = showMembers ? (
     <MembersStrip
@@ -449,7 +458,7 @@ export default function ChannelOverflowMenu({
           <PanelToggleAction
             ref={gearRef}
             pressed={open && view === "root"}
-            onPressedChange={toggleInfo}
+            onPressedChange={headInfo}
             aria-label={formatMessage({ id: "channelHead.infoAndSettings" })}
             data-testid="channel-overflow-trigger"
           >

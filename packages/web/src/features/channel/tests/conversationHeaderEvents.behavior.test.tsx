@@ -134,23 +134,22 @@ test("a wide channel header: Settings and the name opening the details, Search a
   ]);
 });
 
-test("a narrow channel header: the ⋯ opening and Search, Files and Settings chosen in it record more_menu, compact", async () => {
+test("a narrow channel header: the ⋯ opening and Files and Settings chosen in it record more_menu, compact", async () => {
   const sent = captureProductEvents();
   setHeadWidth(160, true);
   await act(async () => {
     renderChat(makeChannel());
   });
   await waitFor(() => assert.ok(screen.getByTestId("channel-header-overflow-trigger")));
-  assert.ok(screen.queryByTestId("channel-topbar-search") === null, "Search folded into ⋯");
-  for (const item of ["channel-header-overflow-search", "channel-header-overflow-files", "channel-header-overflow-settings"]) {
+  // raft-customized (task #10 item 1, anxndsgn 11/16): a narrow head keeps Search and puts the rest in one ⋯.
+  assert.ok(screen.getByTestId("channel-topbar-search"), "Search stays in the head");
+  for (const item of ["channel-header-overflow-files", "channel-header-overflow-settings"]) {
     fireEvent.click(screen.getByTestId("channel-header-overflow-trigger"));
     fireEvent.click(await screen.findByTestId(item));
     await waitFor(() => assert.ok(screen.queryByTestId("channel-header-overflow-menu") === null, "the ⋯ closed"));
   }
   const menu = ["conversation_header_action_selected", { action: "open_menu", surface: "header", conversation: "channel", compact: true }];
   assert.deepEqual(await headerEvents(sent), [
-    menu,
-    ["conversation_header_action_selected", { action: "search", surface: "more_menu", conversation: "channel", compact: true }],
     menu,
     ["channel_tab_selected", { tab: "files", surface: "more_menu", was_active: false, compact: true }],
     menu,

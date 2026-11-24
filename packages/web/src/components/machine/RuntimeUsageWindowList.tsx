@@ -29,7 +29,9 @@ function UsageWindowLine({ window, label }: { window: RuntimeUsageListWindow; la
   const moment = usedUp ? resumeMoment(window.resetsAt) : null;
   const valueText = usedUp
     ? window.onCredits === true
-      ? formatMessage({ id: "machine.runtimeUsage.windowUsedUpOnCreditsResetUnavailable" })
+      ? moment
+        ? formatMessage({ id: "machine.runtimeUsage.windowUsedUpOnCredits" }, { reset: moment.when })
+        : formatMessage({ id: "machine.runtimeUsage.windowUsedUpOnCreditsResetUnavailable" })
       : moment ? formatMessage({ id: "taskSection.heldUntil" }, { when: moment.when }) : formatMessage({ id: "machine.runtimeUsage.windowUsedUpResetUnavailable" })
     : formatMessage({ id: "machine.rack.percentUsed" }, { percent });
   return (

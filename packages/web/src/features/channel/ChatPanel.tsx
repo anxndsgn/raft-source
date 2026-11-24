@@ -1691,7 +1691,7 @@ export function ChatPanel({
   // on a desktop is inside the title button (ChannelHeadTitleButton), not before it.
   const { mineView, openTaskCount } = useMineViewSwitch(channel, timelineView, channelTasks);
   const openInChannelAction = useOpenInChannelAction(channelId);
-  const { threadHere, showTasksCard, showFilesCard } = useThreadAwareCardToggles(channelId, { tasksCardOpen, filesCardOpen, toggleTasksCard, toggleFilesCard, detailsOpen: overflowOpen, closeDetails: setOverflowOpen });
+  const { threadHere, showTasksCard, showFilesCard } = useThreadAwareCardToggles(channelId, { tasksCardOpen, filesCardOpen, toggleTasksCard, toggleFilesCard, detailsOpen: overflowOpen, closeDetails: setOverflowOpen, closeCard });
   const headDmAgent = channel?.type === "dm" && channel.peerType === "agent" && channel.peerId ? agents.find((agent) => agent.id === channel.peerId) : undefined;
   const { cardToggles, containerProps: headContainerProps, toggles: headToggles, fold: headFold, compact: headCompact } = useChannelHeadToggles({ cards: sideCards && supportsChannelTasks, tasksOpen: tasksCardOpen && !threadHere && !overflowOpen, filesOpen: filesCardOpen && !threadHere && !overflowOpen, onToggleTasks: showTasksCard, onToggleFiles: showFilesCard, onOpenLounge: handleOpenLounge, mineView, taskCount: openTaskCount, callAgent: headDmAgent ?? null, lounge: !!(headDmAgent && loungeEnabled && agentOffersLounge(headDmAgent)), icon: !isDesktopShell && !!channel && channel.type !== "dm" && (channel.type === "thread" || !channel.loungeAgentId), phone: phoneLayout });
   const openDetailsFromTitle = useCallback(() => {

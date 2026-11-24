@@ -150,5 +150,6 @@ test("the agent's usage row says a used-up window runs on credits", () => {
   );
   const [onCredits, usedUp] = screen.getAllByRole("meter");
   assert.match(onCredits?.getAttribute("aria-valuetext") ?? "", /^Used up · using credits · resets /);
-  assert.match(usedUp?.getAttribute("aria-valuetext") ?? "", /^Used up · resets /);
+  // raft-customized (computers.md › A runtime's usage cell, Figmama 11/16): a used-up window says when it is back.
+  assert.match(usedUp?.getAttribute("aria-valuetext") ?? "", /^Back at /);
 });

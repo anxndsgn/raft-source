@@ -69,10 +69,10 @@ const SURFACES: readonly SurfaceSpec[] = [
   { pattern: /^\/apps(?:\/|$)/, rail: "apps", phone: null, memorable: true, place: "/apps" },
   // The Team page (PRD 团队页 §4, §8): its Overview, Members and Computers are the phone's Team tab roots; a
   // member or a computer opened is a push. The rail's Team entry ("members") always lands on the Overview, never
-  // a remembered profile, so no Team page is a place.
-  { pattern: /^\/team(?:\/|$)/, rail: "members", phone: "team", memorable: false },
-  { pattern: /^\/members$/, rail: "members", phone: "team", memorable: false },
-  { pattern: /^\/(?:members\/|agent\/|human\/)/, rail: "members", phone: null, memorable: false },
+  // a remembered profile: every Team page is remembered as the Overview.
+  { pattern: /^\/team(?:\/|$)/, rail: "members", phone: "team", memorable: true, place: "/team" },
+  { pattern: /^\/members$/, rail: "members", phone: "team", memorable: true, place: "/team" },
+  { pattern: /^\/(?:members\/|agent\/|human\/)/, rail: "members", phone: null, memorable: true, place: "/team" },
   { pattern: /^\/computers\/this-device$/, rail: "computers", phone: null, memorable: true },
   { pattern: /^\/computers$/, rail: "computers", phone: "team", memorable: true, pageParams: ["filter"] },
   { pattern: /^\/(?:computers\/|computer\/|machine\/)/, rail: "computers", phone: null, memorable: true, place: "/computers", pageParams: ["filter"] },

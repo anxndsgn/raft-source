@@ -203,7 +203,8 @@ test("first-server flow always renders Screen A", () => {
   // pink sticker (`accent` → bg-attention-400) at the DS 52 call-to-action size.
   const createButton = screen.getByRole("button", { name: "Create server" });
   const createClasses = createButton.className.split(" ");
-  assert.ok(createClasses.includes("bg-attention-400"));
+  // raft-customized: the redesign's primary is ink (bg-foreground), not pink (Figmama 11/18).
+  assert.ok(createClasses.includes("bg-foreground"));
   assert.ok(createClasses.includes("h-control-cta"));
   assert.ok(createClasses.includes("w-full"));
 

@@ -89,7 +89,9 @@ async function renderHandoff(agent: NoticeAgent, activity: AgentActivityState | 
 function footerActions() {
   return Array.from(screen.getByTestId("server-setup-handoff-actions").querySelectorAll("button")).map((button) => ({
     label: button.textContent ?? "",
-    pink: button.className.includes("bg-attention-400"),
+    // raft-customized: the redesign's primary button is ink (bg-foreground), not pink (Figmama 11/18); "pink" here
+    // still means the page's primary.
+    pink: button.className.includes("bg-foreground"),
   }));
 }
 

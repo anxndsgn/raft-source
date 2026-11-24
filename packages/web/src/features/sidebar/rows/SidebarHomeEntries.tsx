@@ -31,8 +31,8 @@ export function SidebarHomeEntries({ mobileInline, data, home }: {
   } = home;
   return (
     <SidebarCellList>
-    {/* Nothing saved: no Saved row (task #10 item 8: an empty group isn't drawn). */}
-    {savedTotal > 0 ? (
+    {/* Nothing saved: no Saved row (task #10 item 8: an empty group isn't drawn), unless it is the page you are on. */}
+    {savedTotal > 0 || location.pathname.endsWith("/saved") ? (
     <SidebarItem
       active={!mobileInline && location.pathname.endsWith("/saved")}
       onClick={openSaved}

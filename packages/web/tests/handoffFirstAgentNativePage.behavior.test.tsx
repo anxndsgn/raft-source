@@ -113,7 +113,8 @@ test("while she runs, the handoff keeps its title and the pink Let's go", async 
   assert.ok(screen.queryByTestId("first-agent-start-failed") === null);
   const done = screen.getByTestId("server-setup-handoff-done");
   assert.equal(done.textContent, "Let's go");
-  assert.equal(done.className.includes("bg-attention-400"), true, "the pink primary");
+  // raft-customized: the redesign's primary is ink (bg-foreground), not pink (Figmama 11/18).
+  assert.equal(done.className.includes("bg-foreground"), true, "the pink primary");
 });
 
 test("the agent list is polled only on the dedicated native page, never on the main app surface", async () => {
