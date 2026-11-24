@@ -13,7 +13,7 @@ import { isRuntimeFormV2AdvancedSetting } from "../../components/agent/RuntimeCo
  * Create Agent in two steps (task #26, owner 5bc71ccb "太长了", progressive
  * disclosure; Figmama's spec, artifact Kd8jhvwB): 1 "Who it is" (name,
  * description), 2 "Where it runs" (computer, runtime, model, reasoning), and
- * the settings that have working defaults (provider, host config, command,
+ * the settings that have working defaults (provider, fast mode, command,
  * environment variables) in a nested Advanced settings dialog.
  */
 export type CreateAgentStep = 1 | 2;
@@ -59,9 +59,6 @@ type AdvancedSummaryInput = {
   sources: RuntimeFormV2Sources | null;
   values: RuntimeFormV2Values | null;
   initialValues: RuntimeFormV2Values | null;
-  /** The host-config switch's title, when the runtime offers it. */
-  hostConfigTitle: string | null;
-  hostConfigOn: boolean;
 };
 
 /**
@@ -72,7 +69,7 @@ type AdvancedSummaryInput = {
  * and key) is said by that one; a secret is named, never shown.
  */
 export function advancedSettingsSummary(input: AdvancedSummaryInput, intl: Pick<IntlShape, "formatMessage" | "formatList">): string {
-  const { form, sources, values, initialValues, hostConfigTitle, hostConfigOn } = input;
+  const { form, sources, values, initialValues } = input;
   const { formatMessage } = intl;
   const names: string[] = [];
   const changed: string[] = [];
@@ -80,12 +77,7 @@ export function advancedSettingsSummary(input: AdvancedSummaryInput, intl: Pick<
     ? form.fields.filter((field) => isRuntimeFormV2AdvancedSetting(form, field) && isRuntimeFormV2FieldVisible(field, values, sources))
     : [];
   const lead = fields.filter((field) => field.visibleWhen.length === 0 && !field.rule);
-  for (const field of lead.slice(0, 1)) names.push(field.label);
-  if (hostConfigTitle) {
-    names.push(hostConfigTitle);
-    if (hostConfigOn) changed.push(hostConfigTitle);
-  }
-  for (const field of lead.slice(1)) names.push(field.label);
+  for (const field of lead) names.push(field.label);
   for (const field of lead) {
     if (!values || !sources) break;
     const value = values[field.key];

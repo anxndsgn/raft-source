@@ -2531,7 +2531,6 @@ export const zhCn: Record<MessageId, string> = {
   "agent.create.advanced.allDefault": "{names} · 全部默认",
   "agent.create.advanced.value": "{label}：{value}",
   "agent.create.advanced.count": "{label} {count} 个",
-  "agent.create.advanced.hostConfig": "使用本机配置",
   "agent.create.advanced.done": "完成",
   "agent.create.descriptionHint": "一两句话说清楚它是谁、做什么。更详细的工作要求，创建后直接发消息告诉它。",
   "agent.runtimeConfig.provider": "提供方",

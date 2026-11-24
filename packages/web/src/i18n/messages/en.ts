@@ -2601,7 +2601,6 @@ export const en = {
   "agent.create.advanced.allDefault": "{names} · All defaults",
   "agent.create.advanced.value": "{label}: {value}",
   "agent.create.advanced.count": "{label} ({count})",
-  "agent.create.advanced.hostConfig": "Use this computer's config",
   "agent.create.advanced.done": "Done",
   "agent.create.descriptionHint": "A sentence or two on who it is and what it does. Tell it longer instructions in a message after it's created.",
   "agent.runtimeConfig.provider": "Provider",

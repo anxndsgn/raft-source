@@ -564,7 +564,8 @@ const CUSTOM_PROVIDER_KEYS = new Set(["provider", "apiUrl", "authType", "apiKey"
 
 /** Whether Create Agent draws this field in its Advanced settings dialog. */
 export function isRuntimeFormV2AdvancedSetting(form: ParsedRuntimeFormV2, field: RuntimeFormV2Field): boolean {
-  if (field.advanced) return true;
+  // An on/off option (Fast mode) has a default that works too (owner 70e6f757).
+  if (field.advanced || field.kind === "boolean") return true;
   return CUSTOM_PROVIDER_KEYS.has(field.key) && form.fields.some((candidate) => candidate.key === "apiUrl");
 }
 
@@ -588,7 +589,6 @@ export function RuntimeFormV2Fields({
   onRetrySource,
   retryingSourceIds = NO_SOURCE_IDS,
   section = "all",
-  afterProvider,
 }: {
   form: ParsedRuntimeFormV2;
   sources: RuntimeFormV2Sources;
@@ -603,8 +603,6 @@ export function RuntimeFormV2Fields({
   onRetrySource?: (sourceId: string) => void;
   retryingSourceIds?: readonly string[];
   section?: RuntimeFormV2Section;
-  /** `advanced` section: a row drawn after the custom provider's fields (Create Agent's host-config switch). */
-  afterProvider?: ReactNode;
 }) {
   const { formatMessage } = useIntl();
   // Renderer convention: Advanced opens whenever a visible field in it has a
@@ -661,16 +659,7 @@ export function RuntimeFormV2Fields({
   );
 
   if (section === "advanced") {
-    const fields = form.fields.filter((field) => isRuntimeFormV2AdvancedSetting(form, field));
-    const provider = fields.filter((field) => CUSTOM_PROVIDER_KEYS.has(field.key) && !field.advanced);
-    const rest = fields.filter((field) => !provider.includes(field));
-    return (
-      <>
-        {provider.map((field) => renderField(field))}
-        {afterProvider}
-        {rest.map((field) => renderField(field))}
-      </>
-    );
+    return <>{form.fields.filter((field) => isRuntimeFormV2AdvancedSetting(form, field)).map((field) => renderField(field))}</>;
   }
   if (section === "primary") {
     // Consecutive pickers pair up (model + reasoning, then speed), without

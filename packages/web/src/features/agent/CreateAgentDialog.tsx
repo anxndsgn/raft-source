@@ -431,8 +431,8 @@ export function CreateAgentDialog({
   const stepped = !external && !onboarding;
   const [step, setStep] = useState<CreateAgentStep>(1);
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  // What the Advanced dialog's Cancel puts back: the form and the switch as they were when it opened.
-  const advancedSnapshot = useRef<{ draft: { key: string; values: RuntimeFormV2Values } | null; useHostConfig: boolean } | null>(null);
+  // What the Advanced dialog's Cancel puts back: the form as it was when it opened.
+  const advancedSnapshot = useRef<{ draft: { key: string; values: RuntimeFormV2Values } | null } | null>(null);
   // Step 1's Create now submits the form; any other submit on step 1 (Enter, Next) goes on to step 2.
   const createNowRef = useRef(false);
   const v2Values = runtimeFormV2.status === "ready"
@@ -458,15 +458,12 @@ export function CreateAgentDialog({
   }, [runtimeFormV2, v2Values, runtimeFormV2Key]);
 
   const openAdvanced = useCallback(() => {
-    advancedSnapshot.current = { draft: v2Draft, useHostConfig };
+    advancedSnapshot.current = { draft: v2Draft };
     setAdvancedOpen(true);
-  }, [v2Draft, useHostConfig]);
+  }, [v2Draft]);
   const cancelAdvanced = useCallback(() => {
     const snapshot = advancedSnapshot.current;
-    if (snapshot) {
-      setV2Draft(snapshot.draft);
-      setUseHostConfig(snapshot.useHostConfig);
-    }
+    if (snapshot) setV2Draft(snapshot.draft);
     advancedSnapshot.current = null;
     setAdvancedOpen(false);
   }, []);
@@ -571,21 +568,17 @@ export function CreateAgentDialog({
   );
 
   // The Advanced settings row (task #26): shown when the runtime has anything for it.
-  const advancedHostConfigTitle = !isExternalAgentRuntime(runtime) ? formatMessage({ id: "agent.create.advanced.hostConfig" }) : null;
   const v2Ready = runtimeFormV2.status === "ready" ? runtimeFormV2 : null;
   const advancedInitialValues = useMemo(
     () => (v2Ready ? initialRuntimeFormV2Values(v2Ready.form, v2Ready.sources) : null),
     [v2Ready],
   );
-  const advancedRowShown = advancedHostConfigTitle !== null
-    || Boolean(v2Ready?.form.fields.some((field) => isRuntimeFormV2AdvancedSetting(v2Ready.form, field)));
+  const advancedRowShown = Boolean(v2Ready?.form.fields.some((field) => isRuntimeFormV2AdvancedSetting(v2Ready.form, field)));
   const advancedSummary = advancedSettingsSummary({
     form: v2Ready?.form ?? null,
     sources: v2Ready?.sources ?? null,
     values: v2Values,
     initialValues: advancedInitialValues,
-    hostConfigTitle: advancedHostConfigTitle,
-    hostConfigOn: !hostConfigLocked && useHostConfig,
   }, intl);
 
   const handleUpgradeToBilling = useCallback(() => {
@@ -1570,7 +1563,8 @@ export function CreateAgentDialog({
               runtimeListAction={runtimeListAction}
               upgradeServerId={currentServer?.id}
               upgradeMachineId={selectedMachineId}
-              afterRuntime={stepped || isExternalAgentRuntime(runtime) ? null : useHostConfigRow}
+              // Stepped too: owner 690b4779 wants the host-config switch on step 2, not in Advanced.
+              afterRuntime={isExternalAgentRuntime(runtime) ? null : useHostConfigRow}
               formSection={stepped ? "primary" : "all"}
             />
             {stepped && advancedRowShown && <AdvancedSettingsRow summary={advancedSummary} onOpen={openAdvanced} />}
@@ -1589,9 +1583,8 @@ export function CreateAgentDialog({
                   onRetrySource={runtimeFormV2.retrySource}
                   retryingSourceIds={runtimeFormV2.retryingSourceIds}
                   section="advanced"
-                  afterProvider={isExternalAgentRuntime(runtime) ? null : <div className="pt-3 md:pointer-fine:pt-0">{useHostConfigRow}</div>}
                 />
-              ) : !isExternalAgentRuntime(runtime) && useHostConfigRow}
+              ) : null}
             </AdvancedSettingsDialog>
           )}
 

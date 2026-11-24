@@ -184,7 +184,8 @@ export function RuntimeChoiceCombobox({
             the width is the page's. */}
         <ComboboxControl ref={controlRef} className="w-full">
           <ComboboxInput
-            className="text-field font-field"
+            // A long model name ends in an ellipsis instead of being cut mid-word (owner, task #26).
+            className="min-w-0 overflow-hidden text-ellipsis text-field font-field"
             placeholder={open && selectedLabel ? selectedLabel : placeholder}
             data-testid={testId}
             data-invalid={dataInvalid}
