@@ -39,6 +39,7 @@ x-server-env: &server-env
   # (API keys). Generate once with `openssl rand -base64 32`; changing it
   # makes credentials saved under the old key unreadable.
   SLOCK_MCP_CREDENTIAL_KEY: ${SLOCK_MCP_CREDENTIAL_KEY:-}
+  SLOCK_PROVIDER_CREDENTIAL_KEY: ${SLOCK_PROVIDER_CREDENTIAL_KEY:-}
   # Web push (phone/desktop notifications): off unless both keys are set.
   # Generate once: npx web-push generate-vapid-keys
   VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
