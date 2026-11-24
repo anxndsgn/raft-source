@@ -450,6 +450,8 @@ interface RuntimeConfigFieldsProps {
    */
   upgradeServerId?: string | null;
   upgradeMachineId?: string | null;
+  /** Which of the runtime form's fields to draw (RuntimeFormV2Fields `section`). */
+  formSection?: RuntimeFormV2Section;
 }
 
 export default function RuntimeConfigFields({
@@ -467,6 +469,7 @@ export default function RuntimeConfigFields({
   showValidationErrors = true,
   upgradeServerId = null,
   upgradeMachineId = null,
+  formSection = "all",
 }: RuntimeConfigFieldsProps) {
   const upgradeContext = useMemo<RuntimeUpgradeTarget | null>(() => (upgradeServerId && upgradeMachineId && runtime
     ? { serverId: upgradeServerId, machineId: upgradeMachineId, runtimeId: runtime }
@@ -522,6 +525,7 @@ export default function RuntimeConfigFields({
             editing={runtimeFormV2.editing}
             onRetrySource={runtimeFormV2.state.retrySource}
             retryingSourceIds={runtimeFormV2.state.retryingSourceIds}
+            section={formSection}
           />
           </RuntimeUpgradeTargetContext.Provider>
         ) : (
@@ -542,6 +546,32 @@ export default function RuntimeConfigFields({
 
 
 /**
+ * Which part of a runtime form a surface draws. `all`: every field, the
+ * server's advanced ones behind the "Advanced" disclosure. Create Agent splits
+ * it (task #26, Figmama Kd8jhvwB): `primary` (model, reasoning, speed: what a
+ * person picks) on its second step, `advanced` in its nested Advanced settings
+ * dialog, both without a disclosure.
+ */
+export type RuntimeFormV2Section = "all" | "primary" | "advanced";
+
+/**
+ * Claude's custom provider (Default / Custom, then URL, auth and key for
+ * Custom). It has a default that works, so Create Agent keeps it with the
+ * advanced settings. A provider without a usable default (Pi's) decides which
+ * model field shows, so it stays a primary field.
+ */
+const CUSTOM_PROVIDER_KEYS = new Set(["provider", "apiUrl", "authType", "apiKey"]);
+
+/** Whether Create Agent draws this field in its Advanced settings dialog. */
+export function isRuntimeFormV2AdvancedSetting(form: ParsedRuntimeFormV2, field: RuntimeFormV2Field): boolean {
+  if (field.advanced) return true;
+  return CUSTOM_PROVIDER_KEYS.has(field.key) && form.fields.some((candidate) => candidate.key === "apiUrl");
+}
+
+/** Pickers that sit two to a row in the primary section (model + reasoning). */
+const PAIRED_FIELD_KINDS = new Set(["select", "dependent_select", "derived_select"]);
+
+/**
  * Protocol v2 form: rendered by field kind from the server's description, with
  * no field or runtime names in this component. State rules (defaults, cascade,
  * visibility, validation) live in @botiverse/raft-runtime-form so mobile follows
@@ -557,6 +587,8 @@ export function RuntimeFormV2Fields({
   editing = false,
   onRetrySource,
   retryingSourceIds = NO_SOURCE_IDS,
+  section = "all",
+  afterProvider,
 }: {
   form: ParsedRuntimeFormV2;
   sources: RuntimeFormV2Sources;
@@ -570,6 +602,9 @@ export function RuntimeFormV2Fields({
   /** `option_source.status`: re-request a source (`?refresh=1`). */
   onRetrySource?: (sourceId: string) => void;
   retryingSourceIds?: readonly string[];
+  section?: RuntimeFormV2Section;
+  /** `advanced` section: a row drawn after the custom provider's fields (Create Agent's host-config switch). */
+  afterProvider?: ReactNode;
 }) {
   const { formatMessage } = useIntl();
   // Renderer convention: Advanced opens whenever a visible field in it has a
@@ -605,11 +640,12 @@ export function RuntimeFormV2Fields({
     }
   };
 
-  const renderField = (field: RuntimeFormV2Field) => (
+  const renderField = (field: RuntimeFormV2Field, compact = false) => (
     // An optional field whose source is unavailable is hidden (option_source.status).
     isRuntimeFormV2FieldVisible(field, values, sources) ? (
       <RuntimeFormV2FieldControl
         key={field.key}
+        compact={compact}
         field={field}
         sources={sources}
         values={values}
@@ -624,11 +660,45 @@ export function RuntimeFormV2Fields({
     ) : null
   );
 
+  if (section === "advanced") {
+    const fields = form.fields.filter((field) => isRuntimeFormV2AdvancedSetting(form, field));
+    const provider = fields.filter((field) => CUSTOM_PROVIDER_KEYS.has(field.key) && !field.advanced);
+    const rest = fields.filter((field) => !provider.includes(field));
+    return (
+      <>
+        {provider.map((field) => renderField(field))}
+        {afterProvider}
+        {rest.map((field) => renderField(field))}
+      </>
+    );
+  }
+  if (section === "primary") {
+    // Consecutive pickers pair up (model + reasoning, then speed), without
+    // their hints: the second step reads as one block of choices (Figmama).
+    const shown = form.fields.filter((field) => !isRuntimeFormV2AdvancedSetting(form, field)
+      && isRuntimeFormV2FieldVisible(field, values, sources));
+    const pairs = (field: RuntimeFormV2Field) => PAIRED_FIELD_KINDS.has(field.kind) && field.key !== "provider";
+    const rows: RuntimeFormV2Field[][] = [];
+    for (const field of shown) {
+      const last = rows[rows.length - 1];
+      if (last?.length === 1 && pairs(last[0]) && pairs(field)) last.push(field);
+      else rows.push([field]);
+    }
+    return (
+      <>
+        {rows.map((row) => (row.length === 2 ? (
+          <div key={row[0].key} className="grid grid-cols-2 gap-3" data-testid="runtime-form-v2-pair">
+            {row.map((field) => renderField(field, true))}
+          </div>
+        ) : renderField(row[0])))}
+      </>
+    );
+  }
   const main = form.fields.filter((field) => !field.advanced);
   const advanced = form.fields.filter((field) => field.advanced);
   return (
     <>
-      {main.map(renderField)}
+      {main.map((field) => renderField(field))}
       {advanced.length > 0 && (
         <div>
           <RuntimeDisclosureToggle open={advancedOpen} onOpenChange={setAdvancedOpen}>
@@ -636,7 +706,7 @@ export function RuntimeFormV2Fields({
           </RuntimeDisclosureToggle>
           {advancedOpen && (
             <div className="mt-3 stack-y-3 border-l border-line-hairline pl-3">
-              {advanced.map(renderField)}
+              {advanced.map((field) => renderField(field))}
             </div>
           )}
         </div>

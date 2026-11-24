@@ -30,7 +30,9 @@ import DialogCard from "../../components/ui/DialogCard";
 import type { AddSeatsNeed, SeatUsage } from "../../components/billing/AddSeatsDialog";
 import { AVATAR_KEYS } from "../../components/agent/PixelAvatar";
 import AvatarSlot from "../../components/ui/AvatarSlot";
-import RuntimeConfigFields from "../../components/agent/RuntimeConfigFields";
+import RuntimeConfigFields, { isRuntimeFormV2AdvancedSetting, RuntimeFormV2Fields } from "../../components/agent/RuntimeConfigFields";
+import { AdvancedSettingsDialog, AdvancedSettingsRow, advancedSettingsSummary, CreateAgentStepBar, CreateAgentStepCancel, CreateAgentStepFooter } from "./CreateAgentSteps";
+import type { CreateAgentStep } from "./CreateAgentSteps";
 import { useRuntimeShowAllAction } from "../../components/agent/useRuntimeShowAllAction";
 import { flatRuntimePickerOptions, groupRuntimePickerRows } from "../../components/agent/runtimePickerOptions";
 import type { RuntimePickerRow } from "../../components/agent/runtimePickerOptions";
@@ -56,6 +58,9 @@ import { machineMeetsDaemonRequirement, pickFallbackMachine } from "./pickFallba
 import { onboardingRuntimeCandidates, pickCreateAgentRuntime, reconcileCreateAgentRuntime, suggestedRuntimeUnavailable } from "./pickCreateAgentRuntime";
 import { SuggestedRuntimeNotice } from "./SuggestedRuntimeNotice";
 import { showCreatedAgentToast } from "./createdAgentToast";
+
+/** Task #26 (Figmama): the stepped dialog's description is two lines tall (raft-ui's Textarea starts at three). */
+const TWO_LINE_TEXTAREA = "min-h-[calc(var(--field-line-height)*2+--spacing(6))] md:pointer-fine:min-h-[calc(var(--field-line-height)*2+--spacing(4))]";
 
 const AddSeatsDialog = deferredDialog(() => import("../../components/billing/AddSeatsDialog"));
 
@@ -241,7 +246,8 @@ export function CreateAgentDialog({
    */
   onboardingShell?: "modal" | "step" | "page";
 }) {
-  const { formatMessage, formatNumber } = useIntl();
+  const intl = useIntl();
+  const { formatMessage, formatNumber } = intl;
   const storeMachines = useMachineStore((s) => s.machines);
   const pinnedMachineId = useLocalComputerMachineId();
   // Same order as the Computers list (this device, then mine, then the rest).
@@ -419,6 +425,16 @@ export function CreateAgentDialog({
   const runtimeFormV2Key = runtimeFormV2.status === "ready" ? `${selectedMachineId}\0${runtime}` : "";
   const [v2Draft, setV2Draft] = useState<{ key: string; values: RuntimeFormV2Values } | null>(null);
   const [v2ServerErrors, setV2ServerErrors] = useState<Record<string, string>>({});
+  // Task #26: the regular create is two steps with a nested Advanced settings
+  // dialog (CreateAgentSteps). Onboarding (Create Cindy) and an external agent
+  // keep the one-page form.
+  const stepped = !external && !onboarding;
+  const [step, setStep] = useState<CreateAgentStep>(1);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  // What the Advanced dialog's Cancel puts back: the form and the switch as they were when it opened.
+  const advancedSnapshot = useRef<{ draft: { key: string; values: RuntimeFormV2Values } | null; useHostConfig: boolean } | null>(null);
+  // Step 1's Create now submits the form; any other submit on step 1 (Enter, Next) goes on to step 2.
+  const createNowRef = useRef(false);
   const v2Values = runtimeFormV2.status === "ready"
     ? v2Draft?.key === runtimeFormV2Key
       ? v2Draft.values
@@ -440,6 +456,34 @@ export function CreateAgentDialog({
       values: applyRuntimeFormV2Change(runtimeFormV2.form, runtimeFormV2.sources, v2Values, key, value),
     });
   }, [runtimeFormV2, v2Values, runtimeFormV2Key]);
+
+  const openAdvanced = useCallback(() => {
+    advancedSnapshot.current = { draft: v2Draft, useHostConfig };
+    setAdvancedOpen(true);
+  }, [v2Draft, useHostConfig]);
+  const cancelAdvanced = useCallback(() => {
+    const snapshot = advancedSnapshot.current;
+    if (snapshot) {
+      setV2Draft(snapshot.draft);
+      setUseHostConfig(snapshot.useHostConfig);
+    }
+    advancedSnapshot.current = null;
+    setAdvancedOpen(false);
+  }, []);
+  const closeAdvanced = useCallback(() => {
+    advancedSnapshot.current = null;
+    setAdvancedOpen(false);
+  }, []);
+  /** After a refused submit: show the step (or the Advanced dialog) holding the runtime fields that said why. */
+  const revealRuntimeErrors = useCallback((keys: string[]) => {
+    if (!stepped || keys.length === 0) return;
+    setStep(2);
+    if (runtimeFormV2.status !== "ready") return;
+    const form = runtimeFormV2.form;
+    if (keys.some((key) => form.fields.some((field) => field.key === key && isRuntimeFormV2AdvancedSetting(form, field)))) {
+      openAdvanced();
+    }
+  }, [stepped, runtimeFormV2, openAdvanced]);
 
   const runtimeFormV2Prop = useMemo(() => (!previewOnly && runtime ? {
     state: runtimeFormV2,
@@ -525,6 +569,24 @@ export function CreateAgentDialog({
       <Switch checked={effectiveUseHostConfig} disabled={hostConfigLocked} onCheckedChange={setUseHostConfig} />
     </label>
   );
+
+  // The Advanced settings row (task #26): shown when the runtime has anything for it.
+  const advancedHostConfigTitle = !isExternalAgentRuntime(runtime) ? formatMessage({ id: "agent.create.advanced.hostConfig" }) : null;
+  const v2Ready = runtimeFormV2.status === "ready" ? runtimeFormV2 : null;
+  const advancedInitialValues = useMemo(
+    () => (v2Ready ? initialRuntimeFormV2Values(v2Ready.form, v2Ready.sources) : null),
+    [v2Ready],
+  );
+  const advancedRowShown = advancedHostConfigTitle !== null
+    || Boolean(v2Ready?.form.fields.some((field) => isRuntimeFormV2AdvancedSetting(v2Ready.form, field)));
+  const advancedSummary = advancedSettingsSummary({
+    form: v2Ready?.form ?? null,
+    sources: v2Ready?.sources ?? null,
+    values: v2Values,
+    initialValues: advancedInitialValues,
+    hostConfigTitle: advancedHostConfigTitle,
+    hostConfigOn: !hostConfigLocked && useHostConfig,
+  }, intl);
 
   const handleUpgradeToBilling = useCallback(() => {
     onClose();
@@ -773,10 +835,30 @@ export function CreateAgentDialog({
       !name.trim()
     ));
 
+  // Step 1's Next: name and description are checked here, where they are on screen.
+  const goToStep2 = () => {
+    if (nameValidationError || descriptionTooLong) {
+      setValidationAttempted(true);
+      return;
+    }
+    setStep(2);
+  };
+  const handleCreateNow = useCallback(() => {
+    createNowRef.current = true;
+    createAgentFormRef.current?.requestSubmit();
+  }, []);
+  const handleBackToStep1 = useCallback(() => setStep(1), []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     const seatsJustAdded = resumingAfterSeats.current;
     resumingAfterSeats.current = false;
     e.preventDefault();
+    const createNow = createNowRef.current;
+    createNowRef.current = false;
+    if (stepped && step === 1 && !createNow && !seatsJustAdded) {
+      goToStep2();
+      return;
+    }
     setError("");
     setSubmitting(true);
     // Mark the attempt BEFORE the early return, so the fields can speak even
@@ -788,6 +870,8 @@ export function CreateAgentDialog({
       // has to fix — and with several fields invalid the banner could only name
       // one of them. Each field's own slot is where this belongs.
       setSubmitting(false);
+      if (stepped && (nameValidationError || descriptionTooLong)) setStep(1);
+      else revealRuntimeErrors(Object.keys(v2Errors));
       return;
     }
     if (!skipsComputer && !selectedMachineId) {
@@ -957,6 +1041,7 @@ export function CreateAgentDialog({
           if (key) fieldErrors[key] = axiosErr.response?.data?.error ?? issue.code ?? "";
         }
         setV2ServerErrors(fieldErrors);
+        revealRuntimeErrors(Object.keys(fieldErrors));
       }
       setError(axiosErr.response?.data?.error || formatMessage({ id: "agent.create.failedCreate" }));
       setSubmitting(false);
@@ -1251,6 +1336,7 @@ export function CreateAgentDialog({
             so one class governs the whole rhythm; Agent Details has its own
             container and is untouched. */}
         <form ref={createAgentFormRef} noValidate onSubmit={handleSubmit} className="stack-y-1 md:pointer-fine:stack-y-4">
+          {stepped && <CreateAgentStepBar step={step} />}
           {/* The add-members entry promised "joins #channel after creation";
               that promise must not vanish once this dialog covers the entry
               (task #584). Plain persistent line, not a Banner — it is context,
@@ -1327,7 +1413,7 @@ export function CreateAgentDialog({
               </BannerDescription>
             </Banner>
           )}
-          {!isExternalMode && (
+          {!isExternalMode && (!stepped || step === 2) && (
             <StableField label={formatMessage({ id: "agent.create.computer" })} required>
               {/* The zero-computer case never reaches here: it is answered above, with the
                   action that fixes it, instead of a grey box stating the problem. */}
@@ -1376,6 +1462,7 @@ export function CreateAgentDialog({
             </StableField>
           )}
 
+          {(!stepped || step === 1) && (<>
           <StableField
             label={formatMessage({ id: "agent.create.name" })}
             required
@@ -1435,8 +1522,9 @@ export function CreateAgentDialog({
             // field 36px where every other gap is 16px; in the helper slot it
             // occupies the same row a hint or error would, so the field's
             // footprint matches any other hinted field.
-            counter={descriptionLocked ? undefined : `${description.length}/${PROFILE_DESCRIPTION_MAX_LENGTH}`}
-            hint={descriptionLocked ? undefined : formatMessage({ id: "agent.create.descriptionHint" })}
+            // Task #26 (Figmama): the old hint now reads as the placeholder, and
+            // the counter shows once there is something to count.
+            counter={descriptionLocked || description.length === 0 ? undefined : `${description.length}/${PROFILE_DESCRIPTION_MAX_LENGTH}`}
             error={descriptionTooLong
               ? formatMessage({ id: "agent.detail.descriptionMaxLength" }, { count: PROFILE_DESCRIPTION_MAX_LENGTH })
               : undefined}
@@ -1444,9 +1532,9 @@ export function CreateAgentDialog({
             <Textarea
               value={description}
               onChange={handleDescriptionChange}
-              className={`w-full ${descriptionLocked ? lockedFieldClass : ""}`}
+              className={`w-full ${stepped ? TWO_LINE_TEXTAREA : ""} ${descriptionLocked ? lockedFieldClass : ""}`}
               placeholder={formatMessage({ id: "agent.create.descriptionPlaceholder" })}
-              rows={3}
+              rows={stepped ? 2 : 3}
               maxLength={PROFILE_DESCRIPTION_MAX_LENGTH}
               readOnly={descriptionLocked}
             />
@@ -1458,7 +1546,8 @@ export function CreateAgentDialog({
               </div>
             ) : null}
           </StableField>
-          {isHostedMode && hostedModelPickerShown(hostedModelsView) && (
+          </>)}
+          {(!stepped || step === 2) && isHostedMode && hostedModelPickerShown(hostedModelsView) && (
             <StableField label={formatMessage({ id: "agent.detail.hostedModel.title" })}>
               <HostedModelChoice
                 state={hostedModels.state}
@@ -1469,7 +1558,7 @@ export function CreateAgentDialog({
               />
             </StableField>
           )}
-          {!skipsComputer && selectedMachineId && (
+          {(!stepped || step === 2) && !skipsComputer && selectedMachineId && (
             <>
             <RuntimeConfigFields
               showValidationErrors={validationAttempted}
@@ -1481,11 +1570,64 @@ export function CreateAgentDialog({
               runtimeListAction={runtimeListAction}
               upgradeServerId={currentServer?.id}
               upgradeMachineId={selectedMachineId}
-              afterRuntime={isExternalAgentRuntime(runtime) ? null : useHostConfigRow}
+              afterRuntime={stepped || isExternalAgentRuntime(runtime) ? null : useHostConfigRow}
+              formSection={stepped ? "primary" : "all"}
             />
+            {stepped && advancedRowShown && <AdvancedSettingsRow summary={advancedSummary} onOpen={openAdvanced} />}
             </>
           )}
+          {stepped && advancedOpen && (
+            <AdvancedSettingsDialog onCancel={cancelAdvanced} onDone={closeAdvanced}>
+              {runtimeFormV2.status === "ready" && v2Values ? (
+                <RuntimeFormV2Fields
+                  form={runtimeFormV2.form}
+                  sources={runtimeFormV2.sources}
+                  values={v2Values}
+                  onChange={changeV2Value}
+                  showValidationErrors={validationAttempted}
+                  serverErrors={v2ServerErrors}
+                  onRetrySource={runtimeFormV2.retrySource}
+                  retryingSourceIds={runtimeFormV2.retryingSourceIds}
+                  section="advanced"
+                  afterProvider={isExternalAgentRuntime(runtime) ? null : <div className="pt-3 md:pointer-fine:pt-0">{useHostConfigRow}</div>}
+                />
+              ) : !isExternalAgentRuntime(runtime) && useHostConfigRow}
+            </AdvancedSettingsDialog>
+          )}
 
+          {stepped ? (
+            <CreateAgentStepFooter>
+              {step === 1 ? (
+                <Button type="button" variant="ghost" size="lg" className="mr-auto" onClick={handleCreateNow} disabled={createDisabled} data-testid="create-agent-create-now">
+                  {formatMessage({ id: "agent.create.createNow" })}
+                </Button>
+              ) : (
+                <Button type="button" variant="ghost" size="lg" className="mr-auto md:pointer-fine:mr-0" onClick={handleBackToStep1} data-testid="create-agent-back">
+                  {formatMessage({ id: "agent.create.back" })}
+                </Button>
+              )}
+              {step === 1 && (
+                <CreateAgentStepCancel>
+                  <Button type="button" onClick={onClose} variant="ghost" size="lg">
+                    {formatMessage({ id: "common.confirm.cancel" })}
+                  </Button>
+                </CreateAgentStepCancel>
+              )}
+              <DialogCommit>
+                {(inHead) => (
+                  <Button
+                    type="submit"
+                    disabled={step === 1 ? descriptionTooLong : createDisabled}
+                    variant="primary"
+                    size={inHead ? "md" : "lg"}
+                    data-testid={step === 1 ? "create-agent-next" : undefined}
+                  >
+                    {step === 1 ? formatMessage({ id: "agent.create.next" }) : submitLabel}
+                  </Button>
+                )}
+              </DialogCommit>
+            </CreateAgentStepFooter>
+          ) : (
           <DialogCardFooter className="md:pointer-fine:mt-[18px]">
             <Button
               type="button"
@@ -1508,6 +1650,7 @@ export function CreateAgentDialog({
               )}
             </DialogCommit>
           </DialogCardFooter>
+          )}
         </form>
       </DialogCard>
       {seatNeed ? (

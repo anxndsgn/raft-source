@@ -34,6 +34,7 @@ export function RuntimeFormV2FieldControl({
   editing,
   onRetrySource,
   retryingSourceIds,
+  compact = false,
 }: {
   field: RuntimeFormV2Field;
   sources: RuntimeFormV2Sources;
@@ -43,6 +44,8 @@ export function RuntimeFormV2FieldControl({
   editing: boolean;
   onRetrySource?: (sourceId: string) => void;
   retryingSourceIds: readonly string[];
+  /** Half a row (Create Agent's model + reasoning pair): no hint line under it. */
+  compact?: boolean;
 }) {
   const { formatMessage } = useIntl();
   const fieldKey = field.key;
@@ -73,7 +76,7 @@ export function RuntimeFormV2FieldControl({
   const refreshLabel = formatMessage({ id: "agent.runtimeFormV2.refreshSourceAria" });
   // Server hint copy may carry inline Markdown links (https only).
   const fieldHint = useMemo(() => (field.hint ? <RuntimeFormV2HintText hint={field.hint} /> : undefined), [field.hint]);
-  const hint = secretKept ? formatMessage({ id: "agent.runtimeFormV2.secretKept" }) : fieldHint;
+  const hint = secretKept ? formatMessage({ id: "agent.runtimeFormV2.secretKept" }) : compact ? undefined : fieldHint;
   const required = isRuntimeFormV2FieldRequired(field, values) && !secretKept;
   const common = useMemo(
     () => ({

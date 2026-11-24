@@ -244,6 +244,8 @@ function renderCreateAgent() {
 const SLOW = { timeout: 15_000 };
 
 const createButton = () => screen.getAllByRole("button").find((el) => (el.textContent ?? "").trim() === "Create");
+/** Create Agent is two steps (task #26): Create is on the second, after Next. */
+const goToStep2 = () => fireEvent.click(screen.getByTestId("create-agent-next"));
 
 test("Create Agent on a full Pro server: an owner adds a seat, then the agent is created", async () => {
   seedServer("owner");
@@ -254,6 +256,7 @@ test("Create Agent on a full Pro server: an owner adds a seat, then the agent is
 
   await waitFor(() => assert.ok(screen.getByText("4/4 seats used; creating needs 1 more seat.")), SLOW);
   assert.equal([...document.querySelectorAll('[data-slot="banner"]')].some((el) => /limit reached/i.test(el.textContent ?? "")), false, "no at-limit notice for an owner");
+  goToStep2();
   const create = await waitFor(() => {
     const button = createButton();
     assert.ok(button && !(button as HTMLButtonElement).disabled, "Create stays enabled");
@@ -278,6 +281,8 @@ test("Create Agent with the flag off keeps the at-limit notice and a disabled Cr
   renderCreateAgent();
   await waitFor(() => assert.ok([...document.querySelectorAll('[data-slot="banner"]')].some((el) => /limit reached/i.test(el.textContent ?? ""))));
   assert.equal(screen.queryByText(/seats used/) === null, true);
+  assert.equal((screen.getByTestId("create-agent-create-now") as HTMLButtonElement).disabled, true, "Create now waits as Create does");
+  goToStep2();
   assert.equal((createButton() as HTMLButtonElement | undefined)?.disabled, true);
 });
 
