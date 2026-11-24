@@ -337,10 +337,25 @@ async function main(): Promise<void> {
   let restoreBarrierIntervalMs: number | null = null;
   let rebuilding = false;
   try {
-    if (selfHost && await alreadyBootstrapped(risingwave)) {
+    // Self-host deploys wait on this step. A wedged RisingWave (11-24: meta
+    // stuck after 41 h, host low on memory) never answers these catalog
+    // queries, and the deploy hung 43 minutes. The check phase is a handful of
+    // small queries plus SELF_HOST_CHECK_ATTEMPTS retries; past
+    // SELF_HOST_CHECK_DEADLINE_MS, fail instead of waiting forever. A rebuild
+    // below is not covered: building the graph legitimately takes longer.
+    const checkDeadline = selfHost
+      ? setTimeout(() => {
+          console.error(`[rw-bootstrap] RisingWave did not answer the serving graph check within ${SELF_HOST_CHECK_DEADLINE_MS / 1000}s; restart RisingWave and deploy again`);
+          process.exit(1);
+        }, SELF_HOST_CHECK_DEADLINE_MS)
+      : null;
+    const bootstrapped = selfHost && await alreadyBootstrapped(risingwave);
+    if (!bootstrapped && checkDeadline) clearTimeout(checkDeadline);
+    if (bootstrapped) {
       for (let attempt = 1; ; attempt++) {
         try {
           await assertRequiredRelations(risingwave);
+          if (checkDeadline) clearTimeout(checkDeadline);
           console.log(JSON.stringify({ ok: true, skipped: "already bootstrapped" }));
           return;
         } catch (error) {
@@ -351,6 +366,7 @@ async function main(): Promise<void> {
             // Everything here derives from Postgres through CDC, so nothing
             // is lost.
             console.error(`[rw-bootstrap] the existing graph is out of date (${detail}); rebuilding it`);
+            if (checkDeadline) clearTimeout(checkDeadline);
             await dropSelfHostGraph(risingwave);
             rebuilding = true;
             break;
@@ -465,6 +481,8 @@ const CLEANUP_STEP_TIMEOUT_MS = 30_000;
 const SLOT_RELEASE_TIMEOUT_MS = 60_000;
 const SELF_HOST_CHECK_ATTEMPTS = 6;
 const SELF_HOST_CHECK_RETRY_MS = 10_000;
+/** The whole self-host check phase (attempts x retry wait, plus slack). */
+const SELF_HOST_CHECK_DEADLINE_MS = 3 * 60_000;
 
 async function withinMs<T>(label: string, ms: number, work: Promise<T>): Promise<T> {
   const started = Date.now();

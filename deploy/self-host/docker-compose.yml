@@ -103,10 +103,14 @@ services:
       - ./risingwave.toml:/etc/risingwave.toml:ro
       - risingwave:/root/.risingwave
     healthcheck:
-      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/4566'"]
-      interval: 5s
-      timeout: 3s
-      retries: 60
+      # Ask the meta service, not just the port: on 11-22 and 11-24 meta was
+      # wedged while 4566 still accepted connections, so it stayed "healthy"
+      # and the deploy waited on risingwave-bootstrap for 43 minutes.
+      test: ["CMD-SHELL", "RW_META_ADDR=http://127.0.0.1:5690 timeout 10 /risingwave/bin/risingwave ctl meta cluster-info >/dev/null 2>&1 && bash -c 'exec 3<>/dev/tcp/127.0.0.1/4566'"]
+      interval: 15s
+      timeout: 15s
+      retries: 4
+      start_period: 300s
     mem_limit: ${RISINGWAVE_MEM_LIMIT:-2560m}
     memswap_limit: ${RISINGWAVE_MEM_LIMIT:-2560m}
 
