@@ -143,11 +143,14 @@ jobs:
           # still reports healthy but never answers risingwave-bootstrap's
           # first query, and the server waits on that step forever. Ask it a
           # catalog query first; if it can't answer in 60 s, restart it.
-          if docker compose ps --status running --services | grep -qx risingwave; then
+          # This script arrives on ssh's stdin: everything run here must read
+          # /dev/null, or it eats the rest of the script (0c04163d: exec took
+          # it, compose up never ran and the deploy still reported success).
+          if docker compose ps --status running --services </dev/null | grep -x risingwave >/dev/null; then
             if ! timeout 60 docker compose exec -T postgres \
-                psql -h risingwave -p 4566 -U root -d dev -tAc 'select count(*) from rw_catalog.rw_materialized_views' >/dev/null; then
+                psql -h risingwave -p 4566 -U root -d dev -tAc 'select count(*) from rw_catalog.rw_materialized_views' </dev/null >/dev/null; then
               echo "::warning::RisingWave did not answer in 60 s; restarting it before the deploy"
-              docker compose restart risingwave
+              docker compose restart risingwave </dev/null
             fi
           fi
           docker compose --profile caddy up -d --remove-orphans
