@@ -49,7 +49,7 @@ import {
 const dialog = tv({
   slots: {
     // A centred modal appears and goes without motion (Raft DS: only sheets
-    // slide; a dialog is simply there).
+    // slide; a dialog is simply there), except the nested hand-off below.
     overlay: ["fixed inset-0 z-dialog bg-layer-backdrop"],
     portal: [],
     content: [
@@ -57,6 +57,16 @@ const dialog = tv({
       "max-h-[calc(100dvh-2rem)] outline-none",
       "overflow-clip rounded-dialog bg-layer-popover text-foreground",
       "shadow-float ring-1 ring-line-seam",
+      // Nested dialogs (owner, task #27; Base UI's nested-dialog example): with
+      // a mouse, a card with a dialog open over it steps back (smaller, up a
+      // little) and the nested card fades and grows in. Only this hand-off
+      // moves; a top-level dialog still appears without motion.
+      "md:pointer-fine:motion-safe:transition-[scale,margin-top,opacity] md:pointer-fine:motion-safe:duration-200 md:pointer-fine:motion-safe:ease-out",
+      "md:pointer-fine:data-nested-dialog-open:scale-[calc(1-0.05*var(--nested-dialogs))]",
+      // margin, not translate: placement="top" sets its own translate.
+      "md:pointer-fine:data-nested-dialog-open:mt-[calc(-2rem*var(--nested-dialogs))]",
+      "md:pointer-fine:data-nested:data-starting-style:scale-96 md:pointer-fine:data-nested:data-starting-style:opacity-0",
+      "md:pointer-fine:data-nested:data-ending-style:scale-96 md:pointer-fine:data-nested:data-ending-style:opacity-0",
       // Raft redesign (Figmama 11/20): with a mouse the canvas, the island
       // corner and a 1px floating line, the shadow kept; 20px inside.
       "md:pointer-fine:bg-layer-canvas md:pointer-fine:rounded-island md:pointer-fine:ring-line-floating md:pointer-fine:[--surface-inset:20px]",
@@ -183,7 +193,14 @@ const dialog = tv({
     // of its own, so what is below steps back without going black.
     nested: {
       false: {},
-      true: { overlay: ["bg-layer-backdrop-nested"] },
+      true: {
+        overlay: [
+          "bg-layer-backdrop-nested",
+          // Fades with the nested card (task #27).
+          "md:pointer-fine:motion-safe:transition-opacity md:pointer-fine:motion-safe:duration-200",
+          "md:pointer-fine:data-starting-style:opacity-0 md:pointer-fine:data-ending-style:opacity-0",
+        ],
+      },
     },
     start: {
       false: {},
