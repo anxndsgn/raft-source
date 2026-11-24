@@ -29,6 +29,9 @@ type DialogCardProps = {
   closeOnBackdrop?: boolean;
   /** Phone presentation (< 768px). Default: the centred card. */
   narrow?: DialogNarrow;
+  /** Open by default (mount it to open it). Pass `open` to keep it mounted
+   *  and let Base UI play its closing motion (a nested card, task #27). */
+  open?: boolean;
 };
 
 /**
@@ -65,6 +68,7 @@ export default function DialogCard({
   closeOnBackdrop = false,
   layer,
   narrow = "centered",
+  open = true,
 }: DialogCardProps) {
   const { formatMessage } = useIntl();
   const popupRef = useRef<HTMLDivElement | null>(null);
@@ -82,7 +86,7 @@ export default function DialogCard({
   }, [onClose]);
 
   return (
-    <Dialog open disablePointerDismissal={!closeOnBackdrop} onOpenChange={handleOpenChange}>
+    <Dialog open={open} disablePointerDismissal={!closeOnBackdrop} onOpenChange={handleOpenChange}>
       <NarrowDialogContent
         ref={popupRef}
         narrow={narrow}

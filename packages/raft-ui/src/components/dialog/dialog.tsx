@@ -65,7 +65,9 @@ const dialog = tv({
       "md:pointer-fine:data-nested-dialog-open:scale-[calc(1-0.05*var(--nested-dialogs))]",
       // margin, not translate: placement="top" sets its own translate.
       "md:pointer-fine:data-nested-dialog-open:mt-[calc(-2rem*var(--nested-dialogs))]",
-      "md:pointer-fine:data-nested:data-starting-style:scale-96 md:pointer-fine:data-nested:data-starting-style:opacity-0",
+      // Entry via @starting-style: Base UI's data-starting-style frame was
+      // missed here (the card mounts already open), so it never faded in.
+      "md:pointer-fine:data-nested:starting:scale-96 md:pointer-fine:data-nested:starting:opacity-0",
       "md:pointer-fine:data-nested:data-ending-style:scale-96 md:pointer-fine:data-nested:data-ending-style:opacity-0",
       // Raft redesign (Figmama 11/20): with a mouse the canvas, the island
       // corner and a 1px floating line, the shadow kept; 20px inside.

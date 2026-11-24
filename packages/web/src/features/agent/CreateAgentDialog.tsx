@@ -1570,8 +1570,8 @@ export function CreateAgentDialog({
             {stepped && advancedRowShown && <AdvancedSettingsRow summary={advancedSummary} onOpen={openAdvanced} />}
             </>
           )}
-          {stepped && advancedOpen && (
-            <AdvancedSettingsDialog onCancel={cancelAdvanced} onDone={closeAdvanced}>
+          {stepped && (
+            <AdvancedSettingsDialog open={advancedOpen} onCancel={cancelAdvanced} onDone={closeAdvanced}>
               {runtimeFormV2.status === "ready" && v2Values ? (
                 <RuntimeFormV2Fields
                   form={runtimeFormV2.form}

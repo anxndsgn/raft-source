@@ -124,7 +124,9 @@ export function AdvancedSettingsRow({ summary, onOpen }: { summary: string; onOp
  * the form directly; Cancel and × put back what was there when it opened
  * (`onCancel`), Done keeps it.
  */
-export function AdvancedSettingsDialog({ onCancel, onDone, children }: {
+export function AdvancedSettingsDialog({ open, onCancel, onDone, children }: {
+  /** Kept mounted while closed so it can fade out (task #27). */
+  open: boolean;
   onCancel: () => void;
   onDone: () => void;
   children: ReactNode;
@@ -135,6 +137,7 @@ export function AdvancedSettingsDialog({ onCancel, onDone, children }: {
       title={formatMessage({ id: "agent.create.advanced.title" })}
       onClose={onCancel}
       testId="create-agent-advanced-dialog"
+      open={open}
       narrow="sheet"
     >
       <div className="stack-y-1 md:pointer-fine:stack-y-4">
